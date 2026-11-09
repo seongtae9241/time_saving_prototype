@@ -24,6 +24,8 @@ class SeederSmokeTest {
         assertTrue(users.findByLoginId("admin").isPresent());
         assertTrue(services.count() >= 10);
         assertTrue(classes.count() >= 6);
+        assertEquals(4, classes.findAll().stream().filter(c -> c.one()).count()); // 1:1 클래스 o1~o4
+        assertTrue(classes.findAll().stream().filter(c -> !c.one() && !"DONE".equals(c.status.name())).allMatch(c -> c.capacity <= 4)); // 같이 해 보기 4명까지
         assertEquals(3, personas.count());
         BankService.Summary s = bank.summary(users.findByLoginId("yujin").orElseThrow().id);
         assertTrue(s.canUseSelf());

@@ -30,8 +30,8 @@
 | `life_reports` | 월간 생활 변화 리포트(`report_month`=YYYY-MM, 숫자는 `stats_json`, 서술은 `narrative`) | P-03~P-07 |
 | `edu_progress` | 첫 활동 교육 진행(진단·카드·퀴즈·역할극 결과) | B-01 |
 | `roleplay_personas` | 교육 역할극 가상 상대(대본 `turns_json`) | 교육 |
-| `classes` | 동네 클래스(선생님=사용자 또는 도움 대상, 공간·정원·출석 코드·배움 노트) | 동네 클래스 |
-| `class_enrollments` | 수강 신청·출석·후기 | 동네 클래스 |
+| `classes` | 동네 클래스(선생님=사용자 또는 도움 대상, 공간·정원·출석 코드·배움 노트). `mode`=ONE(1:1 배우기, 공간 배정 없이 바로 OPEN)/GROUP(같이 해 보기, 4명까지). 1:1은 `bio`·`tags`·`met`(만난 수)·`weekly_cap`(주당 정원)·`qs_json`(질문 예시)·`slots_json`(가능한 시간)·`meet`(열린 공공장소)·`teacher_label`/`teacher_age_label`(가림 표시 이름·나이) | 동네 클래스 |
+| `class_enrollments` | 수강 신청·출석·후기. 1:1 신청은 `one_status`(WAIT/OK/MET/DONE/CANCELLED)·`slot_date`·`slot_hour`·`question`(궁금한 점)·`proposed`(다른 시간 제안 중)·`note`(오늘 배운 한 줄)·`check_in_at`·`check_out_at` | 동네 클래스 |
 | `spaces` | 기관 공간 | 동네 클래스 |
 
 외래 키는 DB 제약 대신 `*_id` 숫자 칸으로 두고 서버 코드에서 검사한다(데모 규모, H2·MySQL 공통 단순화).
@@ -134,11 +134,27 @@ erDiagram
         bigint id PK
         bigint teacher_id
         bigint teacher_elder_id
+        varchar mode
         varchar kind
         date date
         double hours
         int capacity
+        int weekly_cap
+        int met
+        varchar meet
+        text slots_json
         varchar status
+    }
+    class_enrollments {
+        bigint id PK
+        bigint class_id
+        bigint user_id
+        varchar status
+        varchar one_status
+        date slot_date
+        double slot_hour
+        varchar question
+        varchar note
     }
     life_reports {
         bigint id PK

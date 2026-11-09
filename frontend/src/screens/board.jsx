@@ -13,6 +13,9 @@ const DATES = [['all', '전체 날짜'], ['today', '오늘'], ['week', '이번 �
 const SLOTS = [['all', '시간대'], ['am', '오전'], ['pm', '오후'], ['eve', '저녁']];
 
 /* ---------- 공고 게시판 (B-20) · 담당자 대리 요청(C-05) ---------- */
+/* 정렬 칩(가까운 순 ⇅)은 줄바꿈되지 않게(프로토타입처럼 한 줄) */
+const NW = { whiteSpace: 'nowrap' };
+
 export function Board() {
   const nav = useNavigate();
   const { me } = useAuth();
@@ -54,12 +57,12 @@ export function Board() {
           <button className={type === 'NEED' ? 'on' : ''} onClick={() => { setSp({ type: 'NEED' }, { replace: true }); setCat('전체'); }}>도움 요청 공고<br /><span style={{ fontSize: 12, fontWeight: 500 }}>봉사하고 싶을 때</span></button>
         </div>
       )}
-      <div className="row" style={{ gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+      <div className="row" style={{ gap: 6, marginBottom: 8 }}>
         <button className="tag2" onClick={() => pick('지역', [['', '행복구 전체'], ...AREAS.map((a) => [a, a])], area, setArea)}><Ic n="pin" s={14} />{area || '행복구 전체'} <Ic h={I.down} /></button>
         <button className="tag2" onClick={() => pick('날짜', DATES, dt, setDt)}>{DATES.find((d) => d[0] === dt)[1]} <Ic h={I.down} /></button>
         <button className="tag2" onClick={() => pick('시간대', SLOTS.map(([v, l]) => [v, v === 'all' ? '전체 시간대' : l]), slot, setSlot)}>{SLOTS.find((d) => d[0] === slot)[1]} <Ic h={I.down} /></button>
         <span className="grow" />
-        <button className="tag2" onClick={() => setSort(sort === 'near' ? 'new' : 'near')}>{sort === 'near' ? '가까운 순' : '최신순'} ⇅</button>
+        <button className="tag2" style={NW} onClick={() => setSort(sort === 'near' ? 'new' : 'near')}>{sort === 'near' ? '가까운 순' : '최신순'} ⇅</button>
       </div>
       <div className="chips">{['전체', ...CATS.map((c) => c.k)].map((k) => <button key={k} className={'chip ' + (k === cat ? 'on' : '')} onClick={() => setCat(k)}>{k === '전체' ? '전체' : SHORT[k]}</button>)}</div>
       {!elderId && <div className="tip" style={{ marginTop: 12, padding: '12px 16px' }}><div className="grow small"><Ic n="bell" s={16} /> 조건에 맞는 공고가 올라오면 알려드려요</div><button className="btn soft sm" style={{ width: 'auto', padding: '0 12px', minHeight: 36 }} onClick={() => nav('/my/alerts')}>관심 조건</button></div>}

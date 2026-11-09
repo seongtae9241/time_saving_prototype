@@ -12,10 +12,18 @@ create table auth_token (
 ) engine=InnoDB;
 
 create table class_enrollments (
+    proposed bit,
+    slot_date date,
+    slot_hour float(53),
+    check_in_at datetime(6),
+    check_out_at datetime(6),
     class_id bigint not null,
     created_at datetime(6),
     id bigint not null auto_increment,
     user_id bigint not null,
+    one_status varchar(10),
+    note varchar(300),
+    question varchar(300),
     review varchar(500),
     status enum ('APPLIED','ATTENDED','CANCELLED') not null,
     primary key (id)
@@ -25,8 +33,16 @@ create table classes (
     capacity integer not null,
     date date not null,
     hours float(53) not null,
+    met integer,
     start_hour float(53) not null,
+    weekly_cap integer,
     check_code varchar(6),
+    mode varchar(5),
+    teacher_age_label varchar(10),
+    teacher_label varchar(30),
+    meet varchar(100),
+    bio varchar(200),
+    tags varchar(200),
     created_at datetime(6),
     created_by bigint,
     id bigint not null auto_increment,
@@ -44,6 +60,8 @@ create table classes (
     note_json TEXT,
     status enum ('CANCELLED','DONE','OPEN','SPACE_PENDING') not null,
     steps_json TEXT,
+    qs_json TEXT,
+    slots_json TEXT,
     primary key (id)
 ) engine=InnoDB;
 

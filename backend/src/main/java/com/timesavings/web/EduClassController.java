@@ -27,7 +27,10 @@ public class EduClassController {
     public record QuizBody(List<Integer> answers) {}
     public record FinishRpBody(List<Map<String, Object>> log) {}
     public record ClassBody(String kind, String title, String intro, List<ClassService.Step> steps, String items, String caution,
-                            LocalDate date, Double startHour, Double hours, Integer capacity, Long teacherElderId) {}
+                            LocalDate date, Double startHour, Double hours, Integer capacity, Long teacherElderId,
+                            String mode, String bio, List<String> tags, List<String> qs, List<ClassService.Slot> slots, String meet, Integer weeklyCap) {}
+    public record OneApplyBody(LocalDate slotDate, Double slotHour, String question) {}
+    public record SlotBody(LocalDate date, Double hour) {}
     public record CodeBody(String code) {}
     public record FinishBody(List<String> steps, String tip) {}
     public record TextBody(String text) {}
@@ -57,8 +60,16 @@ public class EduClassController {
 
     // ---------------- 클래스 ----------------
     @GetMapping("/classes")
-    public List<Map<String, Object>> list(@CurrentUser User u, @RequestParam(required = false) String kind, @RequestParam(required = false) String status) {
-        return classes.list(u, kind, status);
+    public List<Map<String, Object>> list(@CurrentUser User u, @RequestParam(required = false) String kind, @RequestParam(required = false) String status,
+                                          @RequestParam(required = false) String mode) {
+        return classes.list(u, kind, status, mode);
+    }
+
+    /** 수업 열기 인터뷰 첫 단계: 금지 주제 확인(규칙만, AI 호출 없음) */
+    @PostMapping("/classes/check-topic")
+    public Map<String, Object> checkTopic(@RequestBody TextBody b) {
+        if (b.text() == null || b.text().isBlank()) throw ApiException.bad("TEXT_REQUIRED", "문장을 입력해 주세요");
+        return classes.checkTopic(b.text());
     }
 
     @GetMapping("/classes/mine")
@@ -70,8 +81,43 @@ public class EduClassController {
     @PostMapping("/classes")
     public Map<String, Object> create(@CurrentUser User u, @RequestBody ClassBody b) {
         NeighborClass c = classes.create(u, new ClassService.ClassCmd(b.kind(), b.title(), b.intro(), b.steps(), b.items(), b.caution(),
-                b.date(), b.startHour(), b.hours(), b.capacity(), b.teacherElderId()));
+                b.date(), b.startHour(), b.hours(), b.capacity(), b.teacherElderId(),
+                b.mode(), b.bio(), b.tags(), b.qs(), b.slots(), b.meet(), b.weeklyCap()));
         return classes.view(c, u);
+    }
+
+    // ---------------- 1:1 클래스 ----------------
+    @PostMapping("/classes/{id}/one/apply")
+    public Map<String, Object> oneApply(@CurrentUser User u, @PathVariable Long id, @RequestBody OneApplyBody b) {
+        classes.applyOne(u, id, b.slotDate(), b.slotHour(), b.question());
+        return classes.view(classes.get(id), u);
+    }
+
+    @PostMapping("/classes/{id}/one/cancel")
+    public Map<String, Object> oneCancel(@CurrentUser User u, @PathVariable Long id) { classes.cancelOne(u, id); return classes.view(classes.get(id), u); }
+
+    @PostMapping("/classes/{id}/one/accept-proposal")
+    public Map<String, Object> oneAcceptProposal(@CurrentUser User u, @PathVariable Long id) { classes.acceptProposal(u, id); return classes.view(classes.get(id), u); }
+
+    @PostMapping("/classes/{id}/one/start")
+    public Map<String, Object> oneStart(@CurrentUser User u, @PathVariable Long id, @RequestBody CodeBody b) { classes.startOne(u, id, b.code()); return classes.view(classes.get(id), u); }
+
+    @PostMapping("/classes/{id}/one/end")
+    public Map<String, Object> oneEnd(@CurrentUser User u, @PathVariable Long id, @RequestBody CodeBody b) { classes.endOne(u, id, b.code()); return classes.view(classes.get(id), u); }
+
+    @PostMapping("/classes/{id}/one/note")
+    public Map<String, Object> oneNote(@CurrentUser User u, @PathVariable Long id, @RequestBody TextBody b) { classes.noteOne(u, id, b.text()); return classes.view(classes.get(id), u); }
+
+    @PostMapping("/classes/one/enrollments/{eid}/accept")
+    public Map<String, Object> oneAccept(@CurrentUser User u, @PathVariable Long eid) {
+        ClassEnrollment e = classes.acceptOne(u, eid);
+        return classes.view(classes.get(e.classId), u);
+    }
+
+    @PostMapping("/classes/one/enrollments/{eid}/propose")
+    public Map<String, Object> onePropose(@CurrentUser User u, @PathVariable Long eid, @RequestBody SlotBody b) {
+        ClassEnrollment e = classes.proposeOne(u, eid, b.date(), b.hour());
+        return classes.view(classes.get(e.classId), u);
     }
 
     @PostMapping("/classes/{id}/apply")
@@ -101,7 +147,7 @@ public class EduClassController {
     // ---------------- 담당자: 공간 ----------------
     @GetMapping("/org/spaces")
     public Map<String, Object> spaces(@CurrentUser User u) {
-        return Views.map("spaces", spaces.findByOrgId(u.orgId), "pendingClasses", classes.list(u, null, "SPACE_PENDING"));
+        return Views.map("spaces", spaces.findByOrgId(u.orgId), "pendingClasses", classes.list(u, null, "SPACE_PENDING"), "oneClasses", classes.orgOneClasses(u));
     }
 
     @PostMapping("/org/spaces")

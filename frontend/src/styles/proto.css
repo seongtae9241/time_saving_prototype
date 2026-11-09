@@ -776,3 +776,27 @@ html.big #app{height:calc(100dvh / 1.15) !important}
  .btn,.chip,.tag2,.qa button,.tabs button,.click,.todo,.cl-card,.reg,.nc,.ml > div,.opt{transition:none}
  .btn:active,.chip:active,.click:active,.todo:active,.cl-card:active,.reg:active,.nc:active,.opt:active,.tabs button:active{transform:none}
 }
+/* ---------- 1:1 클래스 (황수빈 v2) ---------- */
+.one-card .ct,.one-hero .ct{font-size:17px;font-weight:700;letter-spacing:-.4px;line-height:1.35}
+.one-who{display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;background:#fff;color:#5B6370;white-space:nowrap}
+.one-who.e{background:#FFE4EC;color:#B02F56}
+.one-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.one-tags span{font-size:12.5px;font-weight:600;padding:4px 9px;border-radius:8px;background:#fff;color:#5B6370}
+.one-ft{display:flex;align-items:center;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(0,0,0,.06);font-size:13px;color:var(--sub)}
+.one-ft svg{flex:0 0 auto;color:#8A919C}
+.one-ft b{color:var(--ink);font-weight:700;white-space:nowrap}
+.one-q{list-style:none;margin:10px 0 0;padding:0}
+.one-q li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid rgba(0,0,0,.06);font-size:14.5px;line-height:1.45}
+.one-q li:first-child{border-top:0;padding-top:4px}
+.one-q li svg{flex:0 0 auto;margin-top:2px;color:var(--brand)}
+.one-quote{margin-top:10px;background:#fff;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.5}
+.one-safe{display:flex;gap:10px;margin-top:12px;padding:14px 16px;border-radius:var(--r);background:#EAF6EF;color:#17603E}
+.one-safe svg{flex:0 0 auto;margin-top:1px}
+.one-safe b{font-size:14.5px}
+.one-safe ul{margin:6px 0 0;padding-left:16px;font-size:13.5px;line-height:1.6;color:#1F5A3E}
+.org-one .card{background:#fff;padding:14px}
+.org-one .one-quote{background:var(--fill)}
+.one-qs{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.one-qs button{text-align:left;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;transition:transform .12s ease-out}
+.one-qs button:active{transform:scale(.985);background:var(--fill)}
+

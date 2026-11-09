@@ -104,8 +104,8 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 `life_reports`(id, subject_type[USER/ELDER], subject_id, month, stats_json, narrative, big_change, source, created_at)
 `edu_progress`(user_id, diag_json, cards_done, quiz_score, roleplay_json, completed_at)
 `roleplay_personas`(id, name, initial, age_label, fit_category, trait, goal, opening, turns_json, active)
-`classes`(id, teacher_id, teacher_elder_id, created_by, kind, title, intro, steps_json, items, caution, level, level_reason, date, start_hour, hours, place, space_id, capacity, status[SPACE_PENDING/OPEN/DONE/CANCELLED], note_json, created_at)
-`class_enrollments`(id, class_id, user_id, status[APPLIED/ATTENDED/CANCELLED], review, created_at)
+`classes`(id, teacher_id, teacher_elder_id, created_by, mode[ONE/GROUP], kind, title, intro, steps_json, items, caution, level, level_reason, date, start_hour, hours, place, space_id, capacity, status[SPACE_PENDING/OPEN/DONE/CANCELLED], note_json, bio, tags, met, weekly_cap, qs_json, slots_json, meet, teacher_label, teacher_age_label, created_at)
+`class_enrollments`(id, class_id, user_id, status[APPLIED/ATTENDED/CANCELLED], review, one_status[WAIT/OK/MET/DONE/CANCELLED], slot_date, slot_hour, question, proposed, note, check_in_at, check_out_at, created_at)
 `spaces`(id, org_id, name, capacity, equipment)
 `auth_token`(token, user_id, expires_at)
 
@@ -190,6 +190,11 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - `GET /api/classes/{id}/qr` (선생님/담당자: 출석 코드) · `POST /api/classes/{id}/finish` {steps[], tip} → 배움 노트, 정산 · `POST /api/classes/{id}/review` {text}
 - `GET /api/classes/mine` → {teaching:[…], applied:[…], past:[…]}
 - 담당자: `GET /api/org/spaces` · `POST /api/org/spaces` · `POST /api/org/classes/{id}/assign-space` {spaceId, place}
+- **1:1 클래스(황수빈 v2)**: `POST /api/classes` {mode:'ONE', kind, title, intro, steps, hours(기본 1), slots:[{date, hour}], meet, bio, tags[], qs[], weeklyCap(기본 2), teacherElderId?} → 공간 배정 없이 바로 OPEN
+- `POST /api/classes/{id}/one/apply` {slotDate, slotHour, question} (질문 필수, 슬롯은 선생님이 정한 것 중) → 수강생 HOLD h · `POST /api/classes/{id}/one/cancel` · `POST /api/classes/{id}/one/accept-proposal`
+- `POST /api/classes/one/enrollments/{eid}/accept` (선생님/담당자) · `POST /api/classes/one/enrollments/{eid}/propose` {date, hour}
+- `POST /api/classes/{id}/one/start` {code} (만나서 시작 QR: 보류 해제·−h, 선생님 +h) · `POST /api/classes/{id}/one/end` {code} (마침 QR: 만남 끝, met+1) · `POST /api/classes/{id}/one/note` {text}
+- `POST /api/classes/check-topic` {text} → {level, reason, category, source:'rule'} (수업 열기 인터뷰 금지 주제 확인)
 
 ### 5.10 담당자 (C-02~C-10, P-05)
 - `GET /api/org/home` → {todo:[…], counts:{elders, pendingFinal, logsToConfirm, active}, alerts:[…]}
@@ -222,6 +227,7 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 |---|---|---|
 | 사용자 | `yujin` / `1234` | 손유진, 행복동, 20대 — 프로토타입 `D.me` |
 | 사용자 | `sky`, `mikyung`, `doyun`, `bok`, `mom` / `1234` | 김하늘·최미경·이도윤·김복남·이순자(손유진 가족) |
+| 사용자 | `youngho`, `miyoung` / `1234` | 박영호(70대)·이미영(60대) — 1:1 클래스 어르신 선생님(화면 표시는 박○호 72세·이○영 68세) |
 | 담당자 | `org1` / `1234` | 박지원 (행복동 주민센터) — 도움 대상 4명(별칭 이순례·정말순·한영자·오덕수) |
 | 담당자 | `org2` / `1234` | 같은 기관 다른 담당자(이관 시연) |
 | 운영자 | `admin` / `1234` | 김운영 |
@@ -283,6 +289,13 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - `GET /api/org/spaces` → `{spaces, pendingClasses}`. 클래스 생성 시 담당자 전원에게 공간 배정 알림.
 - 수업을 마치면(`finish`) 오지 않은 수강생은 보류만 풀고 차감하지 않는다. 공동 적립 = 출석 수 × 수강료 − (수업 + 1시간), 0보다 클 때만.
 - DB `classes.check_code`(출석 코드) 추가.
+- **1:1 클래스(황수빈 v2, 2026-11-09)**: 클래스 `mode` ONE/GROUP(비면 GROUP). 같이 해 보기 정원은 1~4명(`INVALID_CAPACITY`), 수강료 = 시간 × 0.5. 1:1은 1시간 = 1시간(가중치 없음), 새 종류 `일·경험`.
+  - 1:1 응답 추가 필드: `mode`, `bio`, `tags`, `met`, `weeklyCap`, `left`(= 주당 정원 − (WAIT/OK/MET 신청 + 최근 7일 안에 끝난 만남)), `qs`, `slots:[{date,hour}]`, `meet`, `teacherAge`(표시 나이, 없으면 나이대), `managerName`(기관 어르신 선생님일 때), `myOne`{id,status,slotDate,slotHour,slotText,question,proposed,note,checkInAt,checkOutAt}(내 마지막 신청), 선생님/담당자에게만 `requests`[…+userName,userAgeGroup]·`newRequests`. `fee`=h, `teacherEarn`=h.
+  - 상태: WAIT(수락 대기) → OK(확정) → MET(시작 QR, 정산) → DONE(마침 QR). 다른 시간 제안 = WAIT + `proposed=true`, 학생이 `accept-proposal`하면 OK. 취소는 WAIT 언제든, OK는 약속 전날까지(당일 `LATE_CANCEL`), MET 이후 불가. 진행 중 신청이 있으면 `DUPLICATE`, 자리 없으면 `CLASS_FULL`, 질문 없으면 `QUESTION_REQUIRED`, 정하지 않은 시간이면 `INVALID_SLOT`.
+  - 정산: 신청 HOLD h → 시작 QR 때 RELEASE h + CLASS_FEE −h, 선생님 CLASS_EARN +h(어르신 선생님은 `ledger.elder_id`로 "기관이 대신 받음"). 만남 장소에 집·자택·호수 등 닫힌 곳이면 `MEET_NOT_PUBLIC`.
+  - 알림: 신청(선생님, 기관 어르신이면 담당자 → `/o/space`), 수락·시간 제안(학생), 제안 수락·취소·만남 끝·오늘 배운 한 줄(선생님/담당자). 유형 `CLASS_ONE_APPLY|ACCEPT|PROPOSE|CANCEL|DONE|NOTE`.
+  - 금지 주제(`RuleEngine.classFilter`): 침·뜸·마사지·지압·민간요법·약초 / 투자·주식·코인·보험·대출 / 전도·교회·포교·판매 → 400 `FORBIDDEN_REQUEST`(이유 문장). 그다음 봉사 금지 필터를 그대로 적용. 같이 해 보기 생성에도 쓴다.
+  - `GET /api/classes?mode=ONE|GROUP` 선택 필터. OPEN 목록은 1:1 먼저(연 순서), 같이 해 보기는 어르신 선생님 먼저. `GET /api/org/spaces`에 `oneClasses`(내가 맡은 어르신의 1:1 수업, `requests` 포함) 추가. 기존 `/apply`·`/attend`·`/finish`는 1:1 수업이면 400 `ONE_CLASS`, `/cancel`은 1:1 취소로 넘긴다.
 
 ### 7.7 담당자·운영자
 - 도움 대상 등록·수정·메모에 전화번호·계좌·상세 주소가 보이면 400 `PII_NOT_ALLOWED`. 동은 "○○동" 형식만.

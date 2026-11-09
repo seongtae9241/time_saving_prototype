@@ -15,7 +15,7 @@ public final class Rules {
     private static final Map<String, Level> CAT_LEVEL = Map.of(
             "말동무·정서", Level.BASIC, "디지털 도움", Level.BASIC, "생활 정리", Level.BASIC,
             "장보기·심부름", Level.EFFORT, "가벼운 집안일", Level.EFFORT, "동행", Level.RESPONSIBLE);
-    public static final List<String> CLASS_KINDS = List.of("요리", "손재주", "노래·이야기", "디지털", "생활 지혜");
+    public static final List<String> CLASS_KINDS = List.of("요리", "손재주", "노래·이야기", "디지털", "생활 지혜", "일·경험");
 
     public static double weight(Level l) {
         return switch (l) { case BASIC -> 1.0; case EFFORT -> 1.2; case RESPONSIBLE -> 1.5; };

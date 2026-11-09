@@ -58,6 +58,23 @@ public final class RuleEngine {
         return new FilterResult(FilterLevel.ALLOW, "봉사로 할 수 있는 도움이에요.", null, List.of());
     }
 
+    // ================= 동네 클래스 금지 주제 (황수빈 v2 1:1 클래스) =================
+    private static final List<Rule> CLASS_BLOCK = List.of(
+            new Rule(Pattern.compile("침\\s*(을|도)?\\s*(놓|뜨|맞|술)|침술|쑥뜸|뜸\\s*(을|도)?\\s*(뜨|놓|떠)|마사지|안마|지압|민간\\s*요법|약초|한약\\s*(만들|달이|짓)"),
+                    "시술·민간요법", "몸에 직접 하는 시술이나 민간요법은 다칠 수 있어서 수업으로 열 수 없어요.", List.of()),
+            new Rule(Pattern.compile("투자|주식|코인|비트코인|가상\\s*화폐|보험|대출|재테크\\s*상품|펀드\\s*가입"),
+                    "투자·보험 권유", "투자·보험·대출 권유는 금전 피해가 생길 수 있어 수업으로 열 수 없어요.", List.of()),
+            new Rule(Pattern.compile("전도|교회|포교|선교|성경\\s*공부|판매|팔아|팝니다|구매\\s*권유|다단계"),
+                    "종교·판매", "종교 활동이나 물건 판매는 수업으로 열 수 없어요.", List.of())
+    );
+
+    /** 클래스 주제 필터: 클래스 금지 주제를 먼저 보고, 그다음 봉사 금지 필터를 그대로 쓴다. */
+    public static FilterResult classFilter(String text) {
+        String t = text == null ? "" : text;
+        for (Rule r : CLASS_BLOCK) if (hit(r.p, t)) return new FilterResult(FilterLevel.BLOCK, r.reason, r.category, r.svc);
+        return filter(t);
+    }
+
     // ================= 난이도 (B-08, B-27) =================
     public record DifficultyResult(Level level, String reason, Map<String, Integer> factors) {}
 

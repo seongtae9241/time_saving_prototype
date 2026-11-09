@@ -57,7 +57,7 @@ export function UHome() {
   const up = list.filter((r) => ['CONFIRMED', 'IN_PROGRESS', 'CHECKED_OUT'].includes(r.status));
   const today = todayISO();
   const offer = (posts || []).filter((p) => !p.mine && p.status === 'OPEN');
-  const cls = (classes || []).filter((c) => c.status === 'OPEN').sort((a, b) => (b.teacherElderId ? 1 : 0) - (a.teacherElderId ? 1 : 0));
+  const cls = (classes || []).filter((c) => c.status === 'OPEN').sort((a, b) => ((b.mode === 'ONE') - (a.mode === 'ONE')) || ((b.elderTeacher ? 1 : 0) - (a.elderTeacher ? 1 : 0)));
   const bal = me ? me.available ?? me.balance : 0;
   return (
     <Screen title={`안녕하세요, ${me ? me.name : ''} 님`} back={false}>
@@ -92,7 +92,7 @@ export function UHome() {
           </div>
         );
       })}
-      {cls.length > 0 && <><div className="sec-t"><span>이번 주 동네 클래스</span><a role="button" tabIndex={0} onClick={() => nav('/cls', { replace: true })}>전체 ›</a></div><div className="cl-hs">{cls.map((c) => <ClsMini key={c.id} c={c} />)}</div></>}
+      {cls.length > 0 && <><div className="sec-t"><span>동네 클래스 · 1:1로 배워요</span><a role="button" tabIndex={0} onClick={() => nav('/cls', { replace: true })}>전체 ›</a></div><div className="cl-hs">{cls.map((c) => <ClsMini key={c.id} c={c} />)}</div></>}
       <div className="ai-ban click" role="button" tabIndex={0} onClick={() => nav('/recommend')}><div className="grow"><div className="ah2"><Spk />AI 도움 추천</div><div className="b" style={{ fontSize: 16.5, marginTop: 4 }}>어떤 도움을 받을 수 있을지<br />말로 물어보세요</div><div className="mute2" style={{ marginTop: 4 }}>“무릎이 아파서 장보기가 힘들어요”</div></div><div className="ai-orb"><Ic n="chat" s={28} /></div></div>
       <div className="qa">{[['/write', '공고 올리기', 'plus', '#3D6DF2'], ['/regular', '단골에게 요청', 'heart', '#E2557F'], ['/public', '공공 서비스 안내', 'building', '#1F9D63'], ['/my/alerts', '관심 공고 알림', 'bell', '#EE8424']].map(([g, t, i, c]) => <button key={g} onClick={() => nav(g)}><span style={{ background: `${c}14`, color: c }}><Ic n={i} s={22} /></span>{t}</button>)}</div>
       <div className="sec-t"><span>내 근처 봉사 가능 공고</span><a role="button" tabIndex={0} onClick={() => nav('/board?type=OFFER', { replace: true })}>더 보기 ›</a></div>
