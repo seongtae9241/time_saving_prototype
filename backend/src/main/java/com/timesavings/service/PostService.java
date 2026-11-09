@@ -29,7 +29,14 @@ public class PostService {
 
     public record PostCmd(PostType type, LocalDate date, Double startHour, Double endHour, String area, List<String> categories,
                           String title, String detail, String note, Double estHours, Boolean weekly, Integer weeks,
-                          Long elderId, Level difficulty, String difficultyReason) {}
+                          Long elderId, Level difficulty, String difficultyReason) {
+        /** 도움 요청 공고에 활동 시간이 없으면 시간 범위(최대 4시간)로 채운다. */
+        PostCmd withDefaultHours() {
+            if (type != PostType.NEED || estHours != null || startHour == null || endHour == null || endHour <= startHour) return this;
+            return new PostCmd(type, date, startHour, endHour, area, categories, title, detail, note,
+                    Math.min(4.0, endHour - startHour), weekly, weeks, elderId, difficulty, difficultyReason);
+        }
+    }
 
     public Post get(Long id) { return posts.findById(id).orElseThrow(() -> ApiException.notFound("공고를 찾을 수 없어요")); }
 
@@ -85,6 +92,7 @@ public class PostService {
             if (!views.isManagerOf(me, elder.id)) throw ApiException.forbidden("내가 담당하는 대상만 대신 올릴 수 있어요");
             if (elder.status != ElderStatus.ACTIVE) throw ApiException.bad("ELDER_ENDED", "지원이 종료된 대상이에요");
         }
+        c = c.withDefaultHours();
         validate(c, me, elder);
         int weeks = Boolean.TRUE.equals(c.weekly()) ? Math.max(1, Math.min(12, c.weeks() == null ? 4 : c.weeks())) : 1;
         String series = weeks > 1 ? UUID.randomUUID().toString() : null;

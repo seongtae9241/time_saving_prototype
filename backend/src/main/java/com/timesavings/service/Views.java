@@ -141,7 +141,7 @@ public class Views {
             "미래동", new double[]{0.6, -1.3}, "소망동", new double[]{-1.5, -0.6});
 
     public static double distanceKm(String from, String to, long seed) {
-        double[] a = DONG_XY.get(from), b = DONG_XY.get(to);
+        double[] a = from == null ? null : DONG_XY.get(from), b = to == null ? null : DONG_XY.get(to);
         double base = (a == null || b == null) ? (Objects.equals(from, to) ? 0 : 2.5) : Math.hypot(a[0] - b[0], a[1] - b[1]);
         return Math.round((base + 0.3 + (seed % 7) * 0.1) * 10) / 10.0;
     }

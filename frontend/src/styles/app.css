@@ -1,0 +1,66 @@
+/* 프로토타입 CSS에 없는 것만 더한다 (같은 변수·톤) */
+a.btn{text-decoration:none}
+.btn[disabled]{opacity:.7}
+.mic.on{background:#FFEDED;color:#E54848;box-shadow:0 0 0 4px rgba(229,72,72,.15)}
+.au-or{margin-top:22px}
+@media print{.hd,.tabs,.btn,.au-demo{display:none !important}#app{height:auto !important}.bd{overflow:visible}}
+
+/* 말로 요청하기 카드 (홈) */
+.voice-card{display:flex;align-items:center;gap:16px;width:100%;min-height:88px;border:0;border-radius:22px;padding:18px 20px;background:linear-gradient(135deg,#3D6DF2 0%,#5B84F5 100%);color:#fff;cursor:pointer;margin-top:4px;box-shadow:0 10px 24px rgba(61,109,242,.28);font:inherit}
+.voice-card:active{transform:scale(.985)}
+.vc-mic{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;flex:0 0 auto}
+.vc-t{display:block;font-size:22px;font-weight:800;letter-spacing:-.6px}
+.vc-d{display:block;font-size:15px;opacity:.9;margin-top:2px}
+
+/* 음성 요청서 화면 (voice_req) — 어르신용: 큰 글씨, 64px 이상 버튼 */
+.bd.vr{font-size:18px}
+.vr-big{min-height:64px !important;font-size:19px !important;border-radius:18px}
+.vr-tts{border:0;background:var(--fill);border-radius:999px;padding:10px 14px;font-weight:700;font-size:14.5px;cursor:pointer;color:var(--sub);min-height:44px}
+.vr-tts.on{background:var(--pri-soft);color:var(--brand)}
+.vr-log{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.vr-m{display:flex;flex-direction:column;max-width:92%}
+.vr-m.me{align-self:flex-end;align-items:flex-end}
+.vr-m.bt{align-self:flex-start}
+.vr-bub{padding:14px 18px;border-radius:20px;font-size:19px;line-height:1.55}
+.vr-m.me .vr-bub{background:var(--brand);color:#fff;border-top-right-radius:6px}
+.vr-m.bt .vr-bub{background:var(--fill);border-top-left-radius:6px}
+.vr-m.bt .vr-bub .spark{color:var(--brand);margin-right:6px}
+.vr-fix{border:0;background:none;color:var(--sub);font-size:14.5px;text-decoration:underline;text-underline-offset:3px;padding:8px 4px;cursor:pointer;min-height:44px}
+.vr-dock{margin-top:18px;padding:18px 0 4px;border-top:1px solid var(--line)}
+.vr-q{font-size:22px;font-weight:800;letter-spacing:-.6px;line-height:1.4;text-align:center;margin-bottom:16px}
+.vr-mic{width:112px;height:112px;border-radius:50%;border:0;background:var(--brand);color:#fff;display:inline-grid;place-items:center;cursor:pointer;box-shadow:0 12px 28px rgba(61,109,242,.35);position:relative}
+.vr-mic[disabled]{background:#D5DAE3;box-shadow:none}
+.vr-mic.on{background:#E54848;box-shadow:0 0 0 0 rgba(229,72,72,.5);animation:vrPulse 1.4s ease-out infinite}
+@keyframes vrPulse{0%{box-shadow:0 0 0 0 rgba(229,72,72,.45)}100%{box-shadow:0 0 0 26px rgba(229,72,72,0)}}
+.vr-wave{display:flex;gap:6px;justify-content:center;align-items:center;height:44px;margin:10px 0 2px;opacity:.25}
+.vr-wave i{width:7px;height:10px;border-radius:4px;background:var(--brand)}
+.vr-wave.on{opacity:1}
+.vr-wave.on i{animation:wv 1s ease-in-out infinite;background:#E54848}
+.vr-wave.on i:nth-child(2){animation-delay:.1s}.vr-wave.on i:nth-child(3){animation-delay:.2s}.vr-wave.on i:nth-child(4){animation-delay:.3s}.vr-wave.on i:nth-child(5){animation-delay:.4s}
+.vr-hint{font-size:17px;color:var(--sub);font-weight:600}
+.vr-nosr{background:#FFF5E3;color:#6E4A0E;border-radius:16px;padding:16px;font-size:18px;font-weight:700;text-align:center}
+.vr-type{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.vr-type textarea.in{min-height:96px;font-size:19px}
+.vr-card{margin-top:14px;background:#fff;border:2px solid #DCE5FD;border-radius:22px;padding:20px}
+.vr-card .ah{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:var(--brand);margin-bottom:6px}
+.vr-title{font-size:24px;font-weight:800;letter-spacing:-.7px;line-height:1.35;margin-bottom:8px}
+.vr-f{display:flex;flex-direction:column;gap:2px;padding:12px 12px;border-radius:14px;margin:0 -12px}
+.vr-f + .vr-f{border-top:1px dashed var(--line)}
+.vr-l{font-size:15px;color:var(--sub);font-weight:700}
+.vr-l em{font-style:normal;font-size:13px;font-weight:800;margin-left:6px;padding:2px 8px;border-radius:999px}
+.vr-v{font-size:21px;font-weight:700;line-height:1.45}
+.vr-f.mid{background:#FFF8DB}
+.vr-f.mid .vr-l em{background:#FFE58A;color:#7A5A00}
+.vr-f.low{background:#FFEDED}
+.vr-f.low .vr-l em{background:#FFD3D3;color:#B42318}
+.vr-say{font-size:19px;line-height:1.6;font-weight:600}
+.vr-choices{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.vr-choices button{min-height:64px;border:0;border-radius:16px;background:var(--fill);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px}
+.vr-choices button.on{background:var(--brand);color:#fff}
+.vr-emg{margin-top:14px;background:#FFEDEE;border-radius:22px;padding:22px;text-align:center;color:#7A1A1F}
+.vr-emg-t{font-size:26px;font-weight:800;letter-spacing:-.6px}
+.vr-emg p{font-size:19px;line-height:1.6;margin:10px 0 16px}
+.vr-emg .btn.warn{min-height:76px !important;font-size:24px !important;background:#E5484D}
+.vr-edit .in{font-size:18px}
+@media (prefers-reduced-motion:reduce){.vr-mic.on,.vr-wave.on i{animation:none}.vr-mic.on{box-shadow:0 0 0 8px rgba(229,72,72,.25)}}
+.chip-role{white-space:nowrap}

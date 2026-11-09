@@ -3,3 +3,4 @@ data/
 *.log
 .idea/
 *.iml
+src/main/resources/static/

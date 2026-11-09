@@ -30,7 +30,7 @@ spring:
 
 app:
   upload-dir: ./data/uploads
-  cors-origins: http://localhost:5173
+  cors-origins: http://localhost:*,http://127.0.0.1:*
   scheduler:
     enabled: true
   ai:

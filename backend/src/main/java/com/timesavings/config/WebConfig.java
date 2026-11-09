@@ -20,7 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
     private final AuthInterceptor interceptor;
     private final String[] origins;
 
-    public WebConfig(AuthInterceptor interceptor, @Value("${app.cors-origins:http://localhost:5173}") String origins) {
+    public WebConfig(AuthInterceptor interceptor, @Value("${app.cors-origins:http://localhost:*,http://127.0.0.1:*}") String origins) {
         this.interceptor = interceptor;
         this.origins = origins.split(",");
     }
@@ -32,7 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry r) {
-        r.addMapping("/api/**").allowedOrigins(origins)
+        r.addMapping("/api/**").allowedOriginPatterns(origins)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*").allowCredentials(true);
     }
