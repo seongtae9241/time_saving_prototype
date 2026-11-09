@@ -1,0 +1,39 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: time-savings
+  datasource:
+    url: jdbc:h2:file:./data/timesavings;MODE=MySQL;AUTO_SERVER=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: Asia/Seoul
+
+app:
+  upload-dir: ./data/uploads
+  cors-origins: http://localhost:5173
+  scheduler:
+    enabled: true
+  ai:
+    model: claude-haiku-5-5
+    url: https://api.anthropic.com/v1/messages
+    timeout-seconds: 20

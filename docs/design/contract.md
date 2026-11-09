@@ -231,3 +231,72 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 ## 7. 추가 기록 (개발 중 계약에 더한 것)
 
 - (백엔드가 여기에 추가)
+
+### 7.1 말로 요청하기 — `POST /api/ai/post-chat` 확장 (음성 분석보고서 4.8, 2026-11-09)
+- 요청에 `inputMode: 'text' | 'voice'` (기본 text). voice면 AI 프롬프트에 "받아쓰기라 띄어쓰기·오타·군말 섞임, 존댓말로 짧게 한 번에 하나만 되묻기, reply는 소리로 읽기 좋은 1~2문장"을 넣고, 규칙 모드도 되묻기 문장을 짧게 한다.
+- 응답에 추가: `intent`(`NEW_REQUEST`|`REGULAR_REQUEST`|`CHANGE_CANCEL`|`CONFIRM`|`QUESTION`|`CHAT`|`EMERGENCY`), `confidence`{`date`,`time`,`area`,`category`: `high`|`medium`|`low`}, `safety`{`emergency`:boolean, `piiRemoved`:[`phone`|`account`|`address`]}, `inputMode`, `draft.caution`, `draft.repeat`(예 "매주 목요일" 또는 null), `draft.summarySpeech`(done일 때만, 예 "11월 17일 화요일 오후 2시부터 2시간, 병원 동행 요청서를 만들었어요. 올릴까요?").
+- `missing` 값: `content`(도움 내용·카테고리) / `date` / `startHour` / `endHour`(OFFER만) / `estHours`(NEED만) / `area`. 한 번에 첫 항목 하나만 되묻는다.
+- 위급 표현("쓰러졌", "숨이 안", "피가 나" 등)이면 `intent=EMERGENCY`, `safety.emergency=true`, `done=false`, reply로 119 안내. 전화번호·계좌·상세 주소(아파트 동·호수, 번지, 도로명 번지)는 draft 본문에서 지우고 "(수락 뒤 메시지로 안내돼요)"로 바꾼다(AI 결과에도 서버가 다시 적용). 주의사항·세부 내용에는 병명을 남기지 않고 방문에 필요한 문장("걸음이 불편하셔서 천천히 걸어 주세요")만 둔다.
+- `CHANGE_CANCEL`/`CONFIRM`, 그리고 카테고리 없는 `QUESTION`/`CHAT`이면 요청서를 만들지 않고 reply로 해당 화면(내 활동, 공공 서비스 안내, 말동무 요청)을 안내한다.
+- 시각에 오전·오후가 없으면 1~6시는 오후로 보고 `confidence.time=medium`. 장소를 말하지 않으면 프로필 지역(담당자 대리면 대상의 동)을 채우고 `confidence.area=medium`.
+- `GET /api/ai/status` → `{mode: 'ai'|'rule'}` (키 유무 표시용).
+
+### 7.2 공고
+- `POST/PUT /api/posts` 본문에 선택 `difficulty`(BASIC/EFFORT/RESPONSIBLE), `difficultyReason`: 화면에서 AI 제안을 받아 확정한 등급. 카테고리 기본 등급보다 낮으면 기본 등급으로 올린다. 없으면 서버 규칙으로 정한다.
+- `POST /api/posts` 응답 = 첫 공고 PostCard + `createdCount`, `createdIds`(반복이면 여러 개).
+- PostCard 추가 필드: `elderCaution`, `difficultyReason`, `seriesId`, `createdAt`, `owner.intro`, `owner.photoUrl`, `owner.id`, `owner.name`. `estEarn`은 NEED만(= estHours × weight), OFFER는 null(요청 때 시간으로 계산).
+- `GET /api/posts/mine`: 각 카드에 `requestCount`(응답 대기 요청 수). `GET /api/posts/{id}`: 주인이 아니면 `requests: []`와 `myRequest`(내가 보낸 마지막 요청).
+- **공고 닫히는 시점**(B-17 우선): 1차 수락 때 공고 `MATCHED` + 같은 공고 나머지 SENT/VOL_ACCEPTED 자동 `REJECTED`("다른 요청이 수락됨"). REQUEST는 봉사자 수락(VOL_ACCEPTED) 때, PROPOSAL은 받는 쪽 수락(=최종) 때. 그 요청이 최종 거부·만료·취소·노쇼로 끝나면 공고는 `CLOSED`(다시 열리지 않음, B-19).
+- 관심 조건: `PUT /api/interest-alerts/{id}`, `DELETE /api/interest-alerts/{id}`. id 없는 `PUT /api/interest-alerts`는 첫 조건을 고치거나 새로 만든다. `dayType`: `평일`|`주말`|`상관없음`.
+
+### 7.3 요청·활동
+- `POST /api/requests/{id}/noshow` — 받는 쪽/담당자, CONFIRMED이고 시작 15분이 지났을 때 → `NOSHOW`, 봉사자 `penaltyCount+1`, 보류 해제.
+- 체크인·체크아웃 `method`: `qr` | `code`(기본) | `manual`(코드 없이, `checkMethod=manual`로 남아 받는 쪽 확인 필요 표시). 체크인 코드는 CONFIRMED 이후 받는 쪽·담당자의 RequestView에만 `checkCode`로 나온다.
+- RequestView 추가 필드: `rejectReason`, `checkMethod`, `logRaw`, `logSubmittedAt`, `anomalyHold`, `createdAt`, `doneAt`, `adjust.reason`, `volunteer.photoUrl`. 상세(`GET /api/requests/{id}`)에는 `messages`, `canMessage`도 들어간다. `GET /api/requests/{id}/messages` → `{messages, canMessage, notice}`.
+- `actions` 이름: `accept`, `reject`, `decline`, `cancel`(SENT는 보낸 사람만), `message`, `checkIn`, `checkOut`, `showCode`, `noshow`, `log`, `adjust`, `adjustAnswer`, `confirm`, `rate`, `appeal`, `report`.
+- `box`: `received`=내가 보내지 않은 응답 대기(SENT/VOL_ACCEPTED), `sent`=내가 보낸 것, `active`=VOL_ACCEPTED~LOG_SUBMITTED, `done`=끝난 상태 전부(DONE·거절·만료·취소·노쇼), `all`. 담당자 `GET /api/org/requests?box=received`는 내 결정이 필요한 것(제안·최종 수락·일지 확인).
+- 봉사 자격(B-01): 신분증 인증(`idStatus=APPROVED`)이 끝난 사용자만 OFFER 공고·제안·봉사자 수락이 된다(`ID_NOT_VERIFIED`). 안전 교육 수료는 배지로만 보이고 서버가 막지 않는다.
+- 단골 요청(REGULAR)은 같은 받는 사람에게 DONE 3회 이상인 봉사자에게만(`NOT_REGULAR`).
+- 평가 태그에서 돈 관련 낱말(돈·용돈·현금·팁 등)은 서버가 뺀다.
+- 정산: 받는 쪽 HOLD = `estEarn`(예정 시간 × 가중치), DONE 때 RELEASE 후 USE = 실제 적립 시간(조정 승인 시 조정 시간 × 가중치). 봉사자 EARN과 같은 값이라 시간 총량이 맞는다.
+
+### 7.4 시간 통장
+- `GET /api/bank`·`GET /api/me` 추가 필드: `available`(= balance − hold), `usable`(B-33 반영해 지금 쓸 수 있는 시간), `canUseSelf`, `selfUseMin`(10). `balance`는 보류를 빼지 않은 합계.
+- 오류 코드: `SELF_USE_LOCKED`(직접 적립 10시간 미만, 선물받은 시간 부족), `INSUFFICIENT_BALANCE`.
+- ledger 거래 종류에 `POOL`(공동 적립, user_id 없음) 추가. `ledger.elder_id` 칸 추가: 어르신 선생님(도움 대상) 적립을 "기관이 대신 받음"으로 기록(user_id 없음).
+- entries 항목에 `requestId`, `classId`도 준다.
+
+### 7.5 마이페이지·가족
+- `GET /api/family` 항목에 `theyShare`(상대가 나에게 리포트 공유에 동의했는지). `shareReport`는 내 동의. DB `family_links.target_share_report` 칸 추가(받은 쪽의 동의).
+- `GET /api/family/{userId}/report` → `{user, reports:[LifeReport], latestMonth}`. 연결 + 상대 동의가 있어야 하고 본인은 403.
+- `GET /api/my/activities` 항목에 `itemType`: `request`(RequestView) | `post`(PostCard, `seg=posts`일 때).
+- `GET /api/certificate`에 `totalEarned`, `eduDone`, `issuedAt` 추가.
+- `GET /api/me/withdraw-check`에 `canWithdraw`. 진행 중인 요청이 있으면 `POST /api/me/withdraw`는 409 `ACTIVE_REQUESTS`.
+- `GET /api/users/{id}/profile`에 `area`, `categories`, `timeSlots`, `idVerified`, `helpCount` 추가.
+
+### 7.6 교육·클래스
+- `GET /api/edu`: `personas[].turns[].options`는 문장(`t`)만(판정 숨김), `quiz`는 정답 없이 `{no, q, options, card}`. `rules`는 진단 카테고리에 맞춤 카드 2장까지 더한 목록.
+- `POST /api/ai/roleplay` 응답에 `turn`, `source` 추가. 대본 선택지와 같은 문장이면 대본 판정을 쓴다.
+- `POST /api/edu/roleplay/{personaId}/finish` 응답: `{safe, comm, emp, pass, flags, fixes:[{said, better, flag}], good}`. log 항목 `{who:'me'|'them', text, quality?, flag?}`.
+- 클래스 응답 필드: `teacherName`(도움 대상 선생님은 담당자에게만 별칭 원문, 그 외 "한○자"), `teacherAgeGroup`, `elderTeacher`(60대 이상 또는 도움 대상), `byOrg`, `steps:[{t,min}]`, `joined`, `fee`, `teacherEarn`, `poolIfFull`, `myEnrollment`, `host`, `note`, `reviews`.
+- `GET /api/classes?status=DONE`으로 지난 수업(배움 노트) 목록. 기본은 OPEN, 어르신 선생님 먼저.
+- `GET /api/org/spaces` → `{spaces, pendingClasses}`. 클래스 생성 시 담당자 전원에게 공간 배정 알림.
+- 수업을 마치면(`finish`) 오지 않은 수강생은 보류만 풀고 차감하지 않는다. 공동 적립 = 출석 수 × 수강료 − (수업 + 1시간), 0보다 클 때만.
+- DB `classes.check_code`(출석 코드) 추가.
+
+### 7.7 담당자·운영자
+- 도움 대상 등록·수정·메모에 전화번호·계좌·상세 주소가 보이면 400 `PII_NOT_ALLOWED`. 동은 "○○동" 형식만.
+- `GET /api/org/elders` 항목: `alias`, `displayName`, `maskedName`, `regularCount`, `activeCount`, `monthDone`, `doneTotal`, `flag`(최근 리포트 큰 변화). `GET /api/org/transfers` 항목에 `direction`('in'|'out'). `GET /api/org/home`의 `counts`에 `spacePending`, `flaggedReports`, `transfersIn`.
+- `GET /api/org/reports?month=` 기본은 지난달, 항목에 `reportConsent`.
+- 운영자 대시보드 추가: `kpi{activities, prevActivities, matchRate, elderUsage, prevElderUsage}`, `weekly:[{label, supply, demand}]`, `timeBalance.useRatio`, `edu`, `classes`, `pending.anomalies`. `monthly` 항목: `{month, activities, elderUsage, supply, demand, issued, consumed}`.
+- `POST /api/admin/orgs/{id}/approve` → `{managerLoginId, tempPassword, managerId, ...}`(임시 비밀번호는 이 응답에서만).
+- 이상 패턴(D-06): 최근 30일 같은 쌍의 1시간 이하 DONE 3회 이상. `hold`는 이미 적립된 건이면 ADJUST −적립, `release`는 ADJUST +적립(정산 전 보류면 정산 때 적립하지 않음).
+- `POST /api/admin/reports/{id}/handle`의 `action`이 없으면 상태만 REVIEWING. WARNING은 대상 `warningCount+1`, SUSPEND/BAN은 계정 정지.
+- `POST /api/admin/reports/generate` 본문 `{month?: 'YYYY-MM'}` 기본 지난달 → `{month, generated}`.
+
+### 7.8 기타
+- `GET /api/files/{id}`는 로그인 없이 열린다(`<img>` 태그가 헤더를 못 보내므로). 파일 이름은 추측할 수 없는 32자 무작위 값.
+- 음성 알림(B-42)은 모의: `voiceAlert=true` 사용자에게 알림이 생기면 서버 로그에 `[VOICE-MOCK]`만 남긴다. 프론트가 필요하면 브라우저 음성 합성으로 읽어 준다.
+- DB 열 이름: `life_reports.month`는 H2 예약어라 `report_month`(JSON 필드 이름은 그대로 `month`). `requests`에 `log_submitted_at`, `adjust_reason`, `anomaly_hold`, `reminded`, `late_notified` 추가.
+- 알림(Notification) 필드: `{id, userId, type, title, body, link, isRead, createdAt}`. `link`는 프론트 경로 힌트(`/requests/{id}` 등).
+

@@ -1,0 +1,15 @@
+# db/schema.sql 재생성용 프로필 (SPRING_PROFILES_ACTIVE=schema). 엔티티에서 MySQL DDL을 뽑는다.
+spring:
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        hbm2ddl.delimiter: ";"
+        format_sql: true
+      jakarta:
+        persistence:
+          schema-generation:
+            scripts:
+              action: create
+              create-target: ../db/schema.generated.sql
+              create-source: metadata
