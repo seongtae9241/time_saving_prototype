@@ -116,7 +116,67 @@ public class DataSeeder implements ApplicationRunner {
         seedCurrent(org1);
         seedClasses(org1, room, hall, senior);
         seedMisc(org1);
+        seedInsights();
         lifeReports.generate(YearMonth.from(today).minusMonths(1));
+    }
+
+    // ======================= 회의반영 4·5장: 전달 메모, 계절·나이대 추이, 카테고리 밖 요청 =======================
+    private void memoOn(java.util.function.Predicate<Request> who, int nth, String memo) {
+        List<Request> list = requests.findAll().stream().filter(r -> r.status == ReqStatus.DONE && who.test(r))
+                .sorted(Comparator.comparing((Request r) -> r.date).reversed()).toList();
+        if (list.size() > nth) list.get(nth).careMemo = memo;
+    }
+
+    private void seedInsights() {
+        Long e1 = E.get("e1").id, e3 = E.get("e3").id, yujin = U.get("yujin").id, bok = U.get("bok").id;
+        memoOn(r -> e1.equals(r.elderId), 0, "손녀가 다음 주에 온다고 기뻐하셨어요. 다음 방문 때 사진첩을 같이 보기로 했어요.");
+        memoOn(r -> e1.equals(r.elderId) && "동행".equals(r.category), 0, "보건소에서 다음 달 정기 검진 날짜를 안내받았어요. 접수증은 냉장고에 붙여 두었어요.");
+        memoOn(r -> e1.equals(r.elderId), 2, "현관 계단 손잡이가 흔들려요. 담당자님께 확인 부탁드려요.");
+        memoOn(r -> e3.equals(r.elderId), 0, "영상통화 버튼을 바탕화면 맨 앞으로 옮겼어요. 다음에는 사진 보내기를 한 번 더 연습해요.");
+        memoOn(r -> bok.equals(r.recipientId) && "동행".equals(r.category), 0, "내과에서 일주일 뒤 다시 오라고 했어요. 약 봉투에 먹는 시간을 크게 적어 드렸어요.");
+        memoOn(r -> yujin.equals(r.recipientId), 0, "산책 코스를 공원 둘레길로 바꿨어요. 다음엔 조금 일찍 만나기로 했어요.");
+
+        // 계절별 추이(6~11달 전): 겨울 동행·여름 집안일·봄 말동무·가을 장보기가 많게
+        String[] vols = {"sky", "mikyung", "doyun", "mom", "bok"};
+        String[] eks = {"e1", "e2", "e3", "e4"};
+        for (int k = 11; k >= 6; k--) {
+            YearMonth ym = YearMonth.from(today).minusMonths(k);
+            String main = switch (ym.getMonthValue()) {
+                case 12, 1, 2 -> "동행"; case 6, 7, 8 -> "가벼운 집안일"; case 3, 4, 5 -> "말동무·정서"; default -> "장보기·심부름";
+            };
+            String[] cats = {main, main, main, main, "디지털 도움", "생활 정리"};
+            for (int i = 0; i < cats.length; i++) {
+                String c = cats[i];
+                double h = "동행".equals(c) ? 2 : 1.5;
+                int day = Math.min(ym.lengthOfMonth(), 3 + i * 4);
+                done(vols[(i + k) % vols.length], null, eks[(i + k) % eks.length], ym.atDay(day), 10 + (i % 3) * 2, h, c,
+                        c + " 도움", c + "을(를) 함께했어요.", null, i == 0);
+            }
+        }
+
+        // 동행 수요 > 공급: 확정되지 못한 동행 요청 공고(지난 석 달)
+        for (int m = 1; m <= 3; m++) {
+            LocalDate d = today.minusDays(20L * m);
+            post(PostType.NEED, null, E.get(m % 2 == 0 ? "e4" : "e1"), d, 9, 12, m % 2 == 0 ? "사랑동" : "행복동", List.of("동행"),
+                    "정형외과 진료 같이 가 주세요", "오전 진료라 9시 전에 출발해야 해요", null, 2.0, PostStatus.CLOSED, d.minusDays(5).atTime(9, 0));
+        }
+
+        // 6개 카테고리에 잘 맞지 않는 요청(새 카테고리 후보 분석용)
+        Object[][] odd = {
+                {"e1", "가벼운 집안일", "거실 형광등 교체", "거실 형광등이 나가서 갈아 주실 분 찾아요"},
+                {"e4", "가벼운 집안일", "욕실 전구 교체", "욕실 전구가 깜빡거려요. 교체 부탁드려요"},
+                {"e2", "가벼운 집안일", "방충망 고정", "방충망이 떨어졌어요. 고정해 주실 분이 필요해요"},
+                {"e2", "생활 정리", "고양이 모래 갈기", "고양이 모래를 갈아 주실 분이 필요해요"},
+                {"e3", "생활 정리", "화분 분갈이", "베란다 화분 분갈이를 같이 해 주세요"},
+                {"e4", "디지털 도움", "민원 신청 도움", "주민센터 민원 신청서 쓰는 걸 도와주세요"}};
+        for (int i = 0; i < odd.length; i++) {
+            Elder el = E.get((String) odd[i][0]);
+            LocalDate d = today.plusDays(3 + i);
+            post(PostType.NEED, null, el, d, 14, 17, el.dong, List.of((String) odd[i][1]), (String) odd[i][2], (String) odd[i][3], null, 1.0,
+                    PostStatus.OPEN, today.minusDays(i + 1L).atTime(10, 0));
+        }
+        post(PostType.NEED, U.get("bok"), null, today.plusDays(5), 15, 17, "행복동", List.of("가벼운 집안일"), "강아지 돌봄 부탁",
+                "강아지 밥 주고 동네 한 바퀴 걸어 주실 분", null, 1.0, PostStatus.OPEN, today.minusDays(2).atTime(11, 0));
     }
 
     // ======================= 기본 객체 =======================

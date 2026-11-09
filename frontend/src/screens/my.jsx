@@ -81,12 +81,14 @@ export function My() {
             <button className="btn ghost" style={{ marginTop: 12 }} onClick={closeSheet}>닫기</button></>
         ))} />
         <Mi t="봉사 확인서 발급" s="활동 기록을 PDF로 받아요" i="file" onClick={() => nav('/my/cert')} />
+        <Mi t="AI 분석" s="내 활동·평가 습관 분석 · 봉사 플랜" i="chart" onClick={() => nav('/my/insight')} />
+        <Mi t="내가 받은 도움 리포트" s="최근 활동 일지·전달 메모 모아 보기" i="file" onClick={() => nav('/my/report')} />
       </div>
       <div className="sec-t">가족</div>
       <div className="ml">
         <Mi t="가족 연결" s={fam0 ? `${fam0.relation || ''} ${fam0.user.name} · 연결됨${linked.length > 1 ? ` 외 ${linked.length - 1}명` : ''}` : '연결된 가족이 없어요'} i="users" onClick={() => nav('/my/family')} />
         {fam0 && <Mi t="가족 대신 도움 요청" s={`${fam0.user.name} 님 이름으로 공고 올리기`} i="chat" onClick={() => nav(`/write/need?family=${encodeURIComponent(fam0.user.name)}`)} />}
-        {fam0 && <Mi t="가족 생활 변화 리포트" s={`${fam0.user.name} 님 리포트`} i="chart" onClick={() => nav(`/my/family/${fam0.user.id}/report`)} />}
+        {fam0 && <Mi t="가족 리포트" s={`${fam0.user.name} 님 최근 활동·메모 (공유 동의한 경우)`} i="chart" onClick={() => nav(`/my/family/${fam0.user.id}/report`)} />}
         <Mi t="내 리포트 공유 동의" s="가족 연결 화면에서 가족마다 켜고 꺼요" i="heart" onClick={() => nav('/my/family')} />
       </div>
       <div className="sec-t">알림·도움</div>

@@ -31,6 +31,9 @@ public class RequestService {
     private final Views views;
     private final AiClient ai;
     private final AuthService auth;
+    /** O1 담당자 "이 봉사자 받지 않기" 검사용(생성자를 바꾸지 않으려고 필드 주입). */
+    @org.springframework.beans.factory.annotation.Autowired private ElderBlockRepo blocks;
+    public static final int CARE_MEMO_MAX = 500;
 
     public RequestService(RequestRepo repo, PostRepo posts, UserRepo users, ElderRepo elders, MessageRepo messages,
                           RatingRepo ratings, DifficultyAppealRepo appeals, BankService bank, NotificationService noti,
@@ -130,6 +133,9 @@ public class RequestService {
         }
         if (r.volunteerId == null || r.volunteerId.equals(r.recipientId) || (post != null && post.elderId == null && me.id.equals(post.ownerId) && c.kind() == Kind.REQUEST))
             throw ApiException.bad("OWN_POST", "내 공고에는 요청할 수 없어요");
+        if (r.elderId != null && blocks != null && blocks.existsByElderIdAndVolunteerId(r.elderId, r.volunteerId))
+            throw new ApiException(org.springframework.http.HttpStatus.FORBIDDEN, "VOLUNTEER_BLOCKED",
+                    me.id.equals(r.volunteerId) ? "담당자가 이 대상의 봉사를 받지 않기로 했어요. 다른 공고를 찾아봐 주세요" : "이 대상에게 받지 않기로 한 봉사자예요");
         checkVolunteerEligible(users.findById(r.volunteerId).orElse(null));
 
         // 일정 (B-10, B-22)
@@ -370,10 +376,18 @@ public class RequestService {
 
     // ======================= 활동 일지 (B-24) =======================
     public Request submitLog(User me, Long id, String raw, String text, String photoUrl, boolean photoConsent) {
+        return submitLog(me, id, raw, text, photoUrl, photoConsent, null);
+    }
+
+    /** careMemo: 전달 메모(선택, 500자까지). null 이면 그대로 두고, 빈 문자열이면 지운다. */
+    public Request submitLog(User me, Long id, String raw, String text, String photoUrl, boolean photoConsent, String careMemo) {
         Request r = get(id);
         requireVolunteer(requireRole(r, me));
         requireStatus(r, ReqStatus.CHECKED_OUT, ReqStatus.LOG_SUBMITTED);
         if (raw == null || raw.isBlank()) throw ApiException.bad("LOG_REQUIRED", "무엇을 했는지 한 줄은 꼭 적어 주세요");
+        String cm = careMemo == null ? null : careMemo.trim();
+        if (cm != null && cm.length() > CARE_MEMO_MAX) throw ApiException.bad("MEMO_TOO_LONG", "전달 메모는 " + CARE_MEMO_MAX + "자까지 적을 수 있어요");
+        if (cm != null) r.careMemo = cm.isEmpty() ? null : cm;
         r.logRaw = raw.trim();
         r.logText = text != null && !text.isBlank() ? text.trim() : (String) ai.logTidy(raw).get("text");
         r.photoConsent = photoConsent;

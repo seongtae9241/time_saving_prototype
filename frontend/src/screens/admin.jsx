@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
-import { Ic, Mi, Loading, Empty, useLoad, useBusy, hbars } from '../ui/bits.jsx';
+import { Ic, Mi, Spk, Mod, RuleNote, Loading, Empty, useLoad, useBusy, hbars } from '../ui/bits.jsx';
 import { useUi } from '../ui/ctx.jsx';
 import { api, post, put, del } from '../api.js';
-import { CATS, SHORT, AREAS, fmt, dshort, arr, lvName } from '../lib/format.js';
+import { CATS, CC, SHORT, AREAS, fmt, dshort, arr, lvName } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useLogout } from './my.jsx';
 
@@ -27,6 +27,104 @@ function groupBars(rows) {
         );
       })}
     </svg>
+  );
+}
+
+/* ---------- 5장 분석: 나이대·월별 추이·수요 공급·AI 인사이트 ---------- */
+const ccOf2 = (k) => (CC[k] || ['#EEF3FF', '#3D6DF2'])[1];
+function stackBars(months) {
+  const W2 = 320, H = 170, pt = 18, pb = 26;
+  const max = Math.max(1, ...months.map((m) => Number(m.total) || 0)) * 1.1;
+  const cw = (W2 - 8) / Math.max(1, months.length), bw = Math.min(16, cw - 6);
+  return (
+    <svg viewBox={`0 0 ${W2} ${H}`} className="chart" role="img" aria-label="월별 카테고리 추이">
+      {months.map((m, i) => {
+        const cx = 4 + cw * i + cw / 2;
+        let y = H - pb;
+        const segs = Object.entries(m.counts || {}).filter(([, v]) => v > 0).map(([k, v]) => {
+          const h = ((H - pt - pb) * v) / max; y -= h;
+          return <rect key={k} x={cx - bw / 2} y={y} width={bw} height={h} fill={ccOf2(k)}><title>{`${k} ${v}건`}</title></rect>;
+        });
+        const mo = Number(String(m.month).slice(5));
+        return (
+          <g key={m.month}>
+            {segs}
+            {m.total > 0 && <text x={cx} y={y - 4} textAnchor="middle" fontSize="9.5" fontWeight="700" fill="#5F6672">{m.total}</text>}
+            <text x={cx} y={H - 8} textAnchor="middle" fontSize="10.5" fill={i === months.length - 1 ? '#1B1D22' : '#687080'} fontWeight={i === months.length - 1 ? 700 : 400}>{mo}월</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function AgeCard({ a }) {
+  const [seg, setSeg] = useState('rec');
+  const rows = (seg === 'rec' ? a.byRecipientAge : a.byVolunteerAge) || [];
+  const mx = Math.max(1, ...rows.map((r) => r.total));
+  return (
+    <div className="card" style={{ marginTop: 12 }}>
+      <div className="between"><span className="b">나이대별 인기 봉사</span><span className="mute2">최근 {a.periodMonths || 12}개월</span></div>
+      <div className="chips" style={{ margin: '8px 0 4px' }}>{[['rec', '봉사받는 사람'], ['vol', '봉사자']].map(([k, t]) => <button key={k} className={'chip ' + (seg === k ? 'on' : '')} onClick={() => setSeg(k)}>{t}</button>)}</div>
+      {rows.length ? rows.map((r) => (
+        <div key={r.ageGroup} style={{ padding: '8px 0', borderTop: '1px dashed var(--line)' }}>
+          <div className="between"><b>{r.ageGroup}</b><span className="mute2">{r.total}건</span></div>
+          <div style={{ display: 'flex', height: 10, borderRadius: 6, overflow: 'hidden', background: 'var(--fill, #F1F2F5)', margin: '6px 0', width: `${Math.max(12, (r.total / mx) * 100)}%` }}>
+            {Object.entries(r.counts || {}).map(([k, v]) => <i key={k} title={`${k} ${v}`} style={{ width: `${(v / r.total) * 100}%`, background: ccOf2(k) }} />)}
+          </div>
+          <div className="small muted">{(r.top || []).map((t, i) => `${i + 1}위 ${SHORT[t.category] || t.category} ${t.count}`).join(' · ')}</div>
+        </div>
+      )) : <Empty>아직 데이터가 없어요</Empty>}
+    </div>
+  );
+}
+
+function InsightCard() {
+  const [ins, setIns] = useState(undefined);
+  const [busy, run] = useBusy();
+  const load = (refresh) => run(async () => { const r = await api(`/admin/insights${refresh ? '?refresh=true' : ''}`); setIns(r); });
+  useEffect(() => { load(false); }, []); // eslint-disable-line
+  return (
+    <div className="ai" style={{ marginTop: 12 }}>
+      <div className="ah"><Spk />AI 인사이트<Mod n={5} /></div>
+      {ins === undefined ? <div className="skel" /> : !ins ? <div className="small">불러오지 못했어요</div> : (
+        <>
+          <div className="small">{ins.summary}</div>
+          {(ins.shortages || []).length > 0 && <><div className="b" style={{ fontSize: 13.5, marginTop: 10 }}>공급이 부족한 봉사</div>
+            {ins.shortages.map((s) => <div key={s.category} className="small" style={{ marginTop: 6 }}><b>{s.category}</b> <span className="mute2">수요 {s.demand} · 공급 {s.supply} (−{s.gap})</span><div>{s.reason}</div></div>)}</>}
+          {(ins.newCategories || []).length > 0 && <><div className="b" style={{ fontSize: 13.5, marginTop: 12 }}>새 카테고리 후보</div>
+            {ins.newCategories.map((c) => <div key={c.name} className="small" style={{ marginTop: 6 }}><span className="tag2">{c.name}</span> {c.reason}{(c.examples || []).length > 0 && <div className="mute2" style={{ marginTop: 3 }}>예: “{c.examples.join('”, “')}”</div>}</div>)}</>}
+          <div className="mute2" style={{ marginTop: 10 }}>카테고리에 안 맞는 요청 문장 {ins.unmatchedCount ?? 0}개 분석 · 숫자는 시스템 집계, 이유는 AI 짐작 · {ins.cached ? '1시간 안 결과(캐시)' : '방금 분석'} {ins.generatedAt ? `· ${dshort(ins.generatedAt)}` : ''}</div>
+          <RuleNote source={ins.source} />
+        </>
+      )}
+      <button className="btn soft sm" style={{ marginTop: 10 }} disabled={busy} onClick={() => load(true)}>{busy ? '분석 중…' : '다시 분석'}</button>
+    </div>
+  );
+}
+
+function AnalyticsCards() {
+  const [a] = useLoad(() => api('/admin/analytics', { quiet: true }), []);
+  if (!a) return a === undefined ? <Loading /> : null;
+  const sd = a.supplyDemand || [];
+  const cats = Object.keys(((a.monthlyCategory || [])[0] || {}).counts || {});
+  return (
+    <>
+      <AgeCard a={a} />
+      <div className="card" style={{ marginTop: 12 }}>
+        <div className="between"><span className="b">월(계절)별 인기 봉사</span><span className="mute2">완료 활동</span></div>
+        {stackBars(a.monthlyCategory || [])}
+        <div className="legend" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px' }}>{cats.map((k) => <span key={k}><i style={{ background: ccOf2(k) }} />{SHORT[k] || k}</span>)}</div>
+        <div className="small muted" style={{ marginTop: 8 }}>{(a.seasons || []).filter((s) => s.total > 0).map((s) => `${s.season}: ${(s.top || []).map((t) => SHORT[t.category] || t.category).join('·')}`).join(' / ')}</div>
+      </div>
+      <div className="card" style={{ marginTop: 12 }}>
+        <div className="between"><span className="b">카테고리별 수요 vs 공급</span><span className="legend"><i style={{ background: '#F59E4B' }} />수요<i style={{ background: '#3D6DF2', marginLeft: 8 }} />공급</span></div>
+        {groupBars(sd.map((s) => [SHORT[s.category] || s.category, Number(s.demand) || 0, Number(s.supply) || 0]))}
+        <div className="small muted" style={{ marginTop: 4 }}>{sd.filter((s) => s.gap > 0).map((s) => `${SHORT[s.category] || s.category} ${s.gap}건 부족`).join(' · ') || '부족한 카테고리가 없어요'}</div>
+        <div className="mute2" style={{ marginTop: 6 }}>최근 {a.supplyDemandDays}일 · 수요 = 도움 요청 공고 + 받는 쪽 요청, 공급 = 봉사 가능 공고 + 수락된 건</div>
+      </div>
+      <InsightCard />
+    </>
   );
 }
 
@@ -58,6 +156,7 @@ export function ADash() {
       )}
       {monthly.length > 0 && <div className="card" style={{ marginTop: 12 }}><div className="between"><span className="b">수요 vs 공급 (주별 공고)</span><span className="legend"><i style={{ background: '#F59E4B' }} />도움 요청<i style={{ background: '#3D6DF2', marginLeft: 8 }} />봉사 가능</span></div>{groupBars(monthly)}</div>}
       <div className="card" style={{ marginTop: 12 }}><div className="b">지역별 매칭 성공률</div>{(x.matchRateByArea || []).length ? hbars(x.matchRateByArea.map((a) => [a.area, Number(a.rate) || 0]), '#3D6DF2') : <Empty>아직 데이터가 없어요</Empty>}<div className="mute2" style={{ marginTop: 8 }}>요청·제안 중 일정 확정까지 간 비율(%)이에요.</div></div>
+      <AnalyticsCards />
       <div className="card" style={{ marginTop: 12 }}>
         <div className="b">시간 균형</div>
         <div className="stat2" style={{ marginTop: 10 }}><div><b>{fmt(tb.issued)}시간</b><span>적립(발행)</span></div><div><b>{fmt(tb.consumed)}시간</b><span>사용(소비)</span></div><div><b>{fmt(tb.elderFree)}시간</b><span>기관 대상 무차감</span></div><div><b>{fmt(tb.pool)}시간</b><span>공동 적립</span></div></div>

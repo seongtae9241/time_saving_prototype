@@ -30,7 +30,7 @@ public class RequestController {
                              String category, String content, String memo) {}
     public record ReasonBody(String reason) {}
     public record CodeBody(String code, String method) {}
-    public record LogBody(String raw, String text, String photoUrl, Boolean photoConsent) {}
+    public record LogBody(String raw, String text, String photoUrl, Boolean photoConsent, String careMemo) {}
     public record AdjustBody(Double hours, String reason) {}
     public record AnswerBody(Boolean accept) {}
     public record RateBody(Integer stars, List<String> tags, String comment) {}
@@ -113,7 +113,7 @@ public class RequestController {
 
     @PostMapping("/requests/{id}/log")
     public Map<String, Object> log(@CurrentUser User u, @PathVariable Long id, @RequestBody LogBody b) {
-        return view(svc.submitLog(u, id, b.raw(), b.text(), b.photoUrl(), Boolean.TRUE.equals(b.photoConsent())), u);
+        return view(svc.submitLog(u, id, b.raw(), b.text(), b.photoUrl(), Boolean.TRUE.equals(b.photoConsent()), b.careMemo()), u);
     }
 
     @PostMapping("/requests/{id}/confirm")

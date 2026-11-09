@@ -88,6 +88,17 @@ create table edu_progress (
     primary key (user_id)
 ) engine=InnoDB;
 
+create table elder_blocks (
+    created_at datetime(6),
+    elder_id bigint not null,
+    id bigint not null auto_increment,
+    manager_id bigint,
+    request_id bigint,
+    volunteer_id bigint not null,
+    reason varchar(300) not null,
+    primary key (id)
+) engine=InnoDB;
+
 create table elder_memos (
     created_at datetime(6),
     elder_id bigint not null,
@@ -311,6 +322,7 @@ create table requests (
     start_hour float(53) not null,
     weight float(53) not null,
     check_code varchar(6),
+    care_memo varchar(500),
     check_in_at datetime(6),
     check_out_at datetime(6),
     confirmed_at datetime(6),
@@ -393,7 +405,10 @@ create table users (
     primary key (id)
 ) engine=InnoDB;
 
-create index ix_ledger_user 
+create index ix_block_elder_vol
+   on elder_blocks (elder_id, volunteer_id);
+
+create index ix_ledger_user
    on ledger (user_id);
 
 create index ix_lr_subject 
