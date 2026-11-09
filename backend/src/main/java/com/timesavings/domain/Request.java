@@ -38,6 +38,8 @@ public class Request {
     @Column(length = 200) public String logPhotoUrl;
     public boolean photoConsent;
     public LocalDateTime logSubmittedAt;
+    /** 전달 메모(4장): 병원에서 들은 말·다음에 챙길 것. 봉사자 본인·받은 사람·담당자·공유 동의한 가족만 본다. */
+    @Column(name = "care_memo", length = 500) public String careMemo;
     public Double adjustHours;
     @Column(length = 10) public String adjustStatus;
     @Column(length = 300) public String adjustReason;

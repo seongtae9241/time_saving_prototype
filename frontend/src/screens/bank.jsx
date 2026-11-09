@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
-import { ReqRow, PostCard, Loading, Empty, useLoad, useBusy } from '../ui/bits.jsx';
+import { Ic, ReqRow, PostCard, Loading, Empty, useLoad, useBusy } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
 import { fmt, dshort, ACTIVE_ST, PAST_ST } from '../lib/format.js';
@@ -93,6 +93,11 @@ export function Bank() {
   });
   return (
     <Screen title="시간 통장" back={false}>
+      <div className="kpis" style={{ marginBottom: 10 }}>
+        <div><b>{fmt(bk.totalEarned)}</b><span>전체 적립</span></div>
+        <div><b>{fmt(bk.totalUsed)}</b><span>전체 사용</span></div>
+        <div><b style={{ color: 'var(--brand)' }}>{fmt(bk.balance)}</b><span>남은 시간</span></div>
+      </div>
       <div className="hero">
         <div className="bk-top"><span className="bk-name">시간 통장</span><span className="bk-no">{me ? `TS-${String(me.id).padStart(6, '0')}` : ''}</span></div>
         <div className="lbl">쓸 수 있는 시간</div><div className="num">{fmt(bk.available ?? bk.balance)}<small>시간</small></div>
@@ -100,6 +105,7 @@ export function Bank() {
         <div className="acts"><button onClick={() => nav('/gift')}>가족에게 선물</button><button onClick={rule}>이용 규칙</button></div>
       </div>
       {bk.canUseSelf === false && <div className="notice" style={{ marginTop: 12 }}>직접 적립한 시간이 10시간이 되면 도움을 받을 때 쓸 수 있어요. 선물받은 시간은 바로 쓸 수 있어요.</div>}
+      <div className="card item click" style={{ marginTop: 12 }} role="button" tabIndex={0} onClick={() => nav('/bank/plan')}><div className="ic"><Ic n="cal" s={20} /></div><div className="grow"><div className="b">내 봉사 플랜</div><div className="mute2">남은 시간으로 얼마나 도움을 받을 수 있는지 계산해요</div></div>›</div>
       <div className="card" style={{ marginTop: 12 }}>
         <div className="between"><span className="b">월별 결산</span><span className="legend"><i style={{ background: '#3D6DF2' }} />적립<i style={{ background: '#F59E4B', marginLeft: 8 }} />사용</span></div>
         {(bk.monthly || []).length ? monthBars(bk.monthly.slice(-4).map((m) => [monthLabel(m.month), Number(m.in) || 0, Number(m.out) || 0])) : <Empty>아직 결산할 내역이 없어요</Empty>}

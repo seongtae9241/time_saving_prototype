@@ -266,6 +266,9 @@ public class Views {
                 "earned", r.earned, "rated", rated, "anomalyHold", r.anomalyHold,
                 "adjust", r.adjustHours == null ? null : map("hours", r.adjustHours, "status", r.adjustStatus, "reason", r.adjustReason),
                 "createdAt", r.createdAt, "doneAt", r.doneAt);
+        // 전달 메모: 이 건의 당사자(봉사자 본인·받은 사람·담당자)만. 운영자 조회(role 없음)에는 넣지 않는다.
+        if (role != null) m.put("careMemo", r.careMemo);
+        m.put("canRejectVolunteer", "MANAGER".equals(role) && (r.status.pending() || r.status == ReqStatus.CONFIRMED)); // O1
         if (role != null && !role.equals("VOLUNTEER") && r.status.active()) {
             m.put("checkCode", r.checkCode);
             m.put("qrText", Rules.qrText("REQ", r.id, r.checkCode));

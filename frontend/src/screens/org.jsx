@@ -3,7 +3,8 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
 import { Ic, Spk, Mod, Mi, Cats, ReqRow, Loading, Empty, ChipsPick, RuleNote, useLoad, useBusy, hbars } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
-import { api, post, put } from '../api.js';
+import { api, post, put, del } from '../api.js';
+import { RecentReport } from './insight.jsx';
 import { CATS, AREAS, arr, dshort, maskN, ACTIVE_ST, PAST_ST } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { needsMe, todoTxt } from './home.jsx';
@@ -147,7 +148,8 @@ export function EDetail() {
       </div>
       <div className="sec-t"><span>요청·활동</span></div>
       {myReqs.length ? myReqs.map((r) => <ReqRow key={r.id} r={{ ...r, myRole: 'MANAGER' }} />) : <Empty>진행 중인 요청이 없어요</Empty>}
-      <div className="sec-t">생활 변화 리포트</div>
+      <BlockList elderId={id} />
+      <div className="sec-t"><span>리포트</span><a role="button" tabIndex={0} className="mute2" style={{ fontWeight: 600, cursor: 'pointer' }} onClick={() => nav(`/o/report?elder=${id}`)}>최근 활동 리포트 ›</a></div>
       {rep ? <ReportView rep={rep} who={elderName(e)} /> : <Empty>아직 만들어진 리포트가 없어요</Empty>}
       <div className="ml" style={{ marginTop: 14 }}>
         <div role="switch" aria-checked={!!e.reportConsent} tabIndex={0} onClick={() => run(async () => { await put(`/org/elders/${id}/consent`, { reportConsent: !e.reportConsent }); await reload(); toast(!e.reportConsent ? '공유 동의를 입력했어요' : '공유 동의를 철회했어요'); })}><div className="grow">리포트 공유 동의 (대상에게 확인 후 대신 입력)<span>{e.reportConsent ? '동의함' : '동의 안 함'}</span></div><span className={'toggle ' + (e.reportConsent ? 'on' : '')} /></div>
@@ -231,13 +233,48 @@ export function OReqs() {
 }
 
 /* ---------- 생활 변화 리포트 (P-05) ---------- */
+/* ---------- 받지 않기로 한 봉사자 (O1) ---------- */
+function BlockList({ elderId }) {
+  const { toast, confirm } = useUi();
+  const [list, reload] = useLoad(() => api(`/org/elders/${elderId}/blocks`, { quiet: true }), [elderId]);
+  if (!list || !list.length) return null;
+  return (
+    <>
+      <div className="sec-t">받지 않기로 한 봉사자</div>
+      {list.map((b) => (
+        <div key={b.id} className="card item">
+          <div className="grow"><div className="b">{b.volunteer ? b.volunteer.name : '봉사자'}</div><div className="mute2">{dshort(b.createdAt).split(' ')[0]} · 사유: {b.reason}</div></div>
+          <button className="btn ghost sm" style={{ width: 'auto', padding: '0 12px' }} onClick={async () => {
+            if (!(await confirm('받지 않기를 풀까요?', '이 봉사자가 다시 이 대상의 공고에 신청할 수 있어요.', '풀기'))) return;
+            try { await del(`/org/blocks/${b.id}`); reload(); toast('받지 않기를 풀었어요'); } catch { /* 토스트 */ }
+          }}>풀기</button>
+        </div>
+      ))}
+    </>
+  );
+}
+
+/* ---------- 리포트: 최근 활동(4장) + 지난 월간 리포트 ---------- */
 export function OReport() {
   const { toast } = useUi();
+  const [sp, setSp] = useSearchParams();
+  const [elders] = useLoad(() => api('/org/elders'), []);
   const [list, reload] = useLoad(() => api('/org/reports'), []);
   const reps = list || [];
   const big = reps.filter((r) => r.bigChange).length;
+  const active = (elders || []).filter((e) => e.status === 'ACTIVE');
+  const sel = sp.get('elder') || (active[0] && String(active[0].id));
   return (
-    <Screen title="생활 변화 리포트" back={false}>
+    <Screen title="리포트" back={false}>
+      <div className="sec-t" style={{ marginTop: 0 }}><span>최근 활동 리포트</span><span className="mute2" style={{ fontWeight: 500 }}>새 담당자·새 봉사자 인수인계용</span></div>
+      {elders === undefined ? <Loading /> : !active.length ? <Empty>담당 대상이 없어요</Empty> : (
+        <>
+          <div className="chips" style={{ marginBottom: 10, flexWrap: 'wrap' }}>{active.map((e) => <button key={e.id} className={'chip ' + (String(e.id) === sel ? 'on' : '')} onClick={() => setSp({ elder: String(e.id) }, { replace: true })}>{elderName(e)}</button>)}</div>
+          {sel && <RecentReport key={sel} subject={`elder:${sel}`} showMonthly={false} />}
+          <div className="mute2" style={{ margin: '8px 2px' }}>전달 메모는 담당자만 봐요. 봉사자에게는 별칭·동·도움 내용·주의사항만 넘어가요.</div>
+        </>
+      )}
+      <div className="sec-t">지난 월간 리포트</div>
       <div className="ai"><div className="ah"><Spk />리포트 요약<Mod n={5} /></div><div className="small">담당 대상 리포트 {reps.length}건 중 <b>{big}건</b>이 지난달과 많이 달라졌어요. 숫자는 시스템이 세고, AI는 봉사자 일지 내용으로 변화를 설명해요. 진단·건강 판단은 하지 않아요.</div></div>
       {list === undefined ? <Loading /> : !reps.length ? <Empty>아직 만들어진 리포트가 없어요. 운영자가 리포트를 만들면 여기에 보여요</Empty> : reps.map((r) => {
         let st = r.stats || r.statsJson || {};

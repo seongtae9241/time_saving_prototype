@@ -14,6 +14,7 @@ import { OHome, OElders, EDetail, EForm, OReqs, OReport, OMy } from './screens/o
 import { Cls, ClsDetail, ClsNote, ClsNew, OSpace } from './screens/cls.jsx';
 import { Edu, EduCard, EduQuiz, EduRpList, EduRp, EduRpRes, EduCert } from './screens/edu.jsx';
 import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANotices, APub, APersona } from './screens/admin.jsx';
+import { MyInsight, CarePlan, MyReport, FamRecentReport } from './screens/insight.jsx';
 
 /** 로그인·역할 확인 */
 function Guard({ roles, children }) {
@@ -64,7 +65,11 @@ function Shell() {
         <Route path="/my/profile" element={g(<ProfileEdit />, U)} />
         <Route path="/my/verify" element={g(<Verify />, U)} />
         <Route path="/my/family" element={g(<Family />, U)} />
-        <Route path="/my/family/:userId/report" element={g(<FamReport />, U)} />
+        <Route path="/my/family/:userId/report" element={g(<FamRecentReport />, U)} />
+        <Route path="/my/family/:userId/monthly" element={g(<FamReport />, U)} />
+        <Route path="/my/insight" element={g(<MyInsight />, U)} />
+        <Route path="/my/report" element={g(<MyReport />, U)} />
+        <Route path="/bank/plan" element={g(<CarePlan />, U)} />
         <Route path="/my/alerts" element={g(<AlertSet />, U)} />
         <Route path="/my/noti" element={g(<NotiSet />, U)} />
         <Route path="/my/cert" element={g(<Cert />, U)} />

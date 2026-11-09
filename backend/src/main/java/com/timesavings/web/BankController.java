@@ -47,7 +47,9 @@ public class BankController {
         for (Ledger l : bank.entries(u.id))
             entries.add(Views.map("id", l.id, "type", l.type, "amount", l.amount, "baseHours", l.baseHours, "weight", l.weight,
                     "label", l.label, "requestId", l.requestId, "classId", l.classId, "createdAt", l.createdAt));
-        return Views.map("balance", s.balance(), "hold", s.hold(), "available", s.available(), "usable", s.usable(),
+        double[] tot = bank.totals(u.id);
+        return Views.map("totalEarned", tot[0], "totalUsed", tot[1],
+                "balance", s.balance(), "hold", s.hold(), "available", s.available(), "usable", s.usable(),
                 "earnedSelf", s.earnedSelf(), "giftReceived", s.giftReceived(), "canUseSelf", s.canUseSelf(),
                 "selfUseMin", BankService.SELF_USE_MIN, "monthIn", cur.get("in"), "monthOut", cur.get("out"),
                 "monthly", monthly, "entries", entries);

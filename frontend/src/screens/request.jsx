@@ -10,6 +10,31 @@ import { useReport } from './common.jsx';
 import { FilterBox } from './ai.jsx';
 import QrScanner, { qrText } from '../ui/QrScanner.jsx';
 import { VoiceField, MicButton } from '../ui/VoiceInput.jsx';
+import { CareMemo } from './insight.jsx';
+
+/* ---------- 담당자 봉사자 거부 (O1) ---------- */
+function MgrRejectSheet({ r, onSubmit }) {
+  const opts = ['대상이 원하지 않아요', '지난 활동에서 불편함이 있었어요', '주의사항을 지키지 않았어요', '기타'];
+  const [v, setV] = useState(opts[0]);
+  const [etc, setEtc] = useState('');
+  const [block, setBlock] = useState(false);
+  const { toast } = useUi();
+  const name = r.volunteer ? r.volunteer.name : '봉사자';
+  return (
+    <>
+      <h2>{name} 님 거부</h2>
+      <p className="muted" style={{ marginTop: 0 }}>사유는 봉사자에게 알림으로 전해져요.</p>
+      {opts.map((t) => <div key={t} className={'opt ' + (v === t ? 'on' : '')} role="button" tabIndex={0} onClick={() => setV(t)}><span className="rd" /><div>{t}</div></div>)}
+      {v === '기타' && <textarea className="in" style={{ marginTop: 10 }} placeholder="사유 (필수)" value={etc} onChange={(e) => setEtc(e.target.value)} />}
+      <div className={'su-check ' + (block ? 'on' : '')} role="button" tabIndex={0} style={{ marginTop: 12 }} onClick={() => setBlock(!block)}><span className="bx" /><div className="small"><b>이 봉사자 받지 않기</b><br />앞으로 {r.elder ? r.elder.displayName : '이 대상'}의 공고에 요청·제안할 수 없어요. 대상 화면에서 풀 수 있어요.</div></div>
+      <button className="btn warn" style={{ marginTop: 12 }} onClick={() => {
+        const reason = v === '기타' ? etc.trim() : v;
+        if (!reason) return toast('사유를 적어 주세요');
+        onSubmit(reason, block);
+      }}>거부하기</button>
+    </>
+  );
+}
 
 /* ---------- 공개 프로필 시트 (B-12, B-40, B-41) ---------- */
 export function ProfileView({ p }) {
@@ -416,6 +441,7 @@ export function RequestDetail() {
     action = (
       <>
         <div className="ai" style={{ marginTop: 16 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div>{r.logPhotoUrl && <img src={r.logPhotoUrl} alt="활동 사진" style={{ width: '100%', borderRadius: 12, marginTop: 10 }} />}</div>
+        <CareMemo text={r.careMemo} style={{ marginTop: 10 }} />
         {r.checkInAt && <div className="mute2" style={{ marginTop: 6 }}>체크 기록 {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))}){r.checkMethod === 'manual' ? ' · 버튼으로 기록돼 시간을 한 번 더 확인해 주세요' : ''}</div>}
         {adj && <div className="card" style={{ marginTop: 10 }}><div className="b">시간 조정 요청</div><div className="mute2">{v.name} 님이 실제 시간을 {r.adjust.hours}시간으로 바꿔 달라고 했어요 (예정 {r.hours}시간).</div><div className="btns" style={{ marginTop: 10 }}><button className="btn ghost sm" onClick={() => act('adjust/answer', { accept: false }, '시간 조정을 거절했어요')}>거절</button><button className="btn sm" onClick={() => act('adjust/answer', { accept: true }, '시간 조정을 반영했어요')}>반영하기</button></div></div>}
         <div className="sum" style={{ marginTop: 10 }}>
@@ -479,6 +505,17 @@ export function RequestDetail() {
         </dl>
       </div>
       {action}
+      {r.logText && !(st === 'LOG_SUBMITTED' && recv) && (
+        <div className="ai" style={{ marginTop: 14 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div></div>
+      )}
+      {!(st === 'LOG_SUBMITTED' && recv) && <CareMemo text={r.careMemo} style={{ marginTop: 10 }} />}
+      {r.careMemo && <div className="mute2" style={{ marginTop: 6 }}>전달 메모는 쓴 봉사자·{r.elder ? '담당자' : '받는 분과 공유에 동의한 가족'}만 볼 수 있어요.</div>}
+      {r.canRejectVolunteer && v.name && (
+        <button className="btn ghost sm" style={{ marginTop: 12 }} disabled={busy} onClick={() => sheet(() => <MgrRejectSheet r={r} onSubmit={(reason, block) => {
+          closeSheet();
+          run(async () => { await post(`/org/requests/${r.id}/reject-volunteer`, { reason, block }); await done(block ? '거부하고 앞으로 받지 않기로 했어요' : '봉사자를 거부했어요. 봉사자에게 알림이 가요'); });
+        }} />)}>이 봉사자 거부하기</button>
+      )}
       {canMsg && (
         <>
           <div className="sec-t"><span>메시지{mgr ? ` (${toName} 대신)` : ''}</span><span className="mute2" style={{ fontWeight: 500 }}>{ro ? '읽기만 가능' : '실시간 채팅 아님'}</span></div>
@@ -525,6 +562,7 @@ export function LogWrite() {
   const [tidy, setTidy] = useState(null);
   const [consent, setConsent] = useState(false);
   const [photo, setPhoto] = useState(null);
+  const [careMemo, setCareMemo] = useState('');
   const [busy, run] = useBusy();
   if (r === undefined) return <Screen title="활동 일지" noTabs><Loading /></Screen>;
   if (!r) return <Screen title="활동 일지" noTabs><Empty>요청을 찾을 수 없어요</Empty></Screen>;
@@ -534,6 +572,9 @@ export function LogWrite() {
       <div className="card"><div className="mute2">{r.elder ? r.elder.displayName : r.recipient && r.recipient.name} · {dlabel(r.date)} {hh(r.startHour)}~{hh(Number(r.startHour) + Number(r.hours))}</div><div className="b" style={{ fontSize: 17 }}>{r.content}</div></div>
       <label className="f" htmlFor="lg">한 줄 기록 <span style={{ color: '#E5484D' }}>(필수)</span></label>
       <VoiceField value={raw} onChange={(v) => { setRaw(v); setTidy(null); }}><textarea id="lg" className="in" style={{ minHeight: 130 }} placeholder="예) 냉장고 정리함. 유통기한 지난 반찬 3개 버림. 우유랑 계란이 떨어졌다고 하심" value={raw} onChange={(e) => { setRaw(e.target.value); setTidy(null); }} /></VoiceField>
+      <label className="f" htmlFor="cm">전달 메모 <span className="mute2" style={{ fontWeight: 500 }}>(선택 · {careMemo.length}/500)</span></label>
+      <textarea id="cm" className="in" style={{ minHeight: 80 }} maxLength={500} placeholder="병원에서 들은 말, 다음에 챙길 것" value={careMemo} onChange={(e) => setCareMemo(e.target.value.slice(0, 500))} />
+      <div className="mute2" style={{ margin: '4px 2px 0' }}>{r.elder ? '담당자' : '받는 분(과 공유에 동의한 가족)'}에게만 보여요. 다른 봉사자에게는 보이지 않아요.</div>
       <label className="f">사진 <span className="mute2" style={{ fontWeight: 500 }}>(받는 분이 동의한 경우만, 선택)</span></label>
       <div className={'su-check ' + (consent ? 'on' : '')} role="button" tabIndex={0} onClick={() => setConsent(!consent)}><span className="bx" /><div className="small">받는 분({r.elder ? '담당자 확인' : '본인'})이 사진 촬영에 동의했어요</div></div>
       {consent && <Upload label="사진 올리기" accept="image/*" style={{ minHeight: 80 }} onUploaded={setPhoto} />}
@@ -560,7 +601,7 @@ export function LogWrite() {
       </div>
       <button className="btn big-cta" style={{ marginTop: 14 }} disabled={busy} onClick={() => run(async () => {
         if (!raw.trim()) return toast('한 줄 기록은 꼭 적어야 해요');
-        await post(`/requests/${r.id}/log`, { raw: raw.trim(), text: (tidy && tidy.text) || raw.trim(), photoUrl: consent ? photo : null, photoConsent: consent });
+        await post(`/requests/${r.id}/log`, { raw: raw.trim(), text: (tidy && tidy.text) || raw.trim(), photoUrl: consent ? photo : null, photoConsent: consent, careMemo: careMemo.trim() });
         toast('일지를 제출했어요. 확인되면 적립돼요');
         nav(-1);
       })}>일지 제출하기</button>

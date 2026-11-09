@@ -50,6 +50,16 @@ public class BankService {
 
     static double r2(double v) { return Math.round(v * 100) / 100.0; }
 
+    /** U1 시간 통장 맨 위: [전체 적립(+거래 합), 전체 사용(−거래 합의 절댓값)]. 보류(HOLD/RELEASE)는 빼고, 적립 − 사용 = balance. */
+    public double[] totals(Long userId) {
+        double in = 0, out = 0;
+        for (Ledger l : repo.findByUserIdOrderByCreatedAtDescIdDesc(userId)) {
+            if (l.type == LedgerType.HOLD || l.type == LedgerType.RELEASE) continue;
+            if (l.amount > 0) in += l.amount; else out += -l.amount;
+        }
+        return new double[]{r2(in), r2(out)};
+    }
+
     /** 받는 쪽이 이 만큼 쓸 수 있는지 검사(B-30, B-33). */
     public void requireUsable(Long userId, double amount) {
         Summary s = summary(userId);

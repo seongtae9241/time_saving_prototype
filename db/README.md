@@ -1,6 +1,6 @@
 # 시간 적금 DB
 
-- `schema.sql` — 실제 JPA 엔티티(`backend/src/main/java/com/timesavings/domain`)에서 Hibernate 스키마 생성으로 뽑은 MySQL 8 DDL(테이블 25개).
+- `schema.sql` — 실제 JPA 엔티티(`backend/src/main/java/com/timesavings/domain`)에서 Hibernate 스키마 생성으로 뽑은 MySQL 8 DDL(테이블 26개).
 - 기본 실행은 **H2 파일 DB**(`backend/data/timesavings.mv.db`, `MODE=MySQL`)이고 `ddl-auto=update`로 같은 구조가 자동 생성된다.
 - 데모 데이터는 SQL 파일이 아니라 서버 첫 기동 때 `DataSeeder`가 넣는다(DB가 비어 있을 때만, 오늘 날짜 기준 상대 날짜).
 
@@ -13,9 +13,10 @@
 | `organizations` | 기관 서비스 신청·승인 상태 | C-01, D-01 |
 | `elders` | 도움 대상(독거노인). **별칭·동·나이대·필요 도움·주의사항만** 저장(이름·주소·연락처 없음) | C-02 |
 | `elder_memos` | 담당자 메모 | C-02 |
+| `elder_blocks` | 담당자의 "이 봉사자 받지 않기"(`elder_id`, `volunteer_id`, `reason` 필수, `manager_id`, `request_id`). 있으면 그 봉사자는 그 대상 건에 요청·제안할 수 없음(403 `VOLUNTEER_BLOCKED`) | 회의반영 O1 |
 | `elder_transfers` | 담당자 간 이관(PENDING/ACCEPTED/REJECTED, 운영자 대리 = ADMIN) | C-03, D-01 |
 | `posts` | 공고. `type` OFFER(봉사 가능)/NEED(도움 요청), 시간 범위, 카테고리, 난이도·가중치, 반복(`series_id`), 상태 | B-03~B-11, C-04 |
-| `requests` | 요청·제안·단골 요청과 활동 진행 전체(상태, 응답 기한, 체크인 코드·시각, 일지, 시간 조정, 적립, 이상 패턴 보류) | A-05, B-12~B-25, C-05~C-10 |
+| `requests` | 요청·제안·단골 요청과 활동 진행 전체(상태, 응답 기한, 체크인 코드·시각, 일지, 시간 조정, 적립, 이상 패턴 보류). `care_memo`=일지와 함께 남기는 전달 메모(선택, 500자, 건강 정보가 들어갈 수 있는 민감정보 — 봉사자 본인·받은 사람·담당자·공유 동의한 가족만) | A-05, B-12~B-25, C-05~C-10, 회의반영 4장 |
 | `messages` | 요청별 메시지(시스템 메시지 포함, 연락처·계좌 패턴이면 `warn`) | A-08, C-09 |
 | `ledger` | 시간 통장 거래(EARN/HOLD/RELEASE/USE/GIFT_OUT/GIFT_IN/CLASS_FEE/CLASS_EARN/ADJUST/REFUND/POOL). `user_id`가 비면 시스템 기록(공동 적립, 기관이 대신 받은 어르신 선생님 적립 — 이때 `elder_id`) | A-06, B-26~B-34 |
 | `ratings` | 평가(봉사자 평가는 공개, 받는 사람 평가는 `is_private`) | B-38~B-40 |
@@ -45,6 +46,8 @@ erDiagram
     organizations ||--o{ spaces : "org_id"
     users ||--o{ elders : "manager_id"
     elders ||--o{ elder_memos : ""
+    elders ||--o{ elder_blocks : ""
+    users ||--o{ elder_blocks : "volunteer_id"
     elders ||--o{ elder_transfers : ""
     users ||--o{ auth_token : ""
     users ||--o{ posts : "owner_id"

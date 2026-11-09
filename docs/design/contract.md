@@ -352,3 +352,33 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - 화면 공용 음성 입력(`ui/VoiceInput.jsx`): ① 브라우저 `SpeechRecognition` ② 없거나 설정(알림 설정 → 음성 입력, 말로 요청하기 화면 작은 토글)에서 "서버 음성 인식"을 고르면 `MediaRecorder` 녹음 → `/api/stt` ③ 둘 다 안 되면 직접 입력 안내. 마이크 권한은 버튼을 누를 때만 요청.
 - 마이크 버튼(프로토타입 `.mic`)을 단 곳: 말로 요청하기, 대화형 공고 작성, 활동 일지 한 줄(B-24 → 기존 AI 일지 정리), 1:1 문의(B-48), 신고 내용(B-36), 요청·제안 내용·메모(A-08), 요청 메시지, AI 도움 추천·공공 서비스 질문, 수업 열기 인터뷰, 교육 역할극 대답, 담당자 대상 메모(C-02), 평가 한마디(B-38), 1:1 신청 "궁금한 점". 받은 글은 입력칸에 채워질 뿐이라 전화번호 경고·`PII_NOT_ALLOWED` 등 기존 규칙이 그대로 적용된다.
 
+
+### 7.10 회의반영 U1·O1·리포트·운영 분석·AI 개인 분석 (2026-11-09, `docs/meetings/2026-11-09-회의반영.md` 1·3~6장)
+**U1 시간 통장**
+- `GET /api/bank` 추가 필드: `totalEarned`(보류 제외 + 거래 합), `totalUsed`(보류 제외 − 거래 합의 절댓값). `totalEarned − totalUsed = balance`. 화면은 맨 위에 "전체 적립 / 전체 사용 / 남은 시간"과 "내 봉사 플랜" 진입.
+
+**O1 담당자의 봉사자 거부·받지 않기**
+- `POST /api/org/requests/{id}/reject-volunteer` `{reason(필수, 300자), block?:boolean}` — 담당 대상 건만(아니면 403). 상태별: 제안 SENT → `REJECTED`, VOL_ACCEPTED → `DECLINED`, 담당자가 보낸 SENT·CONFIRMED → `CANCELLED`. 그 밖(IN_PROGRESS 이후)은 409 `INVALID_STATE`. 사유 없으면 400 `REASON_REQUIRED`. `rejectReason="담당자 거부: …"`, 시스템 메시지, 봉사자 알림 `MANAGER_REJECTED`. 확정·수락 단계에서 거부하면 아직 날짜가 남은 공고는 `OPEN`으로 다시 연다. 응답 = RequestView + `blocked`.
+- `block=true`면 `elder_blocks`에 기록 → 그 봉사자는 그 대상의 공고에 제안·요청·단골 요청을 만들 수 없다(403 `VOLUNTEER_BLOCKED`, 담당자가 그 봉사자에게 보내는 요청도 막힘).
+- `GET /api/org/elders/{id}/blocks` → `[{id, elderId, volunteer{id,name}, reason, requestId, createdAt}]`, `DELETE /api/org/blocks/{id}`(받지 않기 풀기).
+- RequestView 추가: `canRejectVolunteer`(담당자이고 SENT·VOL_ACCEPTED·CONFIRMED일 때 true).
+
+**4장 전달 메모·최근 활동 리포트**
+- `POST /api/requests/{id}/log` 본문에 `careMemo`(선택, 500자 넘으면 400 `MEMO_TOO_LONG`, 빈 문자열이면 지움, 없으면 그대로). DB `requests.care_memo`.
+- RequestView `careMemo`: 이 건의 당사자(봉사자 본인·받은 사람·담당자)에게만. 운영자 조회(역할 없음)에는 넣지 않는다.
+- `GET /api/reports/recent?subject=me|elder:{id}|family:{userId}` → `{subject, subjectType, subjectId, subjectLabel, total, items:[{requestId, date, startHour, hours, category, content, volunteer, status, logText, careMemo}](최신순 30건, 일지 제출된 LOG_SUBMITTED·DONE), handover:{text, points[], count, source, provider?}, monthly:[LifeReport]}`.
+  - 권한: `me`=사용자 본인(받은 도움), `elder:`=그 대상의 담당자만, `family:`=가족 연결 + 상대가 공유에 동의(`shareTarget`)한 경우만. 그 밖(봉사자 포함)은 403. **봉사자 화면에는 대상의 지난 메모가 나오지 않는다**(봉사자는 자기가 쓴 건의 메모만 그 요청 상세에서 본다).
+  - 인수인계 요약은 최근 8건으로 AI(`InsightAi`)가 쓰고, 키가 없으면 규칙 문장(카테고리별 횟수·마지막 날짜·메모의 "다음에 챙길 것"). 건강·병원 낱말이 든 메모는 그대로 옮기지 않고 "병원 안내 사항 있음 (M/D 메모 확인)"으로 줄인다. AI 지시에도 진단 금지·병명/약 이름 옮기지 않기.
+- 화면: 담당자 리포트(`/o/report`) = 대상 칩 → 최근 활동 리포트, 아래 "지난 월간 리포트". 사용자 마이 → "내가 받은 도움 리포트"(`/my/report`), 가족 리포트(`/my/family/{id}/report`, 기존 월간만 보던 화면은 `/my/family/{id}/monthly`).
+
+**5장 운영자 분석**
+- `GET /api/admin/analytics` → `{periodMonths:12, byRecipientAge:[{ageGroup,total,top[{category,count}],counts}], byVolunteerAge:[…], monthlyCategory:[{month, season, total, counts{카테고리:n}, top}](12개월, DONE 기준), seasons:[{season,total,top}], supplyDemand:[{category, demand, supply, gap, needPosts, requests, offerPosts, accepted, ratio}](최근 180일, gap 큰 순), supplyDemandDays}`. 수요 = NEED 공고 + 받는 쪽 요청(REQUEST·REGULAR), 공급 = OFFER 공고 + 수락된 건(VOL_ACCEPTED 이후). 지역 매칭률은 기존 `dashboard.matchRateByArea`.
+- `GET /api/admin/insights?refresh=` → `{summary, shortages:[{category, demand, supply, gap, reason}], newCategories:[{name, reason, examples[]}], unmatched[], unmatchedCount, generatedAt, cached, source, provider?}`. 결과는 1시간 캐시(`refresh=true`로 다시 분석). 숫자(gap 등)는 코드 값을 덮어써 AI가 바꿀 수 없다. "카테고리에 안 맞는 문장" = 최근 1년 NEED 공고 제목·내용과 요청 내용 중 6개 카테고리 대표 낱말이 하나도 없는 것. 키 없으면 규칙(카테고리별 짐작 이유, 낱말 묶음 후보: 간단한 수리·반려동물 돌봄·화분·텃밭·행정·서류 대행·음식 나눔).
+
+**6장 AI 개인 분석**
+- `GET /api/me/insights`(USER만) → `{given:{count,hours,byCategory[{category,count,pct}],bySlot{오전,오후,저녁},topSlot,ratingAvg,ratingCount,topTags}, received:{…}, rating:{count,avg,distribution[★1..★5],topTags,recentComments,style(후한 편|꼼꼼한 편|균형 잡힌 편),tagRate}, activityText, ratingText, source, provider?}`.
+- `POST /api/me/care-plan`(USER만) `{plans:[{category, perWeek(0.25 단위, 0.25=월 1회 ~ 7), hours(0.5 단위, 0.5~8)}](1~6개)}` → `{summary{usable, available, balance, hold, earnedSelf, canUseSelf, selfUseMin, needToUnlock, chosen, chosenWeeks, chosenSpan}, result{usable, plans[{category, perWeek, freq, hours, weight, costPerSession, weeklyCost, sessionsAffordable, weeksAlone, spanAlone}], weeklyCost, monthlyCost, weeks, months, span}, ifUnlocked(본인 사용 조건 전이면 잔액 기준 결과, 아니면 null), candidates[3]{label, plans, weeklyCost, weeks, span}, text, pick[], source, weights}`.
+  - 1회 차감 = `Rules.earn(hours, 가중치)`(0.5 반올림), 주당 = Σ 1회 × perWeek, 기간 = floor(쓸 수 있는 시간 ÷ 주당) 주, 개월 = 주 ÷ 4.345. 쓸 수 있는 시간은 B-33(직접 적립 10시간 미만이면 선물받은 시간만) 반영. 오류 400 `PLAN_REQUIRED`·`TOO_MANY_PLANS`·`INVALID_CATEGORY`·`INVALID_FREQUENCY`·`INVALID_HOURS`.
+- 화면: 마이 → "AI 분석"(`/my/insight`), 시간 통장 → "내 봉사 플랜"(`/bank/plan`).
+
+**AI 공통**: 새 글쓰기는 `ai/InsightAi`가 `AiClient`가 고른 `LlmProvider`(gemini/anthropic)를 그대로 쓴다(`AiClient`는 바꾸지 않음). 실패·키 없음이면 호출한 쪽이 계산한 규칙 문장을 돌려주고 `source:"rule"`.

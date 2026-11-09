@@ -7,4 +7,5 @@ import java.util.*;
 public interface RatingRepo extends JpaRepository<Rating, Long> {
     List<Rating> findByTargetUserId(Long userId);
     List<Rating> findByRequestId(Long requestId);
+    List<Rating> findByRaterId(Long raterId);
 }
