@@ -10,11 +10,12 @@ import java.io.IOException;
 
 /**
  * 프론트 빌드 결과(static/index.html)를 SPA로 서빙한다.
- * /api, /h2-console 와 점(.)이 있는 파일 경로는 제외하고 index.html을 돌려준다.
+ * /api, /h2-console, /assets 와 점(.)이 있는 파일 경로(4단계까지)는 제외하고 index.html을 돌려준다.
  */
 @Controller
 public class SpaController {
-    @GetMapping({"/", "/{p:^(?!api$|h2-console$)[^.]*$}", "/{p:^(?!api$|h2-console$)[^.]*$}/**"})
+    @GetMapping({"/", "/{a:^(?!api$|h2-console$|assets$)[^.]*$}", "/{a:^(?!api$|h2-console$|assets$)[^.]*$}/{b:[^.]*}",
+            "/{a:^(?!api$|h2-console$|assets$)[^.]*$}/{b:[^.]*}/{c:[^.]*}", "/{a:^(?!api$|h2-console$|assets$)[^.]*$}/{b:[^.]*}/{c:[^.]*}/{d:[^.]*}"})
     public ResponseEntity<byte[]> index() throws IOException {
         ClassPathResource r = new ClassPathResource("static/index.html");
         if (!r.exists()) {
