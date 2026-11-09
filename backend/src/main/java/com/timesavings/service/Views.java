@@ -266,7 +266,10 @@ public class Views {
                 "earned", r.earned, "rated", rated, "anomalyHold", r.anomalyHold,
                 "adjust", r.adjustHours == null ? null : map("hours", r.adjustHours, "status", r.adjustStatus, "reason", r.adjustReason),
                 "createdAt", r.createdAt, "doneAt", r.doneAt);
-        if (role != null && !role.equals("VOLUNTEER") && r.status.active()) m.put("checkCode", r.checkCode);
+        if (role != null && !role.equals("VOLUNTEER") && r.status.active()) {
+            m.put("checkCode", r.checkCode);
+            m.put("qrText", Rules.qrText("REQ", r.id, r.checkCode));
+        }
         return m;
     }
 

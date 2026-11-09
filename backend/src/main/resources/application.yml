@@ -33,7 +33,14 @@ app:
   cors-origins: http://localhost:*,http://127.0.0.1:*
   scheduler:
     enabled: true
+  # AI 키·공급자는 환경변수로만: GEMINI_API_KEY, GEMINI_MODEL, ANTHROPIC_API_KEY, AI_PROVIDER(gemini|anthropic|rule)
   ai:
     model: claude-haiku-5-5
     url: https://api.anthropic.com/v1/messages
+    gemini-url: https://generativelanguage.googleapis.com/v1beta/models
     timeout-seconds: 20
+  # 휴대폰 인증: 실제 문자는 FIREBASE_WEB_API_KEY(환경변수)가 있을 때. 데모 코드 123456 은 PHONE_DEMO=false 로 끈다.
+  phone:
+    demo-code-enabled: ${PHONE_DEMO:true}
+  firebase:
+    lookup-url: https://identitytoolkit.googleapis.com/v1/accounts:lookup

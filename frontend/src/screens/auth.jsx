@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Screen, { useDemoSheet } from '../ui/Frame.jsx';
 import { Ic, Logo, ChipsPick, Upload, useBusy } from '../ui/bits.jsx';
 import { useAuth, useUi, HOME_OF } from '../ui/ctx.jsx';
-import { post } from '../api.js';
+import { api, post } from '../api.js';
+import { firebaseConfigured, sendSms, confirmSms, clearSms, smsErrorText } from '../lib/firebasePhone.js';
 import { AREAS, AGE_GROUPS, CATS, SHORT, TIME_SLOTS } from '../lib/format.js';
 
 /* ---------- 스플래시 ---------- */
@@ -81,29 +82,74 @@ export function LoginForm() {
   );
 }
 
-/* ---------- 휴대폰 본인인증 (모의) ---------- */
+/* ---------- 휴대폰 본인인증: Firebase 실제 문자 + 프로토타입 데모 코드 123456 (A-01, A-03) ---------- */
+const DEMO_CODE = '123456';
 function PhoneVerify({ phone, setPhone, onVerified, verified }) {
   const { toast } = useUi();
-  const [demo, setDemo] = useState(null);
+  const [cfg, setCfg] = useState(null); // {firebase, demo}
+  const [stage, setStage] = useState('phone'); // phone | code
   const [code, setCode] = useState('');
+  const [demoShown, setDemoShown] = useState(''); // Firebase 꺼짐: 서버가 알려 준 테스트 코드
+  const [fbErr, setFbErr] = useState('');
+  const [sending, setSending] = useState(false);
+  const conf = useRef(null);
+  const capRef = useRef(null);
+  useEffect(() => {
+    let on = true;
+    api('/auth/phone/config', { quiet: true }).then((c) => on && setCfg(c || {})).catch(() => on && setCfg({ firebase: false, demo: true }));
+    return () => { on = false; clearSms(); };
+  }, []);
+  const useFb = !!(cfg && cfg.firebase && firebaseConfigured);
+  const demoOn = !cfg || cfg.demo !== false;
+
   const send = async () => {
     if (!/^01\d-?\d{3,4}-?\d{4}$/.test(phone.trim())) return toast('휴대폰 번호를 확인해 주세요');
-    try { const r = await post('/auth/phone/send', { phone: phone.trim() }); setDemo(r.demoCode || ''); toast('인증번호를 보냈어요'); } catch { /* 토스트 */ }
+    setFbErr('');
+    if (useFb) {
+      setSending(true);
+      try {
+        conf.current = await sendSms(phone.trim(), capRef.current);
+        setStage('code');
+        toast('인증번호 문자를 보냈어요');
+      } catch (e) {
+        conf.current = null;
+        setFbErr(smsErrorText(e));
+        if (demoOn) setStage('code');
+      } finally { setSending(false); }
+      return;
+    }
+    try { const r = await post('/auth/phone/send', { phone: phone.trim() }); setDemoShown(r.demoCode || ''); setStage('code'); toast('인증번호를 보냈어요'); } catch { /* 토스트 */ }
   };
   const verify = async () => {
-    try { const r = await post('/auth/phone/verify', { phone: phone.trim(), code: code.trim() }); onVerified(r.verifyToken); toast('본인인증이 끝났어요'); } catch { /* 토스트 */ }
+    const c = code.trim();
+    if (!/^\d{6}$/.test(c)) return toast('인증번호 6자리를 넣어 주세요');
+    try {
+      let r;
+      if (demoOn && c === DEMO_CODE) r = await post('/auth/phone/verify', { phone: phone.trim(), code: c });
+      else if (useFb && conf.current) {
+        let token;
+        try { token = await confirmSms(conf.current, c); } catch (e) { return toast(smsErrorText(e)); }
+        r = await post('/auth/phone/verify', { phone: phone.trim(), firebaseIdToken: token });
+      } else r = await post('/auth/phone/verify', { phone: phone.trim(), code: c });
+      conf.current = null; clearSms();
+      onVerified(r.verifyToken);
+      toast('본인인증이 끝났어요');
+    } catch { /* 토스트 */ }
   };
   return (
     <>
       <label className="f" htmlFor="ph">휴대폰 번호</label>
-      <div className="row"><input id="ph" className="in grow" placeholder="010-0000-0000" inputMode="tel" value={phone} disabled={verified} onChange={(e) => setPhone(e.target.value)} /><button type="button" className="btn soft sm" style={{ width: 'auto', flex: '0 0 auto', padding: '0 16px' }} disabled={verified} onClick={send}>인증번호</button></div>
-      {demo != null && !verified && (
+      <div className="row"><input id="ph" className="in grow" placeholder="010-0000-0000" inputMode="tel" autoComplete="tel" value={phone} disabled={verified} onChange={(e) => { setPhone(e.target.value); if (stage === 'code') { setStage('phone'); conf.current = null; } }} /><button type="button" className="btn soft sm" style={{ width: 'auto', flex: '0 0 auto', padding: '0 16px' }} disabled={verified || sending} onClick={send}>{sending ? '보내는 중…' : stage === 'code' ? '다시 받기' : '인증번호 받기'}</button></div>
+      <div ref={capRef} />
+      {fbErr && !verified && <div className="notice" style={{ marginTop: 8 }} role="alert">{fbErr}{demoOn ? <> 프로토타입 테스트용 인증번호 <b>{DEMO_CODE}</b>를 넣으면 계속할 수 있어요.</> : ' 잠시 뒤 다시 시도해 주세요.'}</div>}
+      {(stage === 'code' || (useFb && demoOn)) && !verified && (
         <>
           <label className="f" htmlFor="cd">인증번호</label>
-          <div className="row"><input id="cd" className="in grow" inputMode="numeric" placeholder="6자리" value={code} onChange={(e) => setCode(e.target.value)} /><button type="button" className="btn sm" style={{ width: 'auto', flex: '0 0 auto', padding: '0 16px' }} onClick={verify}>확인</button></div>
-          {demo && <div className="notice" style={{ marginTop: 8 }}>테스트용 인증번호: <b>{demo}</b> (실제 문자는 보내지 않아요)</div>}
+          <div className="row"><input id="cd" className="in grow" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="6자리" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} /><button type="button" className="btn sm" style={{ width: 'auto', flex: '0 0 auto', padding: '0 16px' }} onClick={verify}>확인</button></div>
+          {!useFb && demoShown && <div className="notice" style={{ marginTop: 8 }}>테스트용 인증번호: <b>{demoShown}</b> (실제 문자는 보내지 않아요)</div>}
         </>
       )}
+      {useFb && demoOn && !verified && <div className="mute2" style={{ marginTop: 6, fontSize: 12.5 }}>프로토타입 테스트: {DEMO_CODE} 입력으로도 인증돼요</div>}
       {verified && <div className="mute2 ok" style={{ marginTop: 8 }}>✓ 본인인증 완료</div>}
     </>
   );

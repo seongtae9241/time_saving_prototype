@@ -94,7 +94,8 @@ public class ClassService {
         Map<String, Object> m = Views.map("id", e.id, "status", e.oneStatus, "slotDate", e.slotDate == null ? null : e.slotDate.toString(),
                 "slotHour", e.slotHour, "slotText", e.slotDate == null ? null : slotText(e.slotDate, e.slotHour), "question", e.question,
                 "proposed", Boolean.TRUE.equals(e.proposed), "note", e.note,
-                "checkInAt", e.checkInAt == null ? null : e.checkInAt.toString(), "checkOutAt", e.checkOutAt == null ? null : e.checkOutAt.toString());
+                "checkInAt", e.checkInAt == null ? null : e.checkInAt.toString(), "checkOutAt", e.checkOutAt == null ? null : e.checkOutAt.toString(),
+                "checkMethod", e.checkMethod, "checkOutMethod", e.checkOutMethod);
         if (withUser) {
             User u = users.findById(e.userId).orElse(null);
             m.put("userName", u == null ? "" : u.name);
@@ -138,7 +139,8 @@ public class ClassService {
                 "date", c.date.toString(), "startHour", c.startHour, "hours", c.hours, "place", c.place, "spaceId", c.spaceId,
                 "capacity", c.capacity, "joined", joined(c.id), "status", c.status,
                 "fee", fee, "teacherEarn", one ? c.hours : c.hours + 1, "poolIfFull", one ? 0 : Math.max(0, c.capacity * fee - (c.hours + 1)),
-                "myEnrollment", mine == null ? null : Views.map("id", mine.id, "status", mine.status, "review", mine.review),
+                "myEnrollment", mine == null ? null : Views.map("id", mine.id, "status", mine.status, "review", mine.review,
+                        "checkMethod", mine.checkMethod, "checkInAt", mine.checkInAt == null ? null : mine.checkInAt.toString()),
                 "host", host,
                 "note", Views.parse(c.noteJson, new TypeReference<Map<String, Object>>() {}, null),
                 "reviews", reviews);
@@ -317,7 +319,9 @@ public class ClassService {
         bank.add(me.id, LedgerType.RELEASE, Rules.classFee(c.hours), c.hours, 0.5, null, c.id, "클래스 신청 취소 · " + c.title);
     }
 
-    public ClassEnrollment attend(User me, Long id, String code) {
+    public ClassEnrollment attend(User me, Long id, String code) { return attend(me, id, code, null); }
+
+    public ClassEnrollment attend(User me, Long id, String code, String method) {
         NeighborClass c = get(id);
         requireGroup(c);
         ClassEnrollment e = myEnroll(id, me);
@@ -326,6 +330,8 @@ public class ClassService {
         if (code == null || !code.trim().equals(c.checkCode)) throw ApiException.bad("WRONG_CODE", "출석 번호가 맞지 않아요");
         double fee = Rules.classFee(c.hours);
         e.status = EnrollStatus.ATTENDED;
+        e.checkMethod = checkMethod(method);
+        e.checkInAt = LocalDateTime.now();
         bank.add(me.id, LedgerType.RELEASE, fee, c.hours, 0.5, null, c.id, "클래스 보류 해제 · " + c.title);
         bank.add(me.id, LedgerType.CLASS_FEE, -fee, c.hours, 0.5, null, c.id, "클래스 수강 · " + c.title);
         return e;
@@ -334,7 +340,7 @@ public class ClassService {
     public Map<String, Object> qr(User me, Long id) {
         NeighborClass c = get(id);
         if (!isHost(c, me)) throw ApiException.forbidden("선생님이나 담당자만 볼 수 있어요");
-        return Views.map("classId", c.id, "code", c.checkCode, "qrText", "TS-CLASS:" + c.id + ":" + c.checkCode);
+        return Views.map("classId", c.id, "code", c.checkCode, "qrText", Rules.qrText(c.one() ? "ONE" : "CLS", c.id, c.checkCode));
     }
 
     public Map<String, Object> finish(User me, Long id, List<String> steps, String tip) {
@@ -517,7 +523,11 @@ public class ClassService {
     }
 
     /** 만나서 시작 QR(6자리): 보류 해제 → 배우는 사람 −h, 선생님 +h (어르신 선생님은 기관이 대신 받는 기록). 1시간 = 1시간. */
-    public ClassEnrollment startOne(User me, Long id, String code) {
+    private static String checkMethod(String method) { return Rules.checkMethod(method); }
+
+    public ClassEnrollment startOne(User me, Long id, String code) { return startOne(me, id, code, null); }
+
+    public ClassEnrollment startOne(User me, Long id, String code, String method) {
         NeighborClass c = oneClass(id);
         ClassEnrollment e = myActiveOne(id, me);
         if ("MET".equals(e.oneStatus)) return e;
@@ -526,6 +536,7 @@ public class ClassService {
         e.oneStatus = "MET";
         e.status = EnrollStatus.ATTENDED;
         e.checkInAt = LocalDateTime.now();
+        e.checkMethod = checkMethod(method);
         bank.add(me.id, LedgerType.RELEASE, c.hours, c.hours, 1.0, null, c.id, "1:1 클래스 보류 해제 · " + c.title);
         bank.add(me.id, LedgerType.CLASS_FEE, -c.hours, c.hours, 1.0, null, c.id, "1:1 클래스 · " + c.title);
         if (c.teacherId != null) {
@@ -544,7 +555,9 @@ public class ClassService {
         return e;
     }
 
-    public ClassEnrollment endOne(User me, Long id, String code) {
+    public ClassEnrollment endOne(User me, Long id, String code) { return endOne(me, id, code, null); }
+
+    public ClassEnrollment endOne(User me, Long id, String code, String method) {
         NeighborClass c = oneClass(id);
         ClassEnrollment e = myLatestOne(id, me);
         if (e != null && "DONE".equals(e.oneStatus)) return e;
@@ -552,6 +565,7 @@ public class ClassService {
         if (code == null || !code.trim().equals(c.checkCode)) throw ApiException.bad("WRONG_CODE", "QR 번호가 맞지 않아요");
         e.oneStatus = "DONE";
         e.checkOutAt = LocalDateTime.now();
+        e.checkOutMethod = checkMethod(method);
         c.met = (c.met == null ? 0 : c.met) + 1;
         notifyHost(c, "CLASS_ONE_DONE", "1:1 만남이 끝났어요", me.name + " 님 · " + c.title + " · " + c.hours + "시간 적립", "/cls/" + c.id);
         return e;

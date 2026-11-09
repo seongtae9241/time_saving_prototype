@@ -31,7 +31,7 @@ public class EduClassController {
                             String mode, String bio, List<String> tags, List<String> qs, List<ClassService.Slot> slots, String meet, Integer weeklyCap) {}
     public record OneApplyBody(LocalDate slotDate, Double slotHour, String question) {}
     public record SlotBody(LocalDate date, Double hour) {}
-    public record CodeBody(String code) {}
+    public record CodeBody(String code, String method) {}
     public record FinishBody(List<String> steps, String tip) {}
     public record TextBody(String text) {}
     public record SpaceBody(String name, Integer capacity, String equipment) {}
@@ -100,10 +100,10 @@ public class EduClassController {
     public Map<String, Object> oneAcceptProposal(@CurrentUser User u, @PathVariable Long id) { classes.acceptProposal(u, id); return classes.view(classes.get(id), u); }
 
     @PostMapping("/classes/{id}/one/start")
-    public Map<String, Object> oneStart(@CurrentUser User u, @PathVariable Long id, @RequestBody CodeBody b) { classes.startOne(u, id, b.code()); return classes.view(classes.get(id), u); }
+    public Map<String, Object> oneStart(@CurrentUser User u, @PathVariable Long id, @RequestBody CodeBody b) { classes.startOne(u, id, b.code(), b.method()); return classes.view(classes.get(id), u); }
 
     @PostMapping("/classes/{id}/one/end")
-    public Map<String, Object> oneEnd(@CurrentUser User u, @PathVariable Long id, @RequestBody CodeBody b) { classes.endOne(u, id, b.code()); return classes.view(classes.get(id), u); }
+    public Map<String, Object> oneEnd(@CurrentUser User u, @PathVariable Long id, @RequestBody CodeBody b) { classes.endOne(u, id, b.code(), b.method()); return classes.view(classes.get(id), u); }
 
     @PostMapping("/classes/{id}/one/note")
     public Map<String, Object> oneNote(@CurrentUser User u, @PathVariable Long id, @RequestBody TextBody b) { classes.noteOne(u, id, b.text()); return classes.view(classes.get(id), u); }
@@ -128,7 +128,7 @@ public class EduClassController {
 
     @PostMapping("/classes/{id}/attend")
     public Map<String, Object> attend(@CurrentUser User u, @PathVariable Long id, @RequestBody CodeBody b) {
-        classes.attend(u, id, b.code());
+        classes.attend(u, id, b.code(), b.method());
         return classes.view(classes.get(id), u);
     }
 

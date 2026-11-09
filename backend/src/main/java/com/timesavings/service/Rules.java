@@ -80,4 +80,10 @@ public final class Rules {
     public static String fmtHours(double h) {
         return h == Math.floor(h) ? String.valueOf((long) h) + ".0" : String.valueOf(h);
     }
+
+    /** QR에 담는 글: TS1|종류(REQ 요청 체크 · CLS 동네 클래스 출석 · ONE 1:1 시작·마침)|대상 id|6자리 코드 */
+    public static String qrText(String kind, Long id, String code) { return "TS1|" + kind + "|" + id + "|" + code; }
+
+    /** 확인 방법 기록: 'qr' 만 QR 인식, 나머지는 번호 입력(code) */
+    public static String checkMethod(String method) { return "qr".equals(method) ? "qr" : "code"; }
 }

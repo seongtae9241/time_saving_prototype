@@ -25,9 +25,17 @@ cd backend
 
 ## 환경변수
 
+AI 호출은 모두 `ai/AiClient`(공급자: `ai/LlmProvider` ← `GeminiProvider`, `AnthropicProvider`), 음성 인식은 `ai/SttClient`(녹음은 메모리에서만 처리하고 저장하지 않음), Firebase 토큰 확인은 `service/FirebasePhoneVerifier` 한 곳을 지난다.
+
+
 | 이름 | 용도 |
 |---|---|
-| `ANTHROPIC_API_KEY` | 있으면 AI 기능이 Claude Messages API(`claude-haiku-5-5`)를 부른다. 없거나 실패하면 규칙 기반 대체 결과(`source: "rule"`). **파일·로그에 적지 않는다** |
+| `GEMINI_API_KEY` | 있으면 AI 기능이 Gemini `generateContent`를 부른다(헤더 `x-goog-api-key`). 서버 음성 인식 `/api/stt`도 이 키로만 켜진다. **파일·로그에 적지 않는다** |
+| `GEMINI_MODEL` | Gemini 모델(기본 `gemini-flash-latest`) |
+| `ANTHROPIC_API_KEY` | 있으면 Claude Messages API(`claude-haiku-5-5`). **파일·로그에 적지 않는다** |
+| `AI_PROVIDER` | `gemini`·`anthropic`·`rule`. 비우면 Gemini 키 → Anthropic 키 → 규칙 순. 고른 공급자의 키가 없거나 호출이 실패(429·오류·형식 이상)하면 그 호출만 규칙 결과(`source: "rule"`). `rule`이면 서버 음성 인식도 꺼짐 |
+| `FIREBASE_WEB_API_KEY` | Firebase 웹 API 키. `POST /api/auth/phone/verify`의 `firebaseIdToken`을 Identity Toolkit `accounts:lookup`으로 확인 |
+| `PHONE_DEMO` | `false`면 데모 인증번호 `123456`을 끔(`app.phone.demo-code-enabled`, 기본 true) |
 | `SPRING_PROFILES_ACTIVE=mysql` | MySQL 8 사용 |
 | `DB_URL`, `DB_USER`, `DB_PASSWORD` | MySQL 접속 정보(mysql 프로필에서만) |
 

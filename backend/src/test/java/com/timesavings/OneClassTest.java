@@ -88,16 +88,19 @@ class OneClassTest {
         assertEquals("OK", e.oneStatus);
 
         assertEquals("WRONG_CODE", assertThrows(ApiException.class, () -> svc.startOne(student, c.id, "000000x")).code);
-        svc.startOne(student, c.id, c.checkCode);
+        svc.startOne(student, c.id, c.checkCode, "qr");
         assertEquals("MET", e.oneStatus);
+        assertEquals("qr", e.checkMethod); // QR 확인으로 기록
+        assertEquals("TS1|ONE|" + c.id + "|" + c.checkCode, svc.qr(teacher, c.id).get("qrText"));
         assertEquals(-1.0, sum(student, LedgerType.CLASS_FEE));
         assertEquals(1.0, sum(student, LedgerType.RELEASE));
         assertEquals(1.0, sum(teacher, LedgerType.CLASS_EARN)); // 가중치 없이 +1
         assertEquals(before - 1.0, bank.summary(student.id).balance());
         assertThrows(ApiException.class, () -> svc.cancelOne(student, c.id)); // 시작한 만남은 취소 불가
 
-        svc.endOne(student, c.id, c.checkCode);
+        svc.endOne(student, c.id, c.checkCode, "code");
         assertEquals("DONE", e.oneStatus);
+        assertEquals("code", e.checkOutMethod); // 번호 확인으로 기록
         assertEquals(1, classes.findById(c.id).orElseThrow().met);
         svc.noteOne(student, c.id, "옮길지 말지보다 3년 뒤 뭘 하고 싶은지 먼저");
         Map<String, Object> v = svc.view(c, student);

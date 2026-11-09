@@ -5,6 +5,7 @@ import { Ic, Loading, Empty, useLoad, ChipsPick } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
 import { ago, dshort } from '../lib/format.js';
+import { VoiceField } from '../ui/VoiceInput.jsx';
 import { I } from '../ui/icons.js';
 
 const NT_IC = (t = '') => {
@@ -130,7 +131,7 @@ export function QnaNew() {
       <label className="f">문의 유형</label>
       <ChipsPick options={['이용 방법', '적립 오류', '신고 관련', '기타']} value={type} onChange={setType} />
       <label className="f" htmlFor="qt">제목</label><input id="qt" className="in" placeholder="제목" value={title} onChange={(e) => setTitle(e.target.value)} />
-      <label className="f" htmlFor="qc">내용</label><textarea id="qc" className="in" placeholder="자세히 적어 주세요" value={content} onChange={(e) => setContent(e.target.value)} />
+      <label className="f" htmlFor="qc">내용</label><VoiceField value={content} onChange={setContent}><textarea id="qc" className="in" placeholder="자세히 적어 주세요" value={content} onChange={(e) => setContent(e.target.value)} /></VoiceField>
       <button className="btn big-cta" style={{ marginTop: 18 }} onClick={async () => {
         if (!title.trim() || !content.trim()) return toast('제목과 내용을 적어 주세요');
         try { await post('/inquiries', { type, title: title.trim(), content: content.trim() }); nav(-1); toast('문의를 등록했어요. 답변이 오면 알려드려요'); } catch { /* 토스트 */ }
@@ -150,7 +151,7 @@ function ReportForm({ target, onDone }) {
       <h2>신고하기</h2>
       <p className="mute2" style={{ margin: '0 0 10px' }}>대상: {target.targetLabel}</p>
       {RP_TYPES.map((t) => <div key={t} className={'opt ' + (type === t ? 'on' : '')} role="button" tabIndex={0} onClick={() => setType(t)}><span className="rd" /><div>{t}</div></div>)}
-      <textarea className="in" style={{ marginTop: 10 }} placeholder="내용 (선택)" value={content} onChange={(e) => setContent(e.target.value)} />
+      <div style={{ marginTop: 10 }}><VoiceField value={content} onChange={setContent}><textarea className="in" placeholder="내용 (선택)" value={content} onChange={(e) => setContent(e.target.value)} aria-label="신고 내용" /></VoiceField></div>
       <button className="btn warn" style={{ marginTop: 12 }} onClick={async () => {
         try { await post('/reports', { ...target, type, content }); onDone(); toast('신고가 접수됐어요. 처리 결과는 알림으로 알려드려요'); } catch { /* 토스트 */ }
       }}>신고 접수</button>

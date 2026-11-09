@@ -6,6 +6,7 @@ import { useAuth, useUi, getBig, applyBig } from '../ui/ctx.jsx';
 import { api, post, put, del } from '../api.js';
 import { CATS, SHORT, AREAS, AGE_GROUPS, TIME_SLOTS, fmt, arr, dshort, dlabel } from '../lib/format.js';
 import { speak } from './voice.jsx';
+import { SttServerToggle } from '../ui/VoiceInput.jsx';
 
 /** PUT /api/me 는 전체 값을 보낸다(일부만 보내 지워지지 않게) */
 export async function saveMe(me, changes) {
@@ -296,6 +297,7 @@ export function NotiSet() {
         <div role="switch" aria-checked={!!me.voiceAlert} tabIndex={0} onClick={async () => { try { await saveMe(me, { voiceAlert: !me.voiceAlert }); await refresh(); toast(!me.voiceAlert ? '중요 알림을 음성으로 읽어 드려요' : '음성 안내를 껐어요'); } catch { /* 토스트 */ } }}><div className="grow">AI 음성 안내<span>중요한 알림을 소리로 읽어 드려요 (전화 연결은 준비 중)</span></div><span className={'toggle ' + (me.voiceAlert ? 'on' : '')} /></div>
         <div role="switch" aria-checked={local.sms === true} tabIndex={0} onClick={() => { const n = { ...local, sms: !local.sms }; setLocal(n); try { localStorage.setItem('ts-noti', JSON.stringify(n)); } catch { /* 무시 */ } }}><div className="grow">문자로도 받기<span>문자 발송은 준비 중이에요</span></div><span className={'toggle ' + (local.sms ? 'on' : '')} /></div>
       </div>
+      <SttServerToggle />
       <button className="btn ghost" style={{ marginTop: 14 }} onClick={async () => { const ok = await speak(text, { force: true }); if (!ok) toast('이 브라우저는 소리로 읽기를 지원하지 않아요'); }}><Ic n="mic" s={20} /> AI 음성 안내 미리 듣기</button>
       <div className="ai" style={{ marginTop: 10 }}><div className="small">“{text}”</div></div>
     </Screen>

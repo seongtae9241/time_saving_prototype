@@ -8,6 +8,7 @@ import { CATS, AREAS, arr, dshort, maskN, ACTIVE_ST, PAST_ST } from '../lib/form
 import { I } from '../ui/icons.js';
 import { needsMe, todoTxt } from './home.jsx';
 import { TextSizeRow, useLogout } from './my.jsx';
+import { MicButton } from '../ui/VoiceInput.jsx';
 import { ReportView } from './my.jsx';
 
 const elderName = (e) => (e ? `${e.alias} 님` : '');
@@ -142,7 +143,7 @@ export function EDetail() {
       <div className="sec-t">담당자 메모 <span className="mute2" style={{ fontWeight: 500 }}>나만 보여요</span></div>
       <div className="card">
         {(e.memos || []).length ? e.memos.map((m) => <div key={m.id} style={{ padding: '6px 0', borderBottom: '1px dashed var(--line)' }}><span className="mute2">{dshort(m.createdAt).split(' ')[0]}</span> {m.text}</div>) : <div className="mute2">메모가 없어요</div>}
-        <div className="row" style={{ marginTop: 10 }}><input className="in grow" placeholder="방문하고 느낀 점 (병명은 적지 않아요)" value={memo} onChange={(x) => setMemo(x.target.value)} /><button className="btn sm" style={{ width: 'auto', padding: '0 14px', flex: '0 0 auto' }} disabled={busy} onClick={() => run(async () => { if (!memo.trim()) return toast('메모를 적어 주세요'); await post(`/org/elders/${id}/memos`, { text: memo.trim() }); setMemo(''); reload(); toast('메모를 저장했어요'); })}>추가</button></div>
+        <div className="row" style={{ marginTop: 10 }}><MicButton onText={(t) => setMemo((x) => (x.trim() ? `${x.trim()} ${t}` : t))} /><input className="in grow" placeholder="방문하고 느낀 점 (병명은 적지 않아요)" value={memo} onChange={(x) => setMemo(x.target.value)} aria-label="담당자 메모" /><button className="btn sm" style={{ width: 'auto', padding: '0 14px', flex: '0 0 auto' }} disabled={busy} onClick={() => run(async () => { if (!memo.trim()) return toast('메모를 적어 주세요'); await post(`/org/elders/${id}/memos`, { text: memo.trim() }); setMemo(''); reload(); toast('메모를 저장했어요'); })}>추가</button></div>
       </div>
       <div className="sec-t"><span>요청·활동</span></div>
       {myReqs.length ? myReqs.map((r) => <ReqRow key={r.id} r={{ ...r, myRole: 'MANAGER' }} />) : <Empty>진행 중인 요청이 없어요</Empty>}

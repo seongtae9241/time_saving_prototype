@@ -39,7 +39,10 @@ public class AiController {
     public record RoleplayBody(Long personaId, List<Map<String, Object>> history, String text) {}
 
     @GetMapping("/status")
-    public Map<String, Object> status() { return Views.map("mode", ai.enabled() ? "ai" : "rule"); }
+    public Map<String, Object> status() {
+        String provider = ai.providerName();
+        return Views.map("provider", provider, "model", ai.modelName(), "stt", ai.sttAvailable(), "mode", "rule".equals(provider) ? "rule" : "ai");
+    }
 
     @PostMapping("/post-chat")
     public Map<String, Object> postChat(@CurrentUser User u, @RequestBody PostChatBody b) {

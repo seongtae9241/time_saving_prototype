@@ -6,6 +6,7 @@ import com.timesavings.domain.Enums.UserStatus;
 import com.timesavings.domain.User;
 import com.timesavings.repo.AuthTokenRepo;
 import com.timesavings.repo.UserRepo;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +17,7 @@ import java.util.HexFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** 로그인·토큰·모의 휴대폰 인증. */
+/** 로그인·토큰·휴대폰 본인인증(Firebase 확인 결과 또는 데모 코드 123456). */
 @Service
 public class AuthService {
     public static final String DEMO_CODE = "123456";
@@ -27,9 +28,13 @@ public class AuthService {
     /** verifyToken → phone (모의 본인인증, 메모리 보관 10분) */
     private final Map<String, Object[]> verified = new ConcurrentHashMap<>();
 
-    public AuthService(UserRepo users, AuthTokenRepo tokens) {
+    private final boolean demoCodeEnabled;
+
+    public AuthService(UserRepo users, AuthTokenRepo tokens,
+                       @Value("${app.phone.demo-code-enabled:true}") boolean demoCodeEnabled) {
         this.users = users;
         this.tokens = tokens;
+        this.demoCodeEnabled = demoCodeEnabled;
     }
 
     public String hash(String raw) { return enc.encode(raw); }
@@ -81,11 +86,28 @@ public class AuthService {
     public String sendCode(String phone) {
         if (phone == null || !phone.replaceAll("[^0-9]", "").matches("01\\d{8,9}"))
             throw ApiException.bad("INVALID_PHONE", "휴대폰 번호를 확인해 주세요");
+        if (!demoCodeEnabled) throw ApiException.bad("DEMO_DISABLED", "테스트 인증번호는 꺼져 있어요");
         return DEMO_CODE;
     }
 
     public String verify(String phone, String code) {
-        if (!DEMO_CODE.equals(code)) throw ApiException.bad("INVALID_CODE", "인증번호가 맞지 않아요");
+        if (!demoCodeEnabled) throw ApiException.bad("DEMO_DISABLED", "테스트 인증번호는 꺼져 있어요. 문자로 받은 인증번호를 입력해 주세요");
+        if (!DEMO_CODE.equals(code == null ? null : code.trim())) throw ApiException.bad("INVALID_CODE", "인증번호가 맞지 않아요");
+        return issueVerifyToken(phone);
+    }
+
+    public boolean demoCodeEnabled() { return demoCodeEnabled; }
+
+    /** Firebase 로 확인한 번호(E.164)가 입력 번호와 같으면 verifyToken 발급. */
+    public String verifyFirebase(String phone, String firebasePhoneE164) {
+        if (phone == null || !phone.replaceAll("[^0-9]", "").matches("01\\d{8,9}"))
+            throw ApiException.bad("INVALID_PHONE", "휴대폰 번호를 확인해 주세요");
+        if (!FirebasePhoneVerifier.toE164(phone).equals(firebasePhoneE164))
+            throw ApiException.bad("PHONE_MISMATCH", "인증한 번호와 입력한 번호가 달라요");
+        return issueVerifyToken(phone);
+    }
+
+    private String issueVerifyToken(String phone) {
         String vt = randomHex(16);
         verified.put(vt, new Object[]{normPhone(phone), LocalDateTime.now().plusMinutes(10)});
         return vt;

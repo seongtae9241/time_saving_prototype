@@ -6,10 +6,10 @@ import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
 import { CATS, SHORT, AREAS, fmt, hh, dlabel, lvName, lvWeight, addDays } from '../lib/format.js';
 import { PubCards } from './ai.jsx';
+import { useSpeechInput, SttServerToggle } from '../ui/VoiceInput.jsx';
 
-/* ---------- 음성 도구: 받아쓰기(Web Speech API) · 읽어 주기(speechSynthesis) ---------- */
-const SR = typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
-export const speechSupported = !!SR;
+/* ---------- 음성 도구: 받아쓰기는 공용 ui/VoiceInput.jsx(브라우저 → 서버 음성 인식) · 읽어 주기(speechSynthesis) ---------- */
+export { useSpeechInput, speechSupported } from '../ui/VoiceInput.jsx';
 
 export function getTts() { try { return localStorage.getItem('ts-tts') !== '0'; } catch { return true; } }
 export function setTts(v) { try { localStorage.setItem('ts-tts', v ? '1' : '0'); } catch { /* 무시 */ } }
@@ -31,63 +31,6 @@ export function speak(text, { rate = 0.9, force = false } = {}) {
       window.speechSynthesis.speak(u);
     } catch { resolve(false); }
   });
-}
-
-/**
- * 받아쓰기 훅. lang ko-KR, interimResults true. 말이 멈추면 자동 종료하고 onFinal(전체 글).
- */
-export function useSpeechInput({ onFinal, onInterim } = {}) {
-  const [listening, setListening] = useState(false);
-  const [interim, setInterim] = useState('');
-  const [msg, setMsg] = useState('');
-  const [denied, setDenied] = useState(false);
-  const rec = useRef(null);
-  const finalText = useRef('');
-  const cb = useRef({ onFinal, onInterim });
-  cb.current = { onFinal, onInterim };
-  const stop = useCallback(() => { try { rec.current && rec.current.stop(); } catch { /* 무시 */ } }, []);
-  const start = useCallback(() => {
-    if (!SR) { setMsg('이 브라우저는 음성 입력을 지원하지 않아요'); return false; }
-    if (denied) { setMsg('마이크 권한이 꺼져 있어요. 아래에 적어 주세요'); return false; }
-    stopSpeak();
-    try {
-      const r = new SR();
-      r.lang = 'ko-KR'; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
-      finalText.current = '';
-      r.onresult = (e) => {
-        let fin = '', mid = '';
-        for (let i = 0; i < e.results.length; i++) {
-          const t = e.results[i][0].transcript;
-          if (e.results[i].isFinal) fin += t; else mid += t;
-        }
-        finalText.current = fin;
-        const all = (fin + mid).trim();
-        setInterim(all);
-        cb.current.onInterim && cb.current.onInterim(all);
-      };
-      r.onerror = (e) => {
-        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { setDenied(true); setMsg('마이크 권한이 꺼져 있어요. 아래에 적어 주세요'); }
-        else if (e.error === 'no-speech') setMsg('말소리가 들리지 않았어요. 다시 눌러 말씀해 주세요');
-        else setMsg('음성 인식이 잠깐 안 됐어요. 다시 눌러 주세요');
-      };
-      r.onend = () => {
-        setListening(false);
-        const t = (finalText.current || '').trim() || '';
-        rec.current = null;
-        if (t) cb.current.onFinal && cb.current.onFinal(t);
-      };
-      rec.current = r;
-      setMsg(''); setInterim('');
-      r.start();
-      setListening(true);
-      return true;
-    } catch { setMsg('음성 인식을 시작하지 못했어요'); return false; }
-  }, [denied]);
-  /** "다 말했어요": 지금까지 들은 글(중간 결과 포함)로 끝낸다 */
-  const finish = useCallback(() => { if (!finalText.current && interim) finalText.current = interim; stop(); }, [interim, stop]);
-  const toggle = useCallback(() => (listening ? finish() : start()), [listening, finish, start]);
-  useEffect(() => () => { try { rec.current && rec.current.abort(); } catch { /* 무시 */ } stopSpeak(); }, []);
-  return { supported: !!SR && !denied, listening, interim, msg, start, stop, finish, toggle };
 }
 
 /* ---------- 말로 요청하기 (voice_req, /voice) — 추가 요구(사용자 요청) ---------- */
@@ -113,7 +56,7 @@ export function VoiceReq() {
   const [editing, setEditing] = useState(false);
   const [busy, run] = useBusy();
   const sendRef = useRef(null);
-  const sp2 = useSpeechInput({ onFinal: (t) => sendRef.current && sendRef.current(t), onInterim: setTyped });
+  const sp2 = useSpeechInput({ onFinal: (t) => sendRef.current && sendRef.current(t), onInterim: setTyped, toastErrors: false });
   const who = elderId ? `${elder ? elder.alias + ' 님' : '대상'}` : null;
 
   const say = useCallback(async (t) => { if (tts) await speak(t); }, [tts]);
@@ -154,7 +97,7 @@ export function VoiceReq() {
     setPhase('ask');
     if (r.reply) {
       await say(r.reply);
-      if (tts && sp2.supported && !r.intent?.match?.(/QUESTION|REGULAR/)) sp2.start();
+      if (tts && sp2.mode === 'browser' && !r.intent?.match?.(/QUESTION|REGULAR/)) sp2.start();
     }
   }, [msgs, elderId, say, tts, sp2]);
   sendRef.current = send;
@@ -200,7 +143,7 @@ export function VoiceReq() {
     <Screen title={who ? `${who} 대신 말로 요청` : '말로 요청하기'} noTabs cls="vr">
       <div className="between" style={{ marginBottom: 8 }}>
         <span className="mute2">{who ? '어르신께 들은 내용을 말하거나 적어 주세요' : '말씀하시면 요청서로 정리해 드려요'}</span>
-        <button className={'vr-tts' + (tts ? ' on' : '')} onClick={() => { const v = !tts; setTtsState(v); setTts(v); if (!v) stopSpeak(); }} aria-pressed={tts}>{tts ? '🔊 소리로 읽어 주기 켜짐' : '🔇 소리 꺼짐'}</button>
+        <span className="row" style={{ gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}><SttServerToggle compact /><button className={'vr-tts' + (tts ? ' on' : '')} onClick={() => { const v = !tts; setTtsState(v); setTts(v); if (!v) stopSpeak(); }} aria-pressed={tts}>{tts ? '🔊 소리로 읽어 주기 켜짐' : '🔇 소리 꺼짐'}</button></span>
       </div>
 
       {msgs.length > 0 && (
@@ -304,11 +247,11 @@ export function VoiceReq() {
           {phase === 'ask' && lastReply && !choiceMode && <div className="vr-q">{lastReply}</div>}
           {sp2.supported ? (
             <div className="center">
-              <button className={'vr-mic' + (sp2.listening ? ' on' : '')} disabled={phase === 'thinking'} onClick={sp2.toggle} aria-label={sp2.listening ? '다 말했어요' : '눌러서 말하기'}>
+              <button className={'vr-mic' + (sp2.listening ? ' on' : '')} disabled={phase === 'thinking' || sp2.transcribing} onClick={sp2.toggle} aria-label={sp2.listening ? '다 말했어요' : '눌러서 말하기'} data-voice-mode={sp2.mode}>
                 <Ic n="mic" s={44} />
               </button>
               <Wave on={sp2.listening} />
-              <div className="vr-hint">{sp2.listening ? '듣고 있어요… 말이 끝나면 잠깐 기다려 주세요' : phase === 'card' ? '고칠 내용을 말하려면 누르세요' : '누르고 말씀하세요'}</div>
+              <div className="vr-hint">{sp2.transcribing ? '글자로 바꾸는 중…' : sp2.listening ? (sp2.mode === 'server' ? `녹음 중 ${sp2.seconds}초 · 다 말하면 아래 버튼을 눌러 주세요 (1분까지)` : '듣고 있어요… 말이 끝나면 잠깐 기다려 주세요') : phase === 'card' ? '고칠 내용을 말하려면 누르세요' : '누르고 말씀하세요'}</div>
               {sp2.listening && <button className="btn soft vr-big" style={{ marginTop: 10 }} onClick={sp2.finish}>다 말했어요</button>}
             </div>
           ) : (
@@ -317,7 +260,7 @@ export function VoiceReq() {
           {sp2.msg && sp2.supported && <div className="mute2 center" style={{ marginTop: 6 }}>{sp2.msg}</div>}
           <form className="vr-type" onSubmit={(e) => { e.preventDefault(); if (typed.trim()) send(typed); }}>
             <textarea className="in" placeholder={sp2.supported ? '말한 글자가 여기에 보여요. 직접 고치거나 적어도 돼요' : '여기에 적어 주세요'} value={typed} onChange={(e) => setTyped(e.target.value)} aria-label="요청 내용" rows={2} />
-            <button className="btn vr-big" type="submit" disabled={!typed.trim() || phase === 'thinking' || sp2.listening}>보내기</button>
+            <button className="btn vr-big" type="submit" disabled={!typed.trim() || phase === 'thinking' || sp2.listening || sp2.transcribing}>보내기</button>
           </form>
           {msgs.length > 0 && <button className="au-demo" onClick={reset}>↺ 처음부터 다시</button>}
         </div>

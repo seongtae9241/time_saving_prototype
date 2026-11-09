@@ -2,8 +2,6 @@ package com.timesavings.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.timesavings.domain.Enums.FilterLevel;
 import com.timesavings.domain.Enums.Level;
 import com.timesavings.domain.PublicService;
@@ -12,52 +10,63 @@ import com.timesavings.service.Rules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.time.LocalDate;
 import java.util.*;
 
 /**
  * 모든 AI 호출이 지나가는 유일한 클래스.
- * 환경변수 ANTHROPIC_API_KEY 가 있으면 Claude Messages API 를 부르고, 없거나 실패하면 RuleEngine 결과를 돌려준다.
- * 결과에는 항상 source: "ai" | "rule" 이 들어간다. 키 값은 어디에도 기록하지 않는다.
+ * 공급자(LlmProvider: Gemini, Anthropic)는 AI_PROVIDER(gemini|anthropic|rule)로 고르고, 비우면 GEMINI_API_KEY → ANTHROPIC_API_KEY → 규칙 순으로 자동 선택한다.
+ * 키가 없거나 호출이 실패(429·오류·형식 이상)하면 그 호출만 RuleEngine 결과를 돌려준다.
+ * 결과에는 항상 source: "ai" | "rule" 이 들어가고, ai 면 provider 도 들어간다. 키 값은 어디에도 기록하지 않는다.
  */
 @Component
 public class AiClient {
     private static final Logger log = LoggerFactory.getLogger(AiClient.class);
     private final ObjectMapper om = new ObjectMapper();
     private final PublicServiceRepo services;
-    private final String model;
-    private final String url;
     private final boolean enabledFlag;
-    private final RestClient http;
+    private final String providerSetting;
+    private final GeminiProvider gemini;
+    private final AnthropicProvider anthropic;
 
-    public AiClient(PublicServiceRepo services,
-                    @Value("${app.ai.model:claude-haiku-5-5}") String model,
-                    @Value("${app.ai.url:https://api.anthropic.com/v1/messages}") String url,
+    public AiClient(PublicServiceRepo services, GeminiProvider gemini, AnthropicProvider anthropic,
                     @Value("${app.ai.enabled:true}") boolean enabledFlag,
-                    @Value("${app.ai.timeout-seconds:20}") int timeout) {
+                    @Value("${AI_PROVIDER:}") String providerSetting) {
         this.services = services;
-        this.model = model;
-        this.url = url;
+        this.gemini = gemini;
+        this.anthropic = anthropic;
         this.enabledFlag = enabledFlag;
-        SimpleClientHttpRequestFactory f = new SimpleClientHttpRequestFactory();
-        f.setConnectTimeout(timeout * 1000);
-        f.setReadTimeout(timeout * 1000);
-        this.http = RestClient.builder().requestFactory(f).build();
-    }
-
-    private String key() {
-        String k = System.getenv("ANTHROPIC_API_KEY");
-        return k == null || k.isBlank() ? null : k.trim();
+        this.providerSetting = providerSetting == null ? "" : providerSetting.trim().toLowerCase();
     }
 
     private static final ThreadLocal<Boolean> RULE_ONLY = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<String> LAST_PROVIDER = new ThreadLocal<>();
 
-    public boolean enabled() { return enabledFlag && !RULE_ONLY.get() && key() != null; }
+    /** 설정과 키로 정한 공급자. 없으면 null(규칙 모드). */
+    public LlmProvider provider() {
+        if (!enabledFlag) return null;
+        return switch (providerSetting) {
+            case "rule", "none", "off" -> null;
+            case "gemini", "google" -> gemini.available() ? gemini : null;
+            case "anthropic", "claude" -> anthropic.available() ? anthropic : null;
+            default -> gemini.available() ? gemini : anthropic.available() ? anthropic : null;
+        };
+    }
+
+    public boolean enabled() { return !RULE_ONLY.get() && provider() != null; }
+
+    /** 상태 표시용: 'gemini' | 'anthropic' | 'rule' */
+    public String providerName() { LlmProvider p = provider(); return p == null ? "rule" : p.name(); }
+
+    public String modelName() { LlmProvider p = provider(); return p == null ? null : p.model(); }
+
+    /** 서버 음성 인식(Gemini 오디오)을 쓸 수 있는지: AI 가 켜져 있고 규칙 고정이 아니며 Gemini 키가 있을 때. */
+    public boolean sttAvailable() {
+        return enabledFlag && !List.of("rule", "none", "off").contains(providerSetting) && gemini.available();
+    }
 
     /** 시드 데이터처럼 비용을 쓰면 안 되는 작업은 규칙 모드로만 돌린다. */
     public void ruleOnly(Runnable r) {
@@ -65,35 +74,42 @@ public class AiClient {
         try { r.run(); } finally { RULE_ONLY.set(false); }
     }
 
-    /** Claude 에게 JSON 하나만 답하게 한다. 실패하면 Optional.empty(). */
+    /** 공급자에게 JSON 하나만 답하게 한다. 실패하면 Optional.empty(). */
     Optional<JsonNode> askJson(String system, String user, int maxTokens) {
-        if (!enabled()) return Optional.empty();
+        if (RULE_ONLY.get()) return Optional.empty();
+        LlmProvider p = provider();
+        if (p == null) return Optional.empty();
         try {
-            ObjectNode body = om.createObjectNode();
-            body.put("model", model);
-            body.put("max_tokens", maxTokens);
-            body.put("system", system + "\n\n반드시 JSON 객체 하나만 출력한다. 설명 문장·코드 블록 표시는 쓰지 않는다.");
-            ArrayNode msgs = body.putArray("messages");
-            ObjectNode m = msgs.addObject();
-            m.put("role", "user");
-            m.put("content", user);
-            String res = http.post().uri(url)
-                    .header("x-api-key", key())
-                    .header("anthropic-version", "2023-06-01")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(om.writeValueAsString(body))
-                    .retrieve().body(String.class);
-            JsonNode root = om.readTree(res);
-            StringBuilder text = new StringBuilder();
-            for (JsonNode c : root.path("content")) if ("text".equals(c.path("type").asText())) text.append(c.path("text").asText());
-            String t = text.toString();
-            int a = t.indexOf('{'), b = t.lastIndexOf('}');
-            if (a < 0 || b <= a) return Optional.empty();
-            return Optional.of(om.readTree(t.substring(a, b + 1)));
+            String t = p.completeJson(system + "\n\n반드시 JSON 객체 하나만 출력한다. 설명 문장·코드 블록 표시는 쓰지 않는다.", user, maxTokens);
+            Optional<JsonNode> j = parseJsonObject(om, t);
+            if (j.isEmpty()) log.warn("AI 응답 형식 이상({}), 규칙 모드로 대체", p.name());
+            else LAST_PROVIDER.set(p.name());
+            return j;
+        } catch (HttpStatusCodeException e) {
+            log.warn("AI 호출 실패({}, HTTP {}), 규칙 모드로 대체", p.name(), e.getStatusCode().value());
+            return Optional.empty();
         } catch (Exception e) {
-            log.warn("AI 호출 실패, 규칙 모드로 대체: {}", e.getClass().getSimpleName());
+            log.warn("AI 호출 실패({}, {}), 규칙 모드로 대체", p.name(), e.getClass().getSimpleName());
             return Optional.empty();
         }
+    }
+
+    /** 글 안에서 첫 '{' ~ 마지막 '}' 를 JSON 객체로 읽는다. */
+    static Optional<JsonNode> parseJsonObject(ObjectMapper om, String t) {
+        if (t == null) return Optional.empty();
+        int a = t.indexOf('{'), b = t.lastIndexOf('}');
+        if (a < 0 || b <= a) return Optional.empty();
+        try {
+            JsonNode n = om.readTree(t.substring(a, b + 1));
+            return n != null && n.isObject() ? Optional.of(n) : Optional.empty();
+        } catch (Exception e) { return Optional.empty(); }
+    }
+
+    /** source 를 넣고, ai 결과면 어느 공급자가 답했는지 provider 도 넣는다. */
+    private Map<String, Object> src(Map<String, Object> out, String source) {
+        out.put("source", source);
+        if ("ai".equals(source)) out.put("provider", LAST_PROVIDER.get() != null ? LAST_PROVIDER.get() : providerName());
+        return out;
     }
 
     private static String today(LocalDate d) { return d + " (" + KoreanParser.dateSpeech(d) + ")"; }
@@ -143,8 +159,7 @@ public class AiClient {
         out.put("level", level.name());
         out.put("reason", reason);
         out.put("alternatives", svcMaps(alt));
-        out.put("source", source);
-        return out;
+        return src(out, source);
     }
 
     // ===================== 난이도 제안 (B-08, B-27) =====================
@@ -180,8 +195,7 @@ public class AiClient {
         out.put("reason", reason);
         out.put("factors", factors);
         out.put("estEarn", hours == null ? null : Rules.earn(hours, w));
-        out.put("source", source);
-        return out;
+        return src(out, source);
     }
 
     // ===================== 대화형 공고 작성 (B-02) =====================
@@ -310,8 +324,7 @@ public class AiClient {
         out.put("difficulty", diff);
         out.put("safety", new LinkedHashMap<>(Map.of("emergency", emergency, "piiRemoved", new ArrayList<>(pii))));
         out.put("inputMode", voice ? "voice" : "text");
-        out.put("source", source);
-        return out;
+        return src(out, source);
     }
 
     // ===================== 활동 일지 정리 (B-24) =====================
@@ -323,7 +336,7 @@ public class AiClient {
                 각 줄은 '~했어요' 체. 출력: {"text":"줄1\\n줄2"}
                 """, "기록: " + raw, 300);
         if (ai.isPresent() && !ai.get().path("text").asText().isBlank()) { text = ai.get().path("text").asText(); source = "ai"; }
-        return new LinkedHashMap<>(Map.of("text", text, "source", source));
+        return src(new LinkedHashMap<>(Map.of("text", text)), source);
     }
 
     // ===================== 공공 서비스 안내 (P-01, RAG) =====================
@@ -346,8 +359,7 @@ public class AiClient {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("answer", answer);
         out.put("services", svcMaps(found));
-        out.put("source", source);
-        return out;
+        return src(out, source);
     }
 
     // ===================== AI 도움 추천 =====================
@@ -371,8 +383,7 @@ public class AiClient {
         out.put("answer", answer);
         out.put("categories", cats);
         out.put("helper", helper);
-        out.put("source", source);
-        return out;
+        return src(out, source);
     }
 
     // ===================== 교육 역할극 판정 =====================
@@ -396,8 +407,7 @@ public class AiClient {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("quality", quality);
         out.put("flag", flag);
-        out.put("source", source);
-        return out;
+        return src(out, source);
     }
 
     // ===================== 생활 변화 리포트 서술 (P-03) =====================
@@ -411,6 +421,6 @@ public class AiClient {
                 """, "대상: " + subjectLabel + "\n이번 달 활동 " + count + "회, 지난달 " + prev + "회\n카테고리별: " + byCat
                 + "\n활동 일지:\n" + String.join("\n", logs.stream().limit(10).toList()), 500);
         if (ai.isPresent() && !ai.get().path("narrative").asText().isBlank()) { text = ai.get().path("narrative").asText(); source = "ai"; }
-        return new LinkedHashMap<>(Map.of("narrative", text, "source", source));
+        return src(new LinkedHashMap<>(Map.of("narrative", text)), source);
     }
 }

@@ -245,7 +245,7 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - 위급 표현("쓰러졌", "숨이 안", "피가 나" 등)이면 `intent=EMERGENCY`, `safety.emergency=true`, `done=false`, reply로 119 안내. 전화번호·계좌·상세 주소(아파트 동·호수, 번지, 도로명 번지)는 draft 본문에서 지우고 "(수락 뒤 메시지로 안내돼요)"로 바꾼다(AI 결과에도 서버가 다시 적용). 주의사항·세부 내용에는 병명을 남기지 않고 방문에 필요한 문장("걸음이 불편하셔서 천천히 걸어 주세요")만 둔다.
 - `CHANGE_CANCEL`/`CONFIRM`, 그리고 카테고리 없는 `QUESTION`/`CHAT`이면 요청서를 만들지 않고 reply로 해당 화면(내 활동, 공공 서비스 안내, 말동무 요청)을 안내한다.
 - 시각에 오전·오후가 없으면 1~6시는 오후로 보고 `confidence.time=medium`. 장소를 말하지 않으면 프로필 지역(담당자 대리면 대상의 동)을 채우고 `confidence.area=medium`.
-- `GET /api/ai/status` → `{mode: 'ai'|'rule'}` (키 유무 표시용).
+- `GET /api/ai/status` → `{mode: 'ai'|'rule'}` (키 유무 표시용). → 7.9에서 `provider`·`model`·`stt` 추가.
 
 ### 7.2 공고
 - `POST/PUT /api/posts` 본문에 선택 `difficulty`(BASIC/EFFORT/RESPONSIBLE), `difficultyReason`: 화면에서 AI 제안을 받아 확정한 등급. 카테고리 기본 등급보다 낮으면 기본 등급으로 올린다. 없으면 서버 규칙으로 정한다.
@@ -312,4 +312,43 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - 음성 알림(B-42)은 모의: `voiceAlert=true` 사용자에게 알림이 생기면 서버 로그에 `[VOICE-MOCK]`만 남긴다. 프론트가 필요하면 브라우저 음성 합성으로 읽어 준다.
 - DB 열 이름: `life_reports.month`는 H2 예약어라 `report_month`(JSON 필드 이름은 그대로 `month`). `requests`에 `log_submitted_at`, `adjust_reason`, `anomaly_hold`, `reminded`, `late_notified` 추가.
 - 알림(Notification) 필드: `{id, userId, type, title, body, link, isRead, createdAt}`. `link`는 프론트 경로 힌트(`/requests/{id}` 등).
+
+### 7.9 실제 휴대폰 인증·QR 인식·Gemini·서버 음성 인식 (2026-11-09)
+환경변수(값은 어디에도 적지 않는다):
+
+| 이름 | 쪽 | 뜻 |
+|---|---|---|
+| `GEMINI_API_KEY` | 백엔드 | Gemini 키(헤더 `x-goog-api-key`로만 보냄) |
+| `GEMINI_MODEL` | 백엔드 | 기본 `gemini-flash-latest` |
+| `ANTHROPIC_API_KEY` | 백엔드 | Claude 키 |
+| `AI_PROVIDER` | 백엔드 | `gemini`\|`anthropic`\|`rule`. 비우면 Gemini 키 → Anthropic 키 → 규칙. 고른 공급자에 키가 없으면 규칙 |
+| `FIREBASE_WEB_API_KEY` | 백엔드 | Firebase 웹 API 키(ID 토큰 확인용) |
+| `PHONE_DEMO` | 백엔드 | `false`면 데모 코드 123456 끔(`app.phone.demo-code-enabled`, 기본 true) |
+| `VITE_FIREBASE_API_KEY`·`VITE_FIREBASE_AUTH_DOMAIN`·`VITE_FIREBASE_PROJECT_ID`·`VITE_FIREBASE_APP_ID` | 프론트 빌드 | 넷 다 있어야 Firebase 사용 |
+
+**휴대폰 인증 (A-01 가입, A-03 비밀번호 찾기)**
+- `GET /api/auth/phone/config` (로그인 불필요) → `{firebase: boolean(백엔드 키 있음), demo: boolean}`. 화면은 `firebase && VITE_FIREBASE_* 있음`이면 Firebase JS SDK(보이지 않는 reCAPTCHA + `signInWithPhoneNumber`, 번호는 +82로 바꿈)로 실제 문자를 보낸다.
+- `POST /api/auth/phone/verify` 본문 둘 중 하나:
+  - `{phone, firebaseIdToken}` → 서버가 `POST https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=<FIREBASE_WEB_API_KEY>` `{idToken}`으로 확인, 돌아온 `users[0].phoneNumber`(E.164)가 입력 번호(+82…)와 같아야 함. 확인 뒤 화면은 Firebase `signOut`.
+  - `{phone, code:'123456'}` → 데모 코드(켜져 있을 때만).
+  - 응답 `{verified:true, verifyToken, method:'firebase'|'demo'}`. 오류: `FIREBASE_DISABLED`(키 없음), `FIREBASE_INVALID`(토큰 만료·위조·번호 없음), `PHONE_MISMATCH`, `INVALID_CODE`, `DEMO_DISABLED`, `INVALID_PHONE`. 이후 `verifyToken` 쓰임은 그대로(10분, 번호 일치).
+- `POST /api/auth/phone/send`는 데모용으로 남김(데모 꺼짐이면 400 `DEMO_DISABLED`).
+- 화면: Firebase 켜짐이면 "인증번호 받기" = 실제 문자, 데모 켜짐이면 아래 작은 글씨 "프로토타입 테스트: 123456 입력으로도 인증돼요"(문자를 받지 않고 바로 123456을 넣어도 됨). 문자 발송 실패(할당량·결제 미설정·도메인 미승인 등)면 오류 문장 + 데모 코드 안내. Firebase 꺼짐이면 지금처럼 테스트 코드 안내.
+
+**QR (요청 체크인·아웃, 동네 클래스 출석, 1:1 시작·마침)**
+- QR 내용: `TS1|<REQ|CLS|ONE>|<대상 id>|<6자리 코드>`. 요청은 RequestView에 `qrText`(받는 쪽·담당자에게만, `checkCode`와 함께), 클래스는 `GET /api/classes/{id}/qr`의 `qrText`(1:1이면 ONE, 같이 해 보기면 CLS).
+- 스캐너: 후면 카메라(`facingMode: environment`) 영상 → `BarcodeDetector`(있으면) / `jsqr`. 형식·종류·대상 id가 맞으면 `{code, method:'qr'}`로 해당 API 호출. 카메라 권한 거부·https 아님·카메라 없음이면 안내. 6자리 번호 입력칸은 항상 같이 보이고 `{code, method:'code'}`. 영상은 저장·전송하지 않는다.
+- `POST /api/classes/{id}/attend`, `/one/start`, `/one/end` 본문에 `method`(`qr`|`code`, 기본 code) 추가. DB `class_enrollments.check_method`(출석·시작), `check_out_method`(1:1 마침) 칸 추가. 응답: 1:1 `myOne`/`requests[]`에 `checkMethod`·`checkOutMethod`, 같이 해 보기 `myEnrollment`에 `checkMethod`·`checkInAt`. 화면 표시 `qr`→"QR 확인", `code`→"번호 확인", `manual`→"버튼 확인"(요청만).
+
+**AI 공급자 (`AiClient` 한 곳, `LlmProvider` = `AnthropicProvider` | `GeminiProvider`)**
+- Gemini: `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`, 헤더 `x-goog-api-key`, 본문 `systemInstruction`·`contents[{role:'user',parts:[{text}]}]`·`generationConfig.responseMimeType:"application/json"`. 응답 `candidates[0].content.parts[*].text`(생각 part 제외)를 이어 JSON 객체로 읽는다. 429·HTTP 오류·형식 이상이면 그 호출만 규칙 결과 + 로그(공급자 이름과 상태 코드만, 키·본문 없음).
+- 모든 AI 응답의 `source`는 그대로 `'ai'|'rule'`, `ai`면 `provider: 'gemini'|'anthropic'` 추가.
+- `GET /api/ai/status` (로그인 불필요로 바꿈) → `{provider:'gemini'|'anthropic'|'rule', model(규칙이면 null), stt:boolean, mode:'ai'|'rule'}`.
+
+**서버 음성 인식 (`SttClient` 한 곳)**
+- `POST /api/stt` (로그인 필요, multipart `audio`, 선택 `lang=ko`) → `{text, source:'gemini'}`. 최대 5MB(화면은 1분에서 녹음 자동 정지). 받는 형식 `audio/webm`·`audio/ogg`·`audio/mp4`(+ mpeg·wav·aac·flac, `;codecs=` 무시).
+- Gemini `generateContent`에 `inline_data{mime_type, data(base64)}` + "한국어 음성을 들리는 그대로 받아쓰기만, 설명 없이" 지시. **녹음은 저장하지 않고 메모리에서 처리 후 버림.**
+- 오류: 키 없음(또는 `AI_PROVIDER=rule`, `app.ai.enabled=false`) 503 `STT_UNAVAILABLE`, 사용량 초과 503 `STT_BUSY`, 그 밖 실패 502 `STT_FAILED`, 400 `AUDIO_REQUIRED`·`AUDIO_TYPE`, 413 `AUDIO_TOO_LARGE`.
+- 화면 공용 음성 입력(`ui/VoiceInput.jsx`): ① 브라우저 `SpeechRecognition` ② 없거나 설정(알림 설정 → 음성 입력, 말로 요청하기 화면 작은 토글)에서 "서버 음성 인식"을 고르면 `MediaRecorder` 녹음 → `/api/stt` ③ 둘 다 안 되면 직접 입력 안내. 마이크 권한은 버튼을 누를 때만 요청.
+- 마이크 버튼(프로토타입 `.mic`)을 단 곳: 말로 요청하기, 대화형 공고 작성, 활동 일지 한 줄(B-24 → 기존 AI 일지 정리), 1:1 문의(B-48), 신고 내용(B-36), 요청·제안 내용·메모(A-08), 요청 메시지, AI 도움 추천·공공 서비스 질문, 수업 열기 인터뷰, 교육 역할극 대답, 담당자 대상 메모(C-02), 평가 한마디(B-38), 1:1 신청 "궁금한 점". 받은 글은 입력칸에 채워질 뿐이라 전화번호 경고·`PII_NOT_ALLOWED` 등 기존 규칙이 그대로 적용된다.
 

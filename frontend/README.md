@@ -2,6 +2,14 @@
 
 React 18 + Vite 5 + react-router-dom 6 (JavaScript). UI 라이브러리 없이 채택 프로토타입(`docs/prototypes/adopted-황수빈-첫활동교육-동네클래스.html`)의 CSS를 `src/styles/proto.css`로 그대로 옮겼고, 프로토타입에 없는 것만 `src/styles/app.css`에 더했다.
 
+## 빌드 환경변수
+
+| 이름 | 설명 |
+|---|---|
+| `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID` | Firebase 웹 앱 설정값. 넷 다 있고 서버 `GET /api/auth/phone/config`의 `firebase`가 true면 "인증번호 받기"가 실제 문자를 보낸다. 없으면 데모 코드만. `frontend/.env.example`을 `.env.local`로 복사해 채운다(`.env*`는 git 제외) |
+
+> 카메라(QR)와 마이크(서버 음성 인식)는 https 주소나 `localhost`에서만 켜진다.
+
 ## 실행
 
 ```bash
@@ -23,6 +31,9 @@ npm run build      # 결과물 frontend/dist
 | `src/ui/bits.jsx` | 프로토타입 도우미를 컴포넌트로: 카테고리 아이콘·칩, 시간 막대, 상태 태그, 진행 단계, 공고 카드, 요청 줄, AI 로딩(aiRun), 규칙 모드 표시, QR(`qrcode` 패키지) |
 | `src/ui/icons.js` | 프로토타입 아이콘 `I`, `ic()`, 로고 그대로 |
 | `src/lib/format.js` | 카테고리·가중치·시간 표시(`hh`, `ap`, `fmt`), 날짜 표시, 상태 이름 |
+| `src/ui/VoiceInput.jsx` | 공용 음성 입력: 브라우저 받아쓰기 → (없거나 설정에서 고르면) 녹음 → `POST /api/stt` → (둘 다 안 되면) 직접 입력 안내. `useSpeechInput`, `MicButton`, `VoiceField`, `SttServerToggle` |
+| `src/ui/QrScanner.jsx` | 실제 QR 인식(후면 카메라 + `BarcodeDetector`, 없으면 `jsqr`) + 6자리 번호 입력. QR 내용 `TS1\|REQ·CLS·ONE\|id\|코드` |
+| `src/lib/firebasePhone.js` | Firebase Phone Auth(보이지 않는 reCAPTCHA → 문자 → ID 토큰). `VITE_FIREBASE_*` 넷이 다 있을 때만 |
 | `src/screens/*.jsx` | 화면 |
 
 - AI 응답에 `source: "rule"`이 오면 작은 글씨로 "AI 키 없음 · 규칙 모드"를 보여 준다.

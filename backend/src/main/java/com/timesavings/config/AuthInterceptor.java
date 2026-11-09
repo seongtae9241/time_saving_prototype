@@ -20,6 +20,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         if ("OPTIONS".equals(method)) return true;
         if (path.startsWith("/api/auth/") && !path.equals("/api/auth/logout")) return true;
         if (path.equals("/api/orgs/apply")) return true;
+        if ("GET".equals(method) && path.equals("/api/ai/status")) return true;
         if (path.startsWith("/api/notices")) return true;
         return "GET".equals(method) && path.startsWith("/api/files/");
     }

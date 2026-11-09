@@ -31,14 +31,15 @@ public class AuthController {
     private final Views views;
     private final FileService files;
     private final NotificationService noti;
+    private final FirebasePhoneVerifier firebase;
 
     public AuthController(AuthService auth, UserRepo users, OrganizationRepo orgs, RequestRepo requests, BankService bank, Views views,
-                          FileService files, NotificationService noti) {
+                          FileService files, NotificationService noti, FirebasePhoneVerifier firebase) {
         this.auth = auth; this.users = users; this.orgs = orgs; this.requests = requests; this.bank = bank; this.views = views;
-        this.files = files; this.noti = noti;
+        this.files = files; this.noti = noti; this.firebase = firebase;
     }
 
-    public record PhoneBody(String phone, String code) {}
+    public record PhoneBody(String phone, String code, String firebaseIdToken) {}
     public record SignupBody(String loginId, String password, String name, String phone, String verifyToken, String area,
                              String ageGroup, List<String> categories, List<String> timeSlots, String intro) {}
     public record LoginBody(String loginId, String password, Boolean keep) {}
@@ -56,9 +57,20 @@ public class AuthController {
         return Views.map("demoCode", auth.sendCode(b.phone()), "message", "테스트용 인증번호예요 (실제 문자는 보내지 않아요)");
     }
 
+    /** 화면이 고를 인증 방식: firebase(실제 문자, 백엔드 키 있음), demo(123456 허용). */
+    @GetMapping("/auth/phone/config")
+    public Map<String, Object> phoneConfig() {
+        return Views.map("firebase", firebase.enabled(), "demo", auth.demoCodeEnabled());
+    }
+
+    /** {phone, firebaseIdToken} → Firebase 로 확인 / {phone, code:'123456'} → 데모 코드(켜져 있을 때). */
     @PostMapping("/auth/phone/verify")
     public Map<String, Object> verify(@RequestBody PhoneBody b) {
-        return Views.map("verified", true, "verifyToken", auth.verify(b.phone(), b.code()));
+        if (b.firebaseIdToken() != null && !b.firebaseIdToken().isBlank()) {
+            String fbPhone = firebase.verifiedPhone(b.firebaseIdToken());
+            return Views.map("verified", true, "verifyToken", auth.verifyFirebase(b.phone(), fbPhone), "method", "firebase");
+        }
+        return Views.map("verified", true, "verifyToken", auth.verify(b.phone(), b.code()), "method", "demo");
     }
 
     static void checkPassword(String pw) {

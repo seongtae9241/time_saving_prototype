@@ -7,6 +7,9 @@ import { api, post } from '../api.js';
 import { fmt, hh, ap, dlabel, addDays, AREAS } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useSpeechInput } from './voice.jsx';
+import QrScanner, { qrText } from '../ui/QrScanner.jsx';
+import { VoiceField } from '../ui/VoiceInput.jsx';
+const checkBy = (m) => (m === 'qr' ? 'QR 확인' : m === 'code' ? '번호 확인' : 'QR 확인');
 
 const KI = { '요리': '<path d="M4 11h16v3a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6z"/><path d="M2 11h20M9 7c0-1 1-1.5 1-3M14 7c0-1 1-1.5 1-3"/>', '손재주': '<path d="M5 19L19 5"/><circle cx="18" cy="6" r="1.5"/><path d="M4 20c4-1 6-5 9-5s3 3 7 2"/>', '노래·이야기': '<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>', '디지털': '<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/>', '생활 지혜': '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>', '일·경험': '<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>' };
 const KC = { '요리': ['#FFF1E2', '#EE8424'], '손재주': ['#F0ECFF', '#7656E3'], '노래·이야기': ['#FFEDF3', '#E2557F'], '디지털': ['#EAF0FF', '#3D6DF2'], '생활 지혜': ['#E4F5F9', '#178FAD'], '일·경험': ['#ECF1F8', '#3E5C8A'] };
@@ -126,17 +129,12 @@ export function Cls() {
 }
 
 function AttendSheet({ c, mode, onDone, onClose }) {
-  const [code, setCode] = useState('');
-  const [busy, run] = useBusy();
+  const submit = (body) => post(`/classes/${c.id}/attend`, { ...body, mode }, { quiet: body.method === 'qr' });
   return (
     <>
       <h2>{mode === 'in' ? '출석 QR 찍기' : '마침 QR 찍기'}</h2>
-      <p className="muted" style={{ margin: 0 }}>{c.place || '교실'} · 선생님 화면의 번호 6자리를 입력해요.</p>
-      <div className="qr-cam"><div className="qr-frame"><i className="c1" /><i className="c2" /><i className="c3" /><i className="c4" /><div className="qr-line" /></div><div className="qr-hint">카메라 인식은 준비 중이에요 · 번호로 확인해요</div></div>
-      <form className="row" style={{ marginTop: 10 }} onSubmit={(e) => { e.preventDefault(); run(async () => { await post(`/classes/${c.id}/attend`, { code, mode }); onClose(); onDone(); }); }}>
-        <input className="in grow" inputMode="numeric" maxLength={6} placeholder="번호 6자리" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} aria-label="출석 번호" />
-        <button className="btn sm" style={{ width: 'auto', padding: '0 18px', flex: '0 0 auto' }} disabled={busy || code.length !== 6}>확인</button>
-      </form>
+      <p className="muted" style={{ margin: 0 }}>{c.place || '교실'} · 선생님 화면이나 입구의 QR을 찍어 주세요.</p>
+      <QrScanner kind="CLS" id={c.id} submit={submit} onDone={() => { onClose(); onDone(); }} />
       <button className="btn ghost" style={{ marginTop: 8 }} onClick={onClose}>닫기</button>
     </>
   );
@@ -148,7 +146,7 @@ function ClsQrSheet({ c, onClose }) {
     <>
       <h2>출석 QR</h2>
       <p className="muted" style={{ margin: 0 }}>{c.title} · 수강생이 들어올 때 이 QR(번호)을 찍어요.</p>
-      <div className="qr-show">{q === undefined ? <Loading /> : <><div className="qr-box"><QrSvg text={(q && q.qrText) || `TS-CLASS:${c.id}:${code}`} size="min(220px,62vw)" /></div><div className="b" style={{ fontSize: 30, letterSpacing: 6 }}>{code}</div></>}</div>
+      <div className="qr-show">{q === undefined ? <Loading /> : <><div className="qr-box"><QrSvg text={(q && q.qrText) || qrText('CLS', c.id, code)} size="min(220px,62vw)" /></div><div className="b" style={{ fontSize: 30, letterSpacing: 6 }}>{code}</div><div className="mute2">QR이 안 찍히면 이 번호 6자리를 불러 주세요</div></>}</div>
       <div className="sum" style={{ marginTop: 12 }}><div className="between"><span className="muted">신청</span><b>{joined(c)}/{c.capacity}명</b></div>{q && q.attended != null && <div className="between"><span className="muted">출석</span><b>{q.attended}명</b></div>}</div>
       <button className="btn ghost" style={{ marginTop: 8 }} onClick={onClose}>닫기</button>
     </>
@@ -199,7 +197,7 @@ export function ClsDetail() {
   } else if (c.status === 'DONE') {
     action = <button className="btn soft" onClick={() => nav(`/cls/${c.id}/note`)}>배움 노트 보기</button>;
   } else if (c.status === 'OPEN' && me && me.role === 'USER') {
-    if (en === 'ATTENDED') action = <><div className="chk on" style={{ marginTop: 0 }}><span className="dotp" /><div className="grow"><b>출석 완료</b><div className="mute2">묶여 있던 {fmt(cost(c))}시간이 정산됐어요 · 끝나면 후기를 남겨 주세요</div></div></div><ReviewBox c={c} /></>;
+    if (en === 'ATTENDED') action = <><div className="chk on" style={{ marginTop: 0 }}><span className="dotp" /><div className="grow"><b>출석 완료</b>{c.myEnrollment && c.myEnrollment.checkMethod ? <> <span className="qr-by">{checkBy(c.myEnrollment.checkMethod)}</span></> : null}<div className="mute2">묶여 있던 {fmt(cost(c))}시간이 정산됐어요 · 끝나면 후기를 남겨 주세요</div></div></div><ReviewBox c={c} /></>;
     else if (mine) action = <><div className="btns"><button className="btn ghost" disabled={busy} onClick={async () => { if (await confirm('수강 신청을 취소할까요?', '하루 전까지는 무료로 취소되고 묶인 시간이 돌아와요.', '취소하기', true)) run(async () => { await post(`/classes/${c.id}/cancel`); await reload(); refresh(); toast('신청을 취소했어요'); }); }}>신청 취소</button><button className="btn" onClick={() => sheet(() => <AttendSheet c={c} mode="in" onClose={closeSheet} onDone={async () => { await reload(); refresh(); toast(`출석했어요. ${fmt(cost(c))}시간이 정산됐어요`); }} />)}><Ic n="qr" s={20} /> 출석 QR 찍기</button></div><div className="mute2 center" style={{ marginTop: 8 }}>수업 시작 때 선생님 화면의 QR(번호)을 찍어요</div></>;
     else if (full) action = <button className="btn" disabled style={{ opacity: 0.45 }}>정원이 찼어요</button>;
     else action = <button className="btn" disabled={busy} onClick={async () => {
@@ -240,7 +238,7 @@ function OneApplySheet({ c, onDone, onClose }) {
       <div className="b small" style={{ marginBottom: 8 }}>언제 만날까요?</div>
       {slots.map((x, i) => <div key={i} className={'opt ' + (pick === i ? 'on' : '')} role="radio" aria-checked={pick === i} tabIndex={0} onClick={() => setPick(i)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPick(i); } }}><span className="rd" /><div className="grow b">{slotOf(x)}</div></div>)}
       <label className="b small" htmlFor="oneq" style={{ display: 'block', margin: '18px 0 8px' }}>무엇이 궁금하세요?</label>
-      <textarea className="in" id="oneq" rows={3} ref={ta} placeholder="선생님께 미리 전해 드려요. 짧게 적어도 괜찮아요" value={q} onChange={(e) => setQ(e.target.value)} />
+      <VoiceField value={q} onChange={setQ}><textarea className="in" id="oneq" rows={3} ref={ta} placeholder="선생님께 미리 전해 드려요. 짧게 적어도 괜찮아요" value={q} onChange={(e) => setQ(e.target.value)} /></VoiceField>
       <div className="one-qs">{(c.qs || []).map((x) => <button key={x} type="button" onClick={() => { setQ(x); if (ta.current) ta.current.focus(); }}>{x}</button>)}</div>
       <button className="btn" style={{ marginTop: 16 }} disabled={busy} onClick={() => {
         if (!q.trim()) return toast('궁금한 점을 한 줄만 적어 주세요');
@@ -251,17 +249,12 @@ function OneApplySheet({ c, onDone, onClose }) {
   );
 }
 function OneScanSheet({ c, m, onDone, onClose }) {
-  const [code, setCode] = useState('');
-  const [busy, run] = useBusy();
+  const submit = (body) => post(`/classes/${c.id}/one/${m === 'in' ? 'start' : 'end'}`, body, { quiet: body.method === 'qr' });
   return (
     <>
       <h2>{m === 'in' ? '시작 QR 찍기' : '마침 QR 찍기'}</h2>
       <p className="muted" style={{ margin: 0 }}>{c.meet} · {c.byOrg ? '담당자가 띄운' : '선생님 휴대폰 화면의'} QR을 찍어 주세요.</p>
-      <div className="qr-cam"><div className="qr-frame"><i className="c1" /><i className="c2" /><i className="c3" /><i className="c4" /><div className="qr-line" /></div><div className="qr-hint">카메라 인식은 준비 중이에요 · 번호로 확인해요</div></div>
-      <form className="row" style={{ marginTop: 10 }} onSubmit={(e) => { e.preventDefault(); run(async () => { await post(`/classes/${c.id}/one/${m === 'in' ? 'start' : 'end'}`, { code }); onClose(); onDone(); }); }}>
-        <input className="in grow" inputMode="numeric" maxLength={6} placeholder="번호 6자리" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} aria-label="QR 번호" />
-        <button className="btn sm" style={{ width: 'auto', padding: '0 18px', flex: '0 0 auto' }} disabled={busy || code.length !== 6}>확인</button>
-      </form>
+      <QrScanner kind="ONE" id={c.id} submit={submit} onDone={() => { onClose(); onDone(); }} />
       <button className="btn ghost" style={{ marginTop: 8 }} onClick={onClose}>닫기</button>
     </>
   );
@@ -273,7 +266,7 @@ function OneQrShowSheet({ c, onClose }) {
     <>
       <h2>만남 QR</h2>
       <p className="muted" style={{ margin: 0 }}>{c.title} · 만나면 배우는 분이 이 QR을 찍어요. 시작할 때 한 번, 헤어질 때 한 번이에요.</p>
-      <div className="qr-show">{q === undefined ? <Loading /> : <><div className="qr-box"><QrSvg text={(q && q.qrText) || `TS-CLASS:${c.id}:${code}`} size="min(220px,62vw)" /></div><div className="b" style={{ fontSize: 30, letterSpacing: 6 }}>{code}</div><div className="mute2">QR이 안 찍히면 이 번호 6자리를 불러 주세요</div></>}</div>
+      <div className="qr-show">{q === undefined ? <Loading /> : <><div className="qr-box"><QrSvg text={(q && q.qrText) || qrText('ONE', c.id, code)} size="min(220px,62vw)" /></div><div className="b" style={{ fontSize: 30, letterSpacing: 6 }}>{code}</div><div className="mute2">QR이 안 찍히면 이 번호 6자리를 불러 주세요</div></>}</div>
       <button className="btn ghost" style={{ marginTop: 8 }} onClick={onClose}>닫기</button>
     </>
   );
@@ -350,7 +343,7 @@ function OneDetail({ c, reload }) {
     act = <><div className="chk" style={{ marginTop: 0 }}><span className="dotp" style={{ background: 'var(--brand)', animation: 'none', boxShadow: 'none' }} /><div className="grow"><b>만남이 확정됐어요</b> · {slotOf(pd)}<div className="mute2">{c.meet}에서 만나요. 만나면 선생님 화면의 QR을 찍어요</div></div></div>
       <div className="btns" style={{ marginTop: 10 }}><button className="btn ghost" disabled={busy} onClick={cancel}>신청 취소</button><button className="btn" onClick={() => scan('in')}><Ic n="qr" s={20} /> 시작 QR 찍기</button></div><div className="mute2 center" style={{ marginTop: 8 }}>약속 날이 아니어도 미리 만나면 찍을 수 있어요</div></>;
   } else if (pd.status === 'MET') {
-    act = <><div className="chk on" style={{ marginTop: 0 }}><span className="dotp" /><div className="grow"><b>만나는 중</b> · {tmOf(pd.checkInAt)} 시작 <span className="qr-by">QR 확인</span><div className="mute2">묶여 있던 {fmt(c.hours)}시간이 정산됐어요 · 헤어질 때 마침 QR을 찍어 주세요</div></div></div><button className="btn" style={{ marginTop: 10 }} onClick={() => scan('out')}><Ic n="qr" s={20} /> 마침 QR 찍기</button></>;
+    act = <><div className="chk on" style={{ marginTop: 0 }}><span className="dotp" /><div className="grow"><b>만나는 중</b> · {tmOf(pd.checkInAt)} 시작 <span className="qr-by">{checkBy(pd.checkMethod)}</span><div className="mute2">묶여 있던 {fmt(c.hours)}시간이 정산됐어요 · 헤어질 때 마침 QR을 찍어 주세요</div></div></div><button className="btn" style={{ marginTop: 10 }} onClick={() => scan('out')}><Ic n="qr" s={20} /> 마침 QR 찍기</button></>;
   } else {
     act = <><div className="chk" style={{ marginTop: 0 }}><span className="dotp" style={{ background: '#1F9D63', animation: 'none', boxShadow: 'none' }} /><div className="grow"><b>만남 끝</b> · {tmOf(pd.checkInAt)} ~ {tmOf(pd.checkOutAt)}<div className="mute2">{teacherName(c)} 선생님께 {fmt(c.hours)}시간이 적립돼요</div></div></div>
       <div className="card" style={{ marginTop: 12 }}>{pd.note ? <><div className="b">오늘 배운 한 줄</div><div className="one-quote" style={{ marginTop: 8 }}>“{pd.note}”</div><div className="mute2" style={{ marginTop: 6 }}>선생님께도 전해 드렸어요</div></> : <OneNoteBox c={c} onDone={again} />}</div>

@@ -29,4 +29,8 @@ public class ClassEnrollment {
     @Column(length = 300) public String note;
     public LocalDateTime checkInAt;
     public LocalDateTime checkOutAt;
+    /** 출석·시작 확인 방법: qr(카메라로 QR 인식) | code(번호 6자리 입력) */
+    @Column(length = 10) public String checkMethod;
+    /** 1:1 마침 확인 방법 */
+    @Column(length = 10) public String checkOutMethod;
 }

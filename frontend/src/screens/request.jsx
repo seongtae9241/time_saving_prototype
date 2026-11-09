@@ -8,6 +8,8 @@ import { CATS, SHORT, W, LV, fmt, hh, dlabel, dshort, KIND_LABEL, lvName, lvWeig
 import { I } from '../ui/icons.js';
 import { useReport } from './common.jsx';
 import { FilterBox } from './ai.jsx';
+import QrScanner, { qrText } from '../ui/QrScanner.jsx';
+import { VoiceField, MicButton } from '../ui/VoiceInput.jsx';
 
 /* ---------- 공개 프로필 시트 (B-12, B-40, B-41) ---------- */
 export function ProfileView({ p }) {
@@ -109,14 +111,14 @@ export function ReqForm() {
       <label className="f">도움 종류</label>
       <div className="tags">{cats.map((k) => <button key={k} className={'chip ' + (f.cat === k ? 'on' : '')} onClick={() => { setF({ ...f, cat: k }); setAi(null); }}>{SHORT[k] || k}</button>)}</div>
       <label className="f" htmlFor="rfc">도움 내용</label>
-      <textarea id="rfc" className="in" placeholder="어떤 도움이 필요한지 적어 주세요" value={f.content} onChange={(e) => { setF({ ...f, content: e.target.value }); setAi(null); }} />
+      <VoiceField value={f.content} onChange={(v) => { setF((x) => ({ ...x, content: v })); setAi(null); }}><textarea id="rfc" className="in" placeholder="어떤 도움이 필요한지 적어 주세요" value={f.content} onChange={(e) => { setF({ ...f, content: e.target.value }); setAi(null); }} /></VoiceField>
       <button className="btn soft sm" style={{ marginTop: 8 }} onClick={check}><Ic h={I.spark} /> AI로 내용 확인하기 (금지 요청·난이도)</button>
       <div style={{ marginTop: 10 }}>
         {ai && ai.loading && <AiLoading label="AI가 확인하는 중…" />}
         {ai && ai.filter && <FilterBox f={ai.filter} diff={ai.diff} />}
       </div>
       <label className="f" htmlFor="rfm">메모 <span className="mute2" style={{ fontWeight: 500 }}>(보낼 때 한 번만 적을 수 있어요)</span></label>
-      <textarea id="rfm" className="in" style={{ minHeight: 80 }} placeholder="예) 엘리베이터 있어요 / 반려견이 있어요" value={f.memo} onChange={(e) => setF({ ...f, memo: e.target.value })} />
+      <VoiceField value={f.memo} onChange={(v) => setF((x) => ({ ...x, memo: v }))}><textarea id="rfm" className="in" style={{ minHeight: 80 }} placeholder="예) 엘리베이터 있어요 / 반려견이 있어요" value={f.memo} onChange={(e) => setF({ ...f, memo: e.target.value })} /></VoiceField>
       <div className="sum" style={{ marginTop: 16 }}>
         <div className="between"><span className="muted">난이도</span><b>{lvl} × {weight.toFixed(1)}</b></div>
         <div className="between"><span className="muted">{isProp ? '내 예상 적립' : '봉사자 예상 적립'}</span><b className="cr plus">+{fmt(earn)}시간</b></div>
@@ -165,36 +167,24 @@ const tm = (dt) => (dt ? String(dt).slice(11, 16) : '');
 const durMin = (a, b) => (a && b ? Math.max(0, Math.round((new Date(b) - new Date(a)) / 60000)) : null);
 const durTxt = (m) => (m == null ? '' : `${Math.floor(m / 60) ? Math.floor(m / 60) + '시간 ' : ''}${m % 60 ? (m % 60) + '분' : ''}`.trim() || '0분');
 const NS_LATE = 10, NS_MISS = 30;
+const checkByText = (m) => (m === 'manual' ? '버튼 확인' : m === 'qr' ? 'QR 확인' : '번호 확인');
 const alertBox = (kind, title, body) => <div className={`alert ${kind}`}><Ic n={kind === 'bad' ? 'flag' : 'clock'} s={20} /><div><b>{title}</b>{body}</div></div>;
 const QrStepsBar = ({ k }) => <div className="qr-steps">{['도착 · 시작 QR', '마칠 때 · 종료 QR', '활동 일지'].map((t, i) => <div key={t} className={i < k ? 'done' : i === k ? 'on' : ''}>{i < k ? '✓ ' : ''}{t}</div>)}</div>;
 
-/** 봉사자: 시작·종료 코드 입력 시트 (카메라 화면은 모양만, 코드 6자리로 확인) */
+/** 봉사자: 시작·종료 QR 찍기 시트 (카메라로 실제 QR 인식 + 번호 6자리 입력) */
 function ScanSheet({ r, mode, onDone, onClose }) {
-  const [code, setCode] = useState('');
-  const [ok, setOk] = useState(false);
   const [busy, run] = useBusy();
   const who = r.elder ? `${r.elder.displayName} 댁 현관의 QR 카드` : `${r.recipient ? r.recipient.name : '받는 분'} 님 휴대폰의 QR`;
-  const submit = (body) => run(async () => {
-    await post(`/requests/${r.id}/${mode === 'in' ? 'check-in' : 'check-out'}`, body);
-    setOk(true);
-    if (navigator.vibrate) navigator.vibrate(40);
-    setTimeout(() => { onClose(); onDone(); }, 600);
-  });
+  const url = `/requests/${r.id}/${mode === 'in' ? 'check-in' : 'check-out'}`;
+  const submit = (body) => post(url, body, { quiet: body.method === 'qr' });
+  const manual = () => run(async () => { await post(url, { method: 'manual' }); onClose(); onDone(); });
   return (
     <>
       <h2>{mode === 'in' ? '시작 QR 찍기' : '종료 QR 찍기'}</h2>
-      <p className="muted" style={{ margin: 0 }}>{who}에 적힌 번호 6자리를 입력하면 바로 확인돼요.</p>
-      <div className={'qr-cam' + (ok ? ' ok' : '')}>
-        <div className="qr-frame"><i className="c1" /><i className="c2" /><i className="c3" /><i className="c4" /><div className="qr-line" /></div>
-        <div className="qr-okm"><Ic n="check" s={34} /></div>
-        <div className="qr-hint">{ok ? '확인됐어요' : '카메라 인식은 준비 중이에요 · 번호로 확인해요'}</div>
-      </div>
-      <form className="row" style={{ marginTop: 10 }} onSubmit={(e) => { e.preventDefault(); if (/^\d{6}$/.test(code)) submit({ code }); }}>
-        <input className="in grow" inputMode="numeric" maxLength={6} placeholder="번호 6자리" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} aria-label="체크 번호 6자리" />
-        <button className="btn sm" style={{ width: 'auto', padding: '0 18px', flex: '0 0 auto' }} disabled={busy || code.length !== 6}>확인</button>
-      </form>
-      <div className="mute2 center" style={{ marginTop: 6 }}>{r.elder ? '카드가 안 보이면 담당자에게 메시지로 알려 주세요' : '상대방이 휴대폰 화면 밝기를 높이면 잘 보여요'}</div>
-      <button className="au-demo" disabled={busy} onClick={() => submit({ method: 'manual' })}>번호 없이 {mode === 'in' ? '시작' : '마치기'} (받는 분이 한 번 더 확인해요)</button>
+      <p className="muted" style={{ margin: 0 }}>{who}를 화면 네모 안에 맞춰 주세요.</p>
+      <QrScanner kind="REQ" id={r.id} submit={submit} onDone={() => { onClose(); onDone(); }}
+        foot={r.elder ? '카드가 안 보이면 담당자에게 메시지로 알려 주세요' : '상대방이 휴대폰 화면 밝기를 높이면 잘 찍혀요'} />
+      <button className="au-demo" disabled={busy} onClick={manual}>번호 없이 {mode === 'in' ? '시작' : '마치기'} (받는 분이 한 번 더 확인해요)</button>
       <button className="btn ghost" style={{ marginTop: 8 }} onClick={onClose}>닫기</button>
     </>
   );
@@ -212,7 +202,7 @@ function ShowQrSheet({ r, title, sub, onClose, onRefresh }) {
       <h2>{title}</h2>
       <p className="muted" style={{ margin: 0 }}>{sub}</p>
       <div className="qr-show">
-        <div className="qr-box"><QrSvg text={`TS-CHECK:${r.id}:${r.checkCode}`} size="min(220px,62vw)" /></div>
+        <div className="qr-box"><QrSvg text={r.qrText || qrText('REQ', r.id, r.checkCode)} size="min(220px,62vw)" /></div>
         <div className="b" style={{ fontSize: 30, letterSpacing: 6 }}>{r.checkCode || '------'}</div>
         <div className="qr-timer"><i style={{ width: `${(left / 30) * 100}%` }} /></div>
         <div className="mute2">QR이 안 찍히면 위 번호 6자리를 불러 주세요</div>
@@ -346,7 +336,7 @@ export function RequestDetail() {
     <>
       <h2>현관 QR 카드</h2>
       <p className="muted" style={{ margin: 0 }}>{toName} 댁 현관 안쪽에 붙여 두는 카드예요. 봉사자가 도착·종료할 때 찍어요.</p>
-      <div className="qr-card"><div className="b" style={{ fontSize: 15 }}>시간 적금 · 활동 확인 카드</div><div className="qr-box" style={{ margin: '10px auto' }}><QrSvg text={`TS-CHECK:${r.id}:${r.checkCode}`} size={160} /></div><div className="b" style={{ fontSize: 22, letterSpacing: 4 }}>{r.checkCode}</div><div className="mute2">봉사자: 시작할 때 한 번, 끝날 때 한 번 찍어 주세요</div></div>
+      <div className="qr-card"><div className="b" style={{ fontSize: 15 }}>시간 적금 · 활동 확인 카드</div><div className="qr-box" style={{ margin: '10px auto' }}><QrSvg text={r.qrText || qrText('REQ', r.id, r.checkCode)} size={160} /></div><div className="b" style={{ fontSize: 22, letterSpacing: 4 }}>{r.checkCode}</div><div className="mute2">봉사자: 시작할 때 한 번, 끝날 때 한 번 찍어 주세요</div></div>
       <div className="notice" style={{ marginTop: 10 }}>카드에는 주소·이름이 들어 있지 않아요. 이 활동에서만 쓰는 번호예요.</div>
       <div className="btns" style={{ marginTop: 12 }}><button className="btn ghost" onClick={closeSheet}>닫기</button><button className="btn" onClick={() => window.print()}>인쇄하기</button></div>
     </>
@@ -361,7 +351,7 @@ export function RequestDetail() {
   }} />);
 
   const k = st === 'IN_PROGRESS' ? 1 : st === 'CHECKED_OUT' ? 2 : 0;
-  const checkInfo = r.checkInAt ? <>{tm(r.checkInAt)} 시작 <span className="qr-by">{r.checkMethod === 'manual' ? '버튼 확인' : '번호·QR 확인'}</span></> : null;
+  const checkInfo = r.checkInAt ? <>{tm(r.checkInAt)} 시작 <span className="qr-by">{checkByText(r.checkMethod)}</span></> : null;
 
   let action = null;
   if (st === 'SENT' && !isUserInitiated && can(r, 'accept', true)) {
@@ -513,6 +503,7 @@ export function RequestDetail() {
               const t = msg.trim(); if (!t) return;
               run(async () => { await post(`/requests/${r.id}/messages`, { text: t }); setMsg(''); await reload(); setTimeout(() => { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight; }, 50); });
             }}>
+              <MicButton onText={(t) => setMsg((x) => (x.trim() ? `${x.trim()} ${t}` : t))} />
               <input className="in" placeholder={mgr ? '봉사자에게 보낼 내용' : '시간·장소 등을 적어 보내요'} value={msg} onChange={(e) => setMsg(e.target.value)} aria-label="메시지" />
               <button type="submit" aria-label="보내기"><Ic h={I.send} /></button>
             </form>
@@ -542,7 +533,7 @@ export function LogWrite() {
     <Screen title="활동 일지" noTabs>
       <div className="card"><div className="mute2">{r.elder ? r.elder.displayName : r.recipient && r.recipient.name} · {dlabel(r.date)} {hh(r.startHour)}~{hh(Number(r.startHour) + Number(r.hours))}</div><div className="b" style={{ fontSize: 17 }}>{r.content}</div></div>
       <label className="f" htmlFor="lg">한 줄 기록 <span style={{ color: '#E5484D' }}>(필수)</span></label>
-      <textarea id="lg" className="in" style={{ minHeight: 130 }} placeholder="예) 냉장고 정리함. 유통기한 지난 반찬 3개 버림. 우유랑 계란이 떨어졌다고 하심" value={raw} onChange={(e) => { setRaw(e.target.value); setTidy(null); }} />
+      <VoiceField value={raw} onChange={(v) => { setRaw(v); setTidy(null); }}><textarea id="lg" className="in" style={{ minHeight: 130 }} placeholder="예) 냉장고 정리함. 유통기한 지난 반찬 3개 버림. 우유랑 계란이 떨어졌다고 하심" value={raw} onChange={(e) => { setRaw(e.target.value); setTidy(null); }} /></VoiceField>
       <label className="f">사진 <span className="mute2" style={{ fontWeight: 500 }}>(받는 분이 동의한 경우만, 선택)</span></label>
       <div className={'su-check ' + (consent ? 'on' : '')} role="button" tabIndex={0} onClick={() => setConsent(!consent)}><span className="bx" /><div className="small">받는 분({r.elder ? '담당자 확인' : '본인'})이 사진 촬영에 동의했어요</div></div>
       {consent && <Upload label="사진 올리기" accept="image/*" style={{ minHeight: 80 }} onUploaded={setPhoto} />}
@@ -599,7 +590,7 @@ export function Rate() {
       <label className="f">좋았던 점</label>
       <div className="tags">{T.map((t) => <button key={t} className={'chip ' + (tags.includes(t) ? 'on' : '')} onClick={() => setTags(tags.includes(t) ? tags.filter((x) => x !== t) : [...tags, t])}>{t}</button>)}</div>
       <label className="f" htmlFor="rc">한마디 (선택)</label>
-      <textarea id="rc" className="in" style={{ minHeight: 80 }} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="고마운 마음을 적어 주세요 (금전 표현 없이)" />
+      <VoiceField value={comment} onChange={setComment}><textarea id="rc" className="in" style={{ minHeight: 80 }} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="고마운 마음을 적어 주세요 (금전 표현 없이)" /></VoiceField>
       <div className="notice" style={{ marginTop: 14 }}>{iVol ? '봉사받는 분 평가는 상대에게 보이지 않는 비공개 점수예요.' : `같은 분께 3번 이상 도움을 받으면 그분에게 '단골' 배지가 생겨요.${r.volunteer && r.volunteer.isRegular ? ` 지금 ${target.name} 님은 이미 내 단골이에요 ★` : ''}`}</div>
       <button className="btn big-cta" style={{ marginTop: 18 }} disabled={busy} onClick={() => run(async () => {
         await post(`/requests/${r.id}/rate`, { stars: s, tags, comment: comment.trim() });

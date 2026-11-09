@@ -54,3 +54,18 @@ export async function uploadFile(file) {
   fd.append('file', file);
   return api('/files', { method: 'POST', form: fd });
 }
+
+/** AI 상태 {provider, model, stt, mode} — 한 번만 불러 나눠 쓴다(실패하면 규칙 모드로 본다). */
+let aiStatusP = null;
+export function aiStatus() {
+  if (!aiStatusP) aiStatusP = api('/ai/status', { quiet: true }).catch(() => { aiStatusP = null; return { provider: 'rule', stt: false, mode: 'rule' }; });
+  return aiStatusP;
+}
+
+/** 녹음 파일을 서버 음성 인식(/api/stt)으로 보낸다. 서버는 저장하지 않는다. */
+export function transcribe(blob, filename = 'voice.webm') {
+  const fd = new FormData();
+  fd.append('audio', blob, filename);
+  fd.append('lang', 'ko');
+  return api('/stt', { method: 'POST', form: fd, quiet: true });
+}
