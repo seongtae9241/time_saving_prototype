@@ -28,7 +28,8 @@ public class EduClassController {
     public record FinishRpBody(List<Map<String, Object>> log) {}
     public record ClassBody(String kind, String title, String intro, List<ClassService.Step> steps, String items, String caution,
                             LocalDate date, Double startHour, Double hours, Integer capacity, Long teacherElderId,
-                            String mode, String bio, List<String> tags, List<String> qs, List<ClassService.Slot> slots, String meet, Integer weeklyCap) {}
+                            String mode, String bio, List<String> tags, List<String> qs, List<ClassService.Slot> slots, String meet, Integer weeklyCap,
+                            String place, Long spaceId) {}
     public record OneApplyBody(LocalDate slotDate, Double slotHour, String question) {}
     public record SlotBody(LocalDate date, Double hour) {}
     public record CodeBody(String code, String method) {}
@@ -82,7 +83,7 @@ public class EduClassController {
     public Map<String, Object> create(@CurrentUser User u, @RequestBody ClassBody b) {
         NeighborClass c = classes.create(u, new ClassService.ClassCmd(b.kind(), b.title(), b.intro(), b.steps(), b.items(), b.caution(),
                 b.date(), b.startHour(), b.hours(), b.capacity(), b.teacherElderId(),
-                b.mode(), b.bio(), b.tags(), b.qs(), b.slots(), b.meet(), b.weeklyCap()));
+                b.mode(), b.bio(), b.tags(), b.qs(), b.slots(), b.meet(), b.weeklyCap(), b.place(), b.spaceId()));
         return classes.view(c, u);
     }
 

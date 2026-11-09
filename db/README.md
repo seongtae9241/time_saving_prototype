@@ -30,9 +30,12 @@
 | `life_reports` | 월간 생활 변화 리포트(`report_month`=YYYY-MM, 숫자는 `stats_json`, 서술은 `narrative`) | P-03~P-07 |
 | `edu_progress` | 첫 활동 교육 진행(진단·카드·퀴즈·역할극 결과) | B-01 |
 | `roleplay_personas` | 교육 역할극 가상 상대(대본 `turns_json`) | 교육 |
-| `classes` | 동네 클래스(선생님=사용자 또는 도움 대상, 공간·정원·출석 코드·배움 노트). `mode`=ONE(1:1 배우기, 공간 배정 없이 바로 OPEN)/GROUP(같이 해 보기, 4명까지). 1:1은 `bio`·`tags`·`met`(만난 수)·`weekly_cap`(주당 정원)·`qs_json`(질문 예시)·`slots_json`(가능한 시간)·`meet`(열린 공공장소)·`teacher_label`/`teacher_age_label`(가림 표시 이름·나이) | 동네 클래스 |
+| `classes` | 동네 클래스(선생님=사용자 또는 도움 대상, 공간·정원·출석 코드·배움 노트). `mode`=ONE(1:1 배우기, 공간 배정 없이 바로 OPEN)/GROUP(여럿이, 4명까지 · 기관이 장소를 정할 때만 OPEN). `kind`는 새로 열 때 `말벗·이야기`/`전자기기 사용법` 두 가지만(옛 종류는 지난 수업 기록에만). 1:1은 `bio`·`tags`·`met`(만난 수)·`weekly_cap`(주당 정원)·`qs_json`(질문 예시)·`slots_json`(가능한 시간)·`meet`(열린 공공장소)·`teacher_label`/`teacher_age_label`(가림 표시 이름·나이) | 동네 클래스 |
 | `class_enrollments` | 수강 신청·출석·후기. 1:1 신청은 `one_status`(WAIT/OK/MET/DONE/CANCELLED)·`slot_date`·`slot_hour`·`question`(궁금한 점)·`proposed`(다른 시간 제안 중)·`note`(오늘 배운 한 줄)·`check_in_at`·`check_out_at` | 동네 클래스 |
 | `spaces` | 기관 공간 | 동네 클래스 |
+| `regular_marks` | 수동 단골 등록(받는 사람 `user_id` → 봉사자 `volunteer_id`, 한 쌍에 하나). 자동 단골(DONE 3회 이상)과 합쳐 `/api/regulars`에 나온다. 함께 끝낸 활동이 1번 이상일 때만 등록 | 2026-11-09 회의 U7 |
+| `org_events` | 동네 소식: 기관 행사·클래스 홍보(제목·내용·일시·장소·정원(0=제한 없음)·`apply_type` APP/LINK·`url`, 링크 미리보기 `og_title`/`og_image`/`og_desc`, `status` OPEN/CLOSED) | 2026-11-09 회의 2장·O3 |
+| `event_applications` | 동네 소식 앱 신청(`status` APPLIED/CANCELLED) | 2026-11-09 회의 2장 |
 
 외래 키는 DB 제약 대신 `*_id` 숫자 칸으로 두고 서버 코드에서 검사한다(데모 규모, H2·MySQL 공통 단순화).
 
@@ -69,6 +72,11 @@ erDiagram
     classes ||--o{ class_enrollments : ""
     users ||--o{ class_enrollments : ""
     classes ||--o{ ledger : "class_id"
+    users ||--o{ regular_marks : "user_id"
+    users ||--o{ regular_marks : "volunteer_id"
+    organizations ||--o{ org_events : "org_id"
+    org_events ||--o{ event_applications : "event_id"
+    users ||--o{ event_applications : "user_id"
     users ||--o{ life_reports : "subject (USER)"
     elders ||--o{ life_reports : "subject (ELDER)"
 
@@ -155,6 +163,32 @@ erDiagram
         double slot_hour
         varchar question
         varchar note
+    }
+    regular_marks {
+        bigint id PK
+        bigint user_id
+        bigint volunteer_id
+        datetime created_at
+    }
+    org_events {
+        bigint id PK
+        bigint org_id
+        varchar title
+        date event_date
+        double start_hour
+        varchar place
+        int capacity
+        varchar apply_type
+        varchar url
+        varchar og_title
+        varchar og_image
+        varchar status
+    }
+    event_applications {
+        bigint id PK
+        bigint event_id
+        bigint user_id
+        varchar status
     }
     life_reports {
         bigint id PK

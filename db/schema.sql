@@ -121,6 +121,15 @@ create table elders (
     primary key (id)
 ) engine=InnoDB;
 
+create table event_applications (
+    created_at datetime(6),
+    event_id bigint not null,
+    id bigint not null auto_increment,
+    user_id bigint not null,
+    status varchar(10) not null,
+    primary key (id)
+) engine=InnoDB;
+
 create table family_links (
     share_report bit not null,
     target_share_report bit not null,
@@ -216,6 +225,26 @@ create table notifications (
     primary key (id)
 ) engine=InnoDB;
 
+create table org_events (
+    capacity integer not null,
+    event_date date,
+    start_hour float(53),
+    created_at datetime(6),
+    created_by bigint,
+    id bigint not null auto_increment,
+    org_id bigint,
+    apply_type varchar(5) not null,
+    status varchar(10) not null,
+    place varchar(100),
+    title varchar(100) not null,
+    og_title varchar(200),
+    og_desc varchar(300),
+    og_image varchar(500),
+    url varchar(500),
+    content varchar(2000),
+    primary key (id)
+) engine=InnoDB;
+
 create table organizations (
     created_at datetime(6),
     id bigint not null auto_increment,
@@ -279,6 +308,14 @@ create table ratings (
     target_user_id bigint not null,
     tags varchar(300),
     comment varchar(500),
+    primary key (id)
+) engine=InnoDB;
+
+create table regular_marks (
+    created_at datetime(6),
+    id bigint not null auto_increment,
+    user_id bigint not null,
+    volunteer_id bigint not null,
     primary key (id)
 ) engine=InnoDB;
 
@@ -405,6 +442,9 @@ create index ix_msg_req
 create index ix_noti_user 
    on notifications (user_id);
 
+create index ix_org_events_date 
+   on org_events (event_date);
+
 create index ix_posts_date 
    on posts (date);
 
@@ -419,3 +459,6 @@ create index ix_req_post
 
 alter table users 
    add constraint ux_users_login unique (login_id);
+
+alter table regular_marks 
+   add constraint uq_regular_mark unique (user_id, volunteer_id);

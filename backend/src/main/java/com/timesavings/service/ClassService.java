@@ -40,10 +40,16 @@ public class ClassService {
 
     public record ClassCmd(String kind, String title, String intro, List<Step> steps, String items, String caution,
                            LocalDate date, Double startHour, Double hours, Integer capacity, Long teacherElderId,
-                           String mode, String bio, List<String> tags, List<String> qs, List<Slot> slots, String meet, Integer weeklyCap) {
+                           String mode, String bio, List<String> tags, List<String> qs, List<Slot> slots, String meet, Integer weeklyCap,
+                           String place, Long spaceId) {
         public ClassCmd(String kind, String title, String intro, List<Step> steps, String items, String caution,
                         LocalDate date, Double startHour, Double hours, Integer capacity, Long teacherElderId) {
-            this(kind, title, intro, steps, items, caution, date, startHour, hours, capacity, teacherElderId, null, null, null, null, null, null, null);
+            this(kind, title, intro, steps, items, caution, date, startHour, hours, capacity, teacherElderId, null, null, null, null, null, null, null, null, null);
+        }
+        public ClassCmd(String kind, String title, String intro, List<Step> steps, String items, String caution,
+                        LocalDate date, Double startHour, Double hours, Integer capacity, Long teacherElderId,
+                        String mode, String bio, List<String> tags, List<String> qs, List<Slot> slots, String meet, Integer weeklyCap) {
+            this(kind, title, intro, steps, items, caution, date, startHour, hours, capacity, teacherElderId, mode, bio, tags, qs, slots, meet, weeklyCap, null, null);
         }
     }
 
@@ -120,14 +126,13 @@ public class ClassService {
         boolean manager = e != null && viewer != null && viewer.id.equals(e.managerId);
         List<ClassEnrollment> list = enrolls.findByClassId(c.id);
         ClassEnrollment mine = viewer == null ? null : list.stream().filter(x -> x.userId.equals(viewer.id) && x.status != EnrollStatus.CANCELLED).findFirst().orElse(null);
-        double fee = Rules.classFee(c.hours);
+        double fee = c.hours; // 1시간 = 1시간(평등 정산)
         String ageG = t != null ? t.ageGroup : (e != null ? e.ageGroup : null);
         boolean elderT = e != null || (ageG != null && ageG.matches("^(6|7|8|9)0대.*"));
         List<Map<String, Object>> reviews = new ArrayList<>();
         for (ClassEnrollment x : list) if (x.review != null) reviews.add(Views.map("name", users.findById(x.userId).map(u -> u.name).orElse(""), "text", x.review));
         boolean one = c.one();
         boolean host = viewer != null && isHost(c, viewer);
-        if (one) fee = c.hours;
         Map<String, Object> m = Views.map("id", c.id, "mode", one ? "ONE" : "GROUP", "kind", c.kind, "title", c.title, "intro", c.intro,
                 "teacherId", c.teacherId, "teacherElderId", c.teacherElderId,
                 "teacherName", displayTeacher(c, viewer),
@@ -138,7 +143,8 @@ public class ClassService {
                 "items", c.items, "caution", c.caution, "level", c.level, "levelReason", c.levelReason,
                 "date", c.date.toString(), "startHour", c.startHour, "hours", c.hours, "place", c.place, "spaceId", c.spaceId,
                 "capacity", c.capacity, "joined", joined(c.id), "status", c.status,
-                "fee", fee, "teacherEarn", one ? c.hours : c.hours + 1, "poolIfFull", one ? 0 : Math.max(0, c.capacity * fee - (c.hours + 1)),
+                "fee", fee, "teacherEarn", c.hours, "teacherEarnIfFull", Rules.classTeacherEarn(one ? 1 : c.capacity, c.hours),
+                "kindOpen", Rules.CLASS_KINDS.contains(c.kind),
                 "myEnrollment", mine == null ? null : Views.map("id", mine.id, "status", mine.status, "review", mine.review,
                         "checkMethod", mine.checkMethod, "checkInAt", mine.checkInAt == null ? null : mine.checkInAt.toString()),
                 "host", host,
@@ -193,7 +199,8 @@ public class ClassService {
 
     public NeighborClass create(User me, ClassCmd c) {
         boolean one = "ONE".equalsIgnoreCase(c.mode());
-        if (c.kind() == null || !Rules.CLASS_KINDS.contains(c.kind())) throw ApiException.bad("INVALID_KIND", "수업 종류를 골라 주세요");
+        if (c.kind() == null || !Rules.CLASS_KINDS.contains(c.kind()))
+            throw ApiException.bad("INVALID_KIND", "이웃 클래스는 말벗·이야기, 전자기기 사용법 두 가지만 열 수 있어요");
         if (c.title() == null || c.title().isBlank()) throw ApiException.bad("TITLE_REQUIRED", "수업 이름을 적어 주세요");
         List<Slot> slots = new ArrayList<>();
         double hours;
@@ -221,6 +228,8 @@ public class ClassService {
             if (c.startHour() == null || c.hours() == null) throw ApiException.bad("INVALID_TIME", "시간을 정해 주세요");
             Rules.checkHours(c.startHour(), c.hours());
             hours = c.hours();
+            if (me.role == Role.USER && c.capacity() != null && c.capacity() > GROUP_MAX)
+                throw ApiException.bad("INVALID_CAPACITY", "여럿이 하는 수업은 " + GROUP_MAX + "명까지 함께할 수 있어요");
             cap = c.capacity() == null ? GROUP_MAX : c.capacity();
             if (cap < 1 || cap > GROUP_MAX) throw ApiException.bad("INVALID_CAPACITY", "같이 해 보기는 " + GROUP_MAX + "명까지 함께할 수 있어요");
             date = c.date();
@@ -272,6 +281,22 @@ public class ClassService {
             return k;
         }
         k.mode = "GROUP";
+        // 여럿이 하는 수업은 기관이 장소를 정할 때만 열린다: 담당자가 장소와 함께 열면 바로 모집, 사용자가 열면 기관 배정 대기
+        if (me.role == Role.ORG) {
+            Space s = null;
+            if (c.spaceId() != null) {
+                s = spaces.findById(c.spaceId()).orElseThrow(() -> ApiException.notFound("공간을 찾을 수 없어요"));
+                if (!s.orgId.equals(me.orgId)) throw ApiException.forbidden("우리 기관 공간만 정할 수 있어요");
+            }
+            String place = c.place() != null && !c.place().isBlank() ? c.place().trim() : s == null ? null : s.name;
+            if (place == null) throw ApiException.bad("SPACE_REQUIRED", "여럿이 하는 수업은 장소를 정해야 열 수 있어요");
+            k.spaceId = s == null ? null : s.id;
+            k.place = place;
+            if (s != null && s.capacity > 0 && k.capacity > s.capacity) k.capacity = s.capacity;
+            k.status = ClassStatus.OPEN;
+            classes.save(k);
+            return k;
+        }
         k.status = ClassStatus.SPACE_PENDING;
         classes.save(k);
         for (User m : users.findByRole(Role.ORG))
@@ -293,13 +318,13 @@ public class ClassService {
         if (enrolls.findByClassId(id).stream().anyMatch(e -> e.userId.equals(me.id) && e.status != EnrollStatus.CANCELLED))
             throw ApiException.conflict("DUPLICATE", "이미 신청한 수업이에요");
         if (joined(id) >= c.capacity) throw ApiException.conflict("CLASS_FULL", "정원이 다 찼어요");
-        double fee = Rules.classFee(c.hours);
+        double fee = c.hours;
         bank.requireUsable(me.id, fee);
         ClassEnrollment e = new ClassEnrollment();
         e.classId = id;
         e.userId = me.id;
         enrolls.save(e);
-        bank.add(me.id, LedgerType.HOLD, fee, c.hours, 0.5, null, c.id, "클래스 수강 보류 · " + c.title);
+        bank.add(me.id, LedgerType.HOLD, fee, c.hours, 1.0, null, c.id, "클래스 수강 보류 · " + c.title);
         Long host = c.teacherId != null ? c.teacherId : c.createdBy;
         noti.send(host, "CLASS_APPLY", me.name + " 님이 수업을 신청했어요", c.title + " · " + joined(id) + "/" + c.capacity + "명", "/classes/" + c.id);
         return e;
@@ -316,7 +341,7 @@ public class ClassService {
         ClassEnrollment e = myEnroll(id, me);
         if (e.status != EnrollStatus.APPLIED) throw ApiException.conflict("INVALID_STATE", "출석한 수업은 취소할 수 없어요");
         e.status = EnrollStatus.CANCELLED;
-        bank.add(me.id, LedgerType.RELEASE, Rules.classFee(c.hours), c.hours, 0.5, null, c.id, "클래스 신청 취소 · " + c.title);
+        bank.add(me.id, LedgerType.RELEASE, c.hours, c.hours, 1.0, null, c.id, "클래스 신청 취소 · " + c.title);
     }
 
     public ClassEnrollment attend(User me, Long id, String code) { return attend(me, id, code, null); }
@@ -328,12 +353,12 @@ public class ClassService {
         if (c.status != ClassStatus.OPEN) throw ApiException.conflict("INVALID_STATE", "출석할 수 없는 수업이에요");
         if (e.status == EnrollStatus.ATTENDED) return e;
         if (code == null || !code.trim().equals(c.checkCode)) throw ApiException.bad("WRONG_CODE", "출석 번호가 맞지 않아요");
-        double fee = Rules.classFee(c.hours);
+        double fee = c.hours;
         e.status = EnrollStatus.ATTENDED;
         e.checkMethod = checkMethod(method);
         e.checkInAt = LocalDateTime.now();
-        bank.add(me.id, LedgerType.RELEASE, fee, c.hours, 0.5, null, c.id, "클래스 보류 해제 · " + c.title);
-        bank.add(me.id, LedgerType.CLASS_FEE, -fee, c.hours, 0.5, null, c.id, "클래스 수강 · " + c.title);
+        bank.add(me.id, LedgerType.RELEASE, fee, c.hours, 1.0, null, c.id, "클래스 보류 해제 · " + c.title);
+        bank.add(me.id, LedgerType.CLASS_FEE, -fee, c.hours, 1.0, null, c.id, "클래스 수강 · " + c.title);
         return e;
     }
 
@@ -350,8 +375,7 @@ public class ClassService {
         if (c.status != ClassStatus.OPEN) throw ApiException.conflict("INVALID_STATE", "진행 중인 수업이 아니에요");
         c.status = ClassStatus.DONE;
         c.noteJson = Views.json(Views.map("steps", steps == null ? List.of() : steps, "tip", tip));
-        double fee = Rules.classFee(c.hours);
-        double teacherEarn = c.hours + 1;
+        double fee = c.hours;
         int attended = 0;
         for (ClassEnrollment e : enrolls.findByClassId(id)) {
             if (e.status == EnrollStatus.ATTENDED) {
@@ -359,31 +383,28 @@ public class ClassService {
                 noti.send(e.userId, "CLASS_NOTE", "배움 노트가 도착했어요", c.title, "/classes/" + c.id);
             } else if (e.status == EnrollStatus.APPLIED) { // 오지 않은 수강생: 보류만 풀고 차감하지 않음
                 e.status = EnrollStatus.CANCELLED;
-                bank.add(e.userId, LedgerType.RELEASE, fee, c.hours, 0.5, null, c.id, "클래스 불참 · 보류 해제");
+                bank.add(e.userId, LedgerType.RELEASE, fee, c.hours, 1.0, null, c.id, "클래스 불참 · 보류 해제");
             }
         }
-        if (c.teacherId != null) {
-            bank.add(c.teacherId, LedgerType.CLASS_EARN, teacherEarn, c.hours, null, null, c.id, "클래스 선생님 (수업 + 준비 1시간) · " + c.title);
-        } else {
-            Ledger l = new Ledger();
-            l.elderId = c.teacherElderId;
-            l.type = LedgerType.CLASS_EARN;
-            l.amount = teacherEarn;
-            l.baseHours = c.hours;
-            l.classId = c.id;
-            l.label = "어르신 선생님 적립 (기관이 대신 받음) · " + c.title;
-            ledger.save(l);
+        // 평등 정산: 참석 인원 × 수업 시간 (준비 시간·공동 적립 없음)
+        double teacherEarn = Rules.classTeacherEarn(attended, c.hours);
+        if (teacherEarn > 0) {
+            String label = "클래스 선생님 (" + attended + "명 × " + Rules.fmtHours(c.hours) + "시간) · " + c.title;
+            if (c.teacherId != null) {
+                bank.add(c.teacherId, LedgerType.CLASS_EARN, teacherEarn, c.hours, 1.0, null, c.id, label);
+            } else {
+                Ledger l = new Ledger();
+                l.elderId = c.teacherElderId;
+                l.type = LedgerType.CLASS_EARN;
+                l.amount = teacherEarn;
+                l.baseHours = c.hours;
+                l.weight = 1.0;
+                l.classId = c.id;
+                l.label = "어르신 선생님 적립 (기관이 대신 받음) · " + label;
+                ledger.save(l);
+            }
         }
-        double pool = Rules.round05(attended * fee - teacherEarn);
-        if (pool > 0) {
-            Ledger l = new Ledger();
-            l.type = LedgerType.POOL;
-            l.amount = pool;
-            l.classId = c.id;
-            l.label = "공동 적립 · 수강 차액 · " + c.title;
-            ledger.save(l);
-        }
-        return Views.map("attended", attended, "teacherEarn", teacherEarn, "fee", fee, "pool", Math.max(0, pool), "class", view(c, me));
+        return Views.map("attended", attended, "teacherEarn", teacherEarn, "fee", fee, "class", view(c, me));
     }
 
     public void review(User me, Long id, String text) {

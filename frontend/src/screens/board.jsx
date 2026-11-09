@@ -8,6 +8,7 @@ import { CATS, SHORT, AREAS, fmt, hh, dlabel, lvName, lvWeight, todayISO, addDay
 import { I } from '../ui/icons.js';
 import { useReport } from './common.jsx';
 import { useProfileSheet } from './request.jsx';
+import { useTopCats, sortByTop, RegularButton } from '../ui/extras.jsx';
 
 const DATES = [['all', '전체 날짜'], ['today', '오늘'], ['week', '이번 주'], ['next', '다음 주']];
 const SLOTS = [['all', '시간대'], ['am', '오전'], ['pm', '오후'], ['eve', '저녁']];
@@ -23,7 +24,8 @@ export function Board() {
   const [sp, setSp] = useSearchParams();
   const elderId = sp.get('elder');
   const type = elderId ? 'OFFER' : sp.get('type') || 'OFFER';
-  const [cat, setCat] = useState('전체');
+  const [cat, setCat] = useState(sp.get('cat') || '전체');
+  const top = useTopCats();
   const [sort, setSort] = useState('near');
   const [area, setArea] = useState('');
   const [dt, setDt] = useState('all');
@@ -40,6 +42,10 @@ export function Board() {
     shown = shown.filter((p) => p.date >= a && p.date < b);
   }
   if (slot !== 'all') shown = shown.filter((p) => (slot === 'am' ? p.startHour < 12 : slot === 'pm' ? p.endHour > 12 && p.startHour < 18 : p.endHour > 18));
+  // U3: 도움 받고 싶을 때(봉사 가능 공고)는 "내가 자주 받는 도움" 공고가 먼저, 칩도 그 순서로
+  const favSet = new Set(((top && top.top) || []).map((t) => t.category));
+  if (type === 'OFFER') shown = sortByTop(shown, top);
+  const catOrder = type === 'OFFER' && top && top.order ? [...top.order.filter((c) => favSet.has(c)), ...CATS.map((c) => c.k).filter((c) => !favSet.has(c))] : CATS.map((c) => c.k);
   const pick = (title, opts, val, set) => sheet(() => (
     <>
       <h2>{title}</h2>
@@ -64,11 +70,16 @@ export function Board() {
         <span className="grow" />
         <button className="tag2" style={NW} onClick={() => setSort(sort === 'near' ? 'new' : 'near')}>{sort === 'near' ? '가까운 순' : '최신순'} ⇅</button>
       </div>
-      <div className="chips">{['전체', ...CATS.map((c) => c.k)].map((k) => <button key={k} className={'chip ' + (k === cat ? 'on' : '')} onClick={() => setCat(k)}>{k === '전체' ? '전체' : SHORT[k]}</button>)}</div>
+      <div className="chips">{['전체', ...catOrder].map((k) => <button key={k} className={'chip ' + (k === cat ? 'on' : '')} onClick={() => setCat(k)}>{type === 'OFFER' && favSet.has(k) && <span className="fav-mark" aria-label="자주 받는 도움">★</span>}{k === '전체' ? '전체' : SHORT[k]}</button>)}</div>
       {!elderId && <div className="tip" style={{ marginTop: 12, padding: '12px 16px' }}><div className="grow small"><Ic n="bell" s={16} /> 조건에 맞는 공고가 올라오면 알려드려요</div><button className="btn soft sm" style={{ width: 'auto', padding: '0 12px', minHeight: 36 }} onClick={() => nav('/my/alerts')}>관심 조건</button></div>}
       <div className="sec-t"><span>공고 <span style={{ color: 'var(--brand)' }}>{shown.length}</span>개</span></div>
       {list === undefined ? <Loading /> : shown.length ? shown.map((p) => <PostCard key={p.id} p={p} to={elderId ? `/post/${p.id}?elder=${elderId}` : undefined} />) : <Empty>조건에 맞는 공고가 없어요</Empty>}
-      {!elderId && me && me.role === 'USER' && <button className="fab" onClick={() => nav('/write')}><Ic h={I.plus} /> 공고 올리기</button>}
+      {!elderId && me && me.role === 'USER' && (
+        <div className="dual-fab">
+          <button className="need" onClick={() => nav('/write/need')}><Ic n="chat" s={20} /><span>봉사 요청<small>도움이 필요해요</small></span></button>
+          <button className="offer" onClick={() => nav('/write/offer')}><Ic n="hand" s={20} /><span>도움 가능<small>도울 수 있어요</small></span></button>
+        </div>
+      )}
     </Screen>
   );
 }
@@ -112,6 +123,7 @@ export function PostDetail() {
         <div className="grow"><div className="b" style={{ fontSize: 18, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>{w.name}{w.badge}</div><div className="mute2">{w.sub}</div></div>
         {p.ownerId && !mine && !w.elder && <button className="btn soft sm" style={{ width: 'auto', padding: '0 12px' }} onClick={() => profile(p.ownerId)}>프로필</button>}
       </div>
+      {offer && p.ownerId && !mine && !w.elder && me && me.role === 'USER' && <RegularButton volunteerId={p.ownerId} compact style={{ marginTop: 10 }} />}
       <div className="card" style={{ marginTop: 16 }}>
         <div className="mute2">{offer ? '봉사할 수 있는 시간' : '도움이 필요한 시간'}</div>
         <div className="b" style={{ fontSize: 20, marginTop: 2 }}>{dlabel(p.date)} {hh(p.startHour)} ~ {hh(p.endHour)}</div>

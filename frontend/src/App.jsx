@@ -12,6 +12,7 @@ import { Recommend, Public } from './screens/ai.jsx';
 import { VoiceReq } from './screens/voice.jsx';
 import { OHome, OElders, EDetail, EForm, OReqs, OReport, OMy } from './screens/org.jsx';
 import { Cls, ClsDetail, ClsNote, ClsNew, OSpace } from './screens/cls.jsx';
+import { News, EventDetail, OEventNew } from './screens/news.jsx';
 import { Edu, EduCard, EduQuiz, EduRpList, EduRp, EduRpRes, EduCert } from './screens/edu.jsx';
 import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANotices, APub, APersona } from './screens/admin.jsx';
 
@@ -81,6 +82,9 @@ function Shell() {
         <Route path="/edu/rp/:id/result" element={g(<EduRpRes />, U)} />
         <Route path="/edu/cert" element={g(<EduCert />, U)} />
 
+        <Route path="/news" element={g(<News />, U)} />
+        <Route path="/news/:id" element={g(<EventDetail />, UO)} />
+        <Route path="/o/events/new" element={g(<OEventNew />, O)} />
         <Route path="/cls" element={g(<Cls />, U)} />
         <Route path="/cls/new" element={g(<ClsNew />, UO)} />
         <Route path="/cls/:id" element={g(<ClsDetail />, UO)} />

@@ -352,3 +352,29 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - 화면 공용 음성 입력(`ui/VoiceInput.jsx`): ① 브라우저 `SpeechRecognition` ② 없거나 설정(알림 설정 → 음성 입력, 말로 요청하기 화면 작은 토글)에서 "서버 음성 인식"을 고르면 `MediaRecorder` 녹음 → `/api/stt` ③ 둘 다 안 되면 직접 입력 안내. 마이크 권한은 버튼을 누를 때만 요청.
 - 마이크 버튼(프로토타입 `.mic`)을 단 곳: 말로 요청하기, 대화형 공고 작성, 활동 일지 한 줄(B-24 → 기존 AI 일지 정리), 1:1 문의(B-48), 신고 내용(B-36), 요청·제안 내용·메모(A-08), 요청 메시지, AI 도움 추천·공공 서비스 질문, 수업 열기 인터뷰, 교육 역할극 대답, 담당자 대상 메모(C-02), 평가 한마디(B-38), 1:1 신청 "궁금한 점". 받은 글은 입력칸에 채워질 뿐이라 전화번호 경고·`PII_NOT_ALLOWED` 등 기존 규칙이 그대로 적용된다.
 
+
+### 7.10 2026-11-09 회의 반영 — 홈·공고·단골·위치 공공 서비스·동네 소식 (`docs/meetings/2026-11-09-회의반영.md` 1·2장, O2·O3)
+**클래스 규칙 변경(7.6을 덮어씀)**
+- 새로 여는 클래스 `kind`는 `말벗·이야기` / `전자기기 사용법` 두 가지만(`Rules.CLASS_KINDS`). 그 밖은 400 `INVALID_KIND`. 옛 종류(요리·손재주·일·경험 등)는 지난 수업 기록에만 남는다(시드의 열린 요리·손재주·생활 지혜 수업은 CANCELLED, 1:1 o1~o4는 두 종류로 바꿈).
+- 여럿이 하는 수업(GROUP)은 최대 4명(`INVALID_CAPACITY`)이고 **기관이 장소를 정할 때만 열린다**: 담당자가 `place` 또는 `spaceId`(우리 기관 공간)와 함께 만들면 바로 OPEN(없으면 400 `SPACE_REQUIRED`), 사용자가 만들면 SPACE_PENDING → 담당자 `assign-space` 뒤 OPEN. `POST /api/classes` 본문에 `place`, `spaceId` 추가.
+- **평등 정산**: 배우는 사람은 수업 시간 h를 쓴다(HOLD h → 출석 때 RELEASE h + CLASS_FEE −h, 가중치 1.0). 여는 사람은 `참석 인원 × h`를 번다(`Rules.classTeacherEarn`). ×0.5 수강료·준비 1시간·공동 적립(POOL) 계산은 없앰(`Rules.classFee` 삭제). 응답 `fee`=h, `teacherEarn`=h(참석 1명당), `teacherEarnIfFull`=정원 × h, `kindOpen`(지금도 열 수 있는 종류인지). `poolIfFull` 없음. `finish` 응답에서 `pool` 없음.
+
+**U3 내가 자주 받는 도움** — `GET /api/me/top-categories` → `{top:[{category,count,score}], order:[6개 카테고리], basis}`. 내가 받는 쪽인 요청(거절·취소·만료 제외, DONE은 2점, 그 밖 1점)과 내가 올린 NEED 공고(1점)로 센다. 홈 "내가 자주 받는 도움", 공고(봉사 가능) 필터 칩 순서(★)와 목록 정렬(같은 순위 안에서는 기존 정렬 유지)에 쓴다. 공고 화면은 `?cat=` 쿼리로 칩을 미리 고를 수 있다.
+
+**U7 수동 단골** — 테이블 `regular_marks(user_id, volunteer_id, created_at)`, 한 쌍에 하나.
+- `GET /api/regulars/{volunteerId}/status` → `{volunteerId, doneCount, auto(DONE≥3), manual, regular, canMark}`. `canMark`=사용자 계정이고 그 봉사자와 끝낸 활동이 1~2번이며 아직 수동 등록 전.
+- `POST /api/regulars/{volunteerId}`(끝낸 활동 0번이면 409 `NO_DONE_ACTIVITY`, 나 자신 400 `SELF`) / `DELETE /api/regulars/{volunteerId}` → 위 status.
+- `GET /api/regulars` 항목에 `auto`, `manual`, `doneCount` 추가(자동 3회 + 수동 합침). 수동 단골에게도 단골 요청(REGULAR)을 보낼 수 있다(`Views.isRegular`).
+
+**U8 내 위치로 공공 서비스 찾기** — `POST /api/ai/public-services/nearby {question?, lat?, lng?, area?}`. 좌표가 있으면 소수 둘째 자리(약 1km)로 줄여 LLM 프롬프트에 넣고, 결과는 **DB에 저장하지 않는다**. 응답 `{answer, services:[{name,target,content,applyHow,contact,where,aiGenerated}], source:'ai'|'rule', aiGenerated, notice, usedLocation, saved:false}`. AI 결과면 `notice`="AI가 찾은 정보예요 · 꼭 기관에 확인하세요"를 화면에 표시. 키가 없거나 실패·좌표 없음이면 DB 공공 서비스(지역 + 질문, 질문 없으면 돌봄·안부·병원 등 기본 주제)로 대체(`source:'rule'`). 좌표 범위 밖이면 400 `INVALID_LOCATION`. 좌표·질문은 로그에 남기지 않는다. 화면은 버튼을 누를 때만 브라우저 위치 권한을 묻고, 거부하면 프로필 동네 기준으로 찾는다.
+
+**O2 대리 공고 AI로 정리하기** — `POST /api/ai/tidy-post {text, elderId?}` → `{title, detail, caution, categories, piiRemoved, source}`. 입력에 있는 사실만 다듬고 전화번호·계좌·상세 주소는 지우며, 주의사항에는 병명 대신 행동 문장만(서버가 AI 결과에도 다시 적용). `elderId`는 내가 담당하는 대상만(403). 규칙 모드는 카테고리 + 장소 낱말로 짧은 제목(예 "병원 동행 (정형외과)"). 화면은 정리 결과를 고친 뒤 대화로 날짜·시간을 채우고, 올릴 때 정리한 제목·내용·주의사항을 쓴다(기존 대화형 작성 유지).
+
+**2장·O3 동네 소식** — 테이블 `org_events`, `event_applications`. 아래 탭 "클래스" → "동네 소식"(`/news`, 안에 "기관 소식" / "이웃 클래스" 탭, `/cls`는 `/news?tab=cls`로 넘김).
+- `GET /api/events`(열린 소식, 날짜 지나지 않은 것, 날짜 순) · `GET /api/events/{id}` → `{id, orgId, orgName, title, content, date, startHour, place, capacity(0=제한 없음), applied, applyType:'APP'|'LINK', url, preview:{title,image,description}|null, status:'OPEN'|'CLOSED', myApplied, full, owner, applicants?(우리 기관 담당자에게만 [{userId,name,ageGroup,appliedAt}])}`.
+- `POST /api/events`(담당자만) `{title, content, date, startHour, place, capacity, applyType, url?, ogTitle?, ogImage?, ogDesc?}`. LINK면 url 필수(`URL_REQUIRED`). 저장 전에 url 형식·내부 주소 검사(`URL_NOT_ALLOWED`). 화면에서 받은 미리보기를 같이 보내면 그대로 저장, 없으면 서버가 한 번 가져와 본다(실패해도 글은 올라감).
+- `POST /api/events/{id}/apply`(사용자, APP만 — LINK는 400 `EXTERNAL_APPLY`, 정원 409 `EVENT_FULL`, 중복 409 `DUPLICATE`, 마감 409 `EVENT_CLOSED`) · `/cancel` · `/close`(우리 기관 담당자) · `GET /api/org/events`(우리 기관 소식, 신청자 포함). 신청하면 올린 담당자에게 알림 `EVENT_APPLY`(링크 `/news/{id}`).
+- `POST /api/link-preview {url}` → `{url, title, image, description, siteName}`(저장 안 함, 사용자·담당자). **SSRF 방지**: http/https만, 80·443 포트만, 아이디·비밀번호 포함 주소 거부, localhost·*.local·*.internal 거부, 이름을 풀어 나온 **모든** 주소가 사설(10/8·172.16/12·192.168/16)·루프백·링크로컬(169.254 — 클라우드 메타데이터 포함)·0.0.0.0/8·CGNAT(100.64/10)·멀티캐스트·IPv6 ULA(fc00::/7)·fe80::/10·IPv4 매핑 주소면 거부(400 `URL_NOT_ALLOWED`). 리다이렉트는 자동으로 따르지 않고 직접 따라가며 매번 다시 검사(최대 3회), 연결·응답 3초, 본문 512KB까지만, HTML이 아니면 읽지 않음, 시스템 프록시 안 씀. `og:title`→없으면 `<title>`, `og:image`(상대 경로는 절대 경로로, http/https만), `og:description`/`description`. 남은 위험: 검사와 연결 사이 DNS 응답이 바뀌는 경우(DNS 리바인딩)는 완전히 막지 못한다 → 운영 때 나가는 요청을 프록시로 제한 권장.
+- 시드: 행복동 주민센터 소식 4개(앱 신청 2, `https://example.org/…` 외부 링크 2 — 시드에서는 미리보기를 가져오지 않음).
+
+**화면(서버 계약 없음)** — U2 홈 교육 배너 → 홈 위 빠른 메뉴 아이콘(교육 n/4단계, 수료 전 빨간 점) · U4 "응답 필요"·"다가오는 일정(확정된 내 봉사/받는 일정)" 가로 슬라이드(스크롤 스냅·스와이프·점, 카드 누르면 상세) · U5 공고 화면 아래 "봉사 요청"(NEED 작성) / "도움 가능"(OFFER 작성) 버튼, 작성 화면 제목도 같게("공고 올리기" 문구 교체) · U6 홈 "도움 받기 / 봉사하기" 전환(브라우저 `localStorage` `ts-home-mode`, 막히면 기본 받기), 고른 쪽 카드가 먼저 · U9 QR 처음 쓸 때 한 줄 설명(`ts-qr-intro-seen`).

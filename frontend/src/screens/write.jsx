@@ -9,27 +9,27 @@ import { I } from '../ui/icons.js';
 import { PubCards } from './ai.jsx';
 import { useSpeechInput } from './voice.jsx';
 
-/* ---------- 공고 올리기 선택 ---------- */
+/* ---------- 봉사 요청 · 도움 가능 선택 ---------- */
 export function Write() {
   const nav = useNavigate();
   const { me } = useAuth();
   const [mine] = useLoad(() => api('/posts/mine', { quiet: true }), []);
   const past = (mine || []).slice(0, 3);
   return (
-    <Screen title="공고 올리기" noTabs>
-      <h2 className="su-h" style={{ marginTop: 4 }}>어떤 공고를<br />올릴까요?</h2>
+    <Screen title="봉사 요청 · 도움 가능" noTabs>
+      <h2 className="su-h" style={{ marginTop: 4 }}>무엇을<br />올릴까요?</h2>
       <p className="su-p">자동 매칭은 없어요. 공고를 보고 온 사람의 요청을 직접 골라요.</p>
-      <div className="su-role" role="button" tabIndex={0} onClick={() => nav('/write/offer')}><div className="su-ic" style={{ color: '#1F9D63' }}><Ic h={I.hand} /></div><div className="grow"><div className="su-rt">봉사 가능 공고</div><div className="su-rd">“금요일 1시~5시 비어요” → 필요한 사람이 원하는 시간에 요청해요</div></div>›</div>
-      <div className="su-role" role="button" tabIndex={0} onClick={() => nav('/write/need')}><div className="su-ic" style={{ color: '#EE8424' }}><Ic h={I.chat} /></div><div className="grow"><div className="su-rt">도움 요청 공고 <span className="mod m1" style={{ marginLeft: 4 }}>AI 작성</span></div><div className="su-rd">말로 설명하면 AI가 날짜·시간·장소를 물어보고 공고로 정리해요</div></div>›</div>
+      <div className="su-role" role="button" tabIndex={0} onClick={() => nav('/write/offer')}><div className="su-ic" style={{ color: '#1F9D63' }}><Ic h={I.hand} /></div><div className="grow"><div className="su-rt">도움 가능 <span className="mute2" style={{ fontWeight: 500 }}>도울 수 있어요</span></div><div className="su-rd">“금요일 1시~5시 비어요” → 필요한 사람이 원하는 시간에 요청해요</div></div>›</div>
+      <div className="su-role" role="button" tabIndex={0} onClick={() => nav('/write/need')}><div className="su-ic" style={{ color: '#EE8424' }}><Ic h={I.chat} /></div><div className="grow"><div className="su-rt">봉사 요청 <span className="mute2" style={{ fontWeight: 500 }}>도움이 필요해요</span> <span className="mod m1" style={{ marginLeft: 4 }}>AI 작성</span></div><div className="su-rd">말로 설명하면 AI가 날짜·시간·장소를 물어보고 공고로 정리해요</div></div>›</div>
       <div className="su-role" role="button" tabIndex={0} onClick={() => nav('/voice')}><div className="su-ic" style={{ color: '#3D6DF2' }}><Ic h={I.mic} /></div><div className="grow"><div className="su-rt">말로 요청하기</div><div className="su-rd">마이크를 누르고 말하면 큰 글씨 요청서로 만들어 드려요</div></div>›</div>
       {past.length > 0 && <div className="sec-t">지난 공고 다시 올리기</div>}
       {past.map((p) => (
         <div key={p.id} className="card item click" role="button" tabIndex={0} onClick={() => nav(`/post/${p.id}`)}>
-          <span className={`kind ${p.type === 'OFFER' ? 'offer' : 'need'}`}>{p.type === 'OFFER' ? '봉사 가능' : '도움 요청'}</span>
+          <span className={`kind ${p.type === 'OFFER' ? 'offer' : 'need'}`}>{p.type === 'OFFER' ? '도움 가능' : '봉사 요청'}</span>
           <div className="grow"><div className="b">{p.type === 'OFFER' ? p.note || p.title : p.title}</div><div className="mute2">{postCats(p).map((c) => SHORT[c]).join('·')} · {hh(p.startHour)}~{hh(p.endHour)}</div></div><span className="mute2">↻</span>
         </div>
       ))}
-      {me && !me.eduDone && <div className="notice" style={{ marginTop: 14 }}>봉사 가능 공고는 신원 인증과 안전 교육을 마친 뒤 올릴 수 있어요.</div>}
+      {me && !me.eduDone && <div className="notice" style={{ marginTop: 14 }}>도움 가능 공고는 신원 인증과 안전 교육을 마친 뒤 올릴 수 있어요.</div>}
     </Screen>
   );
 }
@@ -77,10 +77,11 @@ export function WriteOffer() {
   const { me } = useAuth();
   const { toast } = useUi();
   const [busy, run] = useBusy();
-  if (!me) return <Screen title="봉사 가능 공고" noTabs><Loading /></Screen>;
+  if (!me) return <Screen title="도움 가능" noTabs><Loading /></Screen>;
   return (
-    <Screen title="봉사 가능 공고" noTabs>
-      {!me.eduDone && <div className="notice">봉사 가능 공고는 신원 인증과 첫 활동 교육을 마친 뒤 올릴 수 있어요. <a role="button" tabIndex={0} style={{ color: 'var(--brand)', fontWeight: 700 }} onClick={() => nav('/my/verify')}>인증하러 가기 ›</a></div>}
+    <Screen title="도움 가능" noTabs>
+      <div className="mute2" style={{ margin: '-2px 0 6px' }}>도울 수 있는 시간을 올리면, 도움이 필요한 이웃이 그 시간에 요청해요.</div>
+      {!me.eduDone && <div className="notice">도움 가능 공고는 신원 인증과 첫 활동 교육을 마친 뒤 올릴 수 있어요. <a role="button" tabIndex={0} style={{ color: 'var(--brand)', fontWeight: 700 }} onClick={() => nav('/my/verify')}>인증하러 가기 ›</a></div>}
       <PostForm type="OFFER" submitLabel={busy ? '올리는 중…' : '공고 등록하기'} init={{ date: addDays(1), startHour: 13, endHour: 17, area: me.area || '행복동', categories: (me.categories && me.categories.length ? me.categories : ['디지털 도움']).slice(0, 3), note: '', rep: false, repeatable: true }}
         onSubmit={(f) => run(async () => {
           if (!f.categories.length) return toast('할 수 있는 도움을 골라 주세요');
@@ -127,6 +128,19 @@ export function WriteNeed() {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [posting, run] = useBusy();
+  // O2: 담당자 대리 공고 "AI로 정리하기" — 정리한 제목·내용·주의사항은 올릴 때 그대로 쓴다(날짜·시간·장소는 대화로)
+  const [tidyOpen, setTidyOpen] = useState(false);
+  const [tidyText, setTidyText] = useState('');
+  const [tidyRes, setTidyRes] = useState(null);
+  const [tidyFix, setTidyFix] = useState(null);
+  const [tidyBusy, setTidyBusy] = useState(false);
+  const canTidy = !!elderId || (me && me.role === 'ORG');
+  const runTidy = async () => {
+    if (!tidyText.trim()) return toast('정리할 글을 먼저 적어 주세요');
+    setTidyBusy(true);
+    try { setTidyRes(await post('/ai/tidy-post', { text: tidyText, elderId: elderId ? Number(elderId) : undefined })); } catch { /* 토스트 */ }
+    setTidyBusy(false);
+  };
   const bd = useRef(null);
   const spch = useSpeechInput({ onFinal: (t) => say(t), onInterim: setText });
   useEffect(() => { if (bd.current) bd.current.scrollTop = bd.current.scrollHeight; }, [chat, busy]);
@@ -151,7 +165,7 @@ export function WriteNeed() {
     } catch { setChat(next); }
     setBusy(false);
   };
-  const reset = () => { setChat([]); setRes(null); setText(''); };
+  const reset = () => { setChat([]); setRes(null); setText(''); setTidyFix(null); setTidyRes(null); };
   const done = chat.some((m) => m.card === 'done');
   const blocked = res && res.filter && res.filter.level === 'BLOCK';
   const missing = (res && res.missing) || [];
@@ -162,8 +176,12 @@ export function WriteNeed() {
         : missing.some((m) => /date|날짜/i.test(m)) ? ['내일', '이번 주 토요일', '다음 주 화요일'] : [];
   const publish = (r) => run(async () => {
     const d = r.draft;
-    const title = family ? `${d.title} (${family} 님)` : d.title;
-    const p = await post('/posts', { type: 'NEED', date: d.date, startHour: d.startHour, endHour: d.endHour, estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), area: d.area || (elder ? elder.dong : me.area), categories: d.categories, title, detail: d.detail, note: d.caution ? `방문 시 주의: ${d.caution}` : d.note, caution: d.caution, elderId: elderId ? Number(elderId) : undefined });
+    const tf = tidyFix || {};
+    const baseTitle = tf.title || d.title;
+    const title = family ? `${baseTitle} (${family} 님)` : baseTitle;
+    const caution = tf.caution || d.caution;
+    const cats = tf.categories && tf.categories.length && !(d.categories || []).length ? tf.categories : d.categories;
+    const p = await post('/posts', { type: 'NEED', date: d.date, startHour: d.startHour, endHour: d.endHour, estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), area: d.area || (elder ? elder.dong : me.area), categories: cats, title, detail: tf.detail || d.detail, note: caution ? `방문 시 주의: ${caution}` : d.note, caution, elderId: elderId ? Number(elderId) : undefined });
     const pf = Array.isArray(p) ? p[0] : p;
     toast(elderId ? `${who} 대신 공고를 올렸어요` : family ? `${who} 이름으로 올렸어요. 최종 수락은 가족이 해요` : '공고를 올렸어요');
     nav(`/post/${pf.id}`, { replace: true });
@@ -171,17 +189,40 @@ export function WriteNeed() {
   let firstAI = true;
   const Bot = () => <span className="bot"><Logo /></span>;
   return (
-    <Screen title={elderId ? `${who} 대신 공고` : family ? '가족 대신 공고' : '도움 요청 공고'} noTabs cls="chatv" bodyRef={bd}>
+    <Screen title={elderId ? `${who} 대신 봉사 요청` : family ? '가족 대신 봉사 요청' : '봉사 요청'} noTabs cls="chatv" bodyRef={bd}>
       <div className="chat-wrap">
         <div className="chat-day"><span>AI가 공고를 정리해요 · 작성 도우미 AI</span></div>
         <div className="chat">
           <div className="mrow"><Bot /><div className="mcol"><div className="bot-n">작성 도우미</div><div className="msg ai-m">{first}</div></div></div>
+          {canTidy && !chat.length && (
+            <div className="mrow"><Bot /><div className="mcol wide">
+              {!tidyOpen ? <button className="btn soft sm" style={{ width: 'auto', padding: '0 14px' }} onClick={() => setTidyOpen(true)}><Spk /> 적어 둔 글을 AI로 정리하기</button> : (
+                <div className="tidy-box">
+                  <div className="ah2"><Spk />AI로 정리하기<Mod n={1} /></div>
+                  <div className="mute2" style={{ margin: '4px 0 8px' }}>메모처럼 적으면 제목·내용·주의사항으로 다듬어요. 전화번호·주소는 지워요.</div>
+                  <textarea className="in" value={tidyText} onChange={(e) => setTidyText(e.target.value)} placeholder="예) 어르신 다음 주 화요일 오전 정형외과 재진. 무릎이 안 좋으셔서 천천히 걸어야 함. 택시 같이 타 줄 분" aria-label="정리할 글" />
+                  <button className="btn sm" style={{ marginTop: 8 }} disabled={tidyBusy} onClick={runTidy}>{tidyBusy ? '정리하는 중…' : 'AI로 정리하기'}</button>
+                  {tidyRes && (
+                    <div className="ai" style={{ marginTop: 10 }}>
+                      <div className="ah"><Spk />이렇게 정리했어요</div>
+                      <label className="f" style={{ marginTop: 0 }}>제목</label><input className="in" value={tidyRes.title || ''} onChange={(e) => setTidyRes({ ...tidyRes, title: e.target.value })} />
+                      <label className="f">내용</label><textarea className="in" value={tidyRes.detail || ''} onChange={(e) => setTidyRes({ ...tidyRes, detail: e.target.value })} />
+                      <label className="f">주의사항</label><input className="in" value={tidyRes.caution || ''} onChange={(e) => setTidyRes({ ...tidyRes, caution: e.target.value })} placeholder="없으면 비워 두세요" />
+                      {(tidyRes.piiRemoved || []).length > 0 && <div className="mute2" style={{ marginTop: 6 }}>개인정보({tidyRes.piiRemoved.map((x) => ({ phone: '전화번호', account: '계좌', address: '주소' }[x] || x)).join('·')})를 지웠어요</div>}
+                      <RuleNote source={tidyRes.source} />
+                      <button className="btn sm" style={{ marginTop: 10 }} onClick={() => { setTidyFix(tidyRes); say(tidyText); }}>이 내용으로 공고 만들기 ›</button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div></div>
+          )}
           {chat.map((m, i) => {
             if (m.card === 'block') {
               const f = m.res.filter;
               return <div className="mrow" key={i}><Bot /><div className="mcol wide"><div className="ai warn"><div className="ah"><Spk />이 요청은 보낼 수 없어요 · 불가<Mod n={2} /></div><div className="small">{f.reason}</div>{(f.alternatives || []).length > 0 && <PubCards list={f.alternatives} />}<RuleNote source={m.res.source} /></div></div></div>;
             }
-            if (m.card === 'done') return <div className="mrow" key={i}><Bot /><div className="mcol wide"><DraftCard r={m.res} elderId={elderId} onReset={reset} onPost={() => publish(m.res)} posting={posting} /></div></div>;
+            if (m.card === 'done') return <div className="mrow" key={i}><Bot /><div className="mcol wide"><DraftCard r={tidyFix ? { ...m.res, draft: { ...m.res.draft, title: tidyFix.title || m.res.draft.title, detail: tidyFix.detail || m.res.draft.detail, caution: tidyFix.caution || m.res.draft.caution } } : m.res} elderId={elderId} onReset={reset} onPost={() => publish(m.res)} posting={posting} /></div></div>;
             if (m.role === 'assistant') { firstAI = false; return <div className="mrow" key={i}><Bot /><div className="mcol"><div className="msg ai-m">{m.text}</div></div></div>; }
             return <div className="msg me" key={i}>{m.text}</div>;
           })}

@@ -1,0 +1,67 @@
+/* 2026-11-09 회의 반영 화면(홈 전환·슬라이드·빠른 메뉴, 공고 두 버튼, 동네 소식, QR 첫 설명). 프로토타입 변수·톤 그대로. */
+
+/* U6 홈 도움 받기 / 봉사하기 전환 */
+.home-mode{margin:2px 0 14px}
+.home-mode button{min-height:48px;font-size:15.5px}
+
+/* U2 빠른 메뉴 아이콘 (교육 진행률·빨간 점) */
+.qa.qm{grid-template-columns:repeat(5,1fr);margin:0 0 14px;gap:4px}
+.qa.qm button{font-size:12px}
+.qa.qm button span{width:48px;height:48px;border-radius:16px;position:relative}
+.qm-dot{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:#E5484D;box-shadow:0 0 0 2px #fff}
+.qm-ring{position:absolute;inset:0;border-radius:16px}
+.qm-sub{display:block;font-size:11px;color:var(--mute);font-weight:600;margin-top:-4px}
+
+/* U4 가로 슬라이드 (scroll-snap + 터치 스와이프 + 점) */
+.slide{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -20px;padding:2px 20px 6px;scroll-padding-left:20px;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.slide::-webkit-scrollbar{display:none}
+.slide > *{flex:0 0 calc(100% - 28px);scroll-snap-align:start;min-width:0;margin-top:0 !important}
+.slide.one > *{flex-basis:100%}
+.slide-dots{display:flex;justify-content:center;gap:6px;margin-top:6px}
+.slide-dots button{width:7px;height:7px;border-radius:999px;border:0;padding:0;background:#D6DBE4;cursor:pointer;transition:width .2s,background .2s}
+.slide-dots button.on{width:18px;background:var(--brand)}
+.slide-cnt{font-size:12.5px;color:var(--mute);font-weight:600}
+
+/* U3 자주 받는 도움 */
+.fav-cats{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:2px 20px 4px}
+.fav-cat{flex:0 0 auto;display:flex;align-items:center;gap:8px;border:0;background:#fff;box-shadow:inset 0 0 0 1px #EEF0F3;border-radius:16px;padding:10px 14px 10px 10px;font:inherit;font-weight:700;font-size:14.5px;cursor:pointer;color:var(--ink)}
+.fav-cat small{display:block;font-size:11.5px;color:var(--mute);font-weight:600}
+.chip .fav-mark{color:#EE8424;margin-right:2px}
+
+/* U5 공고 아래 버튼 둘 */
+.dual-fab{position:sticky;bottom:12px;display:flex;gap:8px;margin-top:16px;z-index:2}
+.dual-fab button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:54px;border:0;border-radius:999px;font:inherit;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 10px 24px rgba(27,36,64,.18)}
+.dual-fab .need{background:#EE8424;color:#fff}
+.dual-fab .offer{background:var(--brand);color:#fff}
+.dual-fab small{display:block;font-size:11.5px;font-weight:600;opacity:.9}
+.dual-fab button > span{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2}
+
+/* 동네 소식 */
+.ev-card{background:#fff;border:1px solid #EEF0F3;border-radius:20px;overflow:hidden;margin-top:12px;cursor:pointer;box-shadow:0 4px 14px rgba(27,36,64,.05)}
+.ev-cv{height:120px;background:linear-gradient(135deg,#EEF3FF 0%,#F4F1FF 100%);display:grid;place-items:center;color:var(--brand);position:relative}
+.ev-cv img{width:100%;height:100%;object-fit:cover;display:block}
+.ev-cv .ev-org{position:absolute;left:12px;top:12px;background:#fff;color:#6A4FD8;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700}
+.ev-b{padding:14px 16px 16px}
+.ev-t{font-size:17px;font-weight:800;letter-spacing:-.4px;line-height:1.35}
+.ev-m{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:13.5px;color:var(--sub)}
+.ev-m span{display:inline-flex;align-items:center;gap:4px}
+.ev-ft{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.ev-link{display:flex;gap:12px;align-items:center;border:1px solid #EEF0F3;border-radius:16px;padding:10px;margin-top:12px;text-decoration:none;color:inherit;background:#fff}
+.ev-link img{width:64px;height:64px;border-radius:12px;object-fit:cover;flex:0 0 auto;background:var(--fill)}
+.ev-link .ph{width:64px;height:64px;border-radius:12px;background:var(--fill);display:grid;place-items:center;color:var(--mute);flex:0 0 auto}
+.ev-link b{display:block;font-size:14.5px;line-height:1.35}
+.ev-link span{display:block;font-size:12.5px;color:var(--mute);word-break:break-all}
+.ev-mini{flex:0 0 220px;scroll-snap-align:start;background:#fff;border:1px solid #EEF0F3;border-radius:18px;padding:14px;cursor:pointer}
+.ev-mini .ev-t{font-size:15px}
+
+/* U8 AI가 찾은 정보 표시 */
+.ai-found{display:inline-flex;align-items:center;gap:6px;background:#FFF4E6;color:#A66F00;border-radius:999px;padding:5px 10px;font-size:12.5px;font-weight:700;margin-top:8px}
+.loc-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;border:0;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1.5px #D6DEF7;color:var(--brand);font:inherit;font-weight:700;font-size:15.5px;cursor:pointer;margin-top:12px}
+
+/* U9 QR 처음 쓸 때 한 줄 설명 */
+.qr-intro{display:flex;align-items:center;gap:10px;background:var(--pri-soft);color:#28479E;border-radius:14px;padding:10px 12px;font-size:13.5px;line-height:1.45;margin:8px 0 10px}
+.qr-intro button{flex:0 0 auto;border:0;background:#fff;color:var(--brand);font:inherit;font-weight:700;font-size:13px;border-radius:999px;padding:6px 10px;cursor:pointer}
+
+/* O2 AI로 정리하기 */
+.tidy-box{background:#fff;border:1px solid #E3EAFD;border-radius:18px;padding:14px;margin-top:4px}
+.tidy-box textarea{min-height:92px}

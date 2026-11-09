@@ -16,6 +16,7 @@ class SeederSmokeTest {
     @Autowired NeighborClassRepo classes;
     @Autowired RoleplayPersonaRepo personas;
     @Autowired BankService bank;
+    @Autowired OrgEventRepo orgEvents;
 
     @Test
     void 데모_계정과_데이터() {
@@ -27,9 +28,13 @@ class SeederSmokeTest {
         assertEquals(4, classes.findAll().stream().filter(c -> c.one()).count()); // 1:1 클래스 o1~o4
         assertTrue(classes.findAll().stream().filter(c -> !c.one() && !"DONE".equals(c.status.name())).allMatch(c -> c.capacity <= 4)); // 같이 해 보기 4명까지
         assertEquals(3, personas.count());
+        // 열린 클래스는 말벗·이야기 / 전자기기 사용법 두 가지만
+        assertTrue(classes.findAll().stream().filter(c -> "OPEN".equals(c.status.name()) || "SPACE_PENDING".equals(c.status.name()))
+                .allMatch(c -> com.timesavings.service.Rules.CLASS_KINDS.contains(c.kind)));
+        assertTrue(orgEvents.count() >= 3); // 동네 소식(기관 행사)
         BankService.Summary s = bank.summary(users.findByLoginId("yujin").orElseThrow().id);
         assertTrue(s.canUseSelf());
-        assertEquals(23.5, s.balance());
+        assertEquals(23.0, s.balance()); // 지난 클래스 1.5시간 수강 = 1.5시간(평등 정산, 이전 ×0.5)
         for (String id : new String[]{"bok", "mom", "sky", "mikyung", "doyun"})
             assertTrue(bank.summary(users.findByLoginId(id).orElseThrow().id).balance() >= 0, id);
     }

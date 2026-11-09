@@ -42,6 +42,20 @@ async function makeDetector() {
 /**
  * props: kind('REQ'|'CLS'|'ONE'), id(대상 id), submit(body) → Promise(실패하면 throw), onDone(), codeLabel, foot(아래 작은 안내)
  */
+/** U9: QR을 처음 쓸 때 한 줄 설명(한 번 닫으면 다시 안 보임 · 브라우저에만 기억) */
+const QR_INTRO_KEY = 'ts-qr-intro-seen';
+export function QrIntro() {
+  const [show, setShow] = useState(() => { try { return !localStorage.getItem(QR_INTRO_KEY); } catch { return true; } });
+  if (!show) return null;
+  return (
+    <div className="qr-intro" role="note">
+      <Ic n="qr" s={18} />
+      <span className="grow">QR은 <b>만났을 때와 끝날 때</b> 서로 확인하는 장치예요. 찍은 시간만큼 시간이 정확히 쌓여요.</span>
+      <button type="button" onClick={() => { try { localStorage.setItem(QR_INTRO_KEY, '1'); } catch { /* 무시 */ } setShow(false); }}>알겠어요</button>
+    </div>
+  );
+}
+
 export default function QrScanner({ kind, id, submit, onDone, codeLabel = '번호 6자리', foot }) {
   const [state, setState] = useState('starting');
   const [code, setCode] = useState('');
@@ -145,6 +159,7 @@ export default function QrScanner({ kind, id, submit, onDone, codeLabel = '번�
   const camLive = !!live.current.stream && !['ok'].includes(state);
   return (
     <>
+      <QrIntro />
       <div className={'qr-cam' + (camLive ? ' live' : '') + (state === 'ok' ? ' ok' : '')} data-qr-state={state} data-qr-engine={engine}>
         <video ref={videoRef} className="qr-video" playsInline muted autoPlay aria-hidden="true" />
         <canvas ref={canvasRef} hidden />

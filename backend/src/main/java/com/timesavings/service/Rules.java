@@ -15,7 +15,8 @@ public final class Rules {
     private static final Map<String, Level> CAT_LEVEL = Map.of(
             "말동무·정서", Level.BASIC, "디지털 도움", Level.BASIC, "생활 정리", Level.BASIC,
             "장보기·심부름", Level.EFFORT, "가벼운 집안일", Level.EFFORT, "동행", Level.RESPONSIBLE);
-    public static final List<String> CLASS_KINDS = List.of("요리", "손재주", "노래·이야기", "디지털", "생활 지혜", "일·경험");
+    /** 사용자 클래스 주제는 두 가지만(2026-11-09 회의): 정서(말벗·이야기) / 전자기기 사용법. 요리·손재주·일 경험 등은 닫음. */
+    public static final List<String> CLASS_KINDS = List.of("말벗·이야기", "전자기기 사용법");
 
     public static double weight(Level l) {
         return switch (l) { case BASIC -> 1.0; case EFFORT -> 1.2; case RESPONSIBLE -> 1.5; };
@@ -55,8 +56,8 @@ public final class Rules {
 
     public static double earn(double hours, Level level) { return earn(hours, weight(level)); }
 
-    /** 수강료 = 수업 시간 × 0.5 (0.5 단위). */
-    public static double classFee(double hours) { return earn(hours, 0.5); }
+    /** 클래스 정산(평등하게): 배우는 사람은 수업 시간만큼 쓰고, 여는 사람은 참석 인원 × 수업 시간을 번다. */
+    public static double classTeacherEarn(int attended, double hours) { return round05(Math.max(0, attended) * hours); }
 
     public static boolean halfStep(double v) { return Math.abs(v * 2 - Math.round(v * 2)) < 1e-9; }
 

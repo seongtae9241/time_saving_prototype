@@ -10,6 +10,7 @@ import { useReport } from './common.jsx';
 import { FilterBox } from './ai.jsx';
 import QrScanner, { qrText } from '../ui/QrScanner.jsx';
 import { VoiceField, MicButton } from '../ui/VoiceInput.jsx';
+import { RegularButton } from '../ui/extras.jsx'; // U7 수동 단골(2026-11-09)
 
 /* ---------- 공개 프로필 시트 (B-12, B-40, B-41) ---------- */
 export function ProfileView({ p }) {
@@ -36,7 +37,7 @@ export function ProfileView({ p }) {
 }
 function ProfileSheet({ id, onClose }) {
   const [p] = useLoad(() => api(`/users/${id}/profile`), [id]);
-  return <><ProfileView p={p} /><button className="btn ghost" style={{ marginTop: 16 }} onClick={onClose}>닫기</button></>;
+  return <><ProfileView p={p} /><RegularButton volunteerId={id} style={{ marginTop: 14 }} /><button className="btn ghost" style={{ marginTop: 16 }} onClick={onClose}>닫기</button></>;
 }
 export function useProfileSheet() {
   const { sheet, closeSheet } = useUi();
@@ -148,6 +149,7 @@ export function Regular() {
             <div className="top"><Avatar name={h.name} s={52} /><div className="grow"><div className="who">{h.name}<span className="badge">★ 단골{h.doneCount || h.count ? ` · ${h.doneCount || h.count}회` : ''}</span></div><div className="sub">{h.ageGroup ? `${h.ageGroup} · ` : ''}<Stars r={h.ratingAvg} />{h.experience ? ` · ${h.experience}` : ''}</div></div></div>
             {h.intro && <div className="muted small" style={{ marginTop: 10 }}>“{h.intro}”</div>}
             <button className="btn sm" style={{ marginTop: 12 }} onClick={() => nav(`/req/new?to=${id}${elderId ? `&elder=${elderId}` : ''}`)}>{h.name} 님에게 요청하기</button>
+            {h.manual && !elderId && <RegularButton volunteerId={id} compact style={{ marginTop: 8 }} />}
           </div>
         );
       })}
@@ -439,6 +441,7 @@ export function RequestDetail() {
         <div className="sum" style={{ marginTop: 16 }}><div className="between"><span className="muted">{iVol ? '내 적립' : `${v.name} 님 적립`}</span><b className="cr plus">+{fmt(r.earned ?? r.estEarn)}시간</b></div></div>
         {!r.rated && !(iVol && r.elder) && <button className="btn big-cta" style={{ marginTop: 12 }} onClick={() => (mgr ? sheet(() => <RateSheetOrg r={r} onDone={() => { closeSheet(); done(); }} />) : nav(`/req/${r.id}/rate`))}>{mgr ? '대신 평가하기' : '평가하기'}</button>}
         {r.rated && <div className="mute2 center" style={{ marginTop: 10 }}>평가를 남겼어요</div>}
+        {role === 'RECIPIENT' && !r.elder && v.id && <RegularButton volunteerId={v.id} style={{ marginTop: 10 }} />}
         {iVol && <button className="btn ghost" style={{ marginTop: 10 }} onClick={() => sheet(() => <AppealSheet r={r} onDone={() => { closeSheet(); reload(); }} />)}>난이도 이의 신청</button>}
       </>
     );

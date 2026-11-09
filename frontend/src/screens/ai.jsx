@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
 import { Ic, Spk, Mod, CatIc, Avatar, Stars, AiLoading, RuleNote, useLoad } from '../ui/bits.jsx';
-import { useAuth } from '../ui/ctx.jsx';
+import { useAuth, useUi } from '../ui/ctx.jsx';
 import { post } from '../api.js';
 import { hh, dlabel, lvName, lvWeight, LV, W, fmt } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useSpeechInput } from './voice.jsx';
 
 /* ---------- 공공 서비스 카드 (프로토타입 pubCards) ---------- */
-export function PubCards({ list, big }) {
+export function PubCards({ list, big, ai }) {
   if (!list || !list.length) return null;
   return (
     <>
@@ -18,6 +18,7 @@ export function PubCards({ list, big }) {
           <div>
             <b style={big ? { fontSize: 19 } : null}>{p.name}</b>
             <span style={big ? { fontSize: 17 } : null}>
+              {p.where && <><b style={{ display: 'inline', fontSize: 13 }}>위치</b> {p.where}<br /></>}
               {p.target && <><b style={{ display: 'inline', fontSize: 13 }}>대상</b> {p.target}<br /></>}
               {p.content && <><b style={{ display: 'inline', fontSize: 13 }}>내용</b> {p.content}<br /></>}
               <b style={{ display: 'inline', fontSize: 13 }}>신청</b> {p.applyHow}{p.contact ? ` · ☎ ${p.contact}` : ''}
@@ -29,7 +30,7 @@ export function PubCards({ list, big }) {
           </div>
         </div>
       ))}
-      <div className="mute2" style={{ marginTop: 8 }}>출처: 공공 서비스 DB (운영자 등록) · 자격은 기관에서 확인해요</div>
+      <div className="mute2" style={{ marginTop: 8 }}>{ai ? 'AI가 위치를 보고 찾은 정보예요 · 저장하지 않아요 · 전화번호·자격은 꼭 기관에 확인하세요' : '출처: 공공 서비스 DB (운영자 등록) · 자격은 기관에서 확인해요'}</div>
     </>
   );
 }
@@ -110,7 +111,7 @@ export function Recommend() {
                     {p.note && <div className="small muted" style={{ marginTop: 8 }}>{p.note}</div>}
                   </div>
                 )) : <div className="small muted">지금 열린 공고가 없어요. 도움 요청 공고를 올려 보세요.</div>}
-                <button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav('/write/need')}>도움 요청 공고 올리기</button>
+                <button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav('/write/need')}>봉사 요청 쓰기</button>
               </div>
               <div className="card item click" style={{ marginTop: 8 }} role="button" tabIndex={0} onClick={() => nav(`/public?q=${encodeURIComponent(asked)}`)}><div className="ic"><Ic n="building" s={20} /></div><div className="grow"><div className="b">공공 서비스도 찾아볼까요?</div><div className="mute2">공공 서비스 DB에서 맞는 서비스를 찾아요</div></div>›</div>
             </>
@@ -128,23 +129,42 @@ export function Public() {
   const [q, setQ] = useState(sp.get('q') || '');
   const [asked, setAsked] = useState(null);
   const [res, setRes] = useState(null);
+  const { toast } = useUi();
   const ask = async (t) => {
     setAsked(t); setRes({ loading: true });
     try { setRes(await post('/ai/public-services', { question: t, area: me && me.area, ageGroup: me && me.ageGroup })); } catch { setRes(null); }
+  };
+  /* U8: 내 위치로 찾기 — 위치는 동의할 때만 쓰고, 서버는 결과를 저장하지 않는다 */
+  const nearby = (lat, lng) => post('/ai/public-services/nearby', { question: q.trim() || undefined, lat, lng, area: me && me.area });
+  const findNear = () => {
+    setAsked(q.trim() ? `${q.trim()} (내 위치 근처)` : '내 위치 근처 공공 서비스'); setRes({ loading: true, near: true });
+    const fallback = async (why) => {
+      if (why) toast(why);
+      try { setRes({ ...(await nearby(undefined, undefined)), near: true }); } catch { setRes(null); }
+    };
+    if (!navigator.geolocation) { fallback(`위치를 쓸 수 없어 ${(me && me.area) || '내 동네'} 기준으로 찾을게요`); return; }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => { try { setRes({ ...(await nearby(pos.coords.latitude, pos.coords.longitude)), near: true }); } catch { setRes(null); } },
+      () => fallback(`위치 권한이 없어 ${(me && me.area) || '내 동네'} 기준으로 찾을게요`),
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 },
+    );
   };
   useLoad(async () => { if (sp.get('q')) ask(sp.get('q')); return null; }, []);
   return (
     <Screen title="공공 서비스 안내" noTabs>
       <AskBox mic title="필요한 걸 말해 주세요" sub="AI가 공공 서비스 DB에서 맞는 서비스를 찾아 쉬운 말로 알려드려요" placeholder="예) 혼자 사는데 쓰러지면 걱정돼요" q={q} setQ={setQ} onAsk={ask}
         quick={['목욕을 도와줄 사람이 필요해요', '혼자 사는데 쓰러지면 걱정돼요', '요즘 깜빡깜빡해요']} />
+      <button type="button" className="loc-btn" onClick={findNear}><Ic n="pin" s={20} /> 내 위치로 찾기 <span className="mod m4" style={{ marginLeft: 2 }}>AI</span></button>
+      <div className="mute2 center" style={{ marginTop: 6 }}>위치는 찾을 때 한 번만 쓰고 저장하지 않아요</div>
       {asked && (
         <div className="ans">
           <div className="msg me" style={{ marginLeft: 'auto' }}>{asked}</div>
-          {res && res.loading ? <div style={{ marginTop: 10 }}><AiLoading label="공공 서비스 DB에서 찾는 중…" /></div> : res && (
+          {res && res.loading ? <div style={{ marginTop: 10 }}><AiLoading label={res.near ? '내 위치 근처에서 찾는 중…' : '공공 서비스 DB에서 찾는 중…'} /></div> : res && (
             <div className="ai" style={{ marginTop: 10 }}>
-              <div className="ah"><Spk />이런 공공 서비스가 있어요<Mod n={4} /></div>
-              <div className="small">{res.answer || `${(res.services || []).length}개를 찾았어요. 받을 수 있는지는 신청하는 곳에서 확인해 줘요.`}</div>
-              <PubCards list={res.services} />
+              <div className="ah"><Spk />{res.near ? '내 위치 근처 공공 서비스' : '이런 공공 서비스가 있어요'}<Mod n={4} /></div>
+              {res.aiGenerated && <div className="ai-found" role="note"><Ic n="flag" s={14} /> {res.notice || 'AI가 찾은 정보예요 · 꼭 기관에 확인하세요'}</div>}
+              <div className="small" style={{ marginTop: res.aiGenerated ? 8 : 0 }}>{res.answer || `${(res.services || []).length}개를 찾았어요. 받을 수 있는지는 신청하는 곳에서 확인해 줘요.`}</div>
+              <PubCards list={res.services} ai={!!res.aiGenerated} />
               {!(res.services || []).length && <div className="small muted" style={{ marginTop: 8 }}>DB에서 맞는 서비스를 찾지 못했어요. 가까운 주민센터나 ☎ 129(보건복지상담센터)에 물어보세요.</div>}
               <RuleNote source={res.source} />
             </div>

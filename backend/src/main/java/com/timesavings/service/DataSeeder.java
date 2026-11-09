@@ -32,6 +32,8 @@ public class DataSeeder implements ApplicationRunner {
     private final ClassEnrollmentRepo enrolls; private final SpaceRepo spaces; private final EduProgressRepo edu;
     private final AuthService auth; private final LifeReportService lifeReports; private final AiClient ai; private final TransactionTemplate tx;
     private final boolean enabled;
+    @org.springframework.beans.factory.annotation.Autowired private OrgEventRepo orgEvents; // 동네 소식(2026-11-09)
+    @org.springframework.beans.factory.annotation.Autowired private EventApplicationRepo eventApps;
 
     private LocalDate today;
     private final Map<String, User> U = new HashMap<>();
@@ -115,6 +117,7 @@ public class DataSeeder implements ApplicationRunner {
         seedHistory();
         seedCurrent(org1);
         seedClasses(org1, room, hall, senior);
+        seedEvents(o1, org1);
         seedMisc(org1);
         lifeReports.generate(YearMonth.from(today).minusMonths(1));
     }
@@ -443,33 +446,32 @@ public class DataSeeder implements ApplicationRunner {
         ClassEnrollment e = new ClassEnrollment();
         e.classId = c.id; e.userId = u.id; e.status = st; e.review = review; e.createdAt = c.createdAt.plusDays(1);
         enrolls.save(e);
-        double fee = Rules.classFee(c.hours);
-        led(u, null, LedgerType.HOLD, fee, c.hours, 0.5, null, c.id, "클래스 수강 보류 · " + c.title, e.createdAt);
+        double fee = c.hours; // 1시간 = 1시간
+        led(u, null, LedgerType.HOLD, fee, c.hours, 1.0, null, c.id, "클래스 수강 보류 · " + c.title, e.createdAt);
         if (st == EnrollStatus.ATTENDED) {
             LocalDateTime t = at(c.date, c.startHour);
-            led(u, null, LedgerType.RELEASE, fee, c.hours, 0.5, null, c.id, "클래스 보류 해제 · " + c.title, t);
-            led(u, null, LedgerType.CLASS_FEE, -fee, c.hours, 0.5, null, c.id, "클래스 수강 · " + c.title, t);
+            led(u, null, LedgerType.RELEASE, fee, c.hours, 1.0, null, c.id, "클래스 보류 해제 · " + c.title, t);
+            led(u, null, LedgerType.CLASS_FEE, -fee, c.hours, 1.0, null, c.id, "클래스 수강 · " + c.title, t);
         }
     }
 
     private void settleClass(NeighborClass c, int attended) {
         LocalDateTime t = at(c.date, c.startHour + c.hours);
-        double earn = c.hours + 1;
-        if (c.teacherId != null) led(users.findById(c.teacherId).orElseThrow(), null, LedgerType.CLASS_EARN, earn, c.hours, null, null, c.id, "클래스 선생님 (수업 + 준비 1시간) · " + c.title, t);
-        else led(null, elders.findById(c.teacherElderId).orElseThrow(), LedgerType.CLASS_EARN, earn, c.hours, null, null, c.id, "어르신 선생님 적립 (기관이 대신 받음) · " + c.title, t);
-        double pool = Rules.round05(attended * Rules.classFee(c.hours) - earn);
-        if (pool > 0) led(null, null, LedgerType.POOL, pool, null, null, null, c.id, "공동 적립 · 수강 차액 · " + c.title, t);
+        double earn = Rules.classTeacherEarn(attended, c.hours); // 참석 인원 × 수업 시간
+        String label = "클래스 선생님 (" + attended + "명 × " + Rules.fmtHours(c.hours) + "시간) · " + c.title;
+        if (c.teacherId != null) led(users.findById(c.teacherId).orElseThrow(), null, LedgerType.CLASS_EARN, earn, c.hours, 1.0, null, c.id, label, t);
+        else led(null, elders.findById(c.teacherElderId).orElseThrow(), LedgerType.CLASS_EARN, earn, c.hours, 1.0, null, c.id, "어르신 선생님 적립 (기관이 대신 받음) · " + label, t);
     }
 
     private void seedClasses(User org1, Space room, Space hall, Space senior) {
         User bok = U.get("bok");
         // 김복남 선생님의 지난 수업 3번(어르신 선생님 적립)
-        String[][] past = {{"묵은지 김치찌개", "9"}, {"오이소박이 담그기", "10"}, {"깍두기 담그기", "10"}};
+        String[][] past = {{"옛날 김장 이야기 나누기", "9"}, {"행복동 50년 이야기", "10"}, {"어머니 손맛 이야기", "10"}};
         int[] pd = {13, 4, 18};
         for (int i = 0; i < 3; i++) {
-            NeighborClass c = cls(bok, null, "요리", past[i][0], "어머니 방식 그대로 알려 드려요.", List.of(new Object[]{"재료 알아보기", 20}, new Object[]{"같이 만들기", 70}, new Object[]{"맛보기", 30}),
-                    "앞치마", "칼 사용 주의", "주의", "칼 사용", p(Integer.parseInt(past[i][1]), pd[i]), 10, 2, room, 6, ClassStatus.DONE, bok);
-            c.noteJson = Views.json(Views.map("steps", List.of("재료 손질은 미리", "간은 마지막에"), "tip", "“양념은 넉넉히, 간은 싱겁게.”"));
+            NeighborClass c = cls(bok, null, "말벗·이야기", past[i][0], "차 한잔하며 옛날 이야기를 나눠요.", List.of(new Object[]{"인사하고 고향 소개", 10}, new Object[]{"그 시절 이야기 듣기", 35}, new Object[]{"궁금한 것 묻기", 15}),
+                    "없어요", "특별한 주의사항은 없어요.", "허용", null, p(Integer.parseInt(past[i][1]), pd[i]), 10, 1, senior, 4, ClassStatus.DONE, org1);
+            c.noteJson = Views.json(Views.map("steps", List.of("김장은 동네가 같이 하는 날", "이야기는 천천히 들어요"), "tip", "“사람 사는 건 다 비슷해.”"));
             enroll(c, "sky", EnrollStatus.ATTENDED, null);
             enroll(c, "mikyung", EnrollStatus.ATTENDED, null);
             enroll(c, "doyun", EnrollStatus.ATTENDED, null);
@@ -479,29 +481,31 @@ public class DataSeeder implements ApplicationRunner {
         NeighborClass c1 = cls(bok, null, "요리", "어머니께 배운 배추김치", "50년 넘게 담가 온 어머니 방식 그대로 알려 드려요. 양념 비율은 꼭 적어 가세요.",
                 List.of(new Object[]{"절인 배추 상태 보기", 10}, new Object[]{"양념 재료 알아보기", 15}, new Object[]{"양념 만들기", 30}, new Object[]{"배추에 양념 바르기", 50}, new Object[]{"통에 담고 보관법 듣기", 15}),
                 "앞치마, 고무장갑, 담아 갈 통", "고춧가루가 눈에 들어가지 않게 조심해 주세요. 재료는 주민센터에서 준비해요.", "주의", "칼·고춧가루 사용",
-                p(11, 15), 10, 2, room, 4, ClassStatus.OPEN, bok);
-        for (String k : List.of("sky", "mikyung", "doyun")) enroll(c1, k, EnrollStatus.APPLIED, null);
+                p(11, 15), 10, 2, room, 4, ClassStatus.CANCELLED, bok); // 요리 주제는 닫음(2026-11-09 회의)
         NeighborClass c2 = cls(U.get("mikyung"), null, "손재주", "손바느질: 단추 달기·바짓단 줄이기", "수선집 가기 애매한 것들, 직접 하면 10분이에요. 고칠 옷 하나 가져오세요.",
                 List.of(new Object[]{"바늘에 실 꿰기, 매듭 짓기", 15}, new Object[]{"단추 달기", 25}, new Object[]{"바짓단 공그르기", 40}, new Object[]{"다리미 없이 마무리", 10}),
-                "고칠 옷 1벌 (실·바늘은 준비돼 있어요)", "바늘에 찔리지 않게 골무를 써요.", "허용", null, p(11, 13), 14, 1.5, senior, 4, ClassStatus.OPEN, U.get("mikyung"));
-        for (String k : List.of("sky", "doyun")) enroll(c2, k, EnrollStatus.APPLIED, null);
-        NeighborClass c3 = cls(null, E.get("e3"), "노래·이야기", "옛날 노래 같이 불러요", "담당자가 어르신 대신 열었어요. 젊을 때 부르던 노래와 그 시절 이야기를 들려주세요.",
+                "고칠 옷 1벌 (실·바늘은 준비돼 있어요)", "바늘에 찔리지 않게 골무를 써요.", "허용", null, p(11, 13), 14, 1.5, senior, 4, ClassStatus.CANCELLED, U.get("mikyung")); // 손재주 주제는 닫음
+        NeighborClass c3 = cls(null, E.get("e3"), "말벗·이야기", "옛날 노래 같이 부르며 이야기해요", "담당자가 어르신 대신 열었어요. 젊을 때 부르던 노래와 그 시절 이야기를 들려주세요.",
                 List.of(new Object[]{"인사하고 고향 소개", 10}, new Object[]{"〈고향의 봄〉 같이 부르기", 15}, new Object[]{"그 시절 이야기 듣기", 25}, new Object[]{"좋아하는 노래 신청곡", 10}),
                 "없어요", "어르신이 귀가 어두우셔서 앞자리부터 앉아 주세요.", "허용", null, p(11, 19), 15, 1, senior, 4, ClassStatus.OPEN, org1);
         c3.place = "사랑동 복지관 강당";
         for (String k : List.of("mom", "bok")) enroll(c3, k, EnrollStatus.APPLIED, null);
-        NeighborClass c4 = cls(U.get("sky"), null, "디지털", "키오스크로 주문해 보기", "카페·패스트푸드·병원 무인 접수기를 똑같이 생긴 연습 기계로 천천히 눌러 봐요.",
+        NeighborClass c4 = cls(U.get("sky"), null, "전자기기 사용법", "키오스크로 주문해 보기", "카페·패스트푸드·병원 무인 접수기를 똑같이 생긴 연습 기계로 천천히 눌러 봐요.",
                 List.of(new Object[]{"화면 구성 알아보기", 10}, new Object[]{"카페 주문 따라 하기", 20}, new Object[]{"병원 접수 따라 하기", 20}, new Object[]{"혼자 해 보기", 10}),
-                "휴대폰 (결제 연습용 카드 제공)", "실제 카드는 쓰지 않아요.", "허용", null, p(11, 20), 16, 1, hall, 4, ClassStatus.OPEN, U.get("sky"));
+                "휴대폰 (결제 연습용 카드 제공)", "실제 카드는 쓰지 않아요.", "허용", null, p(11, 20), 16, 1, hall, 4, ClassStatus.OPEN, org1); // 기관이 신청해 장소를 정한 여럿 수업
         c4.place = "행복동 주민센터 1층 (연습용 키오스크)";
         for (String k : List.of("mikyung", "doyun", "bok")) enroll(c4, k, EnrollStatus.APPLIED, null);
         cls(U.get("doyun"), null, "생활 지혜", "자전거 펑크 직접 때우기", "펑크 수리 키트 하나로 5분이면 끝나요.",
                 List.of(new Object[]{"타이어 빼기", 20}, new Object[]{"펑크 위치 찾기", 20}, new Object[]{"패치 붙이기", 30}, new Object[]{"다시 끼우고 공기 넣기", 20}),
-                "자전거 (없으면 연습용 튜브)", "공구에 손이 끼이지 않게 장갑을 껴요.", "주의", "공구 사용", p(11, 22), 10, 1.5, null, 4, ClassStatus.SPACE_PENDING, U.get("doyun"));
+                "자전거 (없으면 연습용 튜브)", "공구에 손이 끼이지 않게 장갑을 껴요.", "주의", "공구 사용", p(11, 22), 10, 1.5, null, 4, ClassStatus.CANCELLED, U.get("doyun")); // 생활 지혜 주제는 닫음
+        // 사용자가 연 여럿 수업 제안: 기관이 장소를 정해야 열린다
+        cls(U.get("yujin"), null, "전자기기 사용법", "스마트폰 사진 정리·앨범 만들기", "사진이 너무 많아 찾기 어려우신 분, 같이 정리해 봐요.",
+                List.of(new Object[]{"사진 앱 둘러보기", 10}, new Object[]{"앨범 만들기", 25}, new Object[]{"필요 없는 사진 지우기", 15}, new Object[]{"질문 시간", 10}),
+                "휴대폰", "사진을 지우기 전에 꼭 한 번 더 확인해요.", "허용", null, p(11, 21), 14, 1, null, 4, ClassStatus.SPACE_PENDING, U.get("yujin"));
 
-        NeighborClass c0 = cls(null, E.get("e2"), "요리", "된장찌개 맛있게 끓이기", "어르신이 50년 끓여 온 된장찌개 비법이에요.",
-                List.of(new Object[]{"육수 내기", 15}, new Object[]{"된장 풀기", 15}, new Object[]{"재료 넣기", 30}, new Object[]{"맛보기", 30}),
-                "앞치마", "불 사용 주의", "주의", "불 사용", p(11, 1), 10, 1.5, room, 6, ClassStatus.DONE, org1);
+        NeighborClass c0 = cls(null, E.get("e2"), "말벗·이야기", "희망시장 반찬가게 25년 이야기", "어르신이 시장에서 반찬가게를 하며 겪은 이야기를 들려주세요.",
+                List.of(new Object[]{"인사하고 소개", 10}, new Object[]{"시장 이야기 듣기", 40}, new Object[]{"궁금한 것 묻기", 30}),
+                "없어요", "특별한 주의사항은 없어요.", "허용", null, p(11, 1), 10, 1.5, senior, 4, ClassStatus.DONE, org1);
         c0.place = "희망동 주민센터 요리실";
         c0.noteJson = Views.json(Views.map("steps", List.of("멸치·다시마로 육수 10분 우리기", "된장은 체에 걸러 덩어리 없이 풀기", "감자·애호박 먼저, 두부는 마지막에", "불 끄기 직전 청양고추 반 개"),
                 "tip", "“된장은 펄펄 끓을 때 말고 한 김 식힌 다음에 풀어야 텁텁하지 않아.”"));
@@ -509,8 +513,7 @@ public class DataSeeder implements ApplicationRunner {
         enroll(c0, "sky", EnrollStatus.ATTENDED, "옛날 망원시장 이야기도 해 주셔서 재밌었어요.");
         enroll(c0, "mikyung", EnrollStatus.ATTENDED, "두부를 마지막에 넣는 이유를 알았어요.");
         enroll(c0, "doyun", EnrollStatus.ATTENDED, null);
-        enroll(c0, "bok", EnrollStatus.ATTENDED, null);
-        settleClass(c0, 5);
+        settleClass(c0, 4);
         seedOneClasses(org1);
     }
 
@@ -538,22 +541,22 @@ public class DataSeeder implements ApplicationRunner {
                 List.of("말동무·정서"), List.of("평일 저녁", "주말 오전"), VerifyStatus.APPROVED, VerifyStatus.NONE, true);
         User yeong = user("miyoung", "이미영", "010-1111-0010", "행복동", "60대", "초등학교 교사 32년 · 교감으로 은퇴", "1:1 클래스 선생님 9회",
                 List.of("말동무·정서"), List.of("평일 오전", "주말 오후"), VerifyStatus.APPROVED, VerifyStatus.NONE, true);
-        one(ho, null, "박○호", "72세", "일·경험", "첫 직장 3년 차, 버틸지 옮길지", "무역회사 해외영업 30년 · 지사장으로 은퇴",
+        one(ho, null, "박○호", "72세", "말벗·이야기", "첫 직장 3년 차, 버틸지 옮길지", "무역회사 해외영업 30년 · 지사장으로 은퇴",
                 List.of("이직 고민", "해외 근무", "협상·영업"), 12, 2,
                 "정답을 알려 주는 자리는 아니에요. 비슷한 고민을 먼저 겪어 본 사람으로서 제 경험을 들려 드릴게요.",
                 List.of("이직할지 버틸지 어떻게 정하셨어요?", "해외 근무 때 가족과는 어떻게 지내셨어요?", "거래처와 협상할 때 제일 중요했던 건요?"),
                 new Object[][]{{p(11, 12), 19}, {p(11, 14), 14}, {p(11, 16), 10}}, "행복동 작은도서관 1층 북카페", ho);
-        one(U.get("sky"), null, null, null, "디지털", "카톡으로 사진 보내기·영상통화", "휴대폰 매장에서 3년 일했어요",
+        one(U.get("sky"), null, null, null, "전자기기 사용법", "카톡으로 사진 보내기·영상통화", "휴대폰 매장에서 3년 일했어요",
                 List.of("사진 보내기", "영상통화", "글씨 크게"), 7, 3,
                 "손주 사진 크게 보기, 영상통화 걸기처럼 꼭 쓰는 것만 천천히 같이 눌러 봐요. 몇 번이고 다시 물어보셔도 돼요.",
                 List.of("손주가 보낸 사진을 크게 보고 싶어요", "영상통화는 어떻게 걸어요?", "글씨가 작아서 안 보여요"),
                 new Object[][]{{p(11, 13), 15}, {p(11, 15), 11}}, "행복동 주민센터 1층 라운지", U.get("sky"));
-        one(null, E.get("e2"), null, "85세", "요리", "제철 재료 고르는 법, 시장에서 같이", "희망시장에서 반찬가게 25년",
-                List.of("제철 채소", "생선 고르기", "장보기 요령"), 5, 1,
-                "시장 한 바퀴 같이 돌면서 좋은 무·배추·생선 고르는 법을 알려 드려요. 장 본 건 각자 가져가요.",
-                List.of("무는 어떤 걸 골라야 맛있어요?", "생선이 싱싱한지 어떻게 알아요?", "혼자 사는데 얼마나 사야 할까요?"),
+        one(null, E.get("e2"), null, "85세", "말벗·이야기", "시장 사람들 이야기, 차 한잔하며", "희망시장에서 반찬가게 25년",
+                List.of("옛날 시장", "단골 이야기", "살아온 이야기"), 5, 1,
+                "시장에서 25년 장사하며 만난 사람들 이야기를 들려 드려요. 궁금한 건 편하게 물어보세요.",
+                List.of("장사하면서 제일 기억나는 손님은요?", "옛날 시장은 어땠어요?", "혼자 지내실 때 뭐가 제일 힘드셨어요?"),
                 new Object[][]{{p(11, 13), 10}, {p(11, 18), 10}}, "희망동 전통시장 정문", org1);
-        one(yeong, null, "이○영", "68세", "일·경험", "아이 공부 습관, 32년 교사의 이야기", "초등학교 교사 32년 · 교감으로 은퇴",
+        one(yeong, null, "이○영", "68세", "말벗·이야기", "아이 공부 습관, 32년 교사의 이야기", "초등학교 교사 32년 · 교감으로 은퇴",
                 List.of("공부 습관", "사춘기 대화", "학부모 상담"), 9, 2,
                 "아이를 다그치지 않고 공부 습관을 들이는 법, 사춘기 아이와 말을 트는 법을 경험담으로 나눠요.",
                 List.of("숙제를 매일 미뤄요", "사춘기 아이랑 대화가 안 돼요", "학원을 몇 개나 보내야 할까요?"),
@@ -689,5 +692,29 @@ public class DataSeeder implements ApplicationRunner {
                         o("앱에서 저한테 단골 요청을 보내 주시면 돼요. 개인 연락처는 주고받지 않는 게 규칙이에요.", "good", null), o("네! 제 아이디는 yujin_s예요.", "bad", "연락처"), o("음, 그건 안 될 것 같아요.", "ok", null)),
                 turn("오케이, 일지 바로 확인할게요. 오늘 진짜 살았어요!",
                         o("마음만 받을게요! 대신 활동 일지 확인 꼭 눌러 주세요. 그래야 제 시간이 쌓여요.", "good", null), o("오, 감사해요. 잘 마실게요!", "bad", "금전·선물"), o("괜찮아요~", "ok", null))));
+    }
+
+    // ======================= 동네 소식: 기관 행사·클래스 홍보 (2026-11-09 회의 2장) =======================
+    private OrgEvent event(Organization o, User by, String title, String content, LocalDate d, Double h, String place, int cap, String type, String url, String ogTitle) {
+        OrgEvent e = new OrgEvent();
+        e.orgId = o.id; e.createdBy = by.id; e.title = title; e.content = content; e.eventDate = d; e.startHour = h; e.place = place;
+        e.capacity = cap; e.applyType = type; e.url = url; e.ogTitle = ogTitle; e.createdAt = today.minusDays(3).atTime(10, 0);
+        return orgEvents.save(e);
+    }
+
+    private void seedEvents(Organization o1, User org1) {
+        OrgEvent a = event(o1, org1, "스마트폰 사진 정리 교실", "휴대폰에 쌓인 사진을 앨범으로 정리하고, 가족에게 보내는 법까지 같이 해 봐요. 휴대폰만 가져오세요.",
+                p(11, 18), 14.0, "행복동 주민센터 1층 다목적실", 12, "APP", null, null);
+        event(o1, org1, "가을 경로당 노래자랑", "경로당 어르신과 이웃이 함께하는 노래자랑이에요. 구경만 오셔도 좋아요. 떡과 차를 준비해요.",
+                p(11, 22), 13.0, "행복동 경로당", 30, "APP", null, null);
+        event(o1, org1, "치매 예방 건강 강좌", "보건소 선생님이 기억력 지키는 생활 습관을 알려 드려요. 신청은 아래 링크에서 받아요.",
+                p(11, 25), 10.0, "행복구 보건소 3층 강당", 40, "LINK", "https://example.org/health-class", "치매 예방 건강 강좌 안내");
+        event(o1, org1, "행복동 김장 나눔 행사", "동네가 같이 김장해서 혼자 사는 어르신 댁에 나눠요. 자원봉사 신청은 링크에서 받아요.",
+                p(11, 29), 9.0, "행복동 주민센터 앞마당", 0, "LINK", "https://example.org/kimjang", null);
+        for (String k : List.of("bok", "mom")) {
+            EventApplication ap = new EventApplication();
+            ap.eventId = a.id; ap.userId = U.get(k).id; ap.createdAt = today.minusDays(1).atTime(9, 0);
+            eventApps.save(ap);
+        }
     }
 }
