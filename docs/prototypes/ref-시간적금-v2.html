@@ -1,0 +1,1614 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3D6DF2">
+<title>시간 적금</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+
+:root{
+  --bg:#EFEBE4; --paper:#FBF9F5; --card:#FFFFFF; --ink:#1E2A26; --sub:#5C6B66; --mute:#8A9793;
+  --line:#E4DED4; --pri:#2F6B5E; --pri-2:#3E8573; --pri-soft:#E3EFEA; --amber:#C98A2B; --amber-soft:#FBF0DC;
+  --red:#B5483B; --red-soft:#F8E4E0; --blue:#3A6EA5; --blue-soft:#E4EDF7;
+  --r:16px; --fs:15px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);font-family:Pretendard,"Apple SD Gothic Neo","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;color:var(--ink);font-size:var(--fs);line-height:1.5;word-break:keep-all;overflow-wrap:anywhere}
+body.big{--fs:18px}
+button,input,textarea,select{font:inherit;color:inherit}
+#app{max-width:430px;margin:0 auto;min-height:100dvh;background:var(--paper);position:relative;display:flex;flex-direction:column}
+@media (min-width:520px){
+  body{padding:24px 0}
+  #app{min-height:calc(100dvh - 48px);height:calc(100dvh - 48px);border-radius:28px;overflow:hidden;box-shadow:0 20px 60px rgba(30,42,38,.18)}
+}
+/* header */
+.hd{position:sticky;top:0;z-index:20;background:rgba(251,249,245,.94);backdrop-filter:blur(8px);display:flex;align-items:center;gap:6px;padding:12px 14px 10px;border-bottom:1px solid var(--line);min-height:58px}
+.hd .bk{width:38px;height:38px;border:0;background:transparent;border-radius:12px;display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.hd .bk:hover{background:var(--pri-soft)}
+.hd h1{font-size:18px;margin:0;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;letter-spacing:-.3px}
+.chip-role{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 10px 6px 12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:4px;cursor:pointer}
+.chip-role .dot{width:8px;height:8px;border-radius:50%;background:var(--pri)}
+/* body */
+.bd{flex:1 1 auto;overflow-y:auto;padding:16px 16px 28px}
+.bd.notab{padding-bottom:28px}
+.sec-t{font-size:13px;font-weight:700;color:var(--sub);margin:22px 2px 8px;display:flex;justify-content:space-between;align-items:center}
+.sec-t a{color:var(--pri);font-weight:600;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.card + .card{margin-top:10px}
+.click{cursor:pointer;transition:transform .08s ease, box-shadow .15s}
+.click:active{transform:scale(.985)}
+.click:hover{box-shadow:0 4px 14px rgba(30,42,38,.08)}
+.row{display:flex;align-items:center;gap:10px;min-width:0}
+.row > *{min-width:0}
+.grow{flex:1 1 auto;min-width:0}
+.between{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.muted{color:var(--sub)} .mute2{color:var(--mute);font-size:13px}
+.small{font-size:13px}
+.b{font-weight:700}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--pri-soft);color:var(--pri);white-space:nowrap}
+.tag.amber{background:var(--amber-soft);color:#8A5A12}
+.tag.red{background:var(--red-soft);color:var(--red)}
+.tag.blue{background:var(--blue-soft);color:var(--blue)}
+.tag.gray{background:#EEEAE3;color:var(--sub)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+/* buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;border-radius:14px;border:0;background:var(--pri);color:#fff;font-weight:700;font-size:16px;cursor:pointer;padding:0 16px;text-align:center}
+.btn:hover{background:var(--pri-2)}
+.btn.ghost{background:var(--card);color:var(--pri);border:1.5px solid var(--pri)}
+.btn.ghost:hover{background:var(--pri-soft)}
+.btn.soft{background:var(--pri-soft);color:var(--pri)}
+.btn.warn{background:var(--red)}
+.btn.sm{min-height:42px;font-size:14px;border-radius:12px}
+.btns{display:flex;gap:8px}
+.btns > *{flex:1 1 0;min-width:0}
+.stack > * + *{margin-top:10px}
+/* hero credit */
+.hero{background:linear-gradient(135deg,#2F6B5E 0%,#3E8573 100%);color:#fff;border-radius:20px;padding:20px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.08)}
+.hero .lbl{font-size:13px;opacity:.85}
+.hero .num{font-size:38px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin:4px 0 2px}
+.hero .num small{font-size:16px;font-weight:600;opacity:.85;margin-left:4px}
+.hero .sub{font-size:13px;opacity:.9}
+.hero .acts{display:flex;gap:8px;margin-top:16px;position:relative;z-index:1}
+.hero .acts button{flex:1 1 0;min-width:0;min-height:42px;border-radius:12px;border:0;background:rgba(255,255,255,.18);color:#fff;font-weight:700;cursor:pointer;font-size:14px}
+.hero .acts button:hover{background:rgba(255,255,255,.28)}
+.hero.amber{background:linear-gradient(135deg,#B9792A 0%,#D29A45 100%)}
+/* list item */
+.item{display:flex;gap:12px;align-items:flex-start}
+.ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto;background:var(--pri-soft);color:var(--pri)}
+.ic.amber{background:var(--amber-soft);color:#8A5A12}
+.ic.red{background:var(--red-soft);color:var(--red)}
+.ic.blue{background:var(--blue-soft);color:var(--blue)}
+.cr{font-weight:800;color:#8A5A12;white-space:nowrap}
+.cr.plus{color:var(--pri)} .cr.minus{color:var(--red)}
+/* tabs */
+.tabs{position:sticky;bottom:0;z-index:20;display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.tabs button{flex:1 1 0;min-width:0;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;font-size:11.5px;color:var(--mute);cursor:pointer;border-radius:12px}
+.tabs button.on{color:var(--pri);font-weight:700}
+.tabs button svg{width:24px;height:24px}
+/* form */
+label.f{display:block;font-size:13px;font-weight:700;color:var(--sub);margin:16px 2px 6px}
+.in,select.in,textarea.in{width:100%;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:12px 14px;min-height:48px;outline:none}
+.in:focus{border-color:var(--pri)}
+textarea.in{min-height:110px;resize:vertical;line-height:1.55}
+.stepper{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden}
+.stepper button{width:56px;height:52px;border:0;background:var(--pri-soft);color:var(--pri);font-size:22px;font-weight:700;cursor:pointer;flex:0 0 auto}
+.stepper .v{flex:1 1 auto;text-align:center;font-size:20px;font-weight:800}
+.opt{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:14px;cursor:pointer}
+.opt + .opt{margin-top:8px}
+.opt.on{border-color:var(--pri);background:var(--pri-soft)}
+.opt .rd{width:20px;height:20px;border-radius:50%;border:2px solid var(--mute);flex:0 0 auto;display:grid;place-items:center}
+.opt.on .rd{border-color:var(--pri)}
+.opt.on .rd::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--pri)}
+.toggle{width:46px;height:28px;border-radius:999px;background:#D7D1C6;position:relative;border:0;cursor:pointer;flex:0 0 auto}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .15s}
+.toggle.on{background:var(--pri)}
+.toggle.on::after{left:21px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+/* AI box */
+.ai{border:1.5px solid #CFE3DB;background:linear-gradient(180deg,#F4FAF7 0%,#FFFFFF 100%);border-radius:var(--r);padding:14px 16px}
+.ai .ah{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--pri);margin-bottom:8px;letter-spacing:.2px}
+.ai .ah .spark{width:20px;height:20px;border-radius:6px;background:var(--pri);color:#fff;display:grid;place-items:center}
+.ai ul{margin:6px 0 0;padding-left:18px}
+.ai li{margin:3px 0}
+.ai.warn{border-color:#EBC9C2;background:linear-gradient(180deg,#FCF3F1 0%,#fff 100%)}
+.ai.warn .ah{color:var(--red)} .ai.warn .ah .spark{background:var(--red)}
+.ai.amber{border-color:#EED9B3;background:linear-gradient(180deg,#FDF7EC 0%,#fff 100%)}
+.ai.amber .ah{color:#8A5A12} .ai.amber .ah .spark{background:var(--amber)}
+.skel{height:12px;border-radius:6px;background:linear-gradient(90deg,#E9F2EE 25%,#D6E8E0 50%,#E9F2EE 75%);background-size:200% 100%;animation:sh 1s infinite linear;margin:8px 0}
+@keyframes sh{to{background-position:-200% 0}}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+.kv dt{color:var(--sub)} .kv dd{margin:0;font-weight:600;min-width:0}
+/* chat */
+.chat{display:flex;flex-direction:column;gap:10px}
+.msg{max-width:84%;padding:11px 14px;border-radius:18px;line-height:1.5}
+.msg.ai-m{background:var(--card);border:1px solid var(--line);border-top-left-radius:6px;align-self:flex-start}
+.msg.me{background:var(--pri);color:#fff;border-top-right-radius:6px;align-self:flex-end}
+.qr{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.qr button{border:1.5px solid var(--pri);background:var(--card);color:var(--pri);border-radius:999px;padding:9px 14px;font-weight:700;font-size:14px;cursor:pointer;text-align:left}
+.qr button:hover{background:var(--pri-soft)}
+.composer{display:flex;gap:8px;margin-top:14px}
+.composer .in{flex:1 1 auto;min-width:0}
+.composer button{flex:0 0 auto;width:52px;border-radius:12px;border:0;background:var(--pri);color:#fff;cursor:pointer;display:grid;place-items:center}
+/* stepper status */
+.steps{display:flex;gap:4px;margin-top:10px}
+.steps span{flex:1 1 0;height:6px;border-radius:3px;background:#E7E1D7}
+.steps span.on{background:var(--pri)}
+.stepl{display:flex;justify-content:space-between;font-size:11px;color:var(--mute);margin-top:4px}
+/* bars */
+.bar{height:10px;border-radius:5px;background:#EEE9E1;overflow:hidden;position:relative}
+.bar > i{display:block;height:100%;border-radius:5px;background:var(--pri)}
+.bar > i.amber{background:var(--amber)} .bar > i.red{background:var(--red)}
+.vbars{display:flex;align-items:flex-end;gap:10px;height:120px;padding-top:6px}
+.vbars .col{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.vbars .col i{width:100%;max-width:34px;border-radius:8px 8px 3px 3px;background:var(--pri);display:block}
+.vbars .col span{font-size:11px;color:var(--mute)}
+/* doc thumb */
+.docs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.doc{aspect-ratio:3/4;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;display:flex;flex-direction:column;gap:4px;cursor:pointer}
+.doc b{font-size:11px}
+.doc i{display:block;height:4px;border-radius:2px;background:#E6E1D8}
+.doc i.s{width:60%}
+/* sheet & toast */
+.ov{position:fixed;inset:0;background:rgba(20,28,25,.45);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.ov.on{display:flex}
+.sheet{width:100%;max-width:430px;background:var(--paper);border-radius:22px 22px 0 0;padding:10px 18px calc(20px + env(safe-area-inset-bottom));max-height:86dvh;overflow-y:auto;animation:up .2s ease}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:#D3CCC1;margin:2px auto 12px}
+.sheet h2{font-size:19px;margin:4px 0 6px}
+@keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:.2s;z-index:60;max-width:min(380px,calc(100vw - 32px));text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%)}
+/* role pick */
+.rolecard{display:flex;gap:14px;align-items:center}
+.rolecard .ic{width:52px;height:52px;border-radius:16px}
+.logo{display:flex;align-items:center;gap:10px;margin:18px 2px 6px}
+.logo .mk{width:44px;height:44px;border-radius:14px;background:var(--pri);display:grid;place-items:center;color:#fff}
+.notice{background:var(--amber-soft);border-radius:12px;padding:10px 12px;font-size:13px;color:#7A5212}
+.divider{height:1px;background:var(--line);margin:14px 0}
+.big-cta{min-height:64px;font-size:18px;border-radius:18px}
+.center{text-align:center}
+.avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:800;flex:0 0 auto;background:var(--pri-soft);color:var(--pri)}
+.avatar.lg{width:64px;height:64px;font-size:22px}
+.timer{font-size:44px;font-weight:800;letter-spacing:-1px;text-align:center;font-variant-numeric:tabular-nums}
+.thanks{background:linear-gradient(160deg,#FFF8EA 0%,#FFFFFF 70%);border:1px solid #F0DFC0;border-radius:18px;padding:18px}
+.thanks .q{font-size:16px;line-height:1.7;font-weight:500}
+.ok{color:var(--pri);font-weight:700}
+.warnc{color:var(--red);font-weight:700}
+.check-row{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed var(--line)}
+.check-row:last-child{border-bottom:0}
+.check-row .ck{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;flex:0 0 auto;font-size:13px;font-weight:800;color:#fff;background:var(--pri)}
+.check-row .ck.w{background:var(--red)}
+.cb{width:22px;height:22px;accent-color:var(--pri);flex:0 0 auto;margin-top:2px}
+
+/* ===== v4: 흰 바탕 · 파랑 한 가지 · 여백 중심 ===== */
+:root{--bg:#fff;--paper:#FFFFFF;--line:#F0F1F4;--ink:#1B1D22;--sub:#5F6672;--mute:#9AA1AC;--brand:#3D6DF2;--pri:#3D6DF2;--pri-2:#2F5BDB;--pri-soft:#EEF3FF;--fill:#F6F7F9;--r:16px;--fs:16px}
+body{padding:0 !important;background:#fff;letter-spacing:-.3px}
+body.big{--fs:19px}
+#app{max-width:600px;height:100dvh !important;min-height:0 !important;border-radius:0 !important;box-shadow:none !important;overflow:hidden;background:#fff}
+@media (min-width:601px){#app{box-shadow:0 0 0 1px #ECEDF0 !important}}
+.hd{background:#fff;backdrop-filter:none;border-bottom:0;min-height:58px;padding:8px 14px 4px 20px}
+.hd h1{font-size:20px;font-weight:700;letter-spacing:-.6px}
+.hd .bk:hover{background:var(--fill)}
+.chip-role{border:0;background:var(--fill);font-size:13px;padding:7px 10px 7px 12px;box-shadow:none;font-weight:600}
+.tabs{background:#fff;border-top:1px solid var(--line);box-shadow:none;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.tabs button{font-size:11.5px;color:#B4BAC3}
+.tabs button.on{color:var(--ink);font-weight:700}
+.tabs button svg{width:24px;height:24px}
+.bd{padding:8px 20px 40px}
+.sec-t{font-size:18px;font-weight:700;color:var(--ink);margin:36px 0 12px;letter-spacing:-.5px}
+.sec-t a{font-size:13.5px;font-weight:500;color:var(--mute)}
+.muted{color:var(--sub)} .mute2{color:var(--mute);font-size:13.5px} .small{font-size:14.5px}
+.card{background:var(--fill);border:0;border-radius:var(--r);padding:18px 18px;box-shadow:none}
+.card + .card{margin-top:10px}
+.click:hover{box-shadow:none;background:#F1F2F5}
+.click:active{transform:scale(.985)}
+.item .b{font-size:16px}
+/* 통장 */
+.hero,.hero.amber{background:var(--brand);color:#fff;border-radius:20px;padding:20px 20px 18px;box-shadow:none;margin:4px 0 0}
+.hero.amber{background:#F28C4B}
+.hero::after{display:none}
+.hero + .card{margin-top:12px}
+.bk-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:18px;opacity:.9}
+.bk-name{font-weight:600}
+.bk-name::before{display:none}
+.bk-no{opacity:.75;font-variant-numeric:tabular-nums}
+.hero .lbl{font-size:13px;opacity:.8}
+.hero .num{font-size:40px;font-weight:700;letter-spacing:-1.2px;margin:2px 0 4px}
+.hero .num small{font-size:17px;opacity:.85;font-weight:500}
+.hero .sub{font-size:13px;opacity:.8}
+.hero .acts{margin-top:20px;gap:6px}
+.hero .acts button{background:rgba(255,255,255,.16);border-radius:12px;min-height:44px;font-size:14.5px;font-weight:600}
+.hero .acts button:hover{background:rgba(255,255,255,.26)}
+.pass{background:var(--fill);border-radius:var(--r);padding:2px 18px 6px;box-shadow:none;font-variant-numeric:tabular-nums}
+.pass-d{font-size:12.5px;color:var(--mute);font-weight:600;padding:16px 0 2px}
+.pass-r{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0 12px;border-bottom:1px solid #EBEDF0}
+.pass-r:last-child{border-bottom:0}
+.pc{min-width:0} .pc b{display:block;font-size:15px;font-weight:600;color:var(--ink)} .pc span{font-size:12.5px;color:var(--mute)}
+.pa{text-align:right;flex:0 0 auto} .pa b{display:block;font-size:16px} .pa span{font-size:12px;color:var(--mute)}
+.pass .p-in{color:var(--brand)} .pass .p-out{color:var(--ink)}
+/* 버튼 */
+.btn{background:var(--brand);border-radius:14px;min-height:54px;font-size:16px;font-weight:600}
+.btn:hover{background:var(--pri-2)}
+.btn[disabled]{background:#D5DAE3;cursor:default}
+.btn.ghost{background:var(--fill);color:var(--ink);border:0;box-shadow:none}
+.btn.ghost:hover{background:#ECEEF2}
+.btn.soft{background:var(--pri-soft);color:var(--brand)}
+.btn.soft:hover{background:#E2EAFF}
+.btn.warn{background:#EF4E4E}
+.btn.sm{border-radius:12px;min-height:44px;font-size:14.5px}
+.big-cta{min-height:56px;font-size:16.5px;border-radius:16px}
+/* 태그·숫자 */
+.tag{background:transparent;color:var(--sub);border-radius:0;font-size:12.5px;padding:0;font-weight:600}
+.tags .tag + .tag::before{content:"·";margin-right:6px;color:#C9CED6}
+.tag.amber{color:#E07A2E;background:transparent}
+.tag.red{background:#FFEDED;color:#E54848;padding:3px 8px;border-radius:6px}
+.tag.blue{color:var(--brand);background:transparent}
+.tag.gray{color:var(--mute);background:transparent}
+.tags{gap:6px}
+.cr{color:var(--ink);font-weight:700;font-size:16px}
+.cr.plus{color:var(--brand)} .cr.minus{color:var(--ink)}
+/* AI */
+.ai,.ai.warn,.ai.amber{border:0;border-radius:var(--r);background:var(--pri-soft);padding:18px;box-shadow:none}
+.ai::before{display:none}
+.ai.warn{background:#FFF1F1} .ai.amber{background:#FFF6EC}
+.ai .ah{font-size:12.5px;font-weight:700;color:var(--brand);margin-bottom:8px}
+.ai .ah .spark{width:auto;height:auto;background:none;color:var(--brand)}
+.ai.warn .ah,.ai.warn .ah .spark{color:#E54848;background:none}
+.ai.amber .ah,.ai.amber .ah .spark{color:#D9772B;background:none}
+.ai .small,.ai li{font-size:14.5px;line-height:1.65}
+.skel{background:linear-gradient(90deg,#E3EAFD 25%,#D3DEFB 50%,#E3EAFD 75%);background-size:200% 100%}
+.ic,.ic.amber,.ic.red,.ic.blue{background:#fff;color:var(--ink);border-radius:14px}
+.ic.red{color:#E54848}
+.avatar{background:#E8EEFF;color:var(--brand);font-weight:700}
+/* 폼 */
+label.f{font-size:14px;color:var(--sub);font-weight:600;margin:22px 2px 8px}
+.in,select.in,textarea.in{border:0;box-shadow:none;border-radius:14px;background:var(--fill);font-size:16px;min-height:54px;padding:14px 16px}
+.in:focus{box-shadow:inset 0 0 0 2px var(--brand);background:#fff}
+.stepper{border:0;border-radius:14px;box-shadow:none;background:var(--fill)}
+.stepper button{background:transparent;color:var(--brand)}
+.opt{border:0;border-radius:16px;background:var(--fill);box-shadow:none;padding:16px}
+.opt.on{background:var(--pri-soft);box-shadow:inset 0 0 0 2px var(--brand)}
+.opt.on .rd{border-color:var(--brand)} .opt.on .rd::after{background:var(--brand)}
+.toggle.on{background:var(--brand)}
+.chip{border:0;background:var(--fill);box-shadow:none;border-radius:999px;font-size:14px;font-weight:500;padding:8px 15px}
+.chip.on{background:var(--ink);color:#fff}
+.cb{accent-color:var(--brand)}
+.msg{font-size:16px;border-radius:20px;padding:12px 16px}
+.msg.ai-m{background:var(--fill);border:0;border-top-left-radius:6px;box-shadow:none}
+.msg.me{background:var(--brand);border-top-right-radius:6px}
+.qr button{background:#fff;border:0;box-shadow:inset 0 0 0 1.5px #D6DEF7;color:var(--brand);font-size:15px;font-weight:600;padding:10px 15px}
+.composer button{background:var(--brand);border-radius:14px}
+.steps span{height:5px;background:#E6E9EE} .steps span.on{background:var(--brand)}
+.bar{height:8px;background:#E9ECF1} .bar > i{background:var(--brand)}
+.vbars .col i{background:var(--brand)}
+.check-row .ck{background:var(--brand);border-radius:50%}
+.check-row .ck.w{background:#EF4E4E}
+.ok{color:var(--brand)} .warnc{color:#E54848;font-weight:600}
+.notice{background:var(--fill);color:var(--sub);border-radius:14px;font-size:13.5px}
+.divider{background:#E9ECF0}
+.sheet{max-width:600px;background:#fff;border-radius:24px 24px 0 0}
+.toast{background:rgba(27,29,34,.92);border-radius:14px;bottom:92px;font-size:14.5px}
+.timer{font-size:48px;font-weight:700}
+.btns > .card{margin-top:0 !important}
+/* ===== 스플래시 · 온보딩 · 로그인 · 가입 ===== */
+.bd.full{padding:0 24px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column}
+.splash{justify-content:center;align-items:center}
+.sp-in{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;animation:spIn .9s ease both}
+.sp-icon{width:84px;height:84px;border-radius:24px;background:var(--brand);color:#fff;padding:18px;box-shadow:0 12px 30px rgba(61,109,242,.28)}
+.sp-word{font-size:15px;font-weight:600;color:var(--brand);letter-spacing:.5px}
+@keyframes spIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:none}}
+.ob{animation:fadeIn .5s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.ob-stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:40px;min-height:0}
+.ob-text{transition:opacity .26s, transform .26s}
+.ob-ill{width:100%;max-width:340px;margin:30px auto 18px;transition:opacity .26s, transform .26s}
+.ob-ill svg{width:100%;height:auto;display:block}
+.fade{opacity:0;transform:translateY(8px)}
+.ob-h{font-size:28px;font-weight:700;line-height:1.35;letter-spacing:-1px;margin:0}
+.ob-p{font-size:15px;color:var(--sub);line-height:1.6;margin:12px 0 0}
+.ob-dots{display:flex;gap:6px;justify-content:center}
+.ob-dots i{width:6px;height:6px;border-radius:3px;background:#D5DAE3;cursor:pointer;transition:width .25s}
+.ob-dots i.on{width:18px;background:var(--brand)}
+.ob-note{font-size:12px;color:var(--mute);text-align:center;margin:18px 0 14px}
+.ob-btns{display:flex;gap:10px}
+.ob-btns .btn{flex:1;min-height:56px;border-radius:999px;font-size:16px}
+.ob-login{background:var(--fill);color:var(--ink)} .ob-login:hover{background:#ECEEF2}
+.au-demo{display:block;margin:14px auto 0;border:0;background:none;color:var(--mute);font-size:13.5px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.au-form{display:flex;flex-direction:column;gap:10px;margin-top:24px}
+.au-form .btn{margin-top:6px}
+.au-links{display:flex;justify-content:center;align-items:center;gap:14px;margin:18px 0 30px;font-size:14px;color:var(--sub)}
+.au-links a{cursor:pointer} .au-links span{width:1px;height:12px;background:#D5DAE3}
+.au-or{display:flex;align-items:center;gap:12px;color:var(--mute);font-size:13px;margin-bottom:14px}
+.au-or::before,.au-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.btn.sns{border-radius:14px;font-size:15.5px}
+.btn.kakao{background:#FEE500;color:#191600} .btn.kakao:hover{background:#F5DC00}
+.btn.naver{background:#03C75A} .btn.naver:hover{background:#02B451}
+.su-prog{height:3px;background:var(--line);border-radius:2px;margin:0 0 26px;overflow:hidden}
+.su-prog i{display:block;height:100%;background:var(--brand);transition:width .3s}
+.su-h{font-size:24px;font-weight:700;letter-spacing:-.8px;margin:0;line-height:1.35}
+.su-p{color:var(--sub);margin:8px 0 22px;font-size:15px}
+.su-role{display:flex;align-items:center;gap:14px;background:var(--fill);border-radius:18px;padding:18px;cursor:pointer;margin-top:10px}
+.su-role.on{background:var(--pri-soft);box-shadow:inset 0 0 0 2px var(--brand)}
+.su-ic{width:46px;height:46px;border-radius:14px;background:#fff;display:grid;place-items:center;color:var(--brand);flex:0 0 auto}
+.su-ic svg{width:24px;height:24px}
+.su-rt{font-weight:700;font-size:16.5px} .su-rd{font-size:13.5px;color:var(--sub);margin-top:2px}
+.su-role .rd{width:22px;height:22px;border-radius:50%;border:2px solid #CDD3DC;flex:0 0 auto;display:grid;place-items:center}
+.su-role.on .rd{border-color:var(--brand)} .su-role.on .rd::after{content:"";width:11px;height:11px;border-radius:50%;background:var(--brand)}
+.su-bottom{margin-top:32px}
+.seg{display:flex;background:var(--fill);border-radius:14px;padding:4px}
+.seg button{flex:1;border:0;background:none;min-height:46px;border-radius:11px;font-weight:600;color:var(--sub);cursor:pointer}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.su-check{display:flex;align-items:center;gap:12px;padding:14px 4px;cursor:pointer;font-size:15px}
+.su-check.all{background:var(--fill);border-radius:14px;padding:16px;margin-bottom:6px}
+.su-check .bx{width:24px;height:24px;border-radius:50%;background:#E3E7ED;flex:0 0 auto;display:grid;place-items:center}
+.su-check .bx::after{content:"";width:9px;height:5px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+.su-check.on .bx{background:var(--brand)}
+.done-ic{width:72px;height:72px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:34px;font-weight:700;animation:spIn .5s ease}
+
+/* ===== v5: 요청 카드 · 홈 · 채팅 · 차트 · 로그인 ===== */
+.cat-ic{display:grid;place-items:center;border-radius:16px;flex:0 0 auto}
+.rq{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #EEF0F3;border-radius:20px;padding:16px;box-shadow:0 4px 14px rgba(27,36,64,.05)}
+.rq + .rq{margin-top:10px}
+.rq:hover{border-color:#DCE3F5}
+.rq-cat{font-size:12.5px;font-weight:700}
+.rq-t{font-size:16.5px;font-weight:700;margin-top:1px;letter-spacing:-.4px}
+.rq-m{font-size:13px;color:var(--mute);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rq-cr{flex:0 0 auto;text-align:center;background:var(--pri-soft);border-radius:14px;padding:8px 10px;min-width:58px}
+.rq-cr b{display:block;color:var(--brand);font-size:16px}
+.rq-cr span{font-size:11px;color:#7D93D6}
+.pill{background:var(--pri-soft);color:var(--brand);font-weight:800;font-size:13.5px;border-radius:999px;padding:5px 10px;white-space:nowrap}
+.pill.big{font-size:15px;padding:7px 12px}
+.reg{background:linear-gradient(180deg,#F3F6FF 0%,#FFFFFF 100%);border:1px solid #E3EAFD;border-radius:22px;padding:18px}
+.reg-n{font-weight:700;font-size:17px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.reg-b{font-size:11.5px;font-weight:700;color:#fff;background:var(--brand);border-radius:999px;padding:3px 8px}
+.reg-box{background:#fff;border-radius:16px;padding:14px;margin-top:14px;box-shadow:0 2px 10px rgba(27,36,64,.05)}
+.hs{display:flex;gap:12px;overflow-x:auto;margin:0 -20px;padding:4px 20px 14px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.hs::-webkit-scrollbar{display:none}
+.nc{flex:0 0 200px;scroll-snap-align:start;background:#fff;border:1px solid #EEF0F3;border-radius:20px;padding:16px;box-shadow:0 4px 14px rgba(27,36,64,.05);display:flex;flex-direction:column}
+.nc-t{font-weight:700;font-size:16px;margin-top:14px;letter-spacing:-.4px;line-height:1.35;min-height:43px}
+.nc-m{font-size:13px;color:var(--sub);margin-top:2px}
+.nc-f{display:flex;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid #F0F1F4;font-size:12.5px;color:var(--mute)}
+.nc-f span{display:flex;align-items:center;gap:3px}
+.cg{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 8px}
+.cg-i{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--ink);font-weight:500;padding:0}
+.cg-i:active{transform:scale(.95)}
+.tip{display:flex;align-items:center;gap:12px;background:var(--fill);border-radius:18px;padding:16px 18px;margin-top:28px}
+/* 채팅 */
+.bd.chatv{display:flex;flex-direction:column;padding-bottom:0;background:#F7F8FA}
+.chat-wrap{flex:1 0 auto;display:flex;flex-direction:column;justify-content:flex-end;padding:8px 0 16px}
+.chat-day{text-align:center;margin:8px 0 18px}
+.chat-day span{font-size:12px;color:var(--mute);background:#EDEFF3;border-radius:999px;padding:4px 12px}
+.chat{gap:12px}
+.mrow{display:flex;gap:8px;align-items:flex-start;max-width:88%}
+.bot{width:34px;height:34px;border-radius:12px;background:var(--brand);color:#fff;padding:7px;flex:0 0 auto}
+.mcol{display:flex;flex-direction:column;gap:4px;min-width:0}
+.mcol.wide{flex:1}
+.mrow:has(.mcol.wide){max-width:100%}
+.bot-n{font-size:12.5px;color:var(--sub);font-weight:600}
+.msg{max-width:100%}
+.msg.ai-m{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04);border-top-left-radius:6px}
+.msg.me{max-width:80%;box-shadow:0 2px 8px rgba(61,109,242,.25)}
+.mcol.wide .ai{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.mcol.wide .ai.amber{background:#FFF8EE}
+.chat-dock{position:sticky;bottom:0;background:#fff;margin:0 -20px;padding:12px 20px 14px;border-top:1px solid #EEF0F3;border-radius:22px 22px 0 0;box-shadow:0 -6px 20px rgba(27,36,64,.06)}
+.chat-dock:empty{display:none}
+.qr-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:0 20px 2px}
+.qr-row::-webkit-scrollbar{display:none}
+.qr-row .qr{display:flex;flex-wrap:nowrap;gap:8px;margin:0}
+.qr-row .qr button{white-space:nowrap;flex:0 0 auto;background:var(--pri-soft);box-shadow:none;border-radius:999px}
+.qr-reset{flex:0 0 auto;border:0;background:var(--fill);color:var(--sub);border-radius:999px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chat-dock .composer{margin-top:10px}
+.chat-dock .composer .in{border-radius:999px;background:var(--fill);min-height:50px;padding:0 18px}
+.chat-dock .composer button{width:50px;height:50px;border-radius:50%}
+/* 차트 */
+.chart{width:100%;height:auto;display:block;margin-top:8px;overflow:visible}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.kpis > div{background:var(--fill);border-radius:16px;padding:14px 12px;display:flex;flex-direction:column;gap:2px}
+.kpis b{font-size:20px;letter-spacing:-.5px} .kpis span{font-size:12px;color:var(--sub)}
+.kpis em{font-style:normal;font-size:11.5px;font-weight:700;margin-top:4px}
+.kpis .up{color:#1F9D63} .kpis .dn{color:#E54848}
+.legend{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--sub)}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.donut{display:flex;align-items:center;gap:18px}
+.donut svg{flex:0 0 auto}
+.lgd{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
+.lgd-r{display:flex;align-items:center;gap:8px;font-size:14px}
+.lgd-r i{width:10px;height:10px;border-radius:3px;flex:0 0 auto}
+.lgd-r b{font-weight:700} .lgd-r em{font-style:normal;color:var(--mute);font-size:12.5px;width:34px;text-align:right}
+/* 로그인 */
+.bd.lf{padding-top:4px}
+.lf-mark{width:52px;height:52px;border-radius:16px;background:var(--brand);color:#fff;padding:11px;margin-bottom:22px;box-shadow:0 8px 20px rgba(61,109,242,.25)}
+.fl{display:flex;flex-direction:column;gap:6px}
+.fl label{font-size:13px;color:var(--sub);font-weight:600;padding-left:4px}
+.lf-row{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:var(--sub);margin:2px 2px 4px}
+.lf-row a{cursor:pointer}
+.lf-keep{display:flex;align-items:center;gap:6px;cursor:pointer}
+.lf-keep input{accent-color:var(--brand);width:17px;height:17px}
+.bd.lf .au-or{margin:30px 0 18px}
+.sns-row{display:flex;justify-content:center;gap:16px}
+.sns-c{width:56px;height:56px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer}
+.sns-c.kakao{background:#FEE500} .sns-c.naver{background:#03C75A;color:#fff;font-size:20px} .sns-c.apple{background:#111}
+.sns-c:active{transform:scale(.94)}
+.lf-sign{text-align:center;color:var(--sub);font-size:14px;margin-top:34px}
+.lf-sign a{color:var(--brand);font-weight:700;cursor:pointer;margin-left:4px}
+
+/* ===== v6: AI 모듈 라벨 · 도구 실행 · 영수증 · 안내문 · AI 분석 ===== */
+.ai .ah{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.mod{margin-left:auto;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap;letter-spacing:0}
+.mod.m1{background:#E3EAFF;color:#3D6DF2} .mod.m2{background:#EDE7FF;color:#6A4FD8} .mod.m3{background:#E2F5EA;color:#1F9D63} .mod.m4{background:#FFEBD9;color:#C9671A} .mod.m5{background:#FFE4EA;color:#D1436B}
+.tool-list{display:flex;flex-direction:column;gap:2px}
+.tool{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed #D9E1F7;opacity:.45}
+.tool:last-child{border-bottom:0}
+.tool.done,.tool.run{opacity:1}
+.tool .b{font-size:14px}
+.tk{width:20px;height:20px;border-radius:50%;flex:0 0 auto;margin-top:1px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#fff;background:#D5DAE3}
+.tool.done .tk{background:var(--brand)}
+.tool.run .tk{background:none;border:2.5px solid #C9D6FB;border-top-color:var(--brand);animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tool code,code.fn{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;color:#6E7CA8;margin-top:2px;word-break:break-all;line-height:1.45}
+code.fn{background:#fff;border-radius:8px;padding:6px 9px;margin:0 0 10px}
+.tr{font-size:13.5px;color:var(--ink);margin-top:3px}
+.rc{background:#fff;border-radius:12px;padding:12px 14px;font-variant-numeric:tabular-nums;border:1px dashed #D5DCEA}
+.rc-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:8px;border-bottom:1px dashed #E1E6EF;margin-bottom:6px}
+.rc-h span{font-size:12px;color:var(--mute)}
+.rc-r,.rc-t{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:3px 0}
+.rc-t{border-top:1px dashed #E1E6EF;margin-top:6px;padding-top:8px}
+.rc-t b{font-size:16px}
+.upl{width:100%;min-height:96px;border:2px dashed #CBD6F5;background:#F7F9FF;border-radius:16px;color:var(--brand);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:14.5px;cursor:pointer}
+.upl:hover{background:#EEF3FF}
+.paper{background:#FFFEFA;border:1px solid #ECE6D6;border-radius:6px;padding:18px 18px 14px;box-shadow:0 8px 22px rgba(60,50,20,.10);transform:rotate(-1.2deg);margin:6px 6px 0;font-family:"Nanum Myeongjo","Noto Serif KR",serif}
+.pp-h{font-weight:700;font-size:16px;text-align:center;padding-bottom:10px;border-bottom:2px solid #333;margin-bottom:8px}
+.pp-r{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;padding:6px 0;border-bottom:1px solid #EFEADD}
+.pp-r span:first-child{color:#777;flex:0 0 auto}
+.pp-r span:last-child{text-align:right}
+.pp-s{font-size:12px;color:#8A6B2E;margin-top:10px}
+.policy{display:flex;flex-direction:column;gap:10px}
+.policy > div{background:#fff;border-radius:12px;padding:12px 14px}
+.policy b{display:block;font-size:15px;margin-bottom:2px}
+.policy span{font-size:14px;color:var(--sub);line-height:1.55}
+.ask-hero{background:var(--fill);border-radius:20px;padding:20px 18px}
+.ask-hero .composer{margin-top:14px}
+.ask-hero .composer .in{background:#fff}
+.ask-hero .qr-row{margin:10px -18px 0;padding:0 18px}
+.ans{margin-top:22px}
+.ans .msg.me{max-width:85%;display:table}
+.ans-n{font-size:28px;font-weight:800;letter-spacing:-.8px;margin-bottom:10px}
+.hb{display:flex;flex-direction:column;gap:9px;background:#fff;border-radius:12px;padding:14px}
+.hb-r{display:grid;grid-template-columns:52px 1fr 40px;gap:10px;align-items:center;font-size:13.5px}
+.hb-r span{color:var(--sub)} .hb-r b{text-align:right}
+.hb-b{height:12px;background:#F0F2F6;border-radius:6px;overflow:hidden}
+.hb-b i{display:block;height:100%;border-radius:6px}
+.rp b{display:block;font-size:15px;margin-top:12px}
+.rp b:first-child{margin-top:0}
+.rp p{margin:4px 0 0;font-size:14.5px;line-height:1.65;color:var(--sub)}
+.mcol.wide .policy > div{background:#F7F8FA}
+
+.tip .btn{white-space:nowrap;flex:0 0 auto}
+.hs{scroll-padding-left:20px}
+.btns .btn{white-space:nowrap}
+#mtext{min-height:150px}
+.bd > .tags:first-child{margin-top:8px}
+.rq-m{white-space:normal;overflow:visible}
+
+
+/* ===== v2 프로토타입 추가 스타일 ===== */
+:root{--orange:#E07A2E;--orange-soft:#FFF1E2;--green:#1F9D63;--green-soft:#E6F7EE;--redc:#E54848}
+.hd .right{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.bell{position:relative;width:38px;height:38px;border:0;background:transparent;border-radius:12px;display:grid;place-items:center;cursor:pointer}
+.bell:hover{background:var(--fill)}
+.bell svg{width:23px;height:23px}
+.bell i{position:absolute;top:2px;right:1px;min-width:17px;height:17px;border-radius:9px;background:#EF4E4E;color:#fff;font-size:10.5px;font-style:normal;font-weight:700;display:grid;place-items:center;padding:0 4px}
+.chip-role{max-width:150px}
+.chip-role span.nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tp{display:inline-flex;align-items:center;font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap}
+.tp.o{background:#EAF0FF;color:#3D6DF2}.tp.n{background:var(--orange-soft);color:var(--orange)}
+.tp.g{background:#EEF0F3;color:var(--sub)}.tp.r{background:#FFEDED;color:var(--redc)}.tp.ok{background:var(--green-soft);color:var(--green)}
+.tp.y{background:#FFF6D6;color:#9A7400}
+.tps{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stats.c3{grid-template-columns:repeat(3,1fr)}
+.stat{background:var(--fill);border-radius:16px;padding:14px 14px 12px}
+.stat b{display:block;font-size:24px;letter-spacing:-.8px;font-weight:700}
+.stat span{font-size:12.5px;color:var(--sub)}
+.stat.warnc2 b{color:var(--redc)}
+.flow{display:flex;gap:4px;margin:12px 0 4px}
+.flow span{flex:1 1 0;text-align:center;font-size:10.5px;color:#B4BAC3;padding-top:7px;border-top:4px solid #E6E9EE;line-height:1.25}
+.flow span.on{color:var(--sub);border-color:var(--brand)}
+.flow span.cur{color:var(--ink);font-weight:700;border-color:var(--brand)}
+.flow.bad span.cur{border-color:#EF4E4E;color:var(--redc)}
+.dl{font-size:13px;font-weight:700;color:var(--orange)}
+.thread{display:flex;flex-direction:column;gap:8px}
+.bub{max-width:84%;padding:10px 14px;border-radius:16px;font-size:15px;line-height:1.5}
+.bub .who{font-size:11.5px;opacity:.7;margin-bottom:2px;font-weight:600}
+.bub.me{align-self:flex-end;background:var(--brand);color:#fff;border-top-right-radius:5px}
+.bub.ot{align-self:flex-start;background:var(--fill);border-top-left-radius:5px}
+.bub.sys{align-self:center;background:#fff;border:1px dashed #D5DAE3;color:var(--sub);font-size:13px;max-width:100%;text-align:center}
+.bub.place{background:#EAF0FF;border:1px solid #D6DEF7;max-width:100%;align-self:stretch}
+.empty{text-align:center;color:var(--mute);padding:34px 0;font-size:14.5px}
+.acct{display:flex;align-items:center;gap:12px;background:var(--fill);border-radius:14px;padding:12px 14px;cursor:pointer;margin-top:8px}
+.acct.on{box-shadow:inset 0 0 0 2px var(--brand);background:var(--pri-soft)}
+.acct .avatar{width:38px;height:38px;font-size:15px}
+.lbl2{font-size:12px;font-weight:700;color:var(--mute);margin:16px 2px 4px}
+.stars{display:flex;gap:6px;justify-content:center;margin:10px 0}
+.stars button{border:0;background:none;font-size:34px;color:#D5DAE3;cursor:pointer;padding:0 2px}
+.stars button.on{color:#F5B301}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:left;color:var(--mute);font-weight:600;font-size:12px;padding:8px 6px;border-bottom:1px solid var(--line)}
+.tbl td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini{font-size:12.5px;color:var(--mute)}
+.sticky-act{position:sticky;bottom:-40px;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,#fff 28%);padding:18px 0 14px;margin-top:10px;z-index:5}
+.pfcard{display:flex;gap:14px;align-items:center}
+.pfcard .avatar{width:56px;height:56px;font-size:20px}
+.lock{opacity:.55;pointer-events:none}
+.mapbox{background:var(--fill);border-radius:14px;padding:12px 14px;font-size:13.5px;color:var(--sub)}
+.tabrow{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:2px -20px 10px;padding:2px 20px}
+.tabrow::-webkit-scrollbar{display:none}
+.hlt{background:#FFF6D6;border-radius:4px;padding:0 3px}
+.demo{background:#1B1D22;color:#fff;border-radius:16px;padding:16px}
+.demo .btn{background:rgba(255,255,255,.14);min-height:44px;font-size:14.5px}
+.demo .btn:hover{background:rgba(255,255,255,.24)}
+.login-demo{margin-top:22px}
+.login-demo .acct{margin-top:6px}
+.kvl{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.kvl:last-child{border-bottom:0}
+.kvl span:first-child{color:var(--sub);flex:0 0 auto}
+.kvl span:last-child{font-weight:600;text-align:right;min-width:0}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.sw:last-child{border-bottom:0}
+.sw .t{font-weight:600}.sw .d{font-size:13px;color:var(--mute);margin-top:1px}
+.menu{background:var(--fill);border-radius:16px;padding:2px 16px}
+.menu .m{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 0;border-bottom:1px solid #EBEDF0;cursor:pointer;font-size:15.5px}
+.menu .m:last-child{border-bottom:0}
+.menu .m .r{color:var(--mute);font-size:13px;display:flex;align-items:center;gap:6px}
+.dotn{display:inline-block;min-width:18px;height:18px;border-radius:9px;background:#EF4E4E;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px;padding:0 5px}
+.card.alert{background:#FFF1F1}.card.info{background:var(--pri-soft)}
+.btn.sm.inl{width:auto;display:inline-flex;padding:0 14px;min-height:38px;font-size:13.5px}
+.chat-in{display:flex;gap:8px;margin-top:12px}
+.chat-in .in{flex:1;min-width:0}
+.chat-in button{flex:0 0 auto;width:52px;border-radius:14px;border:0;background:var(--brand);color:#fff;cursor:pointer;display:grid;place-items:center}
+.seg.sm button{min-height:38px;font-size:14px}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.sec-t.sm{font-size:15px;margin:24px 0 8px}
+.pill.o{background:var(--orange-soft);color:var(--orange)}
+.pill.g{background:var(--green-soft);color:var(--green)}
+.rq-cr.o{background:var(--orange-soft)}.rq-cr.o b{color:var(--orange)}.rq-cr.o span{color:#E5A56B}
+@media (max-width:380px){.stats.c3 .stat b{font-size:20px}}
+.card.ok{background:var(--green-soft)}
+.warnc{color:var(--redc)}
+.row.between{justify-content:space-between}
+.btn svg{width:20px;height:20px;flex:0 0 auto}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="hd" id="hd"></header>
+  <main class="bd" id="bd"></main>
+  <nav class="tabs" id="tabs"></nav>
+</div>
+<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const I = {
+  back:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  down:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>',
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+  hand:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11V6a2 2 0 0 1 4 0v4"/><path d="M11 10V4a2 2 0 0 1 4 0v6"/><path d="M15 10V6a2 2 0 0 1 4 0v8a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3.4L3 14a2 2 0 0 1 3.4-2L7 13"/></svg>',
+  wallet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="15" r="1.2" fill="currentColor"/><path d="M7 6V5a2 2 0 0 1 2-2h8"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.5A8 8 0 1 1 21 12z"/></svg>',
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg>',
+  pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  file:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
+  coin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5h4.5a2 2 0 0 1 0 4H10a2 2 0 0 0 0 4h5"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>',
+  gift:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v9h14v-9M7.5 8a2.5 2.5 0 1 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 1 1 0 5"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7-4.4-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.6-9 9-9 9z"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4" stroke-linecap="round"/></svg>',
+  building:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 9h4a1 1 0 0 1 1 1v11M2 21h20M8 8h3M8 12h3M8 16h3"/></svg>',
+  send:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>',
+  spark:'<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.3L20.5 10l-6.3 2.2L12 18.5l-2.2-6.3L3.5 10l6.3-1.7z"/></svg>',
+  clock:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  pin:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  star:'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
+  spark2:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2 5.5L19.5 10 14 12l-2 5.5L10 12 4.5 10 10 8.5z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>',
+  logo:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>',
+};
+
+/* ================= core ================= */
+const spk = `<span class="spark">${I.spark}</span>`;
+const MODS=['','요청 처리 AI','','기록 정리 AI','운영 분석 AI','판단 AI','공공 서비스 안내 AI'];
+const M = n => `<span class="mod m${n}">${MODS[n]}</span>`;
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = n => (Math.round(n*10)/10).toFixed(1);
+const val = s => { const e=$(s); return e?e.value.trim():''; };
+
+/* 카테고리 (B-07, 6개) · 가중치 (B-27) */
+const CATS=[
+ {k:'말동무·정서',w:1.0,lv:'기본'},{k:'디지털 도움',w:1.0,lv:'기본'},{k:'생활 정리',w:1.0,lv:'기본'},
+ {k:'장보기·심부름',w:1.2,lv:'수고'},{k:'가벼운 집안일',w:1.2,lv:'수고'},{k:'동행',w:1.5,lv:'책임'}];
+const CN=CATS.map(c=>c.k);
+const W=k=>(CATS.find(c=>c.k===k)||{w:1}).w;
+const LV=k=>(CATS.find(c=>c.k===k)||{lv:'기본'}).lv;
+const roundHalf=x=>Math.round(x*2)/2;
+const creditOf=(cat,h)=>roundHalf(h*W(cat));       // B-26
+const CI={'동행':'<path d="M12 6v12M6 12h12"/><rect x="3" y="3" width="18" height="18" rx="5"/>','장보기·심부름':'<path d="M3 4h2.2l2.3 11h10.3L20 8H6.4"/><circle cx="9.5" cy="19.5" r="1.4"/><circle cx="16.5" cy="19.5" r="1.4"/>','말동무·정서':'<path d="M20 11.5a7.5 7.5 0 0 1-11 6.6L4 19l1-4.2A7.5 7.5 0 1 1 20 11.5z"/><path d="M9 11h.01M12.5 11h.01M16 11h.01"/>','디지털 도움':'<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18h3"/>','생활 정리':'<path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.5l8.5-4M12 11.5v9"/>','가벼운 집안일':'<path d="M4 11 12 4l8 7v8.5a.5.5 0 0 1-.5.5H15v-5H9v5H4.5a.5.5 0 0 1-.5-.5z"/>'};
+const CC={'동행':['#EAF0FF','#3D6DF2'],'장보기·심부름':['#FFF1E2','#EE8424'],'말동무·정서':['#FFEDF3','#E2557F'],'디지털 도움':['#F0ECFF','#7656E3'],'생활 정리':['#FFF6D6','#C99500'],'가벼운 집안일':['#E4F5F9','#178FAD']};
+const SHORT={'동행':'병원 동행','장보기·심부름':'장보기','말동무·정서':'말동무','디지털 도움':'폰 도움','생활 정리':'생활 정리','가벼운 집안일':'집안일'};
+function catIc(k,size=48){const [bg,fg]=CC[k]||CC['동행'];return `<span class="cat-ic" style="width:${size}px;height:${size}px;background:${bg};color:${fg}"><svg viewBox="0 0 24 24" width="${Math.round(size*.5)}" height="${Math.round(size*.5)}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${CI[k]||CI['동행']}</svg></span>`;}
+
+/* ---- 시연용 가상 시계 ---- */
+let NOW=new Date(2026,10,9,10,0,0);
+const DAYS=['일','월','화','수','목','금','토'];
+const pad=n=>String(n).padStart(2,'0');
+const dkey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const dOff=n=>{const d=new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+n);return dkey(d);};
+const pd=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
+const fdate=s=>{const d=pd(s);return `${d.getMonth()+1}/${d.getDate()}(${DAYS[d.getDay()]})`;};
+const fh=h=>{const hh=Math.floor(h),mm=Math.round((h-hh)*60);const ap=hh<12?'오전':'오후';const h12=hh%12===0?12:hh%12;return `${ap} ${h12}${mm?':'+pad(mm):'시'}`;};
+const frange=(a,b)=>`${fh(a)} ~ ${fh(b).replace(/^오[전후] /,a<12&&b>=12?'오후 ':'')}`;
+const startAt=(date,h)=>{const d=pd(date);d.setMinutes(Math.round(h*60));return d;};
+const fdt=d=>`${d.getMonth()+1}/${d.getDate()} ${fh(d.getHours()+d.getMinutes()/60)}`;
+const hoursLeft=d=>(d-NOW)/3600000;
+const left=d=>{const h=hoursLeft(d);if(h<=0)return '기한 지남';if(h<1)return `${Math.max(1,Math.round(h*60))}분 남음`;return `${Math.floor(h)}시간 남음`;};
+
+/* ---- 상태 ---- */
+let _id=100; const nid=p=>p+(++_id);
+let D=null;
+const REGIONS=['행복동','희망동','사랑동','미래동'];
+const TAGS_RATE=['시간 약속을 잘 지켜요','친절해요','차분해요','설명을 잘해요','꼼꼼해요'];
+
+function seed(){
+  _id=100; NOW=new Date(2026,10,9,10,0,0);
+  const U=(id,o)=>Object.assign({id,role:'user',loginId:id,pw:'1234',phone:'010-0000-0000',base:0,rating:[],cats:[],ver:{id:true,crime:false,safety:true,status:'approved'},watch:[],voice:false,share:false,pen:0,status:'active',region:'행복동',times:'평일 오후',style:'차분해요',exp:'',intro:'',age:30},o);
+  D={cur:null,
+   users:[
+    U('u1',{name:'손유진',age:29,base:30,region:'행복동',cats:['동행','디지털 도움','말동무·정서'],ver:{id:true,crime:true,safety:true,status:'approved'},intro:'IT 회사에 다니는 직장인이에요. 폰 설정 도와드리는 걸 좋아해요.',exp:'디지털 도움 6회, 병원 동행 4회',times:'평일 저녁·주말',rating:[5,5,4,5,5],share:true}),
+    U('u2',{name:'김하늘',age:24,base:6,region:'행복동',cats:['동행','디지털 도움','말동무·정서'],ver:{id:true,crime:true,safety:true,status:'approved'},intro:'간호학과 학생이에요. 차분하게 설명해 드릴게요.',exp:'병원 동행 8회, 말동무 3회',times:'평일 오후',rating:[5,5,5,4,5,5,5]}),
+    U('u3',{name:'이도윤',age:31,base:12,region:'행복동',cats:['장보기·심부름','가벼운 집안일','생활 정리'],ver:{id:true,crime:false,safety:true,status:'approved'},intro:'주말 오전에 활동해요. 약속 시간 꼭 지켜요.',exp:'장보기 9회, 집안일 4회',times:'주말 오전',rating:[5,4,5,5]}),
+    U('u4',{name:'이순자',age:74,base:0,region:'행복동',cats:[],ver:{id:false,crime:false,safety:false,status:'none'},intro:'',times:'',voice:true,style:'',age:74,share:true}),
+    U('u5',{name:'최미경',age:62,base:0,region:'희망동',cats:['동행','말동무·정서'],ver:{id:true,crime:false,safety:false,status:'pending'},intro:'자영업을 하다 은퇴했어요. 말벗이 되어 드릴게요.',exp:'',times:'평일 오전'}),
+   ],
+   mgrs:[
+    {id:'m1',role:'mgr',name:'박지원',loginId:'m1',pw:'1234',org:'행복동 주민센터',phone:'02-000-0001',status:'active'},
+    {id:'m2',role:'mgr',name:'최도현',loginId:'m2',pw:'1234',org:'희망동 복지관',phone:'02-000-0002',status:'active'}],
+   admins:[{id:'a1',role:'admin',name:'김운영',loginId:'a1',pw:'1234',status:'active'}],
+   elders:[
+    {id:'e1',share:true,alias:'민들레',dong:'행복동',needs:['동행','장보기·심부름'],caution:'무릎이 아파 천천히 걸으세요. 보청기를 쓰셔서 또박또박 말해 주세요.',mgr:'m1',status:'active'},
+    {id:'e2',alias:'해바라기',dong:'행복동',needs:['말동무·정서','디지털 도움'],caution:'전화는 오전이 편하세요. 고향 이야기를 좋아하세요.',mgr:'m1',status:'active'},
+    {id:'e3',alias:'은행나무',dong:'행복동',needs:['장보기·심부름','생활 정리'],caution:'낯선 사람에게 낯을 가리세요. 처음엔 인사를 천천히 건네 주세요.',mgr:'m1',status:'active'},
+    {id:'e4',alias:'소나무',dong:'희망동',needs:['말동무·정서'],caution:'혼자 지내시며 대화를 반가워하세요.',mgr:'m2',status:'active'}],
+   posts:[],reqs:[],notifs:[],reports:[],inquiries:[],
+   notices:[{id:'n1',title:'시간 적금 시범 운영 안내',body:'행복동·희망동에서 시범 운영을 시작합니다. 도움 활동은 신체 접촉이 없는 범위에서만 진행해 주세요.',at:'2026-11-03'},{id:'n2',title:'연락처 교환·금전 요구는 금지돼요',body:'요청·제안 메시지에서는 연락처를 주고받거나 금전을 요구할 수 없습니다. 발견하면 신고해 주세요.',at:'2026-11-05'}],
+   orgApps:[{id:'o1',org:'사랑동 주민센터',name:'정수연',phone:'02-000-0003',note:'독거노인 12명 지원 예정',status:'대기',at:'11/8'}],
+   gifts:[{id:'g1',from:'u1',to:'u4',h:6,at:'11/5'}],
+   famLinks:[{id:'f1',a:'u1',b:'u4',status:'연결'}],
+   transfers:[],appeals:[],holds:{},repAt:NOW,
+   svc:[
+    {id:'s1',region:'전국',name:'노인맞춤돌봄서비스',target:'만 65세 이상 등 (세부 조건은 기관 확인)',what:'안전·안부 확인, 생활 교육, 일상생활 지원 연계',where:'읍·면·동 주민센터 또는 수행기관에 문의',kw:['안부','돌봄','독거','생활지원','도움','혼자']},
+    {id:'s2',region:'전국',name:'노인장기요양보험',target:'만 65세 이상 또는 노인성 질병이 있는 분 (등급 판정 필요)',what:'방문요양·방문목욕·주야간보호 등 신체 돌봄',where:'국민건강보험공단 1577-1000',kw:['목욕','씻','샤워','신체','요양','간병','기저귀','대소변']},
+    {id:'s3',region:'전국',name:'보건소 방문건강관리',target:'지역 주민 (대상 조건은 보건소 확인)',what:'건강 상담, 복약·만성질환 관리 안내',where:'관할 보건소에 문의',kw:['주사','약','투약','링거','상처','소독','혈압','당뇨']},
+    {id:'s4',region:'전국',name:'응급안전안심서비스',target:'독거노인 등 (대상 조건은 기관 확인)',what:'응급 상황 감지·연락 장비 설치 지원',where:'주민센터 또는 수행기관에 문의',kw:['응급','쓰러','넘어','독거','위급']},
+    {id:'s5',region:'전국',name:'긴급복지지원 · 보건복지상담센터 129',target:'위기 상황에 놓인 분',what:'긴급 생계·의료 지원 상담',where:'보건복지상담센터 129',kw:['생계','위기','긴급','어려움','병원비']},
+    {id:'s6',region:'전국',name:'금융감독원 불법금융 신고센터 1332',target:'금융사기 의심 시',what:'보이스피싱·대출 사기 상담',where:'1332',kw:['송금','이체','대출','통장','비밀번호','카드','보이스피싱','현금']},
+    {id:'s7',region:'전국',name:'응급 상황 119',target:'누구나',what:'쓰러짐·호흡 곤란 등 생명이 위급할 때',where:'119',kw:['119','응급','쓰러']},
+    {id:'s8',region:'행복동',name:'행복동 안부 확인 사업 (예시)',target:'행복동 거주 독거 어르신',what:'주 1회 전화·방문 안부 확인',where:'행복동 주민센터 02-000-0001',kw:['안부','혼자','독거','외출']},
+   ]};
+  // 공고
+  const P=(id,o)=>D.posts.push(Object.assign({id,status:'open',recurring:false,at:NOW,acceptedReq:null},o));
+  P('p1',{type:'offer',aKind:'user',aId:'u2',date:dOff(1),from:13,to:17,region:'행복동',cats:['동행','디지털 도움','말동무·정서'],detail:'수업 없는 오후예요. 병원 동행이나 폰 설정 도와드릴 수 있어요.'});
+  P('p2',{type:'offer',aKind:'user',aId:'u3',date:dOff(5),from:9,to:13,region:'행복동',cats:['장보기·심부름','가벼운 집안일'],detail:'주말 오전에 장보기나 가벼운 집안일 도와드려요.'});
+  P('p3',{type:'need',aKind:'elder',aId:'e1',date:dOff(3),from:9,to:13,region:'행복동',cats:['동행'],detail:'정형외과 진료 동행이 필요해요. 진료 후 약국에도 들러요.'});
+  P('p4',{type:'need',aKind:'user',aId:'u4',date:dOff(2),from:14,to:17,region:'행복동',cats:['디지털 도움'],detail:'손주와 영상통화를 하고 싶은데 스마트폰 설정을 모르겠어요.'});
+  P('p5',{type:'need',aKind:'elder',aId:'e2',date:dOff(4),from:14,to:17,region:'행복동',cats:['말동무·정서'],detail:'함께 이야기 나눌 분을 찾아요. 고향 이야기를 좋아하세요.'});
+  P('p6',{type:'need',aKind:'user',aId:'u1',date:dOff(6),from:10,to:14,region:'행복동',cats:['가벼운 집안일'],detail:'이사 후 남은 짐 정리와 전구 교체(낮은 곳)를 도와주세요.',status:'locked',acceptedReq:'r3'});
+  P('p7',{type:'offer',aKind:'user',aId:'u1',date:dOff(7),from:18,to:21,region:'행복동',cats:['말동무·정서','디지털 도움'],detail:'월요일 저녁에 시간이 나요.'});
+  P('p8',{type:'need',aKind:'elder',aId:'e3',date:dOff(1),from:15,to:18,region:'행복동',cats:['장보기·심부름'],detail:'쌀과 반찬거리 장보기가 필요해요. 영수증은 사진으로 남겨 주세요.'});
+  // 요청·제안
+  const R=(id,o)=>D.reqs.push(Object.assign({id,postId:null,kind:'request',msgOpen:false,thread:[],journal:null,rated:{recv:null,helper:null},createdAt:NOW,stageAt:NOW,memo:'',onHold:false,ded:null,credit:0,confirmBy:null},o));
+  const dl=h=>new Date(NOW.getTime()+h*3600000);
+  R('r1',{postId:'p1',kind:'request',helperId:'u2',recv:{k:'user',id:'u4'},by:'u4',date:dOff(1),start:14,hours:2,cat:'디지털 도움',content:'영상통화 설정을 도와주세요.',memo:'안경을 가져갈게요.',stage:'wait_helper',deadline:dl(20)});
+  R('r2',{postId:'p3',kind:'proposal',helperId:'u1',recv:{k:'elder',id:'e1'},by:'u1',date:dOff(3),start:9.5,hours:3,cat:'동행',content:'진료와 약국까지 함께 가겠습니다.',memo:'병원 앞에서 만나요.',stage:'wait_recv',deadline:dl(18)});
+  R('r3',{postId:'p6',kind:'proposal',helperId:'u3',recv:{k:'user',id:'u1'},by:'u3',date:dOff(6),start:10,hours:3,cat:'가벼운 집안일',content:'짐 정리와 전구 교체(낮은 곳) 도와드릴게요.',stage:'confirmed',msgOpen:true,deadline:null,
+    thread:[{from:'u3',text:'토요일 말고 일요일 10시에 뵐게요. 박스는 현관에 모아 주세요.',at:'11/9 오전 9:10'},{from:'u1',text:'네, 현관에 모아 둘게요. 감사합니다!',at:'11/9 오전 9:40'}]});
+  R('r5',{postId:null,kind:'direct',helperId:'u2',recv:{k:'user',id:'u1'},by:'u1',date:dOff(-1),start:15,hours:1,cat:'디지털 도움',content:'노트북 와이파이 설정',stage:'await_confirm',journal:{text:'노트북 와이파이 연결과 프린터 설정을 해 드렸어요.',photo:false,ai:'노트북의 와이파이 연결과 프린터 설정을 함께 했습니다. 다음에는 백업 방법을 안내할 예정입니다.'},credit:1,msgOpen:true,deadline:null,journalAt:dl(-5)});
+  R('r6',{postId:null,kind:'direct',helperId:'u2',recv:{k:'elder',id:'e1'},by:'m1',date:dOff(-1),start:10,hours:2,cat:'동행',content:'정형외과 진료 동행',stage:'await_confirm',journal:{text:'진료 시간에 맞춰 병원에 모시고 다녀왔어요. 약국에도 들렀어요. 점심을 거의 안 드셨다고 하셨어요.',photo:false,ai:'진료에 동행하고 약국까지 다녀왔습니다. 어르신이 점심을 거의 드시지 못했다고 말씀하셨습니다.'},credit:3,msgOpen:true,deadline:null,journalAt:dl(-20)});
+  // 활동 이력 (단골·통장·리포트 근거)
+  const H=(helper,rk,rid,cat,h,off,txt)=>{const credit=creditOf(cat,h);const o={postId:null,kind:'direct',helperId:helper,recv:{k:rk,id:rid},by:rk==='user'?rid:(D.elders.find(e=>e.id===rid).mgr),date:dOff(off),start:10,hours:h,cat,content:txt,stage:'completed',credit,confirmBy:'recv',msgOpen:true,journal:{text:txt,photo:false,ai:txt},rated:{recv:{stars:5,tags:['친절해요']},helper:rk==='user'?{stars:5}:null},deadline:null,ded:rk==='user'?{gift:0,earn:credit}:null};D.reqs.push(Object.assign({id:nid('r'),thread:[],memo:'',onHold:false,createdAt:NOW,stageAt:NOW},o));};
+  H('u2','user','u1','디지털 도움',1,-40,'휴대폰 사진 정리를 도와드렸어요.');H('u2','user','u1','동행',2,-26,'치과 진료 동행');H('u2','user','u1','말동무·정서',1,-12,'산책하며 이야기 나눴어요.');
+  H('u2','elder','e1','동행',2,-38,'정형외과 진료 동행');H('u2','elder','e1','동행',2,-24,'정기 검진 동행');H('u2','elder','e1','장보기·심부름',1,-9,'장보기. 요즘 식사량이 줄어드신 것 같아요.');
+  H('u2','elder','e2','말동무·정서',1,-20,'고향 이야기를 들려주셨어요.');
+  H('u3','user','u1','가벼운 집안일',1,-15,'전구 교체와 선반 정리');
+  H('u1','elder','e1','디지털 도움',1,-30,'휴대폰 글씨 크기를 키워 드렸어요.');H('u1','elder','e2','말동무·정서',1,-6,'안부 방문. 요즘 외출이 줄었다고 하셨어요.');
+  // 이상 패턴 (D-06) 시연용
+  H('u3','user','u1','말동무·정서',0.5,-4,'짧은 안부');H('u3','user','u1','말동무·정서',0.5,-3,'짧은 안부');H('u3','user','u1','말동무·정서',0.5,-2,'짧은 안부');
+  // 알림
+  notify('u2','이순자 님이 공고에 요청을 보냈어요 (디지털 도움)',{name:'u_req',p:{id:'r1'}});
+  notify('m1','민들레 어르신 건: 손유진 님이 제안을 보냈어요. 확인 후 대신 입력해 주세요',{name:'u_req',p:{id:'r2'}});
+  notify('u1','김하늘 님이 활동 일지를 올렸어요. 확인해 주세요',{name:'u_req',p:{id:'r5'}});
+  notify('m1','민들레 어르신 건: 김하늘 님의 활동 확인이 필요해요',{name:'u_req',p:{id:'r6'}});
+  notify('a1','봉사자 신원 승인 대기 1건 · 기관 신청 1건',{name:'a_inbox',p:{}});
+  D.reports.push({id:'rp1',by:'u4',kind:'공고',target:'p5',tuser:'m1',type:'허위 공고',text:'실제와 다른 내용 같아요.',status:'접수',at:'11/8',result:''});
+  D.inquiries.push({id:'q1',by:'u1',type:'적립 오류',title:'적립 시간이 다르게 보여요',body:'동행 2시간인데 3시간으로 적립됐어요.',status:'답변 완료',answer:'동행은 책임 등급(×1.5)이 적용돼 2시간이 3시간으로 적립돼요.',at:'11/6'});
+  D.appeals.push({id:'ap1',req:null,by:'u3',text:'장보기 시 계단이 많아 난이도가 더 높았어요.',status:'대기'});
+}
+function acct(id){return [...D.users,...D.mgrs,...D.admins].find(a=>a.id===id);}
+const me=()=>acct(D.cur);
+const elderOf=id=>D.elders.find(e=>e.id===id);
+const postOf=id=>D.posts.find(p=>p.id===id);
+const reqOf=id=>D.reqs.find(r=>r.id===id);
+const nameOf=(k,id)=>k==='elder'?`${elderOf(id).alias} 어르신`:acct(id).name;
+
+/* ---- 알림 (A-07) ---- */
+function notify(to,text,go){
+  const a=acct(to); if(!a) return;
+  D.notifs.unshift({id:nid('n'),to,text,at:new Date(NOW),read:false,go,voice:!!(a.voice)});
+  if(D.cur===to && typeof toast==='function' && D.__live) toast(text.length>30?text.slice(0,30)+'…':text);
+}
+const unread=()=>D.notifs.filter(n=>n.to===D.cur&&!n.read).length;
+
+/* ---- 내비게이션 ---- */
+const nav={stack:[]};
+const SCREENS={};
+function go(name,p={}){nav.stack.push({name,p});render();}
+function tab(name,p={}){nav.stack=[{name,p}];render();}
+function back(){if(nav.stack.length>1){nav.stack.pop();render();}}
+function replace(name,p={}){nav.stack[nav.stack.length-1]={name,p};render();}
+function cur(){return nav.stack[nav.stack.length-1];}
+const ROLES={
+ user:{label:'사용자',tabs:[['u_home','홈','home'],['u_posts','공고','list'],['u_acts','내 활동','hand'],['u_wallet','통장','wallet'],['u_my','내 정보','user']]},
+ mgr:{label:'담당자',tabs:[['m_home','홈','home'],['u_posts','공고','list'],['m_acts','활동','hand'],['m_my','내 정보','user']]},
+ admin:{label:'운영자',tabs:[['a_dash','대시보드','chart'],['a_inbox','처리함','file'],['a_members','회원·기관','building'],['a_ops','운영','shield']]}};
+function render(){
+  tick();
+  const {name,p}=cur();
+  const out=SCREENS[name](p||{});
+  const a=me();
+  const canBack=nav.stack.length>1;
+  const nUn=a?unread():0;
+  $('#hd').innerHTML=`${canBack?`<button class="bk" data-act="back" aria-label="뒤로">${I.back}</button>`:`<span style="width:6px"></span>`}
+    <h1>${out.title||''}</h1>
+    ${a?`<div class="right"><button class="bell" data-go="notifs" aria-label="알림">${I.bell}${nUn?`<i>${nUn}</i>`:''}</button><button class="chip-role" data-act="acctSheet"><span class="nm">${esc(a.name)}</span>${I.down}</button></div>`:''}`;
+  $('#hd').style.display=out.noHeader?'none':'flex';
+  $('#bd').className='bd '+(out.cls||'');
+  $('#bd').innerHTML=out.html;
+  $('#bd').scrollTop=0;
+  const role=a?a.role:null;
+  const showTabs=role&&!out.noTabs;
+  $('#tabs').style.display=showTabs?'flex':'none';
+  if(showTabs){const active=out.tab||name;$('#tabs').innerHTML=ROLES[role].tabs.map(([k,l,ic])=>`<button class="${k===active?'on':''}" data-tab="${k}">${I[ic]}<span>${l}</span></button>`).join('');}
+  if(out.mount) out.mount();
+}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2300);}
+function sheet(html){$('#sheet').innerHTML=`<div class="grab"></div>`+html;$('#ov').classList.add('on');}
+function closeSheet(){$('#ov').classList.remove('on');}
+function confirmSheet(title,body,yes,fn,danger){window._yes=fn;sheet(`<h2>${title}</h2><p class="muted" style="margin:6px 0 0">${body}</p><div class="btns" style="margin-top:18px"><button class="btn ghost" data-act="closeSheet">아니요</button><button class="btn ${danger?'warn':''}" data-act="yes">${yes||'네'}</button></div>`);}
+function aiRun(sel,html,ms=800){const el=$(sel);if(!el)return;el.innerHTML=`<div class="ai"><div class="ah">${spk}AI가 정리하는 중…</div><div class="skel"></div><div class="skel" style="width:80%"></div></div>`;setTimeout(()=>{if($(sel))$(sel).innerHTML=html;},ms);}
+
+const ACT={};
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-go],[data-act],[data-tab]');
+  if(t){
+    if(t.dataset.tab){closeSheet();return tab(t.dataset.tab);}
+    if(t.dataset.go){closeSheet();const p={...t.dataset};delete p.go;return go(t.dataset.go,p);}
+    if(t.dataset.act){const f=ACT[t.dataset.act];if(f)return f(t.dataset,t);}
+  }
+  if(e.target.id==='ov')closeSheet();
+});
+document.addEventListener('submit',e=>{const f=e.target.closest('[data-form]');if(f){e.preventDefault();const fn=ACT[f.dataset.form];if(fn)fn(f.dataset,f);}});
+ACT.back=()=>back(); ACT.closeSheet=()=>closeSheet(); ACT.yes=()=>{const f=window._yes;closeSheet();if(f)f();};
+
+/* ================= logic (도메인 규칙) ================= */
+const ACTIVE=['wait_helper','wait_recv','confirmed','inprogress','await_confirm'];
+const STAGE_LABEL={wait_helper:'봉사자 수락 대기',wait_recv:'받는 분 수락 대기',confirmed:'일정 확정',inprogress:'진행 중',await_confirm:'활동 확인 대기',completed:'완료',rejected:'거절됨',expired:'기한 만료',auto_rejected:'자동 거절',cancelled:'취소됨'};
+const costOf=r=>r.recv.k==='elder'?0:creditOf(r.cat,r.hours);   // B-30: 완료 후 차감(가중치 적용 가정, 기록은 README 참고)
+
+/* ---- 시간 통장 (A-06, B-30~34) ---- */
+const helperCredits=u=>D.reqs.filter(r=>r.helperId===u.id&&r.stage==='completed'&&!r.onHold).reduce((s,r)=>s+r.credit,0);
+const lifetimeEarned=u=>u.base+helperCredits(u);
+const giftIn=u=>D.gifts.filter(g=>g.to===u.id).reduce((s,g)=>s+g.h,0);
+const giftOut=u=>D.gifts.filter(g=>g.from===u.id).reduce((s,g)=>s+g.h,0);
+const dedSum=(u,k)=>D.reqs.filter(r=>r.stage==='completed'&&r.recv.k==='user'&&r.recv.id===u.id&&r.ded).reduce((s,r)=>s+r.ded[k],0);
+const earnedBal=u=>lifetimeEarned(u)-dedSum(u,'earn')-giftOut(u);
+const giftBal=u=>giftIn(u)-dedSum(u,'gift');
+const holdOf=u=>D.reqs.filter(r=>r.recv.k==='user'&&r.recv.id===u.id&&['confirmed','inprogress','await_confirm'].includes(r.stage)).reduce((s,r)=>s+costOf(r),0);
+const totalBal=u=>earnedBal(u)+giftBal(u);
+const usable=u=>giftBal(u)+(lifetimeEarned(u)>=10?Math.max(0,earnedBal(u)):0);   // B-33
+const available=u=>usable(u)-holdOf(u);
+function canReceive(u,cost){
+  if(!u||u.role!=='user'||cost<=0) return {ok:true};
+  if(available(u)>=cost) return {ok:true};
+  if(lifetimeEarned(u)<10 && totalBal(u)-holdOf(u)>=cost) return {ok:false,err:`적립 10시간 이상부터 쓸 수 있어요 (지금 누적 ${fmt(lifetimeEarned(u))}). 가족에게 선물받은 시간은 바로 쓸 수 있어요.`};
+  return {ok:false,err:`시간이 부족해요. 필요 ${fmt(cost)} · 사용 가능 ${fmt(Math.max(0,available(u)))}. 먼저 도움을 주고 적립하거나 가족에게 선물을 받아 보세요.`};
+}
+const helperOK=u=>u&&u.ver&&u.ver.status==='approved';
+const VERIFY_MSG='봉사하는 활동은 신원 인증 승인 후에 할 수 있어요. 내 정보 > 봉사자 인증을 진행해 주세요.';
+function ledgerOf(u){
+  const rows=[];
+  D.reqs.filter(r=>r.stage==='completed'&&r.helperId===u.id).forEach(r=>rows.push({d:`${r.cat} · ${nameOf(r.recv.k,r.recv.id)}`,t:+r.credit,date:r.date,k:'적립',w:W(r.cat),h:r.hours,hold:r.onHold}));
+  D.reqs.filter(r=>r.stage==='completed'&&r.recv.k==='user'&&r.recv.id===u.id).forEach(r=>rows.push({d:`${r.cat} · ${nameOf('user',r.helperId)} 님께 받음`,t:-(r.ded?r.ded.gift+r.ded.earn:0),date:r.date,k:'사용',w:W(r.cat),h:r.hours}));
+  D.gifts.filter(g=>g.from===u.id).forEach(g=>rows.push({d:`${acct(g.to).name} 님에게 선물`,t:-g.h,date:g.at,k:'선물',raw:g.at}));
+  D.gifts.filter(g=>g.to===u.id).forEach(g=>rows.push({d:`${acct(g.from).name} 님이 보낸 선물`,t:+g.h,date:g.at,k:'선물받음'}));
+  const key=x=>/^\d{4}/.test(x.date)?x.date:'2026-11-'+x.date.split('/')[1].padStart(2,'0');
+  return rows.sort((a,b)=>key(b).localeCompare(key(a)));
+}
+
+/* ---- 신뢰·단골 (B-40, B-41) ---- */
+const avgRating=u=>u.rating&&u.rating.length?u.rating.reduce((a,b)=>a+b,0)/u.rating.length:0;
+const doneCount=u=>D.reqs.filter(r=>r.helperId===u.id&&r.stage==='completed').length;
+const regCount=(hid,rk,rid)=>D.reqs.filter(r=>r.helperId===hid&&r.stage==='completed'&&r.recv.k===rk&&r.recv.id===rid).length;
+const isReg=(hid,rk,rid)=>regCount(hid,rk,rid)>=3;
+function regularsOf(rk,rid){const ids=[...new Set(D.reqs.filter(r=>r.recv.k===rk&&r.recv.id===rid&&r.stage==='completed').map(r=>r.helperId))];return ids.filter(h=>isReg(h,rk,rid)).map(h=>({u:acct(h),n:regCount(h,rk,rid)})).filter(x=>x.u&&x.u.status==='active');}
+const recvOfUserSide=a=>a.role==='user'?{k:'user',id:a.id}:null;
+
+/* ---- AI 모사 (요청 처리 AI / 판단 AI) ---- */
+const BLOCK=[[/목욕|씻겨|샤워|기저귀|대소변|식사 ?수발|떠먹/,'신체 돌봄'],[/주사|투약|약을 ?먹|약 ?먹여|링거|상처|소독|혈압 ?재/,'의료 행위'],[/송금|이체|대출|통장|비밀번호|카드 ?비|현금 ?인출|보증|돈 ?빌/,'금전 관리'],[/사다리|지붕|높은 ?곳|외벽|전기 ?공사|가스 ?공사|형광등 ?교체/,'위험 작업']];
+const CAUTION=[[/병원|진료|약국/,'병원 안에서는 의료진 지시를 따르고 의료 판단은 하지 않아요.'],[/계단|부축|휠체어/,'부축이 필요하면 팔을 잡는 정도만 가능하고 안아 올리는 일은 안 돼요.'],[/무거운|이사|짐/,'무거운 물건은 혼자 들지 않고 가벼운 것만 도와요.'],[/영수증|현금|결제|사다/,'물건값은 어르신이 직접 결제하고 영수증 사진만 남겨요. 서비스는 금전을 중개하지 않아요.']];
+function classify(text){
+  for(const [re,why] of BLOCK){ if(re.test(text)) return {lv:'block',why,alt:ragSearch(text)}; }
+  const cs=CAUTION.filter(([re])=>re.test(text)).map(x=>x[1]);
+  return cs.length?{lv:'caution',notes:cs}:{lv:'ok'};
+}
+function suggestDiff(cat,text=''){
+  const lv=LV(cat), why=[];
+  if(cat==='동행') why.push('병원·이동 동행은 책임이 커서 책임 등급(×1.5)이에요.');
+  if(cat==='장보기·심부름') why.push('이동과 물건 운반이 있어 수고 등급(×1.2)이에요.');
+  if(cat==='가벼운 집안일') why.push('몸을 쓰는 일이라 수고 등급(×1.2)이에요.');
+  if(lv==='기본') why.push('몸의 부담이 적고 이동이 짧아 기본 등급(×1.0)이에요.');
+  if(/계단|무거운|이사/.test(text)) why.push('내용에 계단·무거운 물건이 있어 현장에서 난이도 이의 신청이 가능해요.');
+  return {lv,w:W(cat),why};
+}
+function ragSearch(text,region){
+  const t=text||'';
+  const sc=D.svc.filter(s=>!region||s.region==='전국'||s.region===region).map(s=>({s,hits:s.kw.filter(k=>t.includes(k))})).filter(x=>x.hits.length).sort((a,b)=>b.hits.length-a.hits.length);
+  if(sc.length) return sc.slice(0,3).map(x=>({...x.s,hits:x.hits}));
+  return [];
+}
+function polish(text){
+  let t=text.trim().replace(/\s+/g,' ');
+  t=t.replace(/(해|했)요[.!]*$/,'했습니다.').replace(/(어|았|였)요[.!]*$/,'$1습니다.').replace(/([가-힣])[.!]*$/,'$1.');
+  return t;
+}
+function guessCat(t){
+  if(/병원|진료|동행|약국/.test(t)) return '동행';
+  if(/스마트폰|폰|컴퓨터|키오스크|영상통화|와이파이|앱/.test(t)) return '디지털 도움';
+  if(/장보|마트|심부름|사다/.test(t)) return '장보기·심부름';
+  if(/정리|짐|옷장/.test(t)) return '생활 정리';
+  if(/전구|집안일|설거지|빨래|청소|화분/.test(t)) return '가벼운 집안일';
+  if(/얘기|이야기|말동무|산책|안부|대화|말벗/.test(t)) return '말동무·정서';
+  return null;
+}
+function parseDate(t){
+  if(/오늘/.test(t)) return dOff(0); if(/모레/.test(t)) return dOff(2); if(/내일/.test(t)) return dOff(1);
+  let m=t.match(/(\d{1,2})월 ?(\d{1,2})일/); if(m) return `2026-${pad(+m[1])}-${pad(+m[2])}`;
+  m=t.match(/(다음 ?주 ?)?(일|월|화|수|목|금|토)요일/);
+  if(m){const w=DAYS.indexOf(m[2]);let best=null;for(let i=1;i<=7;i++){const d=new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()+i);if(d.getDay()===w){best=i;break;}}return dOff(best+(m[1]?7:0));}
+  return null;
+}
+function parseTime(t){
+  const to24=(ap,h,other)=>{h=+h;if(ap==='오후'&&h<12)return h+12;if(ap==='오전')return h===12?0:h;if(!ap&&h<7)return h+12;return h;};
+  let m=t.match(/(오전|오후)?\s*(\d{1,2})\s*시?\s*(?:부터|~|-|에서)\s*(오전|오후)?\s*(\d{1,2})\s*시/);
+  if(m){let a=to24(m[1],m[2]);let b=to24(m[3]||m[1],m[4]);if(b<=a)b+=12;return {from:a,to:b};}
+  m=t.match(/(오전|오후)\s*(\d{1,2})\s*시/);
+  if(m){const a=to24(m[1],m[2]);return {from:a,to:a+2,single:true};}
+  return null;
+}
+function parseUtter(t){
+  const o={};const c=guessCat(t);if(c)o.cat=c;const d=parseDate(t);if(d)o.date=d;const tm=parseTime(t);if(tm){o.from=tm.from;o.to=tm.to;o.single=tm.single;}
+  const r=REGIONS.find(x=>t.includes(x));if(r)o.region=r;return o;
+}
+
+/* ---- 공고 (B-04~06, B-09, B-11, B-21) ---- */
+const postOpen=p=>p.status==='open'&&p.date>=dkey(NOW);
+const postAuthorName=p=>nameOf(p.aKind,p.aId);
+function createPost(o){
+  const a=me(); if(!a) return {ok:false,err:'로그인이 필요해요.'};
+  if(o.type==='offer'&&!helperOK(a)) return {ok:false,err:VERIFY_MSG};
+  if(o.aKind==='elder'&&a.role!=='mgr') return {ok:false,err:'독거노인의 도움 요청은 담당자만 등록할 수 있어요.'};
+  if(!o.cats||!o.cats.length) return {ok:false,err:'카테고리를 선택해 주세요.'};
+  if(!o.date||o.date<dkey(NOW)) return {ok:false,err:'지난 날짜에는 공고를 올릴 수 없어요.'};
+  if(!(o.from<o.to)) return {ok:false,err:'시간 범위를 확인해 주세요.'};
+  if(o.type==='need'&&(o.to-o.from)<0.5) return {ok:false,err:'30분 이상으로 정해 주세요.'};
+  const cl=classify(o.detail||''); if(cl.lv==='block') return {ok:false,err:`'${cl.why}'에 해당해 올릴 수 없어요.`,block:cl};
+  const made=[];const weeks=o.recurring?4:1;
+  for(let i=0;i<weeks;i++){
+    const d=new Date(pd(o.date).getTime()+i*7*86400000);
+    const p={id:nid('p'),type:o.type,aKind:o.aKind,aId:o.aId,date:dkey(d),from:o.from,to:o.to,region:o.region,cats:o.cats,detail:o.detail,status:'open',recurring:!!o.recurring,at:new Date(NOW),acceptedReq:null};
+    D.posts.unshift(p);made.push(p);
+  }
+  // 관심 조건 알림 (B-21)
+  made.slice(0,1).forEach(p=>D.users.forEach(u=>{
+    if(u.id===a.id||u.status!=='active') return;
+    if((u.watch||[]).some(w=>(!w.region||w.region===p.region)&&(!w.cat||p.cats.includes(w.cat))&&(!w.date||w.date===p.date)))
+      notify(u.id,`관심 조건에 맞는 공고가 올라왔어요: ${p.cats.join('·')} · ${fdate(p.date)}`,{name:'u_post',p:{id:p.id}});
+  }));
+  return {ok:true,posts:made};
+}
+function canEditPost(p){return p.status==='open';}
+function deletePost(p){ if(p.status!=='open') return false; p.status='deleted'; D.reqs.filter(r=>r.postId===p.id&&['wait_helper','wait_recv'].includes(r.stage)).forEach(r=>{r.stage='cancelled';notifyReqOther(r,r.by===(r.helperId)?'recv':'helper',`공고가 삭제돼 요청이 취소됐어요`);}); return true; }
+
+/* ---- 요청·제안 (B-14~19, B-22) ---- */
+function sideRecvActor(r){return r.recv.k==='elder'?elderOf(r.recv.id).mgr:r.recv.id;}
+function notifyRecvSide(r,text,go){notify(sideRecvActor(r),(r.recv.k==='elder'?`${elderOf(r.recv.id).alias} 어르신 건: `:'')+text,go||{name:'u_req',p:{id:r.id}});}
+function notifyHelper(r,text){notify(r.helperId,text,{name:'u_req',p:{id:r.id}});}
+function notifyReqOther(r,side,text){ if(side==='helper') notifyHelper(r,text); else notifyRecvSide(r,text); }
+function validateTime(p,start,hours){
+  if(!(hours>=0.5&&hours<=4)||(hours*2)%1) return '활동 시간은 30분 단위, 최대 4시간이에요.';
+  if(start<p.from||start+hours>p.to) return `공고에 적힌 시간(${frange(p.from,p.to)}) 안에서만 정할 수 있어요.`;
+  if(startAt(p.date,start)<=NOW) return '이미 지난 시간이에요.';
+  return null;
+}
+function sendReq(o){
+  const a=me(); const p=o.postId?postOf(o.postId):null;
+  const kind=o.kind; // request | proposal | direct
+  if(kind==='proposal'||kind==='direct'&&false){}
+  if(kind==='proposal'&&!helperOK(a)) return {ok:false,err:VERIFY_MSG};
+  if(kind!=='proposal'){ const hu=acct(o.helperId); if(!helperOK(hu)) return {ok:false,err:'이 봉사자는 지금 활동할 수 없어요.'}; if(o.recv.k==='user'&&o.helperId===o.recv.id) return {ok:false,err:'내 공고에는 요청할 수 없어요.'}; }
+  if(p){
+    if(!postOpen(p)) return {ok:false,err:'이미 마감됐거나 수락된 공고예요.'};
+    if(o.recv.k==='user'&&p.aKind==='user'&&p.aId===a.id) return {ok:false,err:'내 공고에는 보낼 수 없어요.'};
+    const e=validateTime(p,o.start,o.hours); if(e) return {ok:false,err:e};
+    if(D.reqs.some(r=>r.postId===p.id&&r.by===a.id&&['wait_helper','wait_recv'].includes(r.stage)&&r.recv.id===o.recv.id&&r.helperId===o.helperId)) return {ok:false,err:'이미 이 공고에 보낸 요청이 있어요.'};
+  }else{
+    if(!(o.hours>=0.5&&o.hours<=4)||(o.hours*2)%1) return {ok:false,err:'활동 시간은 30분 단위, 최대 4시간이에요.'};
+    if(startAt(o.date,o.start)<=NOW) return {ok:false,err:'이미 지난 시간이에요.'};
+  }
+  const cl=classify((o.content||'')+' '+(o.memo||'')); if(cl.lv==='block') return {ok:false,err:`'${cl.why}'에 해당해 보낼 수 없어요.`,block:cl};
+  if(kind!=='proposal'){const c=canReceive(o.recv.k==='user'?acct(o.recv.id):null,creditOf(o.cat,o.hours)); if(!c.ok) return c;}
+  if(o.extra&&o.extra!==o.cat&&W(o.extra)>W(o.cat)){const t=o.cat;o.cat=o.extra;o.extra=t;}
+  const r={extra:o.extra&&o.extra!==o.cat?o.extra:null,id:nid('r'),postId:p?p.id:null,kind,helperId:o.helperId,recv:o.recv,by:a.id,date:p?p.date:o.date,start:o.start,hours:o.hours,cat:o.cat,content:o.content,memo:o.memo||'',
+    stage:kind==='proposal'?'wait_recv':'wait_helper',stageAt:new Date(NOW),deadline:new Date(NOW.getTime()+24*3600000),msgOpen:false,thread:[],journal:null,rated:{recv:null,helper:null},onHold:false,ded:null,credit:0,createdAt:new Date(NOW),confirmBy:null};
+  D.reqs.unshift(r);
+  const who=o.recv.k==='elder'?`${elderOf(o.recv.id).alias} 어르신(담당자 대신)`:acct(o.recv.id).name+' 님';
+  if(kind==='proposal') notifyRecvSide(r,`${acct(r.helperId).name} 님이 봉사를 제안했어요 · ${fdate(r.date)} ${frange(r.start,r.start+r.hours)}`);
+  else notifyHelper(r,`${who}이 ${kind==='direct'?'단골 요청':'요청'}을 보냈어요 · ${fdate(r.date)} ${frange(r.start,r.start+r.hours)}`);
+  return {ok:true,req:r};
+}
+function lockPost(r){
+  if(!r.postId) return;
+  const p=postOf(r.postId); if(!p) return;
+  p.status='locked'; p.acceptedReq=r.id;
+  D.reqs.filter(x=>x.postId===p.id&&x.id!==r.id&&['wait_helper','wait_recv'].includes(x.stage)).forEach(x=>{x.stage='auto_rejected';x.stageAt=new Date(NOW);
+    if(x.kind==='proposal') notifyHelper(x,'다른 제안이 수락돼 이 제안은 자동으로 거절됐어요.'); else notifyRecvSide(x,'다른 요청이 수락돼 이 요청은 자동으로 거절됐어요.');});
+}
+function helperAccept(r){
+  const a=me(); if(!helperOK(a)) return {ok:false,err:VERIFY_MSG};
+  if(r.stage!=='wait_helper') return {ok:false,err:'이미 처리된 요청이에요.'};
+  if(r.postId&&!postOpen(postOf(r.postId))) return {ok:false,err:'공고가 이미 마감됐어요.'};
+  lockPost(r); r.stage='wait_recv'; r.stageAt=new Date(NOW); r.deadline=new Date(NOW.getTime()+24*3600000); r.msgOpen=true;
+  notifyRecvSide(r,`${acct(r.helperId).name} 님이 수락했어요. 최종 수락 또는 거부를 해 주세요 (24시간 안)`);
+  return {ok:true};
+}
+function recvAccept(r,how){
+  if(r.stage!=='wait_recv') return {ok:false,err:'이미 처리된 요청이에요.'};
+  if(r.recv.k==='user'){const c=canReceive(acct(r.recv.id),creditOf(r.cat,r.hours)); if(!c.ok) return c;}
+  if(r.kind==='proposal') lockPost(r);
+  r.stage='confirmed'; r.stageAt=new Date(NOW); r.deadline=null; r.msgOpen=true;
+  if(how) r.proxy={by:D.cur,how,at:new Date(NOW)};
+  if(r.recv.k==='elder') r.thread.push({sys:true,text:`담당자가 ${how||'전화·방문'}으로 어르신께 확인한 뒤 수락했어요.`,at:fdt(NOW)});
+  notifyHelper(r,`${r.recv.k==='elder'?elderOf(r.recv.id).alias+' 어르신 건이':nameOf('user',r.recv.id)+' 님이'} 최종 수락했어요. 일정이 확정됐어요 · ${fdate(r.date)} ${fh(r.start)}`);
+  return {ok:true};
+}
+function rejectReq(r,side,reason,how){
+  if(!['wait_helper','wait_recv'].includes(r.stage)) return {ok:false,err:'이미 처리된 요청이에요.'};
+  const wasLocked=r.postId&&postOf(r.postId)&&postOf(r.postId).acceptedReq===r.id;
+  r.stage='rejected'; r.stageAt=new Date(NOW); r.rejectReason=reason; r.rejectSide=side; r.deadline=null;
+  if(wasLocked) postOf(r.postId).status='closed';   // B-19: 공고는 다시 열리지 않음
+  if(how) r.proxy={by:D.cur,how,at:new Date(NOW)};
+  if(side==='helper') notifyRecvSide(r,`${acct(r.helperId).name} 님이 요청을 거절했어요 (${reason})`);
+  else notifyHelper(r,`${r.kind==='proposal'?'제안':'요청'}이 거부됐어요 (${reason})`);
+  return {ok:true};
+}
+function startAct(r){ if(r.stage!=='confirmed') return; r.stage='inprogress'; r.stageAt=new Date(NOW); notifyRecvSide(r,`${acct(r.helperId).name} 님이 활동을 시작했어요`); }
+function finishAct(r,text,photo){
+  r.journal={text,photo:!!photo,ai:polish(text)}; r.stage='await_confirm'; r.stageAt=new Date(NOW); r.journalAt=new Date(NOW);
+  notifyRecvSide(r,`${acct(r.helperId).name} 님이 활동을 마쳤어요. 확인해 주세요 (24시간 안에 확인하지 않으면 일지 기준으로 자동 확정돼요)`);
+}
+function confirmAct(r,by,hours){
+  if(r.stage!=='await_confirm') return;
+  if(hours&&hours!==r.hours){r.adjusted={from:r.hours,to:hours};r.hours=hours;}
+  r.credit=creditOf(r.cat,r.hours); r.confirmBy=by;
+  if(r.recv.k==='user'){const u=acct(r.recv.id);const cost=r.credit;const g=Math.min(giftBal(u),cost);r.ded={gift:g,earn:cost-g};}
+  r.stage='completed'; r.stageAt=new Date(NOW); r.doneAt=new Date(NOW);
+  notifyHelper(r,`활동이 확정돼 ${fmt(r.credit)}시간이 적립됐어요${by==='auto'?' (자동 확정)':''}`);
+}
+function cancelReq(r,byId){
+  if(!ACTIVE.includes(r.stage)||r.stage==='await_confirm') return {ok:false,err:'취소할 수 없는 상태예요.'};
+  const free=r.stage==='wait_helper'||r.stage==='wait_recv'||hoursLeft(startAt(r.date,r.start))>=24;
+  const byHelper=byId===r.helperId;
+  r.stage='cancelled'; r.stageAt=new Date(NOW); r.cancelBy=byId; r.cancelFree=free;
+  if(!free&&byHelper){acct(r.helperId).pen++;}
+  if(r.postId&&postOf(r.postId)&&postOf(r.postId).acceptedReq===r.id) postOf(r.postId).status='closed';
+  const txt=`${byHelper?acct(r.helperId).name+' 님이':'받는 쪽이'} 일정을 취소했어요${free?'':' (24시간 이내 취소)'}`;
+  if(byHelper) notifyRecvSide(r,txt); else notifyHelper(r,txt);
+  return {ok:true,free};
+}
+const msgOpen=r=>r.msgOpen&&['wait_recv','confirmed','inprogress','await_confirm'].includes(r.stage);
+function sendMsg(r,fromId,text){
+  if(!msgOpen(r)) return {ok:false,err:'지금은 메시지를 보낼 수 없어요.'};
+  if(/01\d[- ]?\d{3,4}[- ]?\d{4}|카톡|카카오톡|오픈채팅|계좌|입금|송금|돈 ?(좀|주|보내)/.test(text)) return {ok:false,err:'연락처 교환·금전 요구는 보낼 수 없어요.'};
+  r.thread.push({from:fromId,text,at:fdt(NOW)});
+  const toHelper=fromId!==r.helperId;
+  if(toHelper) notifyHelper(r,'새 메시지가 도착했어요'); else notifyRecvSide(r,'새 메시지가 도착했어요');
+  return {ok:true};
+}
+function rateHelper(r,stars,tags){r.rated.recv={stars,tags};acct(r.helperId).rating.push(stars);}
+function rateRecv(r,stars){r.rated.helper={stars};}   // 비공개 점수 (B-39)
+
+/* ---- 시연 시계 · 기한 처리 (B-11, B-19, 자동 확정) ---- */
+function tick(){
+  if(!D) return; const today=dkey(NOW);
+  D.posts.forEach(p=>{if(p.status==='open'&&p.date<today){p.status='closed';p.closeWhy='날짜 지남';}});
+  D.reqs.forEach(r=>{
+    if(['wait_helper','wait_recv'].includes(r.stage)&&r.deadline&&r.deadline<=NOW){
+      const rq=r.kind==='proposal';
+      r.stage='expired'; r.stageAt=new Date(NOW); r.deadline=null;
+      if(r.postId&&postOf(r.postId)&&postOf(r.postId).acceptedReq===r.id) postOf(r.postId).status='closed';
+      if(rq) notifyHelper(r,'제안이 24시간 안에 응답이 없어 자동 만료됐어요.');
+      else notifyRecvSide(r,'요청이 24시간 안에 응답이 없어 자동 만료됐어요.');
+      if(r.kind!=='proposal'&&r.msgOpen) notifyHelper(r,'받는 분의 최종 응답이 없어 요청이 만료됐어요.');
+    }
+    if(r.stage==='await_confirm'&&r.journal&&r.journalAt&&NOW-r.journalAt>=24*3600000) confirmAct(r,'auto');
+    if(r.stage==='confirmed'){const h=hoursLeft(startAt(r.date,r.start));
+      if(h<=24&&h>1&&!r.rm24){r.rm24=true;remind(r,'24시간 안에 시작해요');}
+      if(h<=1&&h>0&&!r.rm1){r.rm1=true;remind(r,'1시간 안에 시작해요');}}
+  });
+}
+function remind(r,t){const m=`시작 전 알림: ${t} · ${fdate(r.date)} ${fh(r.start)}`;notifyHelper(r,m);notifyRecvSide(r,m);}
+function advance(h){NOW=new Date(NOW.getTime()+h*3600000);tick();}
+
+/* ---- 가족·선물 (B-32, B-44) ---- */
+const famOf=u=>D.famLinks.filter(f=>f.status==='연결'&&(f.a===u.id||f.b===u.id)).map(f=>acct(f.a===u.id?f.b:f.a));
+function giftTime(from,to,h){ if(!(h>0)) return {ok:false,err:'시간을 입력해 주세요.'}; if(h>earnedBal(from)) return {ok:false,err:`보낼 수 있는 시간은 ${fmt(Math.max(0,earnedBal(from)))}이에요.`}; D.gifts.push({id:nid('g'),from:from.id,to:to.id,h,at:`${NOW.getMonth()+1}/${NOW.getDate()}`}); notify(to.id,`${from.name} 님이 ${fmt(h)}시간을 선물했어요`,{name:'u_wallet',p:{}}); return {ok:true}; }
+
+/* ---- 독거노인·담당자 (C-01~03) ---- */
+const eldersOf=m=>D.elders.filter(e=>e.mgr===m.id&&e.status==='active');
+const activeReqsOfElder=e=>D.reqs.filter(r=>r.recv.k==='elder'&&r.recv.id===e.id&&ACTIVE.includes(r.stage));
+function endElder(e){const a=activeReqsOfElder(e);if(a.length) return {ok:false,err:`진행 중인 요청 ${a.length}건을 먼저 정리해 주세요.`};e.status='closed';D.posts.filter(p=>p.aKind==='elder'&&p.aId===e.id&&p.status==='open').forEach(p=>p.status='deleted');return {ok:true};}
+
+/* ---- 리포트 (P-03~P-06) ---- */
+function genReport(rk,rid){
+  const mo=NOW.getMonth(), inM=(r,m)=>pd(r.date).getMonth()===m;
+  const all=D.reqs.filter(r=>r.recv.k===rk&&r.recv.id===rid&&r.stage==='completed');
+  const a=all.filter(r=>inM(r,mo)), b=all.filter(r=>inM(r,(mo+11)%12));
+  const catsA={};a.forEach(r=>catsA[r.cat]=(catsA[r.cat]||0)+1);
+  const jtxt=all.filter(r=>inM(r,mo)||inM(r,(mo+11)%12)).map(r=>r.journal&&r.journal.text||'').join(' ');
+  const lines=[`이번 달 활동 ${a.length}회 · ${fmt(a.reduce((s,r)=>s+r.hours,0))}시간 (지난달 ${b.length}회)`];
+  const top=Object.entries(catsA).sort((x,y)=>y[1]-x[1])[0]; if(top) lines.push(`가장 많이 받은 도움은 '${top[0]}'(${top[1]}회)예요.`);
+  const hit=[];
+  if(/식사|점심|입맛|안 ?드/.test(jtxt)) hit.push('식사와 관련한 언급');
+  if(/외출|못 ?나가|안 ?나가/.test(jtxt)) hit.push('외출과 관련한 언급');
+  if(hit.length) lines.push(`활동 일지에 ${hit.join(', ')}이 있었어요. 확인해 보시면 좋겠어요.`);
+  const flag=hit.length>0||Math.abs(a.length-b.length)>=2;
+  lines.push('※ 일지에 적힌 내용을 정리한 것이며 건강 진단이나 판단은 하지 않아요.');
+  return {a:a.length,b:b.length,lines,flag};
+}
+
+/* ---- 신고·운영 (B-36, D-02) ---- */
+function targetUserOf(kind,id,byId){
+  if(kind==='메시지'){const rr=reqOf(String(id).split(':')[0]);if(!rr)return null;id=rr.id;kind='활동';}
+  if(kind==='공고'){const p=postOf(id);return p?(p.aKind==='elder'?elderOf(p.aId).mgr:p.aId):null;}
+  const r=reqOf(id); if(!r) return null;
+  const recvActor=sideRecvActor(r);
+  return byId===r.helperId?recvActor:r.helperId;
+}
+function addReport(o){const a=me();const rp={id:nid('rp'),by:a.id,kind:o.kind,target:o.target,tuser:targetUserOf(o.kind,o.target,a.id),type:o.type,text:o.text,status:'접수',at:`${NOW.getMonth()+1}/${NOW.getDate()}`,result:''};D.reports.unshift(rp);notify('a1',`새 신고가 접수됐어요 (${o.type})`,{name:'a_inbox',p:{}});return rp;}
+function anomalies(){
+  const lim=NOW.getTime()-8*86400000, g={};
+  D.reqs.filter(r=>r.stage==='completed'&&!r.cleared&&!r.onHold&&r.hours<=1&&pd(r.date).getTime()>=lim).forEach(r=>{const k=r.helperId+'>'+r.recv.k+':'+r.recv.id;(g[k]=g[k]||[]).push(r);});
+  return Object.entries(g).filter(([k,v])=>v.length>=3).map(([k,v])=>({key:k,reqs:v,helper:acct(v[0].helperId),recv:nameOf(v[0].recv.k,v[0].recv.id)}));
+}
+function timeBalance(){
+  const issued=D.users.reduce((s,u)=>s+helperCredits(u),0);
+  const spent=D.reqs.filter(r=>r.stage==='completed'&&r.ded).reduce((s,r)=>s+r.ded.gift+r.ded.earn,0);
+  const elder=D.reqs.filter(r=>r.stage==='completed'&&r.recv.k==='elder'&&!r.onHold).reduce((s,r)=>s+r.credit,0);
+  return {issued,spent,elder,gap:issued-spent};
+}
+
+/* ---- 노쇼(B-25) · 이의신청(B-28) · 담당자 정지·재배정(D-01) · 통계(D-04) ---- */
+function reportNoShow(r){
+  if(r.stage!=='confirmed'||startAt(r.date,r.start)>NOW) return {ok:false,err:'시작 시간이 지난 확정 건에서만 노쇼를 신고할 수 있어요.'};
+  r.stage='cancelled';r.stageAt=new Date(NOW);r.noshow=true;r.cancelBy=r.helperId;r.cancelFree=false;acct(r.helperId).pen+=2;
+  notifyHelper(r,'노쇼로 기록됐어요. 신뢰 점수에 패널티가 적용돼요.');notify('a1',`노쇼 발생: ${acct(r.helperId).name} 님`,{name:'a_members',p:{}});return {ok:true};
+}
+function appealDiff(r,text){D.appeals.push({id:nid('ap'),req:r.id,by:D.cur,text,status:'대기'});r.appealed=true;notify('a1','난이도 이의 신청이 접수됐어요',{name:'a_inbox',p:{t:'ap'}});}
+function reassignElders(fromId,toId){D.elders.filter(e=>e.mgr===fromId&&e.status==='active').forEach(e=>{e.mgr=toId;});D.reqs.forEach(r=>{if(r.recv.k==='elder'&&elderOf(r.recv.id).mgr===toId&&r.stage!=='completed')notify(toId,`${elderOf(r.recv.id).alias} 어르신 건이 이관되어 확인이 필요해요`,{name:'u_req',p:{id:r.id}});});}
+function regionOfReq(r){if(r.postId&&postOf(r.postId))return postOf(r.postId).region;return r.recv.k==='elder'?elderOf(r.recv.id).dong:acct(r.recv.id).region;}
+function regionStats(){return REGIONS.map(g=>{const l=D.reqs.filter(r=>regionOfReq(r)===g&&r.stage!=='wait_helper'&&r.stage!=='wait_recv');const ok=l.filter(r=>['confirmed','inprogress','await_confirm','completed'].includes(r.stage)).length;return {g,n:l.length,ok,rate:l.length?Math.round(ok/l.length*100):null};});}
+function demandSupply(){const o=D.posts.filter(p=>p.type==='offer'&&postOpen(p)).length,n=D.posts.filter(p=>p.type==='need'&&postOpen(p)).length;const eh=D.reqs.filter(r=>r.recv.k==='elder'&&r.stage==='completed').reduce((s,r)=>s+r.hours,0);return {o,n,eh,eReq:D.reqs.filter(r=>r.recv.k==='elder').length};}
+const monthKey=d=>/^\d{4}/.test(d)?d.slice(0,7):`2026-${String(d.split('/')[0]).padStart(2,'0')}`;
+function monthly(u){const m={};ledgerOf(u).forEach(x=>{const k=monthKey(x.date);m[k]=m[k]||{in:0,out:0,n:0};if(x.t>=0)m[k].in+=x.t;else m[k].out+=-x.t;m[k].n++;});return Object.entries(m).sort((a,b)=>b[0].localeCompare(a[0]));}
+
+/* ================= 공통 화면 ================= */
+const av=(n,cls='')=>`<span class="avatar ${cls}">${esc((n||'?')[0])}</span>`;
+const tp=(t,c='g')=>`<span class="tp ${c}">${t}</span>`;
+const STG_C={wait_helper:'y',wait_recv:'y',confirmed:'o',inprogress:'o',await_confirm:'n',completed:'ok',rejected:'r',expired:'g',auto_rejected:'g',cancelled:'g'};
+const stageTag=r=>tp(STAGE_LABEL[r.stage],STG_C[r.stage]);
+const PST={open:'모집 중',locked:'수락됨',closed:'마감',deleted:'삭제됨'};
+const homeOf=a=>a.role==='user'?'u_home':a.role==='mgr'?'m_home':'a_dash';
+const empty=t=>`<div class="empty">${t}</div>`;
+const sel=(id,opts,v)=>`<select class="in" id="${id}">${opts.map(([k,l])=>`<option value="${k}" ${String(k)===String(v)?'selected':''}>${l}</option>`).join('')}</select>`;
+const TIMES=(a,b)=>{const o=[];for(let h=a;h<=b;h+=.5)o.push([h,fh(h)]);return o;};
+const DATES=n=>Array.from({length:n},(_,i)=>[dOff(i),fdate(dOff(i))+(i===0?' · 오늘':i===1?' · 내일':'')]);
+const chipsSel=(grp,items,on=[],label=x=>x)=>`<div class="chips" style="flex-wrap:wrap;overflow:visible" data-grp="${grp}">${items.map(c=>`<button type="button" class="chip ${on.includes(c)?'on':''}" data-act="chipT" data-v="${esc(c)}">${esc(label(c))}</button>`).join('')}</div>`;
+ACT.chipT=(d,el)=>{const g=el.parentElement.dataset.grp;if(g&&g.startsWith('1:')){el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');}else el.classList.toggle('on');};
+const chosen=g=>[...document.querySelectorAll(`[data-grp="${g}"] .chip.on`)].map(c=>c.dataset.v);
+const rowKV=(k,v)=>`<div class="kvl"><span>${k}</span><span>${v}</span></div>`;
+const stars=(n)=>'★'.repeat(Math.round(n))+'☆'.repeat(5-Math.round(n));
+
+function postCard(p){
+  const off=p.type==='offer',c0=p.cats[0];
+  const who=p.aKind==='elder'?`${elderOf(p.aId).alias} 어르신 · ${elderOf(p.aId).dong}`:`${acct(p.aId).name} · ${p.region}`;
+  const n=D.reqs.filter(r=>r.postId===p.id&&['wait_helper','wait_recv'].includes(r.stage)).length;
+  return `<div class="rq click" data-go="u_post" data-id="${p.id}">${catIc(c0)}<div style="flex:1;min-width:0"><div class="rq-cat" style="color:${CC[c0][1]}">${off?'봉사 가능':'도움 필요'} · ${p.cats.map(c=>SHORT[c]).join('·')}</div><div class="rq-t">${fdate(p.date)} ${frange(p.from,p.to)}</div><div class="rq-m">${esc(who)}${p.status!=='open'?` · ${PST[p.status]}`:n?` · 응답 대기 ${n}건`:''}</div></div>${p.recurring?tp('매주','g'):''}</div>`;
+}
+function reqCard(r){
+  const a=me();const hn=acct(r.helperId).name;const rn=nameOf(r.recv.k,r.recv.id);
+  const mine=a.id===r.helperId?`${rn}에게`:`${hn} 님에게서`;
+  const need=(a.id===r.helperId&&r.stage==='wait_helper')||(sideRecvActor(r)===a.id&&(r.stage==='wait_recv'||r.stage==='await_confirm'));
+  return `<div class="rq click" data-go="u_req" data-id="${r.id}">${catIc(r.cat)}<div style="flex:1;min-width:0"><div class="rq-cat" style="color:${CC[r.cat][1]}">${r.kind==='proposal'?'제안':r.kind==='direct'?'단골 요청':'요청'} · ${SHORT[r.cat]}</div><div class="rq-t">${fdate(r.date)} ${frange(r.start,r.start+r.hours)}</div><div class="rq-m">${esc(a.role==='mgr'?`${rn} ↔ ${hn}`:mine)}${r.deadline&&['wait_helper','wait_recv'].includes(r.stage)?` · <span class="dl">${left(r.deadline)}</span>`:''}</div></div><div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">${stageTag(r)}${need?tp('내 차례','n'):''}</div></div>`;
+}
+function helperCard(u,extra=''){
+  return `<div class="rq click" data-go="u_profile" data-id="${u.id}">${av(u.name)}<div style="flex:1;min-width:0"><div class="rq-t">${esc(u.name)} ${u.rating.length?`<span class="mini">★ ${fmt(avgRating(u))} (${u.rating.length})</span>`:''}</div><div class="rq-m">${esc(u.region)} · ${u.cats.map(c=>SHORT[c]).join('·')||'봉사 분야 미등록'}</div></div>${extra}</div>`;
+}
+
+/* ---------- 스플래시 · 로그인 ---------- */
+SCREENS.login=()=>({title:'',noHeader:true,noTabs:true,html:`
+ <div style="padding:34px 4px 0"><div class="logo" style="font-size:30px">${I.logo||''}</div>
+ <h2 style="font-size:28px;letter-spacing:-1px;margin:18px 0 6px">시간 적금</h2><p class="muted" style="margin:0 0 26px">내가 낸 시간으로, 이웃과 이웃이 서로 돕는 동네 시간 은행</p></div>
+ <form data-form="doLogin"><input class="in" id="lid" placeholder="아이디" autocomplete="off"><input class="in" id="lpw" type="password" placeholder="비밀번호" style="margin-top:8px"><label class="sw" style="border:0;padding:8px 2px"><div class="t" style="font-weight:500">로그인 유지</div><input type="checkbox" id="lkeep"></label><button class="btn">로그인</button></form>
+ <div class="btns" style="margin-top:10px"><button class="btn soft sm" data-go="signup">사용자 가입</button><button class="btn soft sm" data-go="orgapply">담당자(기관) 신청</button></div>
+ <p class="mini" style="text-align:center;margin-top:10px"><a data-act="forgot" style="cursor:pointer;text-decoration:underline">비밀번호를 잊으셨나요?</a></p>
+ <div class="login-demo"><div class="lbl2">시연용 계정 · 눌러서 바로 입장</div>
+  ${[['u1','사용자 · 봉사도 하고 도움도 받아요'],['u2','사용자 · 봉사자(학생)'],['u3','사용자 · 봉사자(주말)'],['u4','사용자 · 받는 쪽 중심(어르신)'],['u5','사용자 · 봉사자 인증 대기 중'],['m1','담당자 · 행복동 주민센터'],['m2','담당자 · 희망동 복지관'],['a1','운영자']].map(([id,d])=>`<div class="acct" data-act="loginAs" data-id="${id}">${av(acct(id).name)}<div><b>${esc(acct(id).name)}</b><div class="mini">${d}</div></div></div>`).join('')}
+ </div><div style="height:30px"></div>`});
+ACT.loginAs=d=>{D.cur=d.id;const a=me();D.__live=true;nav.stack=[];tab(homeOf(a));};
+ACT.doLogin=()=>{const a=[...D.users,...D.mgrs,...D.admins].find(x=>x.loginId===val('#lid')&&x.pw===val('#lpw'));if(!a)return toast('아이디 또는 비밀번호가 맞지 않아요');if(a.status!=='active')return toast(a.status==='expelled'?'퇴출된 계정이에요':'이용이 정지된 계정이에요');D.keep=$('#lkeep').checked?a.id:null;ACT.loginAs({id:a.id});};
+ACT.forgot=()=>sheet(`<h2>비밀번호 찾기</h2><p class="muted">가입한 아이디와 휴대폰 본인인증 후 새 비밀번호를 설정해요.</p><input class="in" id="fid" placeholder="아이디" style="margin-top:10px"><div class="chat-in"><input class="in" id="fph" placeholder="휴대폰 번호"><button data-act="sendCode" style="width:96px;font-size:13px">인증번호</button></div><input class="in" id="fcd" placeholder="인증번호 6자리" style="margin-top:8px"><input class="in" id="fnp" type="password" placeholder="새 비밀번호 (4자 이상)" style="margin-top:8px"><button class="btn" style="margin-top:12px" data-act="forgotGo">비밀번호 재설정</button>`);
+ACT.sendCode=()=>toast('인증번호 123456을 보냈어요 (시연)');
+ACT.forgotGo=()=>{const a=[...D.users,...D.mgrs].find(x=>x.loginId===val('#fid'));if(!a)return toast('없는 아이디예요');if(a.phone&&val('#fph')!==a.phone&&a.phone!=='010-0000-0000')return toast('가입한 번호와 달라요');if(val('#fcd')!=='123456')return toast('인증번호가 맞지 않아요');if(val('#fnp').length<4)return toast('새 비밀번호를 입력해 주세요');a.pw=val('#fnp');closeSheet();toast('비밀번호를 재설정했어요');};
+SCREENS.signup=()=>({title:'사용자 가입',noTabs:true,html:`<p class="muted">가입 후 <b>누구나 도움을 요청</b>하거나 받을 수 있어요. 봉사하려면 신원 인증이 필요해요. 도움만 받고 싶은 어르신은 가입 없이 담당자를 통해 이용해요.</p>
+ <form data-form="doSignup"><div class="lbl2">이름</div><input class="in" id="sn"><div class="lbl2">아이디</div><input class="in" id="si"><div class="lbl2">비밀번호</div><input class="in" id="sp" type="password"><div class="lbl2">활동 동네</div>${sel('sr',REGIONS.map(r=>[r,r]))}<div class="lbl2">연락처(공개되지 않아요)</div><div class="chat-in"><input class="in" id="sh" placeholder="010-0000-0000"><button type="button" data-act="sendCode" style="width:96px;font-size:13px">본인인증</button></div><input class="in" id="scd" placeholder="인증번호 6자리" style="margin-top:8px"><button class="btn" style="margin-top:18px">가입하기</button></form>`});
+ACT.doSignup=()=>{const n=val('#sn'),i=val('#si'),p=val('#sp');if(!n||!i||p.length<4)return toast('이름·아이디·비밀번호(4자 이상)를 입력해 주세요');if(!val('#sh'))return toast('휴대폰 번호를 입력해 주세요');if(val('#scd')!=='123456')return toast('본인인증을 완료해 주세요 (인증번호 123456)');if([...D.users,...D.mgrs,...D.admins].some(x=>x.loginId===i))return toast('이미 있는 아이디예요');const id=nid('u');D.users.push({id,role:'user',loginId:i,pw:p,name:n,phone:val('#sh'),base:0,rating:[],cats:[],ver:{id:false,crime:false,safety:false,status:'none'},watch:[],voice:false,pen:0,status:'active',region:val('#sr'),times:'',style:'',exp:'',intro:'',age:0});toast('가입 완료!');ACT.loginAs({id});};
+SCREENS.orgapply=()=>({title:'담당자(기관) 신청',noTabs:true,html:`<p class="muted">주민센터·복지관 등 기관은 운영자 승인 후 담당자 계정을 받아요. (A-04)</p><form data-form="doOrg"><div class="lbl2">기관명</div><input class="in" id="on"><div class="lbl2">담당자 이름</div><input class="in" id="op"><div class="lbl2">기관 연락처</div><input class="in" id="oc"><div class="lbl2">지원 대상·규모</div><textarea class="in" id="oo" rows="3"></textarea><button class="btn" style="margin-top:18px">신청하기</button></form>`});
+ACT.doOrg=()=>{if(!val('#on')||!val('#op'))return toast('기관명과 이름을 입력해 주세요');D.orgApps.push({id:nid('o'),org:val('#on'),name:val('#op'),phone:val('#oc'),note:val('#oo'),status:'대기',at:`${NOW.getMonth()+1}/${NOW.getDate()}`});notify('a1','담당자 기관 신청이 접수됐어요',{name:'a_inbox',p:{}});toast('신청했어요. 승인되면 계정을 안내해 드려요');nav.stack=[{name:'login',p:{}}];render();};
+
+/* ---------- 계정 전환 · 시연 도구 ---------- */
+ACT.acctSheet=()=>{const a=me();sheet(`<h2>${esc(a.name)} · ${ROLES[a.role].label}</h2><div class="lbl2">계정 전환 (시연)</div>${[...D.users,...D.mgrs,...D.admins].filter(x=>x.status==='active').map(x=>`<div class="acct ${x.id===a.id?'on':''}" data-act="loginAs" data-id="${x.id}">${av(x.name)}<div><b>${esc(x.name)}</b><div class="mini">${ROLES[x.role].label}</div></div></div>`).join('')}
+ <div class="lbl2">시연 시계 · ${fdt(NOW)}</div><div class="demo"><div class="btns"><button class="btn" data-act="adv" data-h="1">+1시간</button><button class="btn" data-act="adv" data-h="12">+12시간</button><button class="btn" data-act="adv" data-h="25">+25시간</button></div><p class="mini" style="color:#aab;margin:8px 0 0">24시간 응답 기한·자동 확정·공고 마감이 시간에 따라 처리돼요.</p></div>
+ <div class="btns" style="margin-top:12px"><button class="btn ghost" data-act="reset">시연 데이터 초기화</button><button class="btn ghost" data-act="logout">로그아웃</button></div>`);};
+ACT.adv=d=>{advance(+d.h);closeSheet();toast(`시간이 흘러 ${fdt(NOW)}이에요`);render();};
+ACT.reset=()=>{closeSheet();D.__live=false;seed();nav.stack=[{name:'login',p:{}}];render();};
+ACT.logout=()=>{closeSheet();D.cur=null;nav.stack=[{name:'login',p:{}}];render();};
+
+/* ---------- 알림 · 공지 ---------- */
+SCREENS.notifs=()=>{const l=D.notifs.filter(n=>n.to===D.cur);
+ return {title:'알림',noTabs:false,tab:homeOf(me()),html:`<div class="row between" style="margin-bottom:6px"><span class="muted">알림으로 요청·제안·응답이 전달돼요. 자동 매칭은 없어요.</span>${l.some(n=>!n.read)?`<a class="mini" data-act="readAll" style="cursor:pointer">모두 읽음</a>`:''}</div>
+  ${l.length?l.map(n=>`<div class="rq click" data-act="openNotif" data-id="${n.id}" style="${n.read?'opacity:.6':''}"><div style="flex:1"><div style="font-size:15px;font-weight:${n.read?500:700}">${esc(n.text)}</div><div class="rq-m">${fdt(n.at)}${n.voice?' · 음성 알림 설정됨':''}</div></div>${n.voice?`<button class="btn sm inl ghost" data-act="speak" data-id="${n.id}">📞 음성</button>`:''}${n.read?'':'<span class="dotn">N</span>'}</div>`).join(''):empty('새 알림이 없어요')}`};};
+ACT.readAll=()=>{D.notifs.filter(n=>n.to===D.cur).forEach(n=>n.read=true);render();};
+ACT.openNotif=d=>{const n=D.notifs.find(x=>x.id===d.id);n.read=true;if(n.go&&SCREENS[n.go.name]&&(n.go.name!=='u_req'||reqOf(n.go.p.id)))go(n.go.name,n.go.p);else render();};
+SCREENS.notices=()=>({title:'공지사항',html:D.notices.map(n=>`<div class="card click" data-go="notice" data-id="${n.id}"><b>${esc(n.title)}</b><div class="mini">${n.at}</div></div>`).join('')});
+SCREENS.notice=p=>{const n=D.notices.find(x=>x.id===p.id);return {title:'공지사항',html:`<h2 style="margin:0">${esc(n.title)}</h2><div class="mini" style="margin:4px 0 14px">${n.at}</div><p style="line-height:1.7">${esc(n.body)}</p>`};};
+
+/* ---------- 문의 · 신고 ---------- */
+SCREENS.inquiries=()=>{const l=D.inquiries.filter(q=>q.by===D.cur);return {title:'문의하기',html:`<button class="btn" data-go="inq_new">새 문의 작성</button><div style="margin-top:14px">${l.length?l.map(q=>`<div class="card"><div class="row between"><b>${esc(q.title)}</b>${tp(q.status,q.status==='답변 완료'?'ok':'y')}</div><div class="mini">${esc(q.type)} · ${q.at}</div><p style="margin:8px 0 0">${esc(q.body)}</p>${q.answer?`<div class="card info" style="margin-top:10px"><b>운영자 답변</b><p style="margin:4px 0 0">${esc(q.answer)}</p></div>`:''}</div>`).join(''):empty('문의 내역이 없어요')}</div>`};};
+SCREENS.inq_new=()=>({title:'문의 작성',html:`<form data-form="doInq"><div class="lbl2">유형</div>${sel('qt',['이용 방법','적립 오류','신고 결과','계정','기타'].map(x=>[x,x]))}<div class="lbl2">제목</div><input class="in" id="qh"><div class="lbl2">내용</div><textarea class="in" id="qb" rows="5"></textarea><button class="btn" style="margin-top:16px">보내기</button></form>`});
+ACT.doInq=()=>{if(!val('#qh')||!val('#qb'))return toast('제목과 내용을 입력해 주세요');D.inquiries.unshift({id:nid('q'),by:D.cur,type:val('#qt'),title:val('#qh'),body:val('#qb'),status:'접수',answer:'',at:`${NOW.getMonth()+1}/${NOW.getDate()}`});notify('a1','새 문의가 접수됐어요',{name:'a_inbox',p:{}});toast('문의를 보냈어요');back();};
+SCREENS.my_reports=()=>{const l=D.reports.filter(r=>r.by===D.cur);return {title:'내 신고 내역',html:l.length?l.map(r=>`<div class="card"><div class="row between"><b>${esc(r.kind)} 신고 · ${esc(r.type)}</b>${tp(r.status,r.status==='처리 완료'?'ok':'y')}</div><div class="mini">${r.at}</div><p style="margin:8px 0 0">${esc(r.text)}</p>${r.result?`<div class="card info" style="margin-top:10px"><b>처리 결과</b><p style="margin:4px 0 0">${esc(r.result)}</p></div>`:''}</div>`).join(''):empty('신고 내역이 없어요')};};
+ACT.reportSheet=d=>sheet(`<h2>신고하기</h2><p class="muted">운영자가 확인하고 조치해요. 신고한 사람은 상대에게 알려지지 않아요.</p><div class="lbl2">유형</div>${sel('rt',['허위 공고','연락처·금전 요구','부적절한 언행','노쇼','활동 시간 허위','기타'].map(x=>[x,x]))}<div class="lbl2">내용</div><textarea class="in" id="rx" rows="3"></textarea><button class="btn" style="margin-top:14px" data-act="reportGo" data-kind="${d.kind}" data-target="${d.target}">신고 접수</button>`);
+ACT.reportGo=d=>{if(!val('#rx'))return toast('내용을 적어 주세요');addReport({kind:d.kind,target:d.target,type:val('#rt'),text:val('#rx')});closeSheet();toast('신고가 접수됐어요');};
+
+/* ---------- 공공 서비스 안내 (P-AI, RAG 모사) ---------- */
+SCREENS.svc=p=>({title:'공공 서비스 안내',html:`<p class="muted">상황을 말하면 <b>등록된 공공 서비스 자료</b> 안에서만 안내해요. ${M(6)} 자료에 없으면 없다고 말해요.</p>
+ <div class="card"><div class="lbl2" style="margin-top:0">지역 (선택)</div>${sel('sg',[['','전체'],...REGIONS.map(r=>[r,r])],me()&&me().region||'')}<textarea class="in" id="sq" style="margin-top:8px" rows="3" placeholder="예) 혼자 사시는 할머니가 목욕을 못 하세요">${esc(p.q||'')}</textarea><button class="btn" style="margin-top:10px" data-act="svcGo">안내 받기</button></div>
+ <div class="chips" style="flex-wrap:wrap;overflow:visible;margin-top:8px">${['목욕이 어려우세요','약 먹는 걸 도와주세요','혼자 쓰러지실까 걱정돼요','보이스피싱이 의심돼요','병원비가 어려워요'].map(q=>`<button class="chip" data-act="svcQ" data-q="${q}">${q}</button>`).join('')}</div><div id="svcOut" style="margin-top:14px"></div>`,mount:()=>{if(p.q)ACT.svcGo();}});
+ACT.svcQ=d=>{$('#sq').value=d.q;ACT.svcGo();};
+ACT.svcGo=()=>{const q=val('#sq');if(!q)return toast('상황을 입력해 주세요');const r=ragSearch(q,val('#sg'));
+ aiRun('#svcOut',r.length?`<div class="ai"><div class="ah">${spk}안내 자료에서 ${r.length}건을 찾았어요</div>${r.map(s=>`<div class="card" style="background:#fff"><b>${esc(s.name)}</b><div class="kvl"><span>대상</span><span>${esc(s.target)}</span></div><div class="kvl"><span>내용</span><span>${esc(s.what)}</span></div><div class="kvl"><span>문의</span><span>${esc(s.where)}</span></div></div>`).join('')}<p class="mini">※ 대상 여부와 신청 방법은 반드시 해당 기관에서 확인해 주세요. (시연용 예시 자료)</p></div>`:`<div class="ai"><div class="ah">${spk}자료에서 찾지 못했어요</div><p style="margin:6px 0 0">등록된 자료에는 해당 내용이 없어요. 정확한 안내는 <b>보건복지상담센터 129</b>나 주민센터에 문의해 주세요. 생명이 위급하면 119예요.</p></div>`);};
+
+/* ---------- 봉사자 인증 (A-05) ---------- */
+SCREENS.verify=()=>{const a=me(),v=a.ver;const st={none:['미신청','g'],pending:['심사 중','y'],approved:['승인','ok'],rejected:['반려','r']}[v.status];
+ return {title:'봉사자 인증',html:`<div class="card"><div class="row between"><b>현재 상태</b>${tp(st[0],st[1])}</div><p class="muted" style="margin:8px 0 0">봉사 공고·제안·수락은 <b>승인된 뒤</b>에만 할 수 있어요. 도움을 받는 건 인증 없이도 돼요.</p></div>
+ <div class="lbl2">단계</div>${[['id','신분증 확인'],['crime','범죄경력 회보서 (권장)'],['safety','안전교육 퀴즈']].map(([k,l])=>`<div class="sw"><div><div class="t">${l}</div></div>${v[k]?tp('완료','ok'):`<button class="btn sm inl" data-act="verStep" data-k="${k}">${k==='safety'?'퀴즈 풀기':'제출'}</button>`}</div>`).join('')}
+ ${v.status!=='approved'&&v.status!=='pending'?`<button class="btn" style="margin-top:16px" data-act="verSubmit">심사 요청</button>`:''}`};};
+ACT.verStep=d=>{if(d.k==='safety')return go('quiz');me().ver[d.k]=true;toast('제출했어요');render();};
+ACT.verSubmit=()=>{const v=me().ver;if(!v.id||!v.safety)return toast('신분증 확인과 안전교육은 꼭 필요해요');v.status='pending';notify('a1',`${me().name} 님의 봉사자 인증 심사 요청`,{name:'a_inbox',p:{}});toast('심사를 요청했어요');render();};
+const QUIZ=[['도움 중 어르신이 연락처를 물어보면?',['알려 준다','서비스 안에서 메시지로만 이야기한다'],1],['“목욕시켜 달라”는 요청이 오면?',['도와드린다','신체 돌봄이라 거절하고 공공 서비스를 안내한다'],1],['활동이 끝나면?',['일지를 작성한다','아무것도 안 한다'],0]];
+SCREENS.quiz=()=>({title:'안전교육 퀴즈',html:QUIZ.map((q,i)=>`<div class="card"><b>${i+1}. ${q[0]}</b>${q[1].map((o,j)=>`<label class="opt" style="margin-top:8px"><input type="radio" name="q${i}" value="${j}"> ${o}</label>`).join('')}</div>`).join('')+`<button class="btn" style="margin-top:14px" data-act="quizGo">제출</button>`});
+ACT.quizGo=()=>{const ok=QUIZ.every((q,i)=>{const e=document.querySelector(`input[name=q${i}]:checked`);return e&&+e.value===q[2];});if(!ok)return toast('틀린 문제가 있어요. 다시 확인해 주세요');me().ver.safety=true;toast('통과했어요!');back();};
+
+/* ---------- 내 정보 수정 · 탈퇴 · 프로필 ---------- */
+SCREENS.profile_edit=()=>{const a=me();return {title:'내 정보 수정',html:`<form data-form="doProf"><div class="lbl2">이름</div><input class="in" id="pn" value="${esc(a.name)}"><div class="lbl2">연락처 (공개되지 않아요)</div><input class="in" id="pph" value="${esc(a.phone||'')}"><div class="lbl2">활동 동네</div>${a.role==='user'?sel('pr',REGIONS.map(r=>[r,r]),a.region):`<input class="in" value="${esc(a.org||'')}" disabled>`}${a.role==='user'?`<div class="lbl2">봉사 가능 분야</div>${chipsSel('pc',CN,a.cats,SHORT.hasOwnProperty?c=>SHORT[c]:x=>x)}<div class="lbl2">가능 시간대</div><input class="in" id="pt" value="${esc(a.times)}"><div class="lbl2">자기소개 (공개)</div><textarea class="in" id="pi" rows="3">${esc(a.intro)}</textarea><div class="lbl2">경험 (공개)</div><input class="in" id="pe" value="${esc(a.exp)}">`:''}<div class="lbl2">비밀번호 변경 (바꾸지 않으려면 비워 두세요)</div><input class="in" id="pw0" type="password" placeholder="현재 비밀번호"><input class="in" id="pw1" type="password" placeholder="새 비밀번호 (4자 이상)" style="margin-top:8px"><button class="btn" style="margin-top:18px">저장</button></form>`};};
+ACT.doProf=()=>{const a=me();if(val('#pw1')){if(val('#pw0')!==a.pw)return toast('현재 비밀번호가 맞지 않아요');if(val('#pw1').length<4)return toast('새 비밀번호는 4자 이상이에요');a.pw=val('#pw1');}a.phone=val('#pph')||a.phone;a.name=val('#pn')||a.name;if(a.role==='user'){a.region=val('#pr');a.cats=chosen('pc');a.times=val('#pt');a.intro=val('#pi');a.exp=val('#pe');}toast('저장했어요');back();};
+SCREENS.withdraw=()=>{const a=me();const busy=D.reqs.filter(r=>ACTIVE.includes(r.stage)&&(r.helperId===a.id||(r.recv.k==='user'&&r.recv.id===a.id)));
+ return {title:'회원 탈퇴',html:`<div class="card alert"><b>탈퇴 전에 확인해 주세요</b><p style="margin:6px 0 0">진행 중인 활동이 있으면 탈퇴할 수 없어요. 탈퇴하면 시간 통장은 소멸해요.</p></div>${a.role==='user'?`<div class="card info"><b>남은 시간 ${fmt(Math.max(0,totalBal(a)))}시간</b><p class="mini" style="margin:4px 0 0">탈퇴하면 사라져요. 연결된 가족에게 선물하거나(통장 &gt; 가족에게 선물) 써 보신 뒤 탈퇴할 수 있어요. 양도·현금화는 안 돼요.</p></div>`:''}${busy.length?`<p class="warnc" style="margin-top:12px">진행 중인 활동 ${busy.length}건이 있어요. 먼저 정리해 주세요.</p>`:`<button class="btn warn" style="margin-top:16px" data-act="withdrawGo">탈퇴하기</button>`}`};};
+ACT.withdrawGo=()=>confirmSheet('정말 탈퇴할까요?','되돌릴 수 없어요.','탈퇴',()=>{me().status='left';D.posts.forEach(p=>{if(p.aKind==='user'&&p.aId===D.cur&&p.status==='open')p.status='deleted';});D.cur=null;nav.stack=[{name:'login',p:{}}];render();toast('탈퇴 처리됐어요');},true);
+SCREENS.u_profile=p=>{const u=acct(p.id),a=me();if(!u)return{title:'',html:empty('없는 회원이에요')};
+ const n=a.role==='user'?regCount(u.id,'user',a.id):0;
+ return {title:'봉사자 정보',html:`<div class="pfcard">${av(u.name,'lg')}<div><h2 style="margin:0">${esc(u.name)}</h2><div class="muted">${esc(u.region)} · ${u.rating.length?`★ ${fmt(avgRating(u))} (${u.rating.length}명 평가)`:'아직 평가 없음'}</div><div class="tps" style="margin-top:6px">${helperOK(u)?tp('신원 인증','ok'):''}${u.ver.crime?tp('범죄경력 확인','ok'):''}${n>=3?tp('내 단골 · '+n+'회','o'):''}</div></div></div>
+ <div class="card"><div class="kvl"><span>가능 분야</span><span>${u.cats.map(c=>SHORT[c]).join(', ')||'-'}</span></div><div class="kvl"><span>가능 시간</span><span>${esc(u.times||'-')}</span></div><div class="kvl"><span>경험</span><span>${esc(u.exp||'-')}</span></div><div class="kvl"><span>완료 활동</span><span>${doneCount(u)}회</span></div></div>
+ ${u.intro?`<div class="card"><b>소개</b><p style="margin:6px 0 0">${esc(u.intro)}</p></div>`:''}
+ <p class="mini" style="margin-top:10px">연락처·상세 주소 등은 공개되지 않아요 (B-39).</p>
+ ${a.role==='user'&&u.id!==a.id&&n>=3?`<button class="btn" style="margin-top:12px" data-go="u_sendreq" data-kind="direct" data-helper="${u.id}">단골에게 바로 요청하기</button>`:''}
+ ${a.role==='mgr'&&u.id!==a.id&&D.elders.some(e=>e.mgr===a.id&&isReg(u.id,'elder',e.id))?`<button class="btn" style="margin-top:12px" data-act="pickElderDirect" data-helper="${u.id}">어르신 대신 단골 요청하기</button>`:''}`};};
+ACT.pickElderDirect=d=>{const l=eldersOf(me()).filter(e=>isReg(d.helper,'elder',e.id));sheet(`<h2>어느 어르신의 요청인가요?</h2>${l.map(e=>`<div class="acct" data-go="u_sendreq" data-kind="direct" data-helper="${d.helper}" data-elder="${e.id}"><div><b>${esc(e.alias)} 어르신</b><div class="mini">${esc(e.dong)}</div></div></div>`).join('')}`);};
+
+ACT.speak=(d,el)=>{const n=D.notifs.find(x=>x.id===d.id);try{const u=new SpeechSynthesisUtterance(n.text);u.lang='ko-KR';speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}toast('전화·문자 대체: AI 음성으로 안내해요 (시연)');};
+/* B-47 내 신고·문의 한곳 */
+let MC='rep';
+SCREENS.my_cases=()=>{const rp=D.reports.filter(r=>r.by===D.cur),iq=D.inquiries.filter(q=>q.by===D.cur);
+ return {title:'내 신고·문의',tab:me().role==='mgr'?'m_my':'u_my',html:`<div class="seg"><button class="${MC==='rep'?'on':''}" data-act="mc" data-k="rep">신고 ${rp.length}</button><button class="${MC==='inq'?'on':''}" data-act="mc" data-k="inq">문의 ${iq.length}</button></div><div style="margin-top:12px">${MC==='rep'?(rp.map(r=>`<div class="card"><div class="row between"><b>${esc(r.kind)} 신고 · ${esc(r.type)}</b>${tp(r.status,r.status==='처리 완료'?'ok':'y')}</div><div class="mini">${r.at}</div><p style="margin:8px 0 0">${esc(r.text)}</p>${r.result?`<div class="card info" style="margin-top:10px"><b>처리 결과</b><p style="margin:4px 0 0">${esc(r.result)}</p></div>`:''}</div>`).join('')||empty('신고 내역이 없어요')):(iq.map(q=>`<div class="card"><div class="row between"><b>${esc(q.title)}</b>${tp(q.status,q.status==='답변 완료'?'ok':'y')}</div><div class="mini">${esc(q.type)} · ${q.at}</div><p style="margin:8px 0 0">${esc(q.body)}</p>${q.answer?`<div class="card info" style="margin-top:10px"><b>운영자 답변</b><p style="margin:4px 0 0">${esc(q.answer)}</p></div>`:''}</div>`).join('')+`<button class="btn" style="margin-top:10px" data-go="inq_new">새 문의 작성</button>`||'')}</div>`};};
+ACT.mc=d=>{MC=d.k;render();};
+
+/* ================= 사용자 화면 ================= */
+const myReqs=a=>D.reqs.filter(r=>r.helperId===a.id||sideRecvActor(r)===a.id);
+const todoReqs=a=>myReqs(a).filter(r=>(r.helperId===a.id&&r.stage==='wait_helper')||(sideRecvActor(r)===a.id&&['wait_recv','await_confirm'].includes(r.stage)));
+const todayReqs=a=>myReqs(a).filter(r=>['confirmed','inprogress'].includes(r.stage));
+
+SCREENS.u_home=()=>{const a=me();const todo=todoReqs(a),sch=todayReqs(a).sort((x,y)=>startAt(x.date,x.start)-startAt(y.date,y.start));
+ const op=D.posts.filter(p=>postOpen(p)&&!(p.aKind==='user'&&p.aId===a.id)).slice(0,3);
+ return {title:'시간 적금',html:`
+ <div class="card" style="background:var(--brand);color:#fff"><div style="opacity:.85;font-size:14px">${esc(a.name)} 님의 시간 통장</div><div style="font-size:34px;font-weight:800;letter-spacing:-1px;margin:4px 0">${fmt(Math.max(0,available(a)))}<span style="font-size:16px;font-weight:600"> 시간 사용 가능</span></div><div style="opacity:.85;font-size:13px">누적 적립 ${fmt(lifetimeEarned(a))}시간${lifetimeEarned(a)<10?` · 받으려면 ${fmt(10-lifetimeEarned(a))}시간 더`:''}</div></div>
+ <div class="btns" style="margin-top:12px"><button class="btn" data-go="u_compose" data-type="offer">${I.hand}봉사 가능 시간 올리기</button><button class="btn soft" data-go="u_compose" data-type="need">${I.pen}도움 요청 올리기</button></div>
+ ${helperOK(a)?'':`<div class="card info click" data-go="verify"><b>봉사를 하려면 인증이 필요해요</b><div class="mini">${a.ver.status==='pending'?'심사 중이에요':'신원 인증 · 안전교육 → 탭해서 진행'}</div></div>`}
+ ${todo.length?`<div class="sec-t">내가 응답할 차례 <a>${todo.length}건</a></div>${todo.map(reqCard).join('')}`:''}
+ ${sch.length?`<div class="sec-t">예정된 활동</div>${sch.map(reqCard).join('')}`:''}
+ <div class="sec-t">새 공고 <a data-tab="u_posts">전체 보기</a></div>${op.map(postCard).join('')||empty('열린 공고가 없어요')}
+ <div class="sec-t">바로가기</div><div class="btns"><div class="card click" data-go="svc"><b>공공 서비스 안내</b><div class="mini">AI가 알맞은 제도를 찾아요</div></div><div class="card click" data-go="regulars" style="margin-top:12px"><b>내 단골</b><div class="mini">${regularsOf('user',a.id).length}명</div></div></div>`};};
+
+/* ---- 공고 목록 ---- */
+const PF={type:'offer',cat:'',region:'',date:'',time:'',sort:'new'};
+const timeOv=(p,t)=>t==='오전'?p.from<12:t==='오후'?(p.from<18&&p.to>12):t==='저녁'?p.to>18:true;
+const authRate=p=>p.aKind==='user'?avgRating(acct(p.aId)):0;
+SCREENS.u_posts=()=>{const a=me();
+ let l=D.posts.filter(p=>p.type===PF.type&&p.status!=='deleted'&&(PF.cat?p.cats.includes(PF.cat):true)&&(PF.region?p.region===PF.region:true)&&(PF.date?p.date===PF.date:true)&&(PF.time?timeOv(p,PF.time):true));
+ const o=l.filter(postOpen),c=l.filter(p=>!postOpen(p));
+ if(PF.sort==='near')o.sort((x,y)=>((x.region===a.region?0:1)-(y.region===a.region?0:1))||x.date.localeCompare(y.date));else if(PF.sort==='rate')o.sort((x,y)=>authRate(y)-authRate(x));
+ return {title:'공고',html:`<div class="seg"><button class="${PF.type==='offer'?'on':''}" data-act="pf" data-k="type" data-v="offer">봉사 가능</button><button class="${PF.type==='need'?'on':''}" data-act="pf" data-k="type" data-v="need">도움 필요</button></div>
+ <div class="chips" style="margin-top:10px"><button class="chip ${!PF.cat?'on':''}" data-act="pf" data-k="cat" data-v="">전체</button>${CN.map(c=>`<button class="chip ${PF.cat===c?'on':''}" data-act="pf" data-k="cat" data-v="${c}">${SHORT[c]}</button>`).join('')}</div>
+ <div class="chips"><button class="chip ${!PF.region?'on':''}" data-act="pf" data-k="region" data-v="">전체 동네</button>${REGIONS.map(r=>`<button class="chip ${PF.region===r?'on':''}" data-act="pf" data-k="region" data-v="${r}">${r}</button>`).join('')}</div>
+ <div class="row2" style="margin-top:6px"><select class="in" style="min-height:42px;font-size:14px" data-act="pfsel" data-k="date"><option value="">모든 날짜</option>${DATES(14).map(([k,l])=>`<option value="${k}" ${PF.date===k?'selected':''}>${l}</option>`).join('')}</select><select class="in" style="min-height:42px;font-size:14px" data-act="pfsel" data-k="sort">${[['new','최신순'],['near','가까운 순'],['rate','평점 높은 순']].map(([k,l])=>`<option value="${k}" ${PF.sort===k?'selected':''}>${l}</option>`).join('')}</select></div>
+ <div class="chips" style="margin-top:6px">${[['','모든 시간'],['오전','오전'],['오후','오후'],['저녁','저녁']].map(([k,l])=>`<button class="chip ${PF.time===k?'on':''}" data-act="pf" data-k="time" data-v="${k}">${l}</button>`).join('')}</div>
+ <div style="margin-top:12px">${o.map(postCard).join('')||empty('조건에 맞는 열린 공고가 없어요')}</div>
+ ${c.length?`<div class="sec-t sm">마감·수락된 공고</div>${c.map(postCard).join('')}`:''}
+ ${a.role==='user'||PF.type==='need'?`<div class="sticky-act"><button class="btn" data-go="u_compose" data-type="${PF.type}">${PF.type==='offer'?'봉사 가능 시간 올리기':'도움 요청 올리기'}</button></div>`:''}`};};
+ACT.pf=d=>{PF[d.k]=d.v;render();};
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.act==='pfsel'){PF[t.dataset.k]=t.value;render();}});
+
+/* ---- 공고 상세 ---- */
+const isAuthor=(p,a)=>(p.aKind==='user'&&p.aId===a.id)||(p.aKind==='elder'&&elderOf(p.aId).mgr===a.id);
+SCREENS.u_post=p0=>{const p=postOf(p0.id),a=me();if(!p)return{title:'',html:empty('없는 공고예요')};
+ const au=isAuthor(p,a),off=p.type==='offer';
+ const reqs=D.reqs.filter(r=>r.postId===p.id);
+ const who=p.aKind==='elder'?`<div class="card"><div class="row"><span class="avatar">${esc(elderOf(p.aId).alias[0])}</span><div><b>${esc(elderOf(p.aId).alias)} 어르신</b><div class="mini">${esc(elderOf(p.aId).dong)} · 담당자 ${esc(acct(elderOf(p.aId).mgr).name)} · ${esc(acct(elderOf(p.aId).mgr).org)}</div></div></div><div class="card" style="background:#fff;margin-top:10px"><b>주의사항</b><p style="margin:4px 0 0">${esc(elderOf(p.aId).caution)}</p></div><p class="mini" style="margin:8px 0 0">어르신의 실명·연락처·상세 주소는 공개되지 않아요.</p></div>`:`<div class="card click" data-go="u_profile" data-id="${p.aId}"><div class="row">${av(acct(p.aId).name)}<div><b>${esc(acct(p.aId).name)}</b><div class="mini">${esc(p.region)}${acct(p.aId).rating.length?` · ★ ${fmt(avgRating(acct(p.aId)))}`:''}</div></div></div></div>`;
+ let act='';
+ if(au){act=p.status==='open'?`<div class="btns"><button class="btn ghost" data-act="postEdit" data-id="${p.id}">수정</button><button class="btn ghost" data-act="postDel" data-id="${p.id}">삭제</button></div>`:'';}
+ else if(postOpen(p)){
+  if(off&&a.role==='user') act=`<button class="btn" data-go="u_sendreq" data-post="${p.id}" data-kind="request">이 시간에 도움 요청하기</button>`;
+  else if(off&&a.role==='mgr') act=`<button class="btn" data-act="pickElderReq" data-post="${p.id}">어르신 대신 요청하기</button>`;
+  else if(!off&&a.role==='user') act=helperOK(a)?`<button class="btn" data-go="u_sendreq" data-post="${p.id}" data-kind="proposal">봉사 제안하기</button>`:`<div class="card info click" data-go="verify"><b>봉사 제안은 인증 후 가능해요</b><div class="mini">탭해서 인증 진행</div></div>`;
+  else act=`<p class="muted">담당자는 봉사 제안을 할 수 없어요 (사용자 계정으로 활동해 주세요).</p>`;
+ }else act=`<div class="card"><b>${PST[p.status]}된 공고예요</b><p class="mini" style="margin:4px 0 0">${p.status==='closed'&&p.closeWhy?esc(p.closeWhy)+' · ':''}마감된 공고는 다시 열리지 않아요 (B-19).</p></div>`;
+ return {title:off?'봉사 가능 공고':'도움 필요 공고',tab:'u_posts',html:`
+ <div class="tps">${tp(off?'봉사 가능':'도움 필요',off?'o':'n')}${tp(PST[p.status],p.status==='open'?'ok':'g')}${p.recurring?tp('매주 반복','g'):''}</div>
+ <h2 style="margin:10px 0 2px;font-size:22px">${fdate(p.date)} ${frange(p.from,p.to)}</h2><div class="muted">${esc(p.region)} · ${p.cats.map(c=>`${c}(×${W(c)})`).join(', ')}</div>
+ <div class="card"><p style="margin:0;line-height:1.6">${esc(p.detail)}</p></div>
+ <div class="card info"><b>봉사하는 분 예상 적립 (1시간 기준)</b>${p.cats.map(c=>`<div class="kvl"><span>${SHORT[c]} · ${LV(c)}</span><span>${fmt(creditOf(c,1))}시간 (×${W(c)})</span></div>`).join('')}<div class="mini" style="margin-top:4px">최대 ${fmt(Math.min(4,p.to-p.from))}시간 활동 시 ${fmt(creditOf(p.cats[0],Math.min(4,p.to-p.from)))}시간까지 · 실제 시간 기준으로 확정돼요</div></div>${who}
+ <div style="margin-top:14px">${act}</div>
+ ${au&&reqs.length?`<div class="sec-t">받은 ${off?'요청':'제안'}</div>${reqs.map(reqCard).join('')}`:''}
+ ${!au?`<p style="text-align:center;margin-top:16px"><a class="mini" data-act="reportSheet" data-kind="공고" data-target="${p.id}" style="cursor:pointer;text-decoration:underline">이 공고 신고하기</a></p>`:''}`};};
+ACT.pickElderReq=d=>{const l=eldersOf(me());if(!l.length)return toast('담당 어르신이 없어요');sheet(`<h2>어느 어르신의 요청인가요?</h2>${l.map(e=>`<div class="acct" data-go="u_sendreq" data-post="${d.post}" data-kind="request" data-elder="${e.id}"><div><b>${esc(e.alias)} 어르신</b><div class="mini">${esc(e.dong)}</div></div></div>`).join('')}`);};
+ACT.postDel=d=>confirmSheet('공고를 삭제할까요?','대기 중인 요청·제안은 취소돼요.','삭제',()=>{deletePost(postOf(d.id));toast('삭제했어요');back();},true);
+ACT.postEdit=d=>{const p=postOf(d.id);sheet(`<h2>공고 수정</h2><div class="lbl2">시작</div>${sel('ef',TIMES(6,21),p.from)}<div class="lbl2">끝</div>${sel('et',TIMES(6.5,22),p.to)}<div class="lbl2">내용</div><textarea class="in" id="ed" rows="3">${esc(p.detail)}</textarea><button class="btn" style="margin-top:14px" data-act="postEditGo" data-id="${p.id}">저장</button>`);};
+ACT.postEditGo=d=>{const p=postOf(d.id);const f=+val('#ef'),t=+val('#et');if(!(f<t))return toast('시간 범위를 확인해 주세요');const cl=classify(val('#ed'));if(cl.lv==='block')return toast(`'${cl.why}'에 해당해 올릴 수 없어요`);p.from=f;p.to=t;p.detail=val('#ed');closeSheet();toast('수정했어요');render();};
+
+/* ---- 공고 작성 (말로 입력 AI + 폼) ---- */
+const CP={cats:[],recurring:false,elder:''};
+SCREENS.u_compose=p=>{const a=me(),type=p.type||'offer';
+ if(type==='offer'&&!helperOK(a)) return {title:'봉사 공고',tab:'u_posts',html:`<div class="card info"><b>${VERIFY_MSG}</b></div><button class="btn" style="margin-top:12px" data-go="verify">봉사자 인증하러 가기</button>`};
+ const els=a.role==='mgr'?eldersOf(a):[];
+ if(a.role==='mgr'&&type==='offer') return {title:'공고',tab:'u_posts',html:empty('담당자는 도움 필요 공고만 올릴 수 있어요')};
+ const ph=type==='offer'?'예) 내일 오후 1시부터 5시까지 병원 동행이나 폰 설정 도와드릴 수 있어요':'예) 모레 오후 2시부터 5시까지 스마트폰 영상통화 설정을 도와줄 분을 찾아요';
+ return {title:type==='offer'?'봉사 가능 시간 올리기':'도움 요청 올리기',tab:'u_posts',html:`
+ <div class="card"><div class="ah" style="font-weight:700">${spk} 말하듯 적으면 AI가 정리해 드려요 ${M(1)}</div><textarea class="in" id="cu" rows="3" placeholder="${ph}" style="margin-top:8px" data-flt="cuF"></textarea><div id="cuF"></div><button class="btn soft" style="margin-top:8px" data-act="cuGo">AI로 정리하기</button><div id="cuOut"></div></div>
+ <form data-form="doPost" data-type="${type}">
+ ${a.role==='mgr'?`<div class="lbl2">어르신 (별칭으로만 표시돼요)</div>${sel('ce',els.map(e=>[e.id,e.alias+' 어르신 · '+e.dong]),p.elder||(els[0]&&els[0].id))}`:''}
+ <div class="lbl2">날짜</div>${sel('cd',DATES(21),p.date)}
+ <div class="row2"><div><div class="lbl2">시작</div>${sel('cf',TIMES(6,21),p.from||13)}</div><div><div class="lbl2">끝</div>${sel('ct',TIMES(6.5,22),p.to||17)}</div></div>
+ <div class="lbl2">동네</div>${sel('cr',REGIONS.map(r=>[r,r]),p.region||a.region)}
+ <div class="lbl2">${type==='offer'?'할 수 있는 도움':'필요한 도움'} (여러 개 선택 가능)</div>${chipsSel('cc',CN,p.cat?[p.cat]:[],c=>`${SHORT[c]} ×${W(c)}`)}
+ <div class="lbl2">자세한 내용</div><textarea class="in" id="cx" rows="3" placeholder="구체적으로 적어 주세요" data-flt="cxF">${esc(p.detail||'')}</textarea><div id="cxF"></div>
+ ${type==='offer'?`<label class="sw"><div><div class="t">매주 같은 요일 반복 (4주)</div><div class="d">정기 봉사 시 한 번에 올려요</div></div><input type="checkbox" id="cw"></label>`:''}
+ <div id="cdiff"></div>
+ <button class="btn" style="margin-top:16px">공고 올리기</button></form>`,
+ mount:()=>{if(p.cat)ACT.cuDiff();}};};
+ACT.cuGo=()=>{const t=val('#cu');if(!t)return toast('내용을 입력해 주세요');const o=parseUtter(t);const cl=classify(t);
+ const miss=[];if(!o.date)miss.push('언제 필요하신가요? (예: 내일, 11월 14일, 다음 주 화요일)');if(o.from==null)miss.push('몇 시부터 몇 시까지인가요? (예: 오후 2시부터 5시까지)');if(!o.cat)miss.push('어떤 도움인가요? (병원 동행, 장보기, 폰 설정 등)');
+ if(cl.lv!=='block'&&miss.length){$('#cuOut').innerHTML=`<div class="ai" style="margin-top:10px"><div class="ah">${spk}조금만 더 알려 주세요</div>${miss.map(m=>`<p style="margin:4px 0 0">· ${m}</p>`).join('')}<div class="chat-in"><input class="in" id="cu2" placeholder="답을 적어 주세요"><button data-act="cuMore" aria-label="답하기">${I.send}</button></div></div>`;return;}
+ aiRun('#cuOut',cl.lv==='block'?`<div class="card alert" style="margin-top:10px"><b>올릴 수 없는 요청이에요</b><p style="margin:4px 0 0">'${cl.why}'에 해당해요. 이 서비스는 신체 돌봄·의료·금전 관리·위험 작업을 다루지 않아요.</p>${cl.alt&&cl.alt.length?`<div class="mini" style="margin-top:8px">대신 이런 공공 서비스가 있어요</div>${cl.alt.map(s=>`<div class="kvl"><span>${esc(s.name)}</span><span>${esc(s.where)}</span></div>`).join('')}`:''}</div>`:
+  `<div class="ai" style="margin-top:10px"><div class="ah">${spk}이렇게 이해했어요 · 아래 폼에 채웠어요</div><p style="margin:4px 0 0">${[o.date?fdate(o.date):'날짜 확인 필요',o.from!=null?frange(o.from,o.to):'시간 확인 필요',o.cat?SHORT[o.cat]:'분야 확인 필요',o.region||''].filter(Boolean).join(' · ')}</p>${cl.lv==='caution'?`<p class="mini" style="margin:6px 0 0">주의: ${cl.notes.join(' ')}</p>`:''}</div>`,700);
+ setTimeout(()=>{if(cl.lv==='block')return;if(o.date)$('#cd').value=o.date;if(o.from!=null){$('#cf').value=o.from;$('#ct').value=o.to;}if(o.region)$('#cr').value=o.region;if(o.cat){document.querySelectorAll('[data-grp="cc"] .chip').forEach(c=>c.classList.toggle('on',c.dataset.v===o.cat));ACT.cuDiff();}$('#cx').value=t;},720);};
+ACT.cuMore=()=>{const a=val('#cu2');if(!a)return;$('#cu').value=val('#cu')+' '+a;ACT.cuGo();};
+ACT.cuDiff=()=>{const c=chosen('cc');const el=$('#cdiff');if(!el)return;if(!c.length){el.innerHTML='';return;}el.innerHTML=`<div class="ai" style="margin-top:12px"><div class="ah">${spk}난이도 안내 ${M(5)}</div>${c.map(k=>{const s=suggestDiff(k,val('#cx'));return `<p style="margin:4px 0 0"><b>${SHORT[k]}</b> ${s.lv} ×${s.w} — ${s.why[0]}</p>`;}).join('')}</div>`;};
+document.addEventListener('click',e=>{if(e.target.closest('[data-grp="cc"]'))setTimeout(()=>ACT.cuDiff&&ACT.cuDiff(),0);});
+ACT.doPost=(d)=>{const a=me();const o={type:d.type,aKind:a.role==='mgr'?'elder':'user',aId:a.role==='mgr'?val('#ce'):a.id,date:val('#cd'),from:+val('#cf'),to:+val('#ct'),region:val('#cr'),cats:chosen('cc'),detail:val('#cx'),recurring:$('#cw')&&$('#cw').checked};
+ if(!o.detail)return toast('자세한 내용을 적어 주세요');
+ if(!d.ok){window._po=o;const sm=o.cats.map(c=>`${SHORT[c]} ${fmt(creditOf(c,1))}시간/h`).join(', ');return sheet(`<h2>이대로 등록할까요?</h2><div class="card"><div class="kvl"><span>종류</span><span>${o.type==='offer'?'봉사 가능':'도움 필요'}</span></div>${o.aKind==='elder'?`<div class="kvl"><span>어르신</span><span>${esc(elderOf(o.aId).alias)}</span></div>`:''}<div class="kvl"><span>일시</span><span>${fdate(o.date)} ${frange(o.from,o.to)}</span></div><div class="kvl"><span>동네</span><span>${esc(o.region)}</span></div><div class="kvl"><span>분야</span><span>${o.cats.map(c=>SHORT[c]).join(', ')||'-'}</span></div><div class="kvl"><span>예상 적립</span><span>${sm||'-'}</span></div>${o.recurring?'<div class="kvl"><span>반복</span><span>매주 4주</span></div>':''}<p style="margin:8px 0 0">${esc(o.detail)}</p></div><div class="btns" style="margin-top:12px"><button class="btn ghost" data-act="closeSheet">수정</button><button class="btn" data-act="postFinal" data-type="${d.type}">등록</button></div>`);}
+ return ACT.postRun(o);};
+ACT.postFinal=d=>{closeSheet();ACT.postRun(window._po);};
+ACT.postRun=(o)=>{const r=createPost(o);
+ if(!r.ok){if(r.block)sheet(`<h2>올릴 수 없어요</h2><p>${esc(r.err)}</p>${r.block.alt&&r.block.alt.length?r.block.alt.map(s=>`<div class="card"><b>${esc(s.name)}</b><div class="mini">${esc(s.where)}</div></div>`).join(''):''}<button class="btn" data-act="closeSheet">확인</button>`);else toast(r.err);return;}
+ toast(r.posts.length>1?'4주 분량 공고를 올렸어요':'공고를 올렸어요');nav.stack=[{name:'u_posts',p:{}}];PF.type=o.type;go('u_post',{id:r.posts[0].id});};
+
+/* ---- 요청·제안 보내기 ---- */
+SCREENS.u_sendreq=p=>{const a=me();const po=p.post?postOf(p.post):null;const kind=p.kind;
+ let helper,recv,cats,def={};
+ if(kind==='proposal'){helper=a;recv=po.aKind==='elder'?{k:'elder',id:po.aId}:{k:'user',id:po.aId};cats=po.cats;}
+ else{helper=acct(po?po.aId:p.helper);recv=p.elder?{k:'elder',id:p.elder}:{k:'user',id:a.id};cats=po?po.cats:helper.cats;}
+ const dates=po?[[po.date,fdate(po.date)]]:DATES(14);
+ const s0=po?Math.max(po.from,Math.ceil((startAt(po.date,po.from)>NOW?po.from:(NOW.getHours()+1))*2)/2):10;
+ return {title:kind==='proposal'?'봉사 제안하기':kind==='direct'?'단골에게 요청하기':'도움 요청하기',tab:'u_posts',html:`
+ <div class="card"><div class="kvl"><span>${kind==='proposal'?'받는 분':'봉사자'}</span><span>${kind==='proposal'?esc(nameOf(recv.k,recv.id)):esc(helper.name)}</span></div>${po?`<div class="kvl"><span>공고 시간</span><span>${fdate(po.date)} ${frange(po.from,po.to)}</span></div>`:''}${recv.k==='elder'?`<div class="kvl"><span>어르신</span><span>${esc(nameOf('elder',recv.id))} (담당자 대신 입력)</span></div>`:''}</div>
+ <form data-form="doSend" data-kind="${kind}" data-post="${p.post||''}" data-helper="${helper.id}" data-rk="${recv.k}" data-rid="${recv.id}">
+ <div class="lbl2">날짜</div>${sel('sd',dates,po?po.date:dOff(1))}
+ <div class="row2"><div><div class="lbl2">시작</div>${sel('ss',TIMES(po?po.from:7,po?po.to-.5:20),s0)}</div><div><div class="lbl2">활동 시간 (최대 4시간)</div><select class="in" id="sh2"></select></div></div>
+ <div class="lbl2">도움 분야</div>${sel('sc',cats.map(c=>[c,`${c} ×${W(c)}`]),cats[0])}
+ <div class="lbl2">함께 필요한 도움 (선택 · 복합 요청은 최고 등급 기준으로 계산해요)</div>${sel('sc2',[['','없음'],...cats.map(c=>[c,`${c} ×${W(c)}`])],'')}
+ <div class="lbl2">요청 내용</div><textarea class="in" id="sx" rows="3" placeholder="어떤 도움이 필요한지 구체적으로 적어 주세요" data-flt="sxF"></textarea><div id="sxF"></div>
+ <div class="lbl2">메모 (선택)</div><input class="in" id="sm" placeholder="예) 안경을 가져갈게요">
+ <div class="card info" id="sprev"></div>
+ <button class="btn" style="margin-top:14px">${kind==='proposal'?'제안 보내기':'요청 보내기'}</button><p class="mini" style="text-align:center;margin-top:8px">상대가 <b>24시간 안에</b> 응답해야 해요. 자동 매칭은 없어요.</p></form>`,
+ mount:()=>{const upd=()=>{const s=+$('#ss').value;const mx=po?Math.min(4,po.to-s):4;const cur=+($('#sh2').value||1);$('#sh2').innerHTML=TIMES(.5,Math.max(.5,mx)).map(([h])=>`<option value="${h}" ${h===Math.min(cur,mx)?'selected':''}>${h}시간</option>`).join('');pv();};
+  const pv=()=>{const h=+$('#sh2').value;let c=$('#sc').value;const c2=$('#sc2').value;if(c2&&W(c2)>W(c))c=c2;const cr=creditOf(c,h);const ur=recv.k==='user'?acct(recv.id):null;const need=recv.k==='elder'?`독거노인 건은 시간 차감이 없어요.`:kind==='proposal'?`받는 분은 활동 후 ${fmt(cr)}시간이 차감돼요.`:`활동 후 내 통장에서 ${fmt(cr)}시간이 차감돼요 (사용 가능 ${fmt(Math.max(0,available(ur)))}).`;$('#sprev').innerHTML=`<b>${fmt(h)}시간 × ${W(c)} = ${fmt(cr)}시간</b><div class="mini">${helper.name} 님에게 ${fmt(cr)}시간이 적립돼요 · ${need}</div>`;};
+  $('#ss').onchange=upd;$('#sh2').onchange=pv;$('#sc').onchange=pv;$('#sc2').onchange=pv;upd();}};};
+ACT.doSend=d=>{const o={kind:d.kind,postId:d.post||null,helperId:d.helper,recv:{k:d.rk,id:d.rid},date:val('#sd'),start:+val('#ss'),hours:+val('#sh2'),cat:val('#sc'),extra:val('#sc2'),content:val('#sx'),memo:val('#sm')};
+ if(!o.content)return toast('요청 내용을 적어 주세요');const r=sendReq(o);
+ if(!r.ok){if(r.block)sheet(`<h2>보낼 수 없어요</h2><p>${esc(r.err)}</p>${r.block.alt&&r.block.alt.length?r.block.alt.map(s=>`<div class="card"><b>${esc(s.name)}</b><div class="mini">${esc(s.where)}</div></div>`).join(''):''}<button class="btn" data-act="closeSheet">확인</button>`);else toast(r.err);return;}
+ const cl=classify(o.content);toast('보냈어요. 상대에게 알림이 갔어요');nav.stack.pop();go('u_req',{id:r.req.id});};
+
+/* ---- 내 활동 ---- */
+let AT='now';
+SCREENS.u_acts=()=>{const a=me();const l=myReqs(a);
+ const g={now:l.filter(r=>ACTIVE.includes(r.stage)),done:l.filter(r=>r.stage==='completed'),end:l.filter(r=>['rejected','expired','auto_rejected','cancelled'].includes(r.stage)),post:D.posts.filter(p=>isAuthor(p,a)&&p.status!=='deleted')};
+ return {title:'내 활동',html:`<div class="seg sm">${[['now','진행'],['done','완료'],['end','종료'],['post','내 공고']].map(([k,l])=>`<button class="${AT===k?'on':''}" data-act="at" data-k="${k}">${l}${g[k].length?` ${g[k].length}`:''}</button>`).join('')}</div><div style="margin-top:12px">${AT==='post'?(g.post.map(postCard).join('')||empty('올린 공고가 없어요')):(g[AT].map(reqCard).join('')||empty('내역이 없어요'))}</div>`};};
+ACT.at=d=>{AT=d.k;render();};
+
+/* ---- 요청 상세 ---- */
+const FLOW=['요청','봉사자 수락','받는 분 수락','활동','확인','완료'];
+function flowHtml(r){const m={wait_helper:1,wait_recv:2,confirmed:3,inprogress:3,await_confirm:4,completed:5};const bad=!(r.stage in m);const i=bad?(r.msgOpen?2:1):m[r.stage];
+ const lab=FLOW.map((x,k)=>k===0&&r.kind==='proposal'?'제안':x);
+ return `<div class="flow ${bad?'bad':''}">${lab.map((x,k)=>`<span class="${k<i?'on':k===i?'cur':''}">${x}</span>`).join('')}</div>`;}
+SCREENS.u_req=p=>{const r=reqOf(p.id),a=me();if(!r)return{title:'',html:empty('없는 요청이에요')};
+ const hu=acct(r.helperId),isH=a.id===r.helperId,isR=sideRecvActor(r)===a.id,proxy=r.recv.k==='elder'&&a.role==='mgr'&&isR;
+ const el=r.recv.k==='elder'?elderOf(r.recv.id):null;
+ const rn=nameOf(r.recv.k,r.recv.id);
+ let acts='';
+ const B=(t,act,c='',extra='')=>`<button class="btn ${c}" data-act="${act}" data-id="${r.id}" ${extra}>${t}</button>`;
+ if(r.stage==='wait_helper'){ if(isH) acts=`<div class="btns">${B('거절','rejH','ghost')}${B('수락','accH')}</div>`; else if(isR||a.id===r.by) acts=B('요청 철회','cancelReqA','ghost'); }
+ else if(r.stage==='wait_recv'){ if(isR) acts=`<div class="btns">${B('거부','rejR','ghost')}${B(proxy?'확인 후 대신 수락':'최종 수락','accR')}</div>`; else if(isH) acts=B(r.kind==='proposal'?'제안 철회':'취소','cancelReqA','ghost'); }
+ else if(r.stage==='confirmed'){ if(isH) acts=`<div class="btns">${B('일정 취소','cancelReqA','ghost')}${B('활동 시작','startA')}</div>`; else if(isR) acts=`<div class="btns">${B('일정 취소','cancelReqA','ghost')}${startAt(r.date,r.start)<=NOW?B('봉사자 노쇼','noshowA','ghost'):''}</div>${proxy?`<div style="margin-top:8px">${B('만나는 장소 안내 보내기','placeA','soft')}</div>`:''}`; }
+ else if(r.stage==='inprogress'){ if(isH) acts=B('활동 마치고 일지 쓰기','finA'); else acts=`<p class="muted">봉사자가 활동 중이에요.</p>`; }
+ else if(r.stage==='await_confirm'){ if(isR) acts=B('활동 내용 확인하기','cfmA'); else if(isH) acts=`<p class="muted">받는 분의 확인을 기다려요. ${r.journalAt?`${left(new Date(r.journalAt.getTime()+86400000))}이면 일지 기준으로 자동 확정돼요.`:''}</p>`; }
+ else if(r.stage==='completed'){
+   if(isR&&!r.rated.recv) acts=B(proxy?'봉사자 평가하기 (담당자가 대신)':'봉사자 평가하기','rateA'); else if(isH&&!r.rated.helper&&r.recv.k==='user') acts=B('받은 분 평가하기 (비공개)','rateH','ghost'); if(isH&&!r.appealed) acts+=`<div style="margin-top:8px">${B('난이도 이의 신청','appealA','ghost')}</div>`; }
+ const mine=D.reqs.filter(x=>x.helperId===r.helperId&&x.stage==='completed'&&x.recv.k===r.recv.k&&x.recv.id===r.recv.id).length;
+ return {title:r.kind==='proposal'?'제안 상세':r.kind==='direct'?'단골 요청':'요청 상세',tab:a.role==='mgr'?'m_acts':'u_acts',html:`
+ <div class="row between">${stageTag(r)}${r.deadline&&['wait_helper','wait_recv'].includes(r.stage)?`<span class="dl">${left(r.deadline)} · 24시간 안에 응답</span>`:''}</div>
+ ${flowHtml(r)}
+ <div class="card"><div class="row">${catIc(r.cat)}<div><b style="font-size:18px">${fdate(r.date)} ${frange(r.start,r.start+r.hours)}</b><div class="mini">${r.cat} · ${fmt(r.hours)}시간 × ${W(r.cat)} = ${fmt(creditOf(r.cat,r.hours))}시간</div></div></div>
+  <div class="hr"></div><div class="kvl"><span>봉사자</span><span><a data-go="u_profile" data-id="${hu.id}" style="color:var(--brand);cursor:pointer">${esc(hu.name)}</a>${mine>=3?' '+tp('단골','o'):''}</span></div><div class="kvl"><span>받는 분</span><span>${esc(rn)}</span></div>
+  ${el?`<div class="kvl"><span>보호자 역할</span><span>${esc(acct(el.mgr).name)} 담당자</span></div>`:''}${r.proxy?`<div class="kvl"><span>대신 입력</span><span>${esc(r.proxy.how)} 확인 후</span></div>`:''}</div>
+ ${r.extra?`<div class="card info"><b>복합 요청</b><div class="mini">${r.cat} + ${r.extra} → 최고 등급(×${W(r.cat)}) 기준으로 계산했어요</div></div>`:''}
+ ${isR&&r.stage!=='wait_helper'||isR&&r.kind==='proposal'?introCard(hu):''}
+ ${['confirmed','inprogress'].includes(r.stage)?`<div class="card" style="background:#fff;border:1px solid var(--line)"><b>방문 중 안전 수칙</b><p class="mini" style="margin:4px 0 0">신체 접촉은 하지 않아요 · 서비스 밖 연락(개인 연락처 교환)은 금지예요 · 불편하면 바로 중단하고 신고해 주세요.</p></div>`:''}
+ <div class="card"><b>요청 내용</b><p style="margin:6px 0 0">${esc(r.content)}</p>${r.memo?`<div class="mini" style="margin-top:6px">메모: ${esc(r.memo)}</div>`:''}</div>
+ ${el&&(isH||a.role==='mgr')&&['confirmed','inprogress','await_confirm'].includes(r.stage)||el&&isH&&r.stage==='wait_recv'?`<div class="card info"><b>어르신 안내 (별칭·동네·주의사항만)</b><p style="margin:6px 0 0">${esc(el.alias)} 어르신 · ${esc(el.dong)}<br>${esc(el.caution)}</p><p class="mini" style="margin:6px 0 0">만나는 장소는 담당자가 메시지로 안내해요.</p></div>`:''}
+ ${r.stage==='rejected'?`<div class="card alert"><b>${r.rejectSide==='helper'?'봉사자':'받는 쪽'}이 거절했어요</b><p style="margin:4px 0 0">${esc(r.rejectReason||'')}</p></div>`:''}
+ ${r.stage==='cancelled'?`<div class="card"><b>취소됐어요</b><p class="mini" style="margin:4px 0 0">${r.cancelFree?'무료 취소':'24시간 이내 취소 — 봉사자 취소는 신뢰 점수에 기록돼요'}</p></div>`:''}
+ ${r.stage==='expired'?`<div class="card"><b>24시간 안에 응답이 없어 만료됐어요</b></div>`:''}
+ ${r.journal?`<div class="card"><b>활동 일지</b><p style="margin:6px 0 0">${esc(r.journal.ai||r.journal.text)}</p><div class="mini" style="margin-top:6px">${M(3)}${r.journal.photo?' · 사진 1장':''}</div></div>`:''}
+ ${r.adjusted?`<p class="mini">확인 시 시간이 ${r.adjusted.from}시간 → ${r.adjusted.to}시간으로 조정됐어요.</p>`:''}
+ ${r.stage==='completed'?`<div class="card ok"><b>${fmt(r.credit)}시간 적립</b><div class="mini">${r.recv.k==='elder'?'독거노인 건이라 받는 쪽 차감은 없어요':'받는 분 통장에서 같은 시간이 차감됐어요'}${r.confirmBy==='auto'?' · 자동 확정':''}</div></div>`:''}
+ ${acts?`<div style="margin-top:14px">${acts}</div>`:''}
+ <div class="sec-t sm">메시지</div>
+ ${msgOpen(r)||r.thread.length?`<div class="card" style="background:#fff;border:1px solid var(--line)"><div class="thread">${r.thread.map((m,mi)=>m.sys?`<div class="bub sys">${esc(m.text)}</div>`:`<div class="bub ${m.place?'place':m.from===a.id?'me':'ot'}"><div class="who">${m.place?'📍 만나는 장소 안내 · ':''}${m.from===a.id?'나':esc(acct(m.from).name)} · ${esc(m.at)}${m.from!==a.id?` · <a data-act="reportSheet" data-kind="메시지" data-target="${r.id}:${mi}" style="cursor:pointer;text-decoration:underline">신고</a>`:''}</div>${esc(m.text)}</div>`).join('')||'<div class="mini" style="text-align:center">아직 메시지가 없어요</div>'}</div>${msgOpen(r)?`<form class="chat-in" data-form="doMsg" data-id="${r.id}"><input class="in" id="mi" placeholder="${el?'장소·시간 등을 안내해 주세요':'메시지 입력'}" autocomplete="off"><button aria-label="보내기">${I.send}</button></form>`:`<p class="mini" style="margin:10px 0 0">${['completed','await_confirm'].includes(r.stage)?'활동이 끝나 읽기만 가능해요':'종료되어 읽기만 가능해요'}</p>`}</div>`:`<p class="muted">${r.stage==='wait_helper'?'상대가 수락하면 메시지를 주고받을 수 있어요.':'메시지를 보낼 수 없는 상태예요.'}</p>`}
+ ${a.id!==r.helperId||true?`<p style="text-align:center;margin-top:18px"><a class="mini" data-act="reportSheet" data-kind="활동" data-target="${r.id}" style="cursor:pointer;text-decoration:underline">신고하기</a></p>`:''}`};};
+ACT.doMsg=(d)=>{const r=reqOf(d.id);const t=val('#mi');if(!t)return;const x=sendMsg(r,D.cur,t);if(!x.ok)return toast(x.err);render();};
+ACT.accH=d=>{const x=helperAccept(reqOf(d.id));if(!x.ok)return toast(x.err);toast('수락했어요. 받는 분의 최종 수락을 기다려요');render();};
+const REASONS=['시간이 맞지 않아요','내용이 어려워요','개인 사정이 생겼어요','기타'];
+ACT.rejH=d=>sheet(`<h2>거절 사유</h2>${REASONS.map(x=>`<div class="opt" data-act="rejGo" data-id="${d.id}" data-side="helper" data-r="${x}"><span>${x}</span></div>`).join('')}`);
+ACT.rejR=d=>{const r=reqOf(d.id);if(r.recv.k==='elder')return sheet(`<h2>어르신께 확인했나요?</h2><p class="muted">담당자가 전화·방문으로 어르신 의사를 확인한 뒤 대신 거부해요.</p>${['전화','방문'].map(h=>`<div class="opt" data-act="rejGo2" data-id="${d.id}" data-how="${h}"><span>${h}로 확인했어요</span></div>`).join('')}`);
+ sheet(`<h2>거부 사유</h2>${REASONS.map(x=>`<div class="opt" data-act="rejGo" data-id="${d.id}" data-side="recv" data-r="${x}"><span>${x}</span></div>`).join('')}`);};
+ACT.rejGo2=d=>sheet(`<h2>거부 사유</h2>${REASONS.map(x=>`<div class="opt" data-act="rejGo" data-id="${d.id}" data-side="recv" data-r="${x}" data-how="${d.how}"><span>${x}</span></div>`).join('')}`);
+ACT.rejGo=d=>{const x=rejectReq(reqOf(d.id),d.side,d.r,d.how);closeSheet();toast(x.ok?'거절했어요':x.err);render();};
+ACT.accR=d=>{const r=reqOf(d.id);if(r.recv.k==='elder')return sheet(`<h2>어르신께 확인했나요?</h2><p class="muted">어르신은 직접 조작하지 않아요. 담당자가 확인한 방법을 기록하고 대신 수락해요.</p>${['전화','방문'].map(h=>`<div class="opt" data-act="accR2" data-id="${d.id}" data-how="${h}"><span>${h}로 확인했어요</span></div>`).join('')}`);
+ const x=recvAccept(r);if(!x.ok)return toast(x.err);toast('수락했어요. 일정이 확정됐어요');render();};
+ACT.accR2=d=>{closeSheet();const x=recvAccept(reqOf(d.id),d.how);toast(x.ok?'대신 수락했어요. 일정이 확정됐어요':x.err);render();};
+ACT.cancelReqA=d=>{const r=reqOf(d.id);const free=['wait_helper','wait_recv'].includes(r.stage)||hoursLeft(startAt(r.date,r.start))>=24;confirmSheet('취소할까요?',free?'무료로 취소할 수 있어요.':'활동 24시간 이내 취소예요. 봉사자가 취소하면 신뢰 점수에 기록돼요.','취소하기',()=>{const x=cancelReq(r,D.cur);toast(x.ok?'취소했어요':x.err);render();},true);};
+ACT.startA=d=>{startAct(reqOf(d.id));toast('활동을 시작했어요');render();};
+ACT.finA=d=>sheet(`<h2>활동 일지</h2><p class="muted">한두 줄이면 충분해요. AI가 문장을 다듬어 줘요.</p><textarea class="in" id="jt" rows="4" placeholder="예) 진료 동행하고 약국까지 다녀왔어요."></textarea><label class="sw"><div><div class="t">활동 사진 1장 첨부 (시연)</div><div class="d">받는 분이 동의한 경우에만 올릴 수 있어요</div></div><input type="checkbox" id="jp"></label><label class="sw"><div class="t">받는 분의 사진 동의를 받았어요</div><input type="checkbox" id="jpc"></label><div id="jai"></div><div class="btns" style="margin-top:12px"><button class="btn soft" data-act="jPol">AI로 다듬기</button><button class="btn" data-act="jGo" data-id="${d.id}">제출</button></div>`);
+ACT.jPol=()=>{const t=val('#jt');if(!t)return toast('내용을 적어 주세요');aiRun('#jai',`<div class="ai"><div class="ah">${spk}정리한 일지 ${M(3)}</div><p style="margin:4px 0 0">${esc(polish(t))}</p></div>`,600);};
+ACT.jGo=d=>{const t=val('#jt');if(!t)return toast('내용을 적어 주세요');if($('#jp').checked&&!$('#jpc').checked)return toast('사진은 받는 분의 동의가 있어야 올릴 수 있어요');finishAct(reqOf(d.id),t,$('#jp').checked);closeSheet();toast('일지를 제출했어요');render();};
+ACT.cfmA=d=>{const r=reqOf(d.id);sheet(`<h2>활동 확인</h2><div class="card"><b>봉사자 일지</b><p style="margin:4px 0 0">${esc(r.journal.ai)}</p></div>${r.recv.k==='elder'?`<p class="muted">담당자가 어르신께 확인한 내용을 기준으로 해 주세요.</p>`:''}<div class="lbl2">실제 활동 시간</div>${sel('ch',TIMES(.5,r.hours).map(([h])=>[h,h+'시간']),r.hours)}<p class="mini">줄이면 적립·차감도 줄어요. 확인하지 않으면 24시간 뒤 일지 기준으로 자동 확정돼요.</p><div class="btns" style="margin-top:10px"><button class="btn ghost" data-act="closeSheet">나중에</button><button class="btn" data-act="cfmGo" data-id="${d.id}">확정</button></div>`);};
+ACT.cfmGo=d=>{const r=reqOf(d.id);confirmAct(r,'recv',+val('#ch'));closeSheet();toast(`${fmt(r.credit)}시간이 확정됐어요`);render();};
+let RS=5;
+ACT.rateA=d=>{RS=5;sheet(`<h2>${esc(acct(reqOf(d.id).helperId).name)} 님은 어땠나요?</h2><div class="stars">${[1,2,3,4,5].map(i=>`<button class="on" data-act="star" data-n="${i}">★</button>`).join('')}</div>${chipsSel('rtg',TAGS_RATE)}<button class="btn" style="margin-top:14px" data-act="rateGo" data-id="${d.id}">평가 남기기</button><p class="mini" style="text-align:center">평점은 봉사자 프로필에 공개돼요</p>`);};
+ACT.star=d=>{RS=+d.n;document.querySelectorAll('.stars button').forEach((b,i)=>b.classList.toggle('on',i<RS));};
+ACT.rateGo=d=>{rateHelper(reqOf(d.id),RS,chosen('rtg'));closeSheet();toast('평가해 주셔서 고마워요');render();};
+ACT.rateH=d=>{RS=5;sheet(`<h2>받은 분은 어땠나요?</h2><p class="muted">비공개 점수로, 운영 참고용으로만 쓰여요.</p><div class="stars">${[1,2,3,4,5].map(i=>`<button class="on" data-act="star" data-n="${i}">★</button>`).join('')}</div><button class="btn" data-act="rateHGo" data-id="${d.id}">남기기</button>`);};
+ACT.rateHGo=d=>{rateRecv(reqOf(d.id),RS);closeSheet();toast('남겼어요');render();};
+
+/* ---- 통장 ---- */
+SCREENS.u_wallet=()=>{const a=me();const L=ledgerOf(a);const tb=lifetimeEarned(a);
+ return {title:'시간 통장',html:`
+ <div class="card" style="background:var(--brand);color:#fff"><div style="opacity:.85">사용 가능한 시간</div><div style="font-size:38px;font-weight:800;letter-spacing:-1px">${fmt(Math.max(0,available(a)))}<span style="font-size:16px"> 시간</span></div>${holdOf(a)?`<div style="opacity:.85;font-size:13px">진행 중인 활동 예약 ${fmt(holdOf(a))}시간 반영</div>`:''}</div>
+ <div class="stats c3" style="margin-top:10px"><div class="stat"><b>${fmt(Math.max(0,earnedBal(a)))}</b><span>직접 적립</span></div><div class="stat"><b>${fmt(giftBal(a))}</b><span>선물받은 시간</span></div><div class="stat"><b>${fmt(tb)}</b><span>누적 적립</span></div></div>
+ <div class="card"><div class="row between"><b>받을 수 있는 자격</b>${tb>=10?tp('충족','ok'):tp('적립 중','y')}</div><div class="bar" style="margin:10px 0 6px"><i style="width:${Math.min(100,tb*10)}%"></i></div><div class="mini">직접 적립한 시간은 <b>누적 10시간 이상</b>부터 쓸 수 있어요. 가족에게 선물받은 시간은 바로 쓸 수 있어요. (B-33)</div></div>
+ <div class="btns" style="margin-top:10px"><button class="btn soft" data-act="giftSheet">${I.gift}가족에게 선물</button><button class="btn soft" data-go="family">가족 연결</button></div>
+ <div class="sec-t sm">가중치 (난이도)</div><div class="card"><table class="tbl">${[['기본 ×1.0',CATS.filter(c=>c.w===1).map(c=>SHORT[c.k]).join(', ')],['수고 ×1.2',CATS.filter(c=>c.w===1.2).map(c=>SHORT[c.k]).join(', ')],['책임 ×1.5',CATS.filter(c=>c.w===1.5).map(c=>SHORT[c.k]).join(', ')]].map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td></tr>`).join('')}</table><div class="mini" style="margin-top:6px">적립 = 활동 시간 × 가중치 (0.5시간 단위 반올림)</div></div>
+ <div class="sec-t sm">월별 결산</div><div class="card"><table class="tbl"><tr><th>월</th><th>적립·받음</th><th>사용·선물</th><th>순</th></tr>${monthly(a).map(([k,v])=>`<tr><td>${k.slice(5)}월</td><td style="color:var(--green)">+${fmt(v.in)}</td><td style="color:var(--redc)">-${fmt(v.out)}</td><td><b>${fmt(v.in-v.out)}</b></td></tr>`).join('')||'<tr><td colspan=4>내역 없음</td></tr>'}</table></div>
+ <div class="sec-t sm">거래 내역</div>${L.map(x=>`<div class="rq"><div style="flex:1;min-width:0"><div class="rq-cat" style="color:${x.t>=0?'var(--green)':'var(--redc)'}">${x.k}</div><div class="rq-t" style="font-size:15px">${esc(x.d)}</div><div class="rq-m">${x.date}${x.w?` · ${x.h}시간×${x.w}`:''}</div></div><b style="font-size:18px;color:${x.t>=0?'var(--green)':'var(--redc)'}">${x.t>=0?'+':''}${fmt(x.t)}</b></div>`).join('')||empty('거래 내역이 없어요')}`};};
+ACT.giftSheet=()=>{const a=me();const f=famOf(a);if(!f.length)return toast('먼저 가족을 연결해 주세요');sheet(`<h2>가족에게 시간 선물</h2><p class="muted">내가 직접 적립한 시간만 선물할 수 있어요 (보낼 수 있는 시간 ${fmt(Math.max(0,earnedBal(a)))}). 선물받은 시간은 다시 선물할 수 없어요.</p><div class="lbl2">받는 가족</div>${sel('gt',f.map(x=>[x.id,x.name]))}<div class="lbl2">시간</div><input class="in" id="gh" type="number" min="0.5" step="0.5" value="2"><button class="btn" style="margin-top:14px" data-act="giftGo">선물하기</button>`);};
+ACT.giftGo=()=>{const x=giftTime(me(),acct(val('#gt')),+val('#gh'));if(!x.ok)return toast(x.err);closeSheet();toast('선물했어요');render();};
+SCREENS.family=()=>{const a=me();const l=D.famLinks.filter(f=>f.a===a.id||f.b===a.id);return {title:'가족 연결',tab:'u_wallet',html:`<p class="muted">가족을 연결하면 시간을 선물하거나 받을 수 있어요. 서로 확인(아이디 입력 + 상대 승인)이 필요해요.</p>${l.map(f=>{const o=acct(f.a===a.id?f.b:f.a);return `<div class="card"><div class="row between"><div class="row">${av(o.name)}<b>${esc(o.name)}</b></div>${tp(f.status,f.status==='연결'?'ok':'y')}</div>${f.status==='대기'&&f.b===a.id?`<button class="btn sm" style="margin-top:8px" data-act="famOk" data-id="${f.id}">연결 수락</button>`:''}</div>`;}).join('')||empty('연결된 가족이 없어요')}<div class="lbl2">가족 아이디로 연결 요청</div><div class="chat-in"><input class="in" id="fi" placeholder="가족의 아이디"><button data-act="famReq" style="width:80px">요청</button></div>`};};
+ACT.famReq=()=>{const o=D.users.find(u=>u.loginId===val('#fi'));if(!o||o.id===D.cur)return toast('해당 아이디를 찾을 수 없어요');D.famLinks.push({id:nid('f'),a:D.cur,b:o.id,status:'대기'});notify(o.id,`${me().name} 님이 가족 연결을 요청했어요`,{name:'family',p:{}});toast('요청했어요');render();};
+ACT.famOk=d=>{D.famLinks.find(f=>f.id===d.id).status='연결';toast('연결했어요');render();};
+
+/* ---- 단골 · 관심조건 · 리포트 ---- */
+SCREENS.regulars=()=>{const a=me();const l=regularsOf('user',a.id);return {title:'내 단골',tab:'u_my',html:`<p class="muted">같은 봉사자에게 <b>3번 이상</b> 도움을 받으면 단골이 돼요. 단골에게는 공고 없이 바로 요청할 수 있어요 (그래도 상대가 24시간 안에 수락해야 해요).</p>${l.map(x=>helperCard(x.u,tp(x.n+'회','o'))).join('')||empty('아직 단골이 없어요')}${l.map(x=>`<button class="btn" style="margin-top:10px" data-go="u_sendreq" data-kind="direct" data-helper="${x.u.id}">${esc(x.u.name)} 님께 요청하기</button>`).join('')}`};};
+SCREENS.watch=()=>{const a=me();return {title:'관심 조건 알림',tab:'u_my',html:`<p class="muted">조건에 맞는 공고가 올라오면 알려 드려요.</p>${a.watch.map((w,i)=>`<div class="card"><div class="row between"><b>${esc(w.region||'모든 동네')} · ${w.cat?SHORT[w.cat]:'모든 분야'}</b><button class="btn sm inl ghost" data-act="wDel" data-i="${i}">삭제</button></div></div>`).join('')||empty('설정한 조건이 없어요')}<div class="lbl2">조건 추가</div>${sel('wr',[['','모든 동네'],...REGIONS.map(r=>[r,r])])}<div style="height:8px"></div>${sel('wc',[['','모든 분야'],...CN.map(c=>[c,c])])}<button class="btn" style="margin-top:12px" data-act="wAdd">추가</button>`};};
+ACT.wAdd=()=>{me().watch.push({region:val('#wr'),cat:val('#wc')});toast('추가했어요');render();};
+ACT.wDel=d=>{me().watch.splice(+d.i,1);render();};
+SCREENS.life_report=p=>{const rk=p.k||'user',rid=p.id||D.cur;const rep=genReport(rk,rid);const nm=nameOf(rk,rid);
+ return {title:'생활 변화 리포트',html:`<h2 style="margin:0">${esc(nm)}</h2><p class="muted">활동 일지를 모아 한 달 변화를 정리해 드려요 ${M(3)} · 생성 ${fdt(D.repAt)}</p>
+ <div class="stats"><div class="stat"><b>${rep.a}회</b><span>이번 달 활동</span></div><div class="stat"><b>${rep.b}회</b><span>지난달 활동</span></div></div>
+ <div class="ai" style="margin-top:12px"><div class="ah">${spk}이번 달 요약</div>${rep.lines.map(x=>`<p style="margin:6px 0 0">${esc(x)}</p>`).join('')}</div>
+ ${rep.flag?`<div class="card alert" style="margin-top:12px"><b>확인해 보세요</b><p style="margin:4px 0 0">일지에서 평소와 다른 언급이 있었어요. ${rk==='elder'?'담당자 확인 후 필요하면 공공 서비스를 안내해 주세요.':'필요하면 가까운 분께 안부를 전해 보세요.'}</p><button class="btn soft sm" style="margin-top:8px" data-go="svc" data-q="혼자 지내시는 분 안부 확인">공공 서비스 안내 보기</button></div>`:''}`};};
+
+/* ---- 내 정보 ---- */
+SCREENS.u_my=()=>{const a=me();const st={none:'미신청',pending:'심사 중',approved:'승인',rejected:'반려'}[a.ver.status];
+ return {title:'내 정보',html:`<div class="pfcard">${av(a.name,'lg')}<div><h2 style="margin:0">${esc(a.name)}</h2><div class="muted">${esc(a.region)} · ${a.rating.length?`★ ${fmt(avgRating(a))}`:'평가 없음'}</div><div class="tps" style="margin-top:6px">${helperOK(a)?tp('봉사자 인증','ok'):tp('봉사자 미인증','g')}${a.pen?tp('늦은 취소 '+a.pen+'회','r'):''}</div></div></div>
+ <div class="card click" data-tab="u_wallet"><div class="row between"><b>내 시간 통장</b><span><b style="font-size:20px">${fmt(Math.max(0,available(a)))}</b> 시간 사용 가능</span></div><div class="mini" style="margin-top:6px">${ledgerOf(a).slice(0,2).map(x=>`${esc(x.d)} ${x.t>=0?'+':''}${fmt(x.t)}`).join(' · ')||'아직 거래가 없어요'}</div></div>
+ <div class="lbl2">활동</div><div class="menu"><div class="m" data-go="verify"><span>봉사자 인증</span><span class="r">${st}${I.down.replace('<svg','<svg style="transform:rotate(-90deg)"')}</span></div><div class="m" data-go="profile_edit"><span>프로필 수정</span></div><div class="m" data-go="regulars"><span>내 단골</span><span class="r">${regularsOf('user',a.id).length}명</span></div><div class="m" data-go="watch"><span>관심 조건 알림</span><span class="r">${a.watch.length}개</span></div><div class="m" data-go="life_report" data-k="user" data-id="${a.id}"><span>생활 변화 리포트</span></div><div class="m" data-go="family_reports"><span>가족 리포트</span></div></div>
+ <div class="lbl2">설정</div><div class="menu" style="padding:0 16px"><div class="sw"><div><div class="t">리포트를 연결된 가족에게 공유</div><div class="d">언제든 철회할 수 있어요</div></div><button class="btn sm inl ${a.share?'':'ghost'}" data-act="shareT">${a.share?'공유 중':'꺼짐'}</button></div><div class="sw"><div><div class="t">전화·문자 대체 알림 (AI 음성)</div><div class="d">앱을 못 보는 분께 음성으로 알려요</div></div><button class="btn sm inl ${a.voice?'':'ghost'}" data-act="voiceT">${a.voice?'켜짐':'꺼짐'}</button></div></div>
+ <div class="lbl2">안내</div><div class="menu"><div class="m" data-go="svc"><span>공공 서비스 안내 (AI)</span></div><div class="m" data-go="notices"><span>공지사항</span></div><div class="m" data-go="inquiries"><span>문의하기</span></div><div class="m" data-go="my_cases"><span>내 신고·문의 내역</span></div></div>
+ <div class="lbl2">계정</div><div class="menu"><div class="m" data-act="logout"><span>로그아웃</span></div><div class="m" data-go="withdraw"><span style="color:var(--redc)">회원 탈퇴</span></div></div><div style="height:20px"></div>`};};
+
+/* ---- B-12 소개 카드 ---- */
+function introCard(u){return `<div class="card info"><div class="mini" style="font-weight:700;margin-bottom:6px">소개 카드</div><div class="row">${av(u.name,'lg')}<div><b>${esc(u.name)}</b> ${u.rating.length?`<span class="mini">★ ${fmt(avgRating(u))}</span>`:''}<div class="mini">${esc(u.region)} · ${esc(u.times||'')}</div></div></div><p style="margin:8px 0 0">${esc(u.intro||'소개가 아직 없어요')}</p><div class="mini" style="margin-top:4px">경험: ${esc(u.exp||'-')} · 완료 ${doneCount(u)}회 · ${u.ver.crime?'범죄경력 확인':'신원 인증'}</div></div>`;}
+ACT.noshowA=d=>confirmSheet('봉사자가 오지 않았나요?','노쇼로 기록되고 봉사자에게 패널티가 적용돼요.','노쇼 신고',()=>{const x=reportNoShow(reqOf(d.id));toast(x.ok?'노쇼로 기록했어요':x.err);render();},true);
+ACT.placeA=d=>sheet(`<h2>만나는 장소 안내</h2><p class="muted">수락된 뒤 담당자가 봉사자에게만 알려 줘요. 어르신 상세 주소는 저장되지 않아요.</p><input class="in" id="pl" placeholder="예) 행복정형외과 1층 로비"><button class="btn" style="margin-top:12px" data-act="placeGo" data-id="${d.id}">보내기</button>`);
+ACT.placeGo=d=>{const r=reqOf(d.id);if(!val('#pl'))return toast('장소를 입력해 주세요');r.thread.push({from:D.cur,place:true,text:val('#pl'),at:fdt(NOW)});notifyHelper(r,'만나는 장소 안내가 도착했어요');closeSheet();render();};
+ACT.appealA=d=>sheet(`<h2>난이도 이의 신청</h2><p class="muted">실제 난이도가 달랐다면 운영자가 확인해 조정해요.</p><textarea class="in" id="apx" rows="3" placeholder="예) 계단이 많고 짐이 무거웠어요"></textarea><button class="btn" style="margin-top:12px" data-act="appealGo" data-id="${d.id}">신청</button>`);
+ACT.appealGo=d=>{if(!val('#apx'))return toast('사유를 적어 주세요');appealDiff(reqOf(d.id),val('#apx'));closeSheet();toast('이의 신청을 접수했어요');render();};
+/* ---- B-09 작성 중 필터 ---- */
+document.addEventListener('input',e=>{const t=e.target;if(!t.dataset||!t.dataset.flt)return;clearTimeout(t._f);t._f=setTimeout(()=>{const o=document.getElementById(t.dataset.flt);if(!o)return;const c=classify(t.value);o.innerHTML=c.lv==='block'?`<div class="card alert" style="margin-top:8px"><b>🚫 불가 · ${c.why}</b><div class="mini">이 서비스에서는 도울 수 없는 내용이에요. 등록하면 차단돼요.${c.alt&&c.alt.length?' 대신 '+esc(c.alt[0].name)+'을 안내해요.':''}</div></div>`:c.lv==='caution'?`<div class="card" style="background:#FFF6D6;margin-top:8px"><b>⚠ 주의</b><div class="mini">${c.notes.join(' ')}</div></div>`:(t.value.length>6?`<div class="mini" style="margin-top:6px;color:var(--green)">✓ 가능한 요청이에요</div>`:'');},250);});
+/* ---- P-04 가족 리포트 · P-06 공유 동의 ---- */
+SCREENS.family_reports=()=>{const a=me();const l=famOf(a);return {title:'가족 리포트',tab:'u_my',html:`<p class="muted">연결된 가족이 공유에 <b>동의한 경우에만</b> 볼 수 있어요. 본인 리포트는 가족용 화면에서 보지 않아요.</p>${l.map(f=>`<div class="rq ${f.share?'click':''}" ${f.share?`data-go="life_report" data-k="user" data-id="${f.id}"`:''}>${av(f.name)}<div style="flex:1"><div class="rq-t">${esc(f.name)}</div><div class="rq-m">${f.share?'리포트 보기':'공유에 동의하지 않았어요'}</div></div>${f.share?tp('공유 중','ok'):tp('비공개','g')}</div>`).join('')||empty('연결된 가족이 없어요')}`};};
+ACT.shareT=()=>{const a=me();a.share=!a.share;toast(a.share?'가족에게 리포트를 공유해요':'공유를 철회했어요');render();};
+ACT.voiceT=()=>{const a=me();a.voice=!a.voice;toast(a.voice?'전화·문자(AI 음성) 알림을 켰어요':'껐어요');render();};
+
+/* ================= 담당자 화면 ================= */
+const mgrReqs=m=>D.reqs.filter(r=>(r.recv.k==='elder'&&elderOf(r.recv.id).mgr===m.id));
+SCREENS.m_home=()=>{const a=me();const el=eldersOf(a);const todo=todoReqs(a);const nowA=mgrReqs(a).filter(r=>['confirmed','inprogress'].includes(r.stage));
+ return {title:a.org,html:`
+ <div class="stats"><div class="stat"><b>${el.length}명</b><span>담당 어르신</span></div><div class="stat ${todo.length?'warnc2':''}"><b>${todo.length}건</b><span>내가 처리할 건</span></div></div>
+ <div class="btns" style="margin-top:12px"><button class="btn" data-go="u_compose" data-type="need">${I.pen}어르신 도움 요청 올리기</button><button class="btn soft" data-go="m_elder_new">${I.user}어르신 등록</button></div>
+ <div class="card info" style="margin-top:12px"><b>담당자가 하는 일</b><div class="mini">어르신은 직접 신청하지 않아요. 공고를 올리고, 들어온 제안을 전화·방문으로 확인한 뒤 <b>대신 수락·거부</b>하고, 활동 후 확인까지 해요. 시간 차감은 없어요.</div></div>
+ ${todo.length?`<div class="sec-t">처리할 건 <a>${todo.length}</a></div>${todo.map(reqCard).join('')}`:''}
+ ${nowA.length?`<div class="sec-t">진행·예정 활동</div>${nowA.map(reqCard).join('')}`:''}
+ <div class="sec-t">담당 어르신 <a data-tab="m_home" data-go="m_elders">전체</a></div>${el.map(elderCard).join('')||empty('등록된 어르신이 없어요')}`};};
+function elderCard(e){const n=activeReqsOfElder(e).length;const pc=D.posts.filter(p=>p.aKind==='elder'&&p.aId===e.id&&p.status==='open').length;return `<div class="rq click" data-go="m_elder" data-id="${e.id}"><span class="avatar">${esc(e.alias[0])}</span><div style="flex:1;min-width:0"><div class="rq-t">${esc(e.alias)} 어르신</div><div class="rq-m">${esc(e.dong)} · ${e.needs.map(c=>SHORT[c]).join('·')}</div></div><div style="text-align:right">${n?tp('진행 '+n,'o'):''}${pc?`<div class="mini">공고 ${pc}</div>`:''}</div></div>`;}
+SCREENS.m_elders=()=>({title:'담당 어르신',tab:'m_home',html:`<button class="btn" data-go="m_elder_new">어르신 등록</button><div style="margin-top:12px">${eldersOf(me()).map(elderCard).join('')||empty('등록된 어르신이 없어요')}</div>`});
+SCREENS.m_elder_new=()=>({title:'어르신 등록',tab:'m_home',html:`<div class="card info"><div class="mini">실명·연락처·주소는 입력하지 않아요. <b>별칭, 동네, 필요한 도움, 주의사항</b>만 저장돼요 (C-01, B-13).</div></div><form data-form="doElder"><div class="lbl2">별칭 (공개)</div><input class="in" id="ea" placeholder="예) 민들레"><div class="lbl2">동네</div>${sel('ed2',REGIONS.map(r=>[r,r]))}<div class="lbl2">필요한 도움</div>${chipsSel('en',CN,[],c=>SHORT[c])}<div class="lbl2">주의사항</div><textarea class="in" id="ec" rows="3" placeholder="예) 무릎이 아파 천천히 걸으세요"></textarea><div class="card"><b style="font-size:14px">등록 확인</b><label class="sw"><div class="d">이 분이 시간 개념 없이 도움만 받는 대상이며, 가까이서 도울 가족이 많지 않음을 확인했어요</div><input type="checkbox" id="eok"></label></div><button class="btn" style="margin-top:14px">등록</button></form>`});
+ACT.doElder=()=>{const al=val('#ea');if(!al)return toast('별칭을 입력해 주세요');if(!chosen('en').length)return toast('필요한 도움을 선택해 주세요');if(!$('#eok').checked)return toast('대상 확인에 체크해 주세요');if(D.elders.some(e=>e.mgr===D.cur&&e.alias===al))return toast('이미 같은 별칭이 있어요');const id=nid('e');D.elders.push({id,alias:al,dong:val('#ed2'),needs:chosen('en'),caution:val('#ec')||'특이사항 없음',mgr:D.cur,status:'active'});toast('등록했어요');back();go('m_elder',{id});};
+SCREENS.m_elder=p=>{const e=elderOf(p.id);if(!e)return{title:'',html:empty('없어요')};const a=me();const reg=regularsOf('elder',e.id);const rs=D.reqs.filter(r=>r.recv.k==='elder'&&r.recv.id===e.id);const ps=D.posts.filter(p=>p.aKind==='elder'&&p.aId===e.id&&p.status!=='deleted');
+ return {title:`${e.alias} 어르신`,tab:'m_home',html:`<div class="pfcard"><span class="avatar" style="width:56px;height:56px;font-size:20px">${esc(e.alias[0])}</span><div><h2 style="margin:0">${esc(e.alias)}</h2><div class="muted">${esc(e.dong)} · ${e.status==='active'?'이용 중':'종료'}</div></div></div>
+ <div class="card"><div class="kvl"><span>필요한 도움</span><span>${e.needs.map(c=>SHORT[c]).join(', ')}</span></div><div class="kvl"><span>주의사항</span><span>${esc(e.caution)}</span></div><div class="kvl"><span>받은 도움</span><span>${rs.filter(r=>r.stage==='completed').length}회</span></div><div class="kvl"><span>시간 차감</span><span>없음</span></div></div>
+ ${e.status==='active'?`<div class="btns"><button class="btn" data-go="u_compose" data-type="need" data-elder="${e.id}">공고 올리기</button><button class="btn soft" data-act="elderEdit" data-id="${e.id}">정보 수정</button></div>`:''}
+ <div class="sec-t sm">단골 봉사자</div>${reg.map(x=>helperCard(x.u,tp(x.n+'회','o'))).join('')||`<p class="muted">3회 이상 도와준 봉사자가 단골이 돼요.</p>`}${reg.map(x=>`<button class="btn soft" style="margin-top:8px" data-go="u_sendreq" data-kind="direct" data-helper="${x.u.id}" data-elder="${e.id}">${esc(x.u.name)} 님께 요청하기</button>`).join('')}
+ <div class="sec-t sm">활동 내역</div>${rs.map(reqCard).join('')||empty('내역이 없어요')}
+ <div class="sec-t sm">공고</div>${ps.map(postCard).join('')||empty('공고가 없어요')}
+ <div class="sec-t sm">생활 변화</div><button class="btn ghost" data-go="life_report" data-k="elder" data-id="${e.id}">생활 변화 리포트 보기</button>
+ <div class="sw" style="margin-top:8px"><div><div class="t">리포트 공유 동의 (대신 입력)</div><div class="d">어르신께 전화·방문으로 확인한 뒤 입력해요 · 현재 ${e.share?'동의':'미동의'}</div></div><button class="btn sm inl ${e.share?'':'ghost'}" data-act="elderShare" data-id="${e.id}">${e.share?'동의함':'동의 입력'}</button></div>
+ ${e.status==='active'?`<div class="btns" style="margin-top:18px"><button class="btn ghost" data-act="transferSheet" data-id="${e.id}">다른 담당자에게 이관</button><button class="btn ghost" data-act="elderEnd" data-id="${e.id}">이용 종료</button></div>`:''}`};};
+ACT.elderEdit=d=>{const e=elderOf(d.id);sheet(`<h2>정보 수정</h2><div class="lbl2">필요한 도움</div>${chipsSel('en2',CN,e.needs,c=>SHORT[c])}<div class="lbl2">주의사항</div><textarea class="in" id="ec2" rows="3">${esc(e.caution)}</textarea><button class="btn" style="margin-top:12px" data-act="elderEditGo" data-id="${e.id}">저장</button>`);};
+ACT.elderEditGo=d=>{const e=elderOf(d.id);if(chosen('en2').length)e.needs=chosen('en2');e.caution=val('#ec2')||e.caution;closeSheet();toast('저장했어요');render();};
+ACT.elderEnd=d=>confirmSheet('이용을 종료할까요?','종료하면 열린 공고는 삭제돼요. 진행 중인 활동이 있으면 종료할 수 없어요.','종료',()=>{const x=endElder(elderOf(d.id));toast(x.ok?'종료했어요':x.err);if(x.ok)back();},true);
+ACT.transferSheet=d=>{const o=D.mgrs.filter(m=>m.id!==D.cur&&m.status==='active');sheet(`<h2>담당자 이관</h2><p class="muted">받는 담당자가 수락하면 이관돼요 (C-10). 진행 중 건이 있으면 이관할 수 없어요.</p>${sel('tm',o.map(m=>[m.id,m.name+' · '+m.org]))}<button class="btn" style="margin-top:12px" data-act="transferGo" data-id="${d.id}">이관 요청</button>`);};
+ACT.transferGo=d=>{const e=elderOf(d.id);const a=activeReqsOfElder(e);if(a.length)return toast(`진행 중인 요청 ${a.length}건을 먼저 정리해 주세요`);const to=val('#tm');D.transfers.push({id:nid('t'),elder:e.id,from:D.cur,to,status:'대기'});notify(to,`${me().name} 담당자가 ${e.alias} 어르신을 이관 요청했어요`,{name:'m_my',p:{}});closeSheet();toast('이관을 요청했어요');};
+SCREENS.m_acts=()=>{const a=me();const l=mgrReqs(a);const g=[['처리 필요',l.filter(r=>todoReqs(a).includes(r))],['진행·예정',l.filter(r=>ACTIVE.includes(r.stage)&&!todoReqs(a).includes(r))],['완료',l.filter(r=>r.stage==='completed')],['종료',l.filter(r=>['rejected','expired','auto_rejected','cancelled'].includes(r.stage))]];
+ return {title:'어르신 활동',html:g.map(([t,x])=>x.length?`<div class="sec-t sm">${t} ${x.length}</div>${x.map(reqCard).join('')}`:'').join('')||empty('내역이 없어요')};};
+SCREENS.m_my=()=>{const a=me();const tr=D.transfers.filter(t=>t.to===a.id&&t.status==='대기');
+ return {title:'내 정보',html:`<div class="pfcard">${av(a.name,'lg')}<div><h2 style="margin:0">${esc(a.name)}</h2><div class="muted">${esc(a.org)}</div></div></div>
+ ${tr.map(t=>`<div class="card info"><b>이관 요청</b><p style="margin:4px 0 8px">${esc(acct(t.from).name)} 담당자 → ${esc(elderOf(t.elder).alias)} 어르신</p><div class="btns"><button class="btn ghost sm" data-act="trNo" data-id="${t.id}">거절</button><button class="btn sm" data-act="trOk" data-id="${t.id}">수락</button></div></div>`).join('')}
+ <div class="lbl2">안내</div><div class="menu"><div class="m" data-go="svc"><span>공공 서비스 안내 (AI)</span></div><div class="m" data-go="notices"><span>공지사항</span></div><div class="m" data-go="inquiries"><span>문의하기</span></div><div class="m" data-go="my_cases"><span>내 신고·문의 내역</span></div><div class="m" data-go="profile_edit"><span>정보 수정</span></div></div>
+ <div class="lbl2">계정</div><div class="menu"><div class="m" data-act="logout"><span>로그아웃</span></div></div>`};};
+ACT.trOk=d=>{const t=D.transfers.find(x=>x.id===d.id);t.status='완료';elderOf(t.elder).mgr=D.cur;notify(t.from,`${elderOf(t.elder).alias} 어르신 이관이 수락됐어요`,{name:'m_home',p:{}});toast('이관을 받았어요');render();};
+ACT.trNo=d=>{const t=D.transfers.find(x=>x.id===d.id);t.status='거절';notify(t.from,'이관이 거절됐어요',{name:'m_home',p:{}});render();};
+
+/* ================= 운영자 화면 ================= */
+const pendingVer=()=>D.users.filter(u=>u.ver.status==='pending');
+const openRep=()=>D.reports.filter(r=>r.status==='접수');
+SCREENS.a_dash=()=>{const tb=timeBalance();const an=anomalies();
+ const d=D.reqs;const cnt=s=>d.filter(r=>r.stage===s).length;
+ const bars=CN.map(c=>[c,d.filter(r=>r.cat===c&&r.stage==='completed').length]);const mx=Math.max(1,...bars.map(b=>b[1]));
+ return {title:'운영 대시보드',html:`
+ <div class="stats"><div class="stat"><b>${D.users.filter(u=>u.status==='active').length}</b><span>사용자</span></div><div class="stat"><b>${D.elders.filter(e=>e.status==='active').length}</b><span>어르신(별칭)</span></div><div class="stat"><b>${d.filter(r=>r.stage==='completed').length}</b><span>완료 활동</span></div><div class="stat"><b>${d.filter(r=>ACTIVE.includes(r.stage)).length}</b><span>진행 중</span></div></div>
+ <div class="sec-t sm">수요·공급 · 독거노인 이용량</div><div class="card">${(()=>{const s=demandSupply();return `<div class="kvl"><span>열린 봉사 가능 공고(공급)</span><span>${s.o}건</span></div><div class="kvl"><span>열린 도움 요청 공고(수요)</span><span>${s.n}건</span></div><div class="kvl"><span>독거노인 요청 / 완료 시간</span><span>${s.eReq}건 / ${fmt(s.eh)}시간</span></div>`;})()}</div>
+ <div class="sec-t sm">지역별 매칭 성공률</div><div class="card">${regionStats().map(g=>`<div class="kvl" style="gap:10px"><span style="width:56px">${g.g}</span><span style="flex:1;text-align:left"><div style="height:10px;border-radius:5px;background:var(--brand);width:${g.rate==null?0:Math.max(4,g.rate)}%"></div></span><span>${g.rate==null?'-':g.rate+'%'} <span class="mini">(${g.ok}/${g.n})</span></span></div>`).join('')}<div class="mini" style="margin-top:4px">성공률 = 확정 이상 ÷ (확정 이상 + 거절·만료·취소)</div></div>
+ <div class="sec-t sm">처리 대기</div><div class="menu"><div class="m" data-go="a_inbox" data-t="rep"><span>신고</span><span class="r">${openRep().length?`<span class="dotn">${openRep().length}</span>`:'0'}</span></div><div class="m" data-go="a_inbox" data-t="ver"><span>봉사자 인증</span><span class="r">${pendingVer().length?`<span class="dotn">${pendingVer().length}</span>`:'0'}</span></div><div class="m" data-go="a_inbox" data-t="org"><span>기관 신청</span><span class="r">${D.orgApps.filter(o=>o.status==='대기').length}</span></div><div class="m" data-go="a_inbox" data-t="an"><span>이상 패턴 ${M(4)}</span><span class="r">${an.length?`<span class="dotn">${an.length}</span>`:'0'}</span></div></div>
+ <div class="sec-t sm">시간 발행·사용 (적립 − 차감)</div><div class="card"><div class="kvl"><span>총 적립</span><span>${fmt(tb.issued)}시간</span></div><div class="kvl"><span>사용자 차감</span><span>${fmt(tb.spent)}시간</span></div><div class="kvl"><span>독거노인 건 적립(차감 없음)</span><span>${fmt(tb.elder)}시간</span></div><div class="kvl"><span>순 증가분</span><span>${fmt(tb.gap)}시간</span></div><div class="mini" style="margin-top:6px">독거노인 지원분이 늘면 총량이 커지므로 추이를 확인해요.</div></div>
+ <div class="sec-t sm">단계별 요청 현황</div><div class="card">${['wait_helper','wait_recv','confirmed','inprogress','await_confirm','completed','expired','rejected'].map(s=>`<div class="kvl"><span>${STAGE_LABEL[s]}</span><span>${cnt(s)}건</span></div>`).join('')}</div>
+ <div class="sec-t sm">분야별 완료</div><div class="card">${bars.map(([c,n])=>`<div class="kvl" style="gap:10px"><span style="width:76px">${SHORT[c]}</span><span style="flex:1;text-align:left"><div style="height:10px;border-radius:5px;background:${CC[c][1]};width:${Math.max(4,n/mx*100)}%"></div></span><span>${n}</span></div>`).join('')}</div>
+ <div class="sec-t sm">${M(4)} 월간 요약</div><div class="ai"><div class="ah">${spk}이번 달</div><p style="margin:4px 0 0">완료 활동 ${d.filter(r=>r.stage==='completed').length}건 중 독거노인 지원이 ${d.filter(r=>r.stage==='completed'&&r.recv.k==='elder').length}건이에요. 응답 기한 만료 ${cnt('expired')}건, 신고 ${D.reports.length}건이 있었어요.${an.length?` 같은 사람 사이 짧은 활동 반복 패턴 ${an.length}건을 확인해 주세요.`:''}</p></div>`};};
+let AIN='rep';
+SCREENS.a_inbox=p=>{if(p.t)AIN=p.t;const T=[['rep','신고',openRep().length],['ver','인증',pendingVer().length],['org','기관',D.orgApps.filter(o=>o.status==='대기').length],['inq','문의',D.inquiries.filter(q=>q.status!=='답변 완료').length],['ap','이의',D.appeals.filter(x=>x.status==='대기').length],['an','이상',anomalies().length]];
+ let body='';
+ if(AIN==='rep') body=D.reports.map(r=>`<div class="card"><div class="row between"><b>${esc(r.kind)} 신고 · ${esc(r.type)}</b>${tp(r.status,r.status==='접수'?'y':'ok')}</div><div class="mini">신고자 ${esc(acct(r.by).name)} · 대상 ${r.tuser?esc(acct(r.tuser).name):'-'} · ${r.at}</div><p style="margin:6px 0">${esc(r.text)}</p>${r.kind==='공고'&&postOf(r.target)?`<a class="mini" data-go="u_post" data-id="${r.target}" style="color:var(--brand);cursor:pointer">공고 보기</a>`:r.kind==='활동'?`<a class="mini" data-go="u_req" data-id="${r.target}" style="color:var(--brand);cursor:pointer">활동 보기</a>`:''}${r.status==='접수'?`<div class="btns" style="margin-top:8px"><button class="btn ghost sm" data-act="repDo" data-id="${r.id}" data-r="기각">기각</button><button class="btn ghost sm" data-act="repDo" data-id="${r.id}" data-r="경고">경고</button><button class="btn warn sm" data-act="repDo" data-id="${r.id}" data-r="정지">정지</button><button class="btn warn sm" data-act="repDo" data-id="${r.id}" data-r="퇴출">퇴출</button></div>`:`<div class="mini">결과: ${esc(r.result)}</div>`}</div>`).join('')||empty('신고가 없어요');
+ else if(AIN==='ver') body=D.users.filter(u=>['pending','approved','rejected'].includes(u.ver.status)).map(u=>`<div class="card"><div class="row between"><div class="row">${av(u.name)}<div><b>${esc(u.name)}</b><div class="mini">${esc(u.region)}</div></div></div>${tp({pending:'심사 중',approved:'승인',rejected:'반려'}[u.ver.status],{pending:'y',approved:'ok',rejected:'r'}[u.ver.status])}</div><div class="mini" style="margin-top:6px">신분증 ${u.ver.id?'✓':'-'} · 범죄경력 ${u.ver.crime?'✓':'-'} · 안전교육 ${u.ver.safety?'✓':'-'}</div>${u.ver.status==='pending'?`<div class="btns" style="margin-top:8px"><button class="btn ghost sm" data-act="verDo" data-id="${u.id}" data-r="rejected">반려</button><button class="btn sm" data-act="verDo" data-id="${u.id}" data-r="approved">승인</button></div>`:''}</div>`).join('')||empty('심사 대상이 없어요');
+ else if(AIN==='org') body=D.orgApps.map(o=>`<div class="card"><div class="row between"><b>${esc(o.org)}</b>${tp(o.status,o.status==='대기'?'y':o.status==='승인'?'ok':'r')}</div><div class="mini">${esc(o.name)} · ${esc(o.phone)} · ${o.at}</div><p style="margin:6px 0">${esc(o.note)}</p>${o.status==='대기'?`<div class="btns"><button class="btn ghost sm" data-act="orgDo" data-id="${o.id}" data-r="반려">반려</button><button class="btn sm" data-act="orgDo" data-id="${o.id}" data-r="승인">승인·계정 발급</button></div>`:''}</div>`).join('')||empty('신청이 없어요');
+ else if(AIN==='inq') body=D.inquiries.map(q=>`<div class="card"><div class="row between"><b>${esc(q.title)}</b>${tp(q.status,q.status==='답변 완료'?'ok':'y')}</div><div class="mini">${esc(acct(q.by).name)} · ${esc(q.type)}</div><p style="margin:6px 0">${esc(q.body)}</p>${q.status!=='답변 완료'?`<textarea class="in" id="ia${q.id}" rows="2" placeholder="답변"></textarea><div class="btns" style="margin-top:6px"><button class="btn ghost sm" data-act="inqSt" data-id="${q.id}">${q.status==='처리 중'?'접수로 되돌리기':'처리 중으로 변경'}</button><button class="btn sm" data-act="inqDo" data-id="${q.id}">답변 등록</button></div>`:`<div class="card info"><div class="mini">답변</div>${esc(q.answer)}</div>`}</div>`).join('')||empty('문의가 없어요');
+ else if(AIN==='ap') body=D.appeals.map(x=>`<div class="card"><div class="row between"><b>난이도 이의 신청</b>${tp(x.status,x.status==='대기'?'y':'ok')}</div><div class="mini">${esc(acct(x.by).name)}${x.req&&reqOf(x.req)?` · <a data-go="u_req" data-id="${x.req}" style="color:var(--brand);cursor:pointer">${esc(reqOf(x.req).cat)} ${fmt(reqOf(x.req).hours)}h → ${fmt(reqOf(x.req).credit)}h 적립</a>`:''}</div><p style="margin:6px 0">${esc(x.text)}</p>${x.status==='대기'?`<div class="btns"><button class="btn ghost sm" data-act="apDo" data-id="${x.id}" data-r="기각">기각</button><button class="btn sm" data-act="apDo" data-id="${x.id}" data-r="수용">수용·+0.5시간 조정</button></div>`:`<div class="mini">${x.status}</div>`}</div>`).join('')||empty('이의 신청이 없어요');
+ else body=`<p class="muted">같은 두 사람 사이에서 짧은 활동이 반복되면 시간 적립 목적일 수 있어요 ${M(4)}</p>`+(anomalies().map(x=>`<div class="card alert"><b>${esc(x.helper.name)} → ${esc(x.recv)}</b><div class="mini">최근 8일 1시간 이하 활동 ${x.reqs.length}회 (총 ${fmt(x.reqs.reduce((s,r)=>s+r.credit,0))}시간 적립)</div><div class="btns" style="margin-top:8px"><button class="btn ghost sm" data-act="anDo" data-k="${x.key}" data-r="ok">정상으로 판단</button><button class="btn warn sm" data-act="anDo" data-k="${x.key}" data-r="hold">적립 보류</button></div></div>`).join('')||empty('감지된 이상 패턴이 없어요'));
+ return {title:'처리함',html:`<div class="tabrow">${T.map(([k,l,n])=>`<button class="chip ${AIN===k?'on':''}" data-act="ain" data-k="${k}">${l}${n?` ${n}`:''}</button>`).join('')}</div>${body}`};};
+ACT.ain=d=>{AIN=d.k;render();};
+ACT.repDo=d=>{const r=D.reports.find(x=>x.id===d.id);r.status='처리 완료';r.result=d.r==='기각'?'확인 결과 위반 사항이 없어 기각했어요.':d.r==='경고'?'상대에게 경고를 전달했어요.':d.r==='퇴출'?'상대를 서비스에서 퇴출했어요.':'상대의 이용을 정지했어요.';
+ if((d.r==='정지'||d.r==='퇴출')&&r.tuser){const u=acct(r.tuser);if(u&&u.role==='user'){u.status=d.r==='퇴출'?'expelled':'suspended';D.posts.filter(p=>p.aKind==='user'&&p.aId===u.id&&p.status==='open').forEach(p=>p.status='deleted');D.reqs.filter(q=>['wait_helper','wait_recv'].includes(q.stage)&&(q.helperId===u.id||(q.recv.k==='user'&&q.recv.id===u.id))).forEach(q=>{q.stage='cancelled';q.cancelFree=true;});}}
+ if(d.r==='경고'&&r.tuser)notify(r.tuser,'운영자 경고: 이용 수칙을 지켜 주세요',{name:'notices',p:{}});
+ notify(r.by,`신고 처리 결과: ${r.result}`,{name:'my_reports',p:{}});toast('처리했어요');render();};
+ACT.verDo=d=>{const u=acct(d.id);u.ver.status=d.r;notify(u.id,d.r==='approved'?'봉사자 인증이 승인됐어요. 이제 봉사할 수 있어요':'봉사자 인증이 반려됐어요. 서류를 다시 확인해 주세요',{name:'verify',p:{}});toast('처리했어요');render();};
+ACT.orgDo=d=>{const o=D.orgApps.find(x=>x.id===d.id);o.status=d.r;if(d.r==='승인'){const id=nid('m');D.mgrs.push({id,role:'mgr',name:o.name,loginId:'org'+id,pw:'1234',org:o.org,phone:o.phone,status:'active'});o.account='org'+id;}toast(d.r==='승인'?`승인했어요 (계정 org${''}발급)`:'반려했어요');render();};
+ACT.inqDo=d=>{const q=D.inquiries.find(x=>x.id===d.id);const t=val('#ia'+d.id);if(!t)return toast('답변을 적어 주세요');q.answer=t;q.status='답변 완료';notify(q.by,'문의에 답변이 등록됐어요',{name:'inquiries',p:{}});render();};
+ACT.apDo=d=>{const x=D.appeals.find(a=>a.id===d.id);x.status=d.r;if(d.r==='수용'&&x.req){const r=reqOf(x.req);if(r){r.credit=+(r.credit+0.5);r.adj=(r.adj||0)+0.5;}}notify(x.by,`난이도 이의 신청이 ${d.r}됐어요`,{name:'notices',p:{}});render();};
+ACT.anDo=d=>{const g=anomalies().find(x=>x.key===d.k);if(g)g.reqs.forEach(r=>{if(d.r==='hold')r.onHold=true;else r.cleared=true;});toast(d.r==='hold'?'적립을 보류했어요':'정상으로 처리했어요');render();};
+SCREENS.a_members=()=>{const T=[['user','사용자'],['mgr','담당자(기관)'],['elder','어르신(별칭)']];const t=AM;
+ return {title:'회원·기관',html:`<div class="seg sm">${T.map(([k,l])=>`<button class="${t===k?'on':''}" data-act="am" data-k="${k}">${l}</button>`).join('')}</div><div style="margin-top:12px">${t==='user'?D.users.map(u=>`<div class="rq click" data-go="a_member" data-id="${u.id}">${av(u.name)}<div style="flex:1;min-width:0"><div class="rq-t">${esc(u.name)} <span class="mini">${esc(u.region)}</span></div><div class="rq-m">${helperOK(u)?'봉사자 인증':'미인증'} · 적립 ${fmt(lifetimeEarned(u))}h · 평점 ${u.rating.length?fmt(avgRating(u)):'-'}${u.pen?` · 늦은 취소 ${u.pen}`:''}</div></div>${u.status==='active'?`<button class="btn sm inl ghost" data-act="suspend" data-id="${u.id}">정지</button>`:tp(u.status==='left'?'탈퇴':u.status==='expelled'?'퇴출':'정지됨','r')+(u.status==='suspended'?`<button class="btn sm inl" style="margin-left:6px" data-act="restore" data-id="${u.id}">복구</button>`:'')}</div>`).join(''):t==='mgr'?D.mgrs.map(m=>`<div class="rq">${av(m.name)}<div style="flex:1"><div class="rq-t">${esc(m.name)}</div><div class="rq-m">${esc(m.org)} · 담당 어르신 ${eldersOf(m).length}명</div></div>${m.status==='active'?`<button class="btn sm inl ghost" data-act="mgrSus" data-id="${m.id}">정지</button>`:tp('정지됨','r')+`<button class="btn sm inl" style="margin-left:6px" data-act="mgrRes" data-id="${m.id}">해제</button>`}</div>`).join(''):D.elders.map(e=>`<div class="rq"><span class="avatar">${esc(e.alias[0])}</span><div style="flex:1"><div class="rq-t">${esc(e.alias)} 어르신</div><div class="rq-m">${esc(e.dong)} · 담당 ${esc(acct(e.mgr).name)} · ${e.status==='active'?'이용 중':'종료'}</div></div></div>`).join('')}</div><p class="mini" style="margin-top:10px">운영자는 어르신의 실명·연락처를 볼 수 없어요 (저장하지 않아요).</p>`};};
+let AM='user';ACT.am=d=>{AM=d.k;render();};
+ACT.suspend=d=>confirmSheet('이용을 정지할까요?','열린 공고는 삭제되고 대기 중 요청은 취소돼요.','정지',()=>{const u=acct(d.id);u.status='suspended';D.posts.filter(p=>p.aKind==='user'&&p.aId===u.id&&p.status==='open').forEach(p=>p.status='deleted');toast('정지했어요');render();},true);
+ACT.restore=d=>{acct(d.id).status='active';toast('복구했어요');render();};
+SCREENS.a_ops=()=>({title:'운영',html:`<div class="sec-t sm">공지 등록</div><div class="card"><input class="in" id="nt" placeholder="제목"><textarea class="in" id="nb" rows="3" placeholder="내용" style="margin-top:8px"></textarea><button class="btn" style="margin-top:10px" data-act="noticeGo">등록</button></div>
+ <div class="sec-t sm">카테고리·가중치 (B-07, B-27)</div><div class="card"><table class="tbl"><tr><th>분야</th><th>등급</th><th>가중치</th></tr>${CATS.map(c=>`<tr><td>${c.k}</td><td>${c.lv}</td><td>×${c.w}</td></tr>`).join('')}</table><div class="mini" style="margin-top:6px">난이도 이의 신청이 쌓이면 이 표를 조정해요.</div></div>
+ <div class="sec-t sm">공공 서비스 자료 관리 (AI 안내 근거)</div>${D.svc.map(s=>`<div class="card"><div class="row between"><b>${esc(s.name)}</b>${tp(s.region||'전국','g')}</div><div class="mini">${esc(s.where)}</div><div class="btns" style="margin-top:8px"><button class="btn ghost sm" data-go="a_svc_edit" data-id="${s.id}">수정</button><button class="btn ghost sm" data-act="svcDel" data-id="${s.id}">삭제</button></div></div>`).join('')}<button class="btn soft" style="margin-top:10px" data-go="a_svc_edit" data-id="">+ 서비스 등록</button>
+ <div class="sec-t sm">생활 변화 리포트 (시연용)</div><div class="card"><div class="mini">월 1회 자동 생성돼요. 마지막 생성: ${fdt(D.repAt)}</div><button class="btn" style="margin-top:8px" data-act="repGen">리포트 지금 생성</button></div>
+ <div class="sec-t sm">공지 목록 (수정·삭제)</div>${D.notices.map(n=>`<div class="card"><b>${esc(n.title)}</b><div class="mini">${n.at}</div><div class="btns" style="margin-top:8px"><button class="btn ghost sm" data-act="noticeEdit" data-id="${n.id}">수정</button><button class="btn ghost sm" data-act="noticeDel" data-id="${n.id}">삭제</button></div></div>`).join('')}
+ <div class="sec-t sm">계정</div><div class="menu"><div class="m" data-act="logout"><span>로그아웃</span></div></div>`});
+ACT.noticeGo=()=>{if(!val('#nt')||!val('#nb'))return toast('제목과 내용을 입력해 주세요');D.notices.unshift({id:nid('n'),title:val('#nt'),body:val('#nb'),at:dkey(NOW)});D.users.forEach(u=>notify(u.id,`새 공지: ${val('#nt')}`,{name:'notices',p:{}}));toast('등록했어요');render();};
+
+ACT.elderShare=d=>{const e=elderOf(d.id);e.share=!e.share;toast(e.share?'공유 동의를 입력했어요':'동의를 철회했어요');render();};
+ACT.inqSt=d=>{const q=D.inquiries.find(x=>x.id===d.id);q.status=q.status==='처리 중'?'접수':'처리 중';render();};
+ACT.mgrSus=d=>{const o=D.mgrs.filter(m=>m.id!==d.id&&m.status==='active');const n=eldersOf(acct(d.id)).length;sheet(`<h2>담당자 계정 정지</h2><p class="muted">담당 어르신 ${n}명을 다른 담당자에게 넘겨요 (D-01).</p>${n?sel('mto',o.map(m=>[m.id,m.name+' · '+m.org])):''}<button class="btn warn" style="margin-top:12px" data-act="mgrSusGo" data-id="${d.id}">정지하고 재배정</button>`);};
+ACT.mgrSusGo=d=>{const n=eldersOf(acct(d.id)).length;if(n){const to=val('#mto');if(!to)return toast('받을 담당자가 없어요');reassignElders(d.id,to);}acct(d.id).status='suspended';closeSheet();toast('정지했어요');render();};
+ACT.mgrRes=d=>{acct(d.id).status='active';toast('해제했어요');render();};
+ACT.noticeEdit=d=>{const n=D.notices.find(x=>x.id===d.id);sheet(`<h2>공지 수정</h2><input class="in" id="net" value="${esc(n.title)}"><textarea class="in" id="neb" rows="4" style="margin-top:8px">${esc(n.body)}</textarea><button class="btn" style="margin-top:12px" data-act="noticeEditGo" data-id="${n.id}">저장</button>`);};
+ACT.noticeEditGo=d=>{const n=D.notices.find(x=>x.id===d.id);n.title=val('#net')||n.title;n.body=val('#neb')||n.body;closeSheet();toast('수정했어요');render();};
+ACT.noticeDel=d=>confirmSheet('공지를 삭제할까요?','삭제하면 사용자에게 더 이상 보이지 않아요.','삭제',()=>{D.notices=D.notices.filter(x=>x.id!==d.id);render();},true);
+SCREENS.a_svc_edit=p=>{const s=p.id?D.svc.find(x=>x.id===p.id):{name:'',target:'',what:'',where:'',region:'전국',kw:[]};return {title:p.id?'서비스 수정':'서비스 등록',tab:'a_ops',html:`<form data-form="svcSave" data-id="${p.id||''}"><div class="lbl2">이름</div><input class="in" id="vn" value="${esc(s.name)}"><div class="lbl2">대상</div><input class="in" id="vt" value="${esc(s.target)}"><div class="lbl2">내용</div><textarea class="in" id="vw" rows="2">${esc(s.what)}</textarea><div class="lbl2">신청처·문의처</div><input class="in" id="vh" value="${esc(s.where)}"><div class="lbl2">지역</div>${sel('vr',[['전국','전국'],...REGIONS.map(r=>[r,r])],s.region||'전국')}<div class="lbl2">검색 키워드 (쉼표로 구분)</div><input class="in" id="vk" value="${esc((s.kw||[]).join(','))}"><button class="btn" style="margin-top:16px">저장</button></form>`};};
+ACT.svcSave=d=>{if(!val('#vn')||!val('#vh'))return toast('이름과 문의처는 꼭 필요해요');const o={name:val('#vn'),target:val('#vt'),what:val('#vw'),where:val('#vh'),region:val('#vr'),kw:val('#vk').split(',').map(x=>x.trim()).filter(Boolean)};if(d.id)Object.assign(D.svc.find(x=>x.id===d.id),o);else D.svc.push({id:nid('s'),...o});toast('저장했어요');back();};
+ACT.svcDel=d=>confirmSheet('삭제할까요?','AI 안내에서 더 이상 사용하지 않아요.','삭제',()=>{D.svc=D.svc.filter(x=>x.id!==d.id);render();},true);
+ACT.repGen=()=>{D.repAt=new Date(NOW);D.users.filter(u=>u.status==='active'&&D.reqs.some(r=>r.recv.k==='user'&&r.recv.id===u.id&&r.stage==='completed')).forEach(u=>notify(u.id,'이번 달 생활 변화 리포트가 만들어졌어요',{name:'life_report',p:{k:'user',id:u.id}}));D.mgrs.forEach(m=>{if(eldersOf(m).length)notify(m.id,'담당 어르신 생활 변화 리포트가 만들어졌어요',{name:'m_elders',p:{}});});toast('리포트를 생성하고 알림을 보냈어요');render();};
+SCREENS.a_member=p=>{const u=acct(p.id);const hs=D.reqs.filter(r=>r.helperId===u.id),rs=D.reqs.filter(r=>r.recv.k==='user'&&r.recv.id===u.id);const c=l=>l.filter(r=>r.stage==='completed').length;
+ return {title:'회원 상세',tab:'a_members',html:`<div class="pfcard">${av(u.name,'lg')}<div><h2 style="margin:0">${esc(u.name)}</h2><div class="muted">${esc(u.region)} · ${u.status==='active'?'이용 중':u.status==='suspended'?'정지':u.status==='expelled'?'퇴출':'탈퇴'}</div></div></div>
+ <div class="stats c3" style="margin-top:12px"><div class="stat"><b>${c(hs)}</b><span>봉사한 활동</span></div><div class="stat"><b>${c(rs)}</b><span>받은 활동</span></div><div class="stat"><b>${u.pen}</b><span>패널티</span></div></div>
+ <div class="card"><div class="kvl"><span>구분</span><span>${helperOK(u)?'봉사하는 사용자 + 봉사받는 사용자':'봉사받는 사용자 (봉사 미인증)'}</span></div><div class="kvl"><span>봉사자 인증</span><span>${{none:'미신청',pending:'심사 중',approved:'승인',rejected:'반려'}[u.ver.status]}</span></div><div class="kvl"><span>누적 적립 / 사용 가능</span><span>${fmt(lifetimeEarned(u))} / ${fmt(Math.max(0,available(u)))}시간</span></div><div class="kvl"><span>평점</span><span>${u.rating.length?fmt(avgRating(u))+' ('+u.rating.length+')':'-'}</span></div><div class="kvl"><span>가입 동네</span><span>${esc(u.region)}</span></div></div>
+ <div class="sec-t sm">최근 활동</div>${[...hs,...rs].slice(0,6).map(reqCard).join('')||empty('활동이 없어요')}
+ ${u.status==='active'?`<button class="btn warn" style="margin-top:14px" data-act="suspend" data-id="${u.id}">이용 정지</button>`:u.status==='suspended'?`<button class="btn" style="margin-top:14px" data-act="restore" data-id="${u.id}">정지 해제</button>`:''}`};};
+
+/* ================= 시작 ================= */
+seed(); D.__live=false;
+nav.stack=[{name:'login',p:{}}];
+document.addEventListener('DOMContentLoaded',()=>render());
+if(document.readyState!=='loading') render();
+
+</script>
+</body></html>

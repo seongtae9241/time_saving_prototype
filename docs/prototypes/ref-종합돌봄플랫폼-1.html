@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2F6B5E">
+<title>시간 적금 - 시간은행 & LLM 종합 돌봄 플랫폼</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+:root{
+  --bg:#F5F7F9; --paper:#FFFFFF; --line:#E6E9EE; --ink:#17191C; --sub:#57606D; --mute:#949CA9;
+  --brand:#2F6B5E; --brand-2:#245449; --brand-soft:#EAF3F0;
+  --amber:#D97706; --amber-soft:#FEF3C7; --red:#DC2626; --red-soft:#FEE2E2; --blue:#2563EB; --blue-soft:#EFF6FF;
+  --purple:#7C3AED; --purple-soft:#F3E8FF;
+  --r:16px; --fs:15px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);font-family:Pretendard,system-ui,sans-serif;color:var(--ink);font-size:var(--fs);line-height:1.5;letter-spacing:-.3px}
+body.big{--fs:18px}
+button,input,textarea,select{font:inherit;color:inherit}
+#app{max-width:540px;margin:0 auto;height:100dvh;background:var(--paper);position:relative;display:flex;flex-direction:column;box-shadow:0 0 30px rgba(0,0,0,.06)}
+
+/* 헤더 */
+.hd{position:sticky;top:0;z-index:30;background:#fff;display:flex;align-items:center;gap:8px;padding:10px 18px;min-height:56px;border-bottom:1px solid var(--line)}
+.hd .bk{width:36px;height:36px;border:0;background:transparent;border-radius:10px;display:grid;place-items:center;cursor:pointer}
+.hd .bk:hover{background:var(--bg)}
+.hd h1{font-size:18px;margin:0;flex:1;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip-role{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer}
+.chip-role .dot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
+
+/* 본문 */
+.bd{flex:1;overflow-y:auto;padding:16px 18px 40px}
+.sec-t{font-size:16px;font-weight:700;color:var(--ink);margin:24px 0 10px;display:flex;justify-content:space-between;align-items:center}
+.sec-t a{font-size:13px;font-weight:600;color:var(--brand);cursor:pointer}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:0 2px 6px rgba(0,0,0,.02)}
+.card + .card{margin-top:10px}
+.click{cursor:pointer;transition:transform .08s ease, border-color .15s}
+.click:hover{border-color:#CBD5E1}
+.click:active{transform:scale(.985)}
+.row{display:flex;align-items:center;gap:10px}
+.grow{flex:1;min-width:0}
+.between{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.muted{color:var(--sub)} .mute2{color:var(--mute);font-size:12.5px} .small{font-size:13.5px} .b{font-weight:700}
+
+/* 버튼 */
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:48px;border-radius:12px;border:0;background:var(--brand);color:#fff;font-weight:700;font-size:15px;cursor:pointer;padding:0 14px}
+.btn:hover{background:var(--brand-2)}
+.btn[disabled]{background:#D2D6DC;cursor:default}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--bg)}
+.btn.soft{background:var(--brand-soft);color:var(--brand)}
+.btn.warn{background:var(--red)}
+.btn.sm{min-height:38px;font-size:13.5px;border-radius:10px}
+.btns{display:flex;gap:8px}
+.btns > *{flex:1}
+.stack > * + *{margin-top:10px}
+
+/* 태그 */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--bg);color:var(--sub)}
+.tag.green{background:var(--brand-soft);color:var(--brand)}
+.tag.amber{background:var(--amber-soft);color:var(--amber)}
+.tag.red{background:var(--red-soft);color:var(--red)}
+.tag.blue{background:var(--blue-soft);color:var(--blue)}
+.tag.purple{background:var(--purple-soft);color:var(--purple)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+
+/* 통장 히어로 */
+.hero{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-2) 100%);color:#fff;border-radius:20px;padding:20px;position:relative}
+.bk-top{display:flex;justify-content:space-between;font-size:12.5px;opacity:.9;margin-bottom:8px}
+.hero .num{font-size:36px;font-weight:800;line-height:1.1;margin:4px 0}
+.hero .num small{font-size:16px;font-weight:500;opacity:.85;margin-left:4px}
+.hero .acts{display:flex;gap:8px;margin-top:16px}
+.hero .acts button{flex:1;min-height:40px;border-radius:10px;border:0;background:rgba(255,255,255,.18);color:#fff;font-weight:600;font-size:13.5px;cursor:pointer}
+.hero .acts button:hover{background:rgba(255,255,255,.26)}
+
+/* 탭바 */
+.tabs{position:sticky;bottom:0;z-index:30;display:flex;background:#fff;border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.tabs button{flex:1;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;font-size:11px;color:var(--mute);cursor:pointer}
+.tabs button.on{color:var(--brand);font-weight:700}
+.tabs button svg{width:22px;height:22px}
+
+/* LLM 컴포넌트 */
+.ai{border:1px solid #C4DCD3;background:linear-gradient(180deg,#F5FAF8 0%,#FFFFFF 100%);border-radius:var(--r);padding:15px}
+.ai .ah{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--brand);margin-bottom:8px}
+.ai .mod{margin-left:auto;font-size:10.5px;padding:2px 7px;border-radius:4px;background:#DFF0EA;color:var(--brand);font-weight:700}
+.ai.warn{border-color:#FBCFE8;background:#FFF5F7}
+.ai.warn .ah{color:var(--red)} .ai.warn .mod{background:var(--red-soft);color:var(--red)}
+.ai.amber{border-color:#FDE68A;background:#FFFBEB}
+.ai.amber .ah{color:var(--amber)} .ai.amber .mod{background:var(--amber-soft);color:var(--amber)}
+.skel{height:12px;border-radius:6px;background:linear-gradient(90deg,#E8F1EE 25%,#D0E5DD 50%,#E8F1EE 75%);background-size:200% 100%;animation:sh 1.2s infinite linear;margin:8px 0}
+@keyframes sh{to{background-position:-200% 0}}
+
+/* 점수 매트릭스 */
+.score-matrix{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0;background:#fff;padding:8px;border-radius:10px;border:1px solid var(--line)}
+.score-item{text-align:center;font-size:11.5px}
+.score-item b{display:block;font-size:14px;color:var(--brand);margin-top:2px}
+
+/* 대화형 챗봇 (B-02) */
+.bd.chatv{display:flex;flex-direction:column;padding-bottom:0;background:#F9FAFB}
+.chat-wrap{flex:1;display:flex;flex-direction:column;gap:12px;padding-bottom:14px}
+.msg{max-width:86%;padding:11px 14px;border-radius:16px;line-height:1.5;font-size:14.5px}
+.msg.ai{background:#fff;border:1px solid var(--line);border-top-left-radius:4px;align-self:flex-start}
+.msg.me{background:var(--brand);color:#fff;border-top-right-radius:4px;align-self:flex-end}
+.chat-dock{position:sticky;bottom:0;background:#fff;margin:0 -18px;padding:10px 18px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.quick-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.quick-chips::-webkit-scrollbar{display:none}
+.quick-chips button{flex:0 0 auto;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 12px;font-size:12.5px;cursor:pointer}
+
+/* 폼 컨트롤 */
+.in{width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px 14px;outline:none}
+.in:focus{border-color:var(--brand)}
+label.f{display:block;font-size:13px;font-weight:700;color:var(--sub);margin:14px 2px 6px}
+.code-box{background:#1E293B;color:#F8FAFC;font-family:ui-monospace,monospace;font-size:12px;padding:10px 12px;border-radius:10px;overflow-x:auto;line-height:1.45;margin-top:6px}
+
+/* 모달 & 토스트 */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-end;justify-content:center}
+.ov.on{display:flex}
+.sheet{width:100%;max-width:540px;background:#fff;border-radius:20px 20px 0 0;padding:12px 20px calc(24px + env(safe-area-inset-bottom));max-height:86dvh;overflow-y:auto}
+.sheet .grab{width:40px;height:4px;border-radius:2px;background:#D1D5DB;margin:0 auto 14px}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(20px);background:rgba(23,25,28,.95);color:#fff;padding:10px 18px;border-radius:10px;font-size:13.5px;font-weight:600;opacity:0;pointer-events:none;transition:.2s;z-index:70}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13.5px}
+.kv dt{color:var(--sub)} .kv dd{margin:0;font-weight:600}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="hd" id="hd"></header>
+  <main class="bd" id="bd"></main>
+  <nav class="tabs" id="tabs"></nav>
+</div>
+<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- 아이콘 모음 ---------- */
+const I = {
+  back:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>',
+  down:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>',
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4" cy="6" r="1.5"/><circle cx="4" cy="12" r="1.5"/><circle cx="4" cy="18" r="1.5"/></svg>',
+  pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  wallet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="15" r="1.5"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.5A8 8 0 1 1 21 12z"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>',
+  spark:'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.3L20.5 10l-6.3 2.2L12 18.5l-2.2-6.3L3.5 10l6.3-1.7z"/></svg>',
+  send:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>'
+};
+
+/* ---------- 기준 데이터 (B-07, B-27, P-01) ---------- */
+const CATS = [
+  {k:'말동무·정서', w:1.0, lv:'기본', desc:'정서적 지지, 대화, 안부 확인'},
+  {k:'디지털 도움', w:1.0, lv:'기본', desc:'스마트폰, 키오스크, 앱 사용법 안내'},
+  {k:'생활 정리', w:1.0, lv:'기본', desc:'물건 수납, 분리수거, 옷장 정리'},
+  {k:'장보기·심부름', w:1.2, lv:'수고', desc:'생필품 구매 대행, 무거운 짐 운반'},
+  {k:'가벼운 집안일', w:1.2, lv:'수고', desc:'간단 청소, 설거지, 화분 관리'},
+  {k:'동행', w:1.5, lv:'책임', desc:'병원 진료, 외출 동행, 이동 부축'}
+];
+const W = k => (CATS.find(c=>c.k===k)||{w:1.0}).w;
+const LV = k => (CATS.find(c=>c.k===k)||{lv:'기본'}).lv;
+const fmt = n => (Math.round(n*10)/10).toFixed(1);
+
+const PUBLIC_SERVICES_DB = [
+  {
+    tag: '신체돌봄/목욕',
+    name: '노인장기요양보험 방문목욕 서비스',
+    desc: '전문 요양보호사가 이동목욕 차량 또는 가정 내 장비를 갖추고 방문 목욕 제공',
+    apply: '국민건강보험공단 지사 또는 포털 (☎ 1577-1000)'
+  },
+  {
+    tag: '신체돌봄/식사',
+    name: '노인맞춤돌봄 특화서비스 (생활지원사)',
+    desc: '전담 생활지원사가 주 2~3회 방문하여 영양 관리 및 일상생활 안위 점검 지원',
+    apply: '관할 읍면동 주민센터 복지팀 (☎ 129)'
+  },
+  {
+    tag: '의료행위/처치',
+    name: '보건소 방문건강관리사업 (가정간호)',
+    desc: '전담 간호사가 방문하여 혈압·혈당 측정, 복약 지도, 기본 처치 제공',
+    apply: '관할 행복구 보건소 방문보건팀 (☎ 02-2110-8000)'
+  },
+  {
+    tag: '금전관리/재산',
+    name: '성년후견제도 및 공공후견지원사업',
+    desc: '공공후견인을 지정하여 통장 관리, 병원 치료비 지출 등 재산·신상 보호 대리',
+    apply: '한국노인복지중앙회 또는 가정법원 (☎ 129)'
+  }
+];
+
+/* ---------- 데이터스토어 ---------- */
+const DB = {
+  role: 'user', // user | org | admin
+  userMode: 'volunteer', // volunteer | need
+  myProfile: {
+    name: '손유진',
+    phone: '010-8921-3321',
+    area: '행복동',
+    balance: 24.5,
+    monthEarned: 6.0,
+    monthUsed: 2.0,
+    family: [{id:'fam1', name:'엄마 이순자', phone:'010-3333-2222', area:'부산 해운대구'}]
+  },
+  posts: [
+    {id:'p1', type:'need', elderAlias:'행복어르신A', isSoloElder:true, orgName:'행복동 주민센터', cat:'동행', title:'정형외과 진료 및 약국 동행', hours:2.0, date:'11/12(수) 10:00~12:00', area:'행복동', note:'무릎 통증으로 보행 보조기 사용. 팔 부축만 요청.', status:'open'},
+    {id:'p2', type:'need', elderAlias:'단아한님', isSoloElder:false, cat:'장보기·심부름', title:'생필품 및 쌀 장보기', hours:1.0, date:'11/13(목) 14:00~15:00', area:'행복동', note:'마트 장보기 후 영수증 첨부 필요.', status:'open'},
+    {id:'p3', type:'volunteer', author:'김하늘', isRegular:true, cat:'동행', title:'평일 오전 병원/산책 동행해 드립니다', hours:3.0, date:'매주 화/목 09:00~13:00', area:'행복동', note:'대학생 메이트 / 동행 활동 8회 완료', status:'open'}
+  ],
+  activities: [
+    {
+      id:'act-101', postId:'p1', helper:'손유진', recipientAlias:'행복어르신A', isSoloElder:true, orgName:'행복동 주민센터',
+      cat:'동행', title:'정형외과 진료 및 약국 동행', hours:2.0, date:'11/12(수) 10:00~12:00',
+      status:'confirmed',
+      chat: [
+        {from:'helper', text:'안녕하세요! 담당 주무관님께 연락받았습니다. 9시 55분에 집 앞 골목에서 뵙겠습니다.'},
+        {from:'org', text:'네 메이트님 감사합니다. 어르신께서 보행차 이용하시니 계단 대신 엘리베이터 이용 부탁드립니다.'}
+      ],
+      log: null
+    }
+  ],
+  elders: [
+    {
+      id:'e1', alias:'행복어르신A', area:'행복동', needs:['동행','장보기'], caution:'보행 느림, 큰 소리로 대화',
+      reportSignal:'식사 섭취 25% 감소 주의',
+      monthlyLogs: [
+        '10/30 동행 활동: 무릎 주사 접종 완료. 점심을 귀찮다고 거의 안 드셨음.',
+        '11/04 장보기 지원: 김치와 라면 위주로만 구매 요청. 입맛이 없다고 하심.',
+        '11/08 말동무: 기운이 통 없다고 누워만 계심. 식사를 자주 거른다고 함.'
+      ]
+    },
+    {
+      id:'e2', alias:'샛별할머니', area:'행복동', needs:['말동무·정서'], caution:'독거 우울감 호소',
+      reportSignal:'외출 2회 증가(호전)',
+      monthlyLogs: [
+        '10/28 말동무: 옛날 바느질하던 이야기 즐겁게 나누심.',
+        '11/02 산책 동행: 동네 공원 벤치에서 이웃 어르신과 대화 나누고 웃으심.',
+        '11/07 스마트폰 도움: 손녀 영상통화 연결 후 매우 기뻐하심.'
+      ]
+    }
+  ]
+};
+
+/* ========================================================
+   [LLM 코어 엔진 (명세서 100% + 실전 킬러 기능 4종 추가)]
+======================================================== */
+const LLM = {
+  // 1. '이건 안 돼요' 3단계 필터링 (B-09, P-01)
+  checkSafety(text) {
+    const textNorm = text.toLowerCase();
+    const blockedPatterns = [
+      { regex: /목욕|씻겨|등밀어|샤워/, tag: '신체돌봄/목욕', reason: '목욕 및 신체 씻기기는 낙상 위험 및 안전사고 우려로 금지됩니다.' },
+      { regex: /식사\s*수발|떠먹여|밥\s*먹여/, tag: '신체돌봄/식사', reason: '음식물 섭취 보조 및 연하 곤란 케어는 전문 간병 영역입니다.' },
+      { regex: /기저귀|대변|소변|용변/, tag: '신체돌봄/배설', reason: '배설 수발 및 신체 위생 관리는 자원봉사 범위를 벗어납니다.' },
+      { regex: /주사|투약|약\s*타서\s*먹여|드레싱|상처\s*치료/, tag: '의료행위/처치', reason: '의료법상 무면허 의료 행위 및 투약 처치는 엄격히 금지됩니다.' },
+      { regex: /통장|비밀번호|현금\s*인출|이체|재산|계좌/, tag: '금전관리/재산', reason: '금융 자산 및 현금 대리 관리는 금융 사고 예방을 위해 금지됩니다.' }
+    ];
+
+    for(let b of blockedPatterns){
+      if(b.regex.test(textNorm)){
+        const pubService = PUBLIC_SERVICES_DB.find(s => s.tag === b.tag) || PUBLIC_SERVICES_DB[0];
+        return { status: 'BLOCK', reason: b.reason, rag: pubService };
+      }
+    }
+    if(/휠체어\s*들고|사다리|전구\s*교체|도배/.test(textNorm)){
+      return { status: 'CAUTION', reason: '낙상 및 안전사고 위험이 있는 중작업입니다. 평지 보조로 한정해야 합니다.' };
+    }
+    return { status: 'PASS' };
+  },
+
+  // 2. 다차원 정량 난이도 분석 & 가중치 산정 (B-08, B-27)
+  evaluateDifficulty(text, cat) {
+    let physical = 1, responsibility = 1, expertise = 1, mobility = 1;
+    if(cat === '동행'){
+      physical = 3; responsibility = 4; expertise = 2; mobility = 4;
+      if(/휠체어|부축|통증/.test(text)){ physical = 4; responsibility = 5; }
+    } else if(cat === '장보기·심부름'){
+      physical = 3; responsibility = 2; expertise = 1; mobility = 3;
+      if(/쌀|박스|생수|무거운/.test(text)){ physical = 4; mobility = 4; }
+    } else if(cat === '가벼운 집안일'){
+      physical = 3; responsibility = 2; expertise = 1; mobility = 1;
+    } else if(cat === '디지털 도움'){
+      physical = 1; responsibility = 2; expertise = 3; mobility = 1;
+    }
+
+    const totalScore = (physical + responsibility + expertise + mobility) / 4;
+    let lv = '기본', w = 1.0;
+    if(totalScore >= 3.2 || cat === '동행') { lv = '책임'; w = 1.5; }
+    else if(totalScore >= 2.2 || cat === '장보기·심부름' || cat === '가벼운 집안일') { lv = '수고'; w = 1.2; }
+
+    return {
+      scores: { physical, responsibility, expertise, mobility, totalScore: fmt(totalScore) },
+      lv, weight: w,
+      reason: `신체부담(${physical}점), 책임위험(${responsibility}점), 전문성(${expertise}점), 이동성(${mobility}점)을 종합하여 '${lv}' 등급(가중치 ×${w})으로 자동 산정되었습니다.`
+    };
+  },
+
+  // 3. 대화형 공고/요청 JSON 추출 (B-02)
+  extractPostJSON(text) {
+    let cat = '말동무·정서';
+    if(/병원|진료|약국|의원|동행|모셔다/.test(text)) cat = '동행';
+    else if(/장보기|마트|사다|배달|심부름/.test(text)) cat = '장보기·심부름';
+    else if(/스마트폰|카톡|휴대폰|컴퓨터|앱|폰/.test(text)) cat = '디지털 도움';
+    else if(/청소|설거지|집안일|화분/.test(text)) cat = '가벼운 집안일';
+    else if(/정리|분리수거|옷장/.test(text)) cat = '생활 정리';
+
+    let hours = 1.0;
+    const hourMatch = text.match(/(\d+)\s*시간/);
+    const minMatch = text.match(/(\d+)\s*분/);
+    if(hourMatch) hours = Math.min(4.0, parseFloat(hourMatch[1]));
+    if(minMatch && parseFloat(minMatch[1]) >= 30) hours += 0.5;
+
+    let dateStr = '협의 후 결정';
+    if(/내일/.test(text)) dateStr = '내일 오전 10:00';
+    else if(/오후/.test(text)) dateStr = '평일 오후 14:00';
+    else if(/주말|토요일|일요일/.test(text)) dateStr = '이번 주 토요일 11:00';
+
+    return {
+      cat, hours, date: dateStr,
+      rawTitle: text.length > 24 ? text.substring(0, 24) + '...' : text,
+      json: { category: cat, estimated_hours: hours, time_slot: dateStr, location: '행복동 관내', requirements: text }
+    };
+  },
+
+  // 4. 한 줄 기록 기반 표준 일지 교정 (B-24)
+  generateFormalLog(helperName, act, memo) {
+    const isCareAlert = /식사|밥|입맛|약|어지러|통증|기운/.test(memo);
+    const formalText = `[표준 활동 일지] 봉사자 '${helperName}' 님이 '${act.recipientAlias}' 님과 함께 계획된 [${act.cat}] 활동(${act.hours}시간)을 성실히 수행함. 현장에서 세부 안내 및 안전 점검을 차분히 병행함.`;
+    const careSignal = isCareAlert 
+      ? `주의 신호 감지: 메모 내 건강/식음 관련 특이사항("${memo}")이 포함되어 기관 생활변화 모니터링 대상으로 자동 등록됩니다.` 
+      : `특이사항 없음: 활동이 원만하게 종료되었습니다.`;
+
+    return {
+      formalSummary: formalText,
+      signal: careSignal,
+      verifiedWeight: W(act.cat),
+      earnedHours: fmt(act.hours * W(act.cat))
+    };
+  },
+
+  // 5. 독거노인 월간 생활변화 리포트 생성 (P-03, P-07)
+  generateLifeReport(elder) {
+    const logs = elder.monthlyLogs || [];
+    let foodDrop = logs.some(l => /식사|밥|안 드|입맛|라면/.test(l));
+    let moodPositive = logs.some(l => /웃으|즐겁|기뻐|대화/.test(l));
+
+    let narrative = foodDrop && !moodPositive
+      ? `'${elder.alias}' 님은 최근 한 달간 총 ${logs.length}회의 돌봄을 받으셨습니다. 다만 일지 분석 결과 봉사자들로부터 "식사를 거르신다", "입맛이 없다"는 보고가 2회 이상 연속 감지되어 일상 영양 섭취에 유의미한 저하가 관찰됩니다. (의료적 진단이 아니며, 주민센터 도시락 배달 등 영양 연계 조치를 제안합니다)`
+      : `'${elder.alias}' 님은 최근 한 달간 총 ${logs.length}회의 활동을 통해 외부 소통을 원활히 이어가고 계십니다. 일지 기록 상 "표정이 밝아지셨다", "즐겁게 대화하셨다"는 서술이 확인되어 정서적 안정 상태를 유지하고 계신 것으로 평가됩니다.`;
+
+    return {
+      elderAlias: elder.alias, logCount: logs.length, narrative,
+      metrics: { mealScore: foodDrop ? '25% 감소 (주의)' : '안정적', outingCount: logs.length + '회 수행', emotionTrend: moodPositive ? '호전' : '보통/침체' }
+    };
+  },
+
+  /* ===== [🚀 신규 추가된 실전 킬러 LLM 기능 4종] ===== */
+
+  // 킬러 1. 메시지 가드레일: 직거래/연락처 교환 감지 (A-08 연계)
+  inspectChatGuardrail(text) {
+    const phonePattern = /01[016789][-\s]?\d{3,4}[-\s]?\d{4}|공일공|카톡\s*아이디|번호\s*알려|개인\s*연락/;
+    const moneyPattern = /현금|차비|사례비|계좌|용돈|수고비|만원|원\s*입금/;
+    
+    if(phonePattern.test(text)){
+      return { blocked: true, reason: '안전을 위해 플랫폼 외부 직접 연락처(휴대폰 번호/카카오톡 ID) 교환은 차단됩니다.' };
+    }
+    if(moneyPattern.test(text)){
+      return { blocked: true, reason: '시간 적금은 순수 시간 교환 서비스입니다. 현금 수수 및 금전 거래 요구는 엄격히 금지됩니다.' };
+    }
+    return { blocked: false };
+  },
+
+  // 킬러 2. 독거노인 방문 전 'AI 안심 사전 브리핑' (B-13, B-35 연계)
+  generateElderBriefing(elder) {
+    const isE1 = elder.alias.includes('행복어르신A');
+    if(isE1){
+      return {
+        speechTopic: '젊은 시절 양장점 하셨던 이야기, 손자 이야기',
+        cautions: '무릎 관절염으로 걸음이 느리시니 계단 대신 엘리베이터를 이용하세요. 귀가 조금 어두우시니 천천히 크게 말씀해 주세요.',
+        recentNote: '지난주에 점심을 거르셨다는 일지가 있으니 "오늘 진지 챙겨드셨어요?"라고 따뜻하게 안부를 물어봐 주세요.'
+      };
+    } else {
+      return {
+        speechTopic: '동네 공원 산책 이야기, 좋아하시는 옛날 트로트 가요',
+        cautions: '혼자 계실 때 적적함을 많이 느끼시니 공감하며 이야기를 경청해 주세요.',
+        recentNote: '스마트폰으로 손녀와 영상통화하는 법을 매우 좋아하셨습니다.'
+      };
+    }
+  },
+
+  // 킬러 3. 운영자용 자연어 질의응답 (Text-to-Insight) (D-04, D-05 연계)
+  queryAdminInsight(query) {
+    const q = query.trim();
+    if(/동행|희망동|실패|공백/.test(q)){
+      return {
+        sqlQuery: "SELECT count(*) FROM requests WHERE area='희망동' AND cat='동행' AND status='unmatched'",
+        answer: "희망동 지역에서 이번 달 병원 동행 요청 29건 중 **17건(58.6%)**이 메이트 부족으로 매칭되지 못했습니다. 특히 **평일 오전(09시~12시)** 시간대에 자원봉사자 공급 공백이 집중되어 있습니다.",
+        actionProposal: "희망대학교 사회복지 동아리 및 인근 은퇴자 커뮤니티 대상 평일 오전 동행 봉사자 모집 알림 발송을 권장합니다."
+      };
+    } else if(/적립|총량|무차감|시간/.test(q)){
+      return {
+        sqlQuery: "SELECT sum(earned_hours) FROM activities WHERE recipient_type='solo_elder'",
+        answer: "현재까지 독거노인 지원으로 발생한 무차감 총 적립 시간은 **1,180시간**입니다. 지자체 보증 한도(2,000시간) 대비 안정적인 **59.0%** 소진율을 유지하고 있습니다.",
+        actionProposal: "현재 추세라면 연말까지 추가 예산 투입 없이 시간 적금 시스템 운영이 가능합니다."
+      };
+    } else {
+      return {
+        sqlQuery: "SELECT count(*) FROM users WHERE created_at >= '2026-11-01'",
+        answer: `이번 달 신규 가입한 봉사자는 **24명(+11%)**이며, 범죄경력회보서를 제출해 신뢰 배지를 획득한 비율은 **87.5%**로 매우 높습니다.`,
+        actionProposal: "지속적인 신규 봉사자 안심 교육(B-01) 이수를 독려 중입니다."
+      };
+    }
+  },
+
+  // 킬러 4. 어르신 맞춤형 '쉬운 말 순화기' (B-42 연계)
+  translateToEasyKorean(rawText) {
+    if(/약국|처방/.test(rawText)){
+      return "어르신, 병원 진료 끝나고 약국에서 약 타시는 것까지 천천히 손잡고 함께 다녀올게요. 걱정하지 마세요.";
+    }
+    return `어르신, 말씀하신 "${rawText}" 일정을 봉사자가 편안하게 도와드릴 수 있도록 준비했습니다.`;
+  }
+};
+
+/* ---------- 내비게이션 & UI 렌더링 ---------- */
+const nav = { stack: [] };
+const ROLES = {
+  user: { label:'일반 사용자', color:'#2F6B5E', tabs:[['u_home','홈','home'],['u_posts','공고 찾기','list'],['u_write','대화형 작성','pen'],['u_wallet','시간 통장','wallet'],['u_my','내 정보','user']] },
+  org:  { label:'기관 담당자', color:'#2563EB', tabs:[['o_home','독거노인 관리','user'],['o_post','대리 공고','pen'],['o_report','생활변화 리포트','spark'],['o_confirm','대리 확인','check']] },
+  admin:{ label:'지자체 운영자', color:'#7C3AED', tabs:[['a_dash','운영 대시보드','home'],['a_nl_insight','AI 데이터질의','spark'],['a_review','기관 심사','shield'],['a_report_gen','리포트 즉시생성','spark']] }
+};
+
+function cur(){ return nav.stack[nav.stack.length - 1]; }
+function go(name, p={}){ nav.stack.push({name, p}); render(); }
+function tab(name){ nav.stack = [{name, p:{}}]; render(); }
+function back(){ if(nav.stack.length > 1){ nav.stack.pop(); render(); } }
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('on');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(()=>el.classList.remove('on'), 2400);
+}
+
+function sheet(html){
+  document.getElementById('sheet').innerHTML = '<div class="grab"></div>' + html;
+  document.getElementById('ov').classList.add('on');
+}
+function closeSheet(){ document.getElementById('ov').classList.remove('on'); }
+
+function render(){
+  const {name, p} = cur();
+  const screen = SCREENS[name](p);
+  const rConf = ROLES[DB.role];
+
+  const canBack = nav.stack.length > 1;
+  document.getElementById('hd').innerHTML = `
+    ${canBack ? `<button class="bk" data-act="back" aria-label="뒤로가기">${I.back}</button>` : `<span style="width:4px"></span>`}
+    <h1>${screen.title}</h1>
+    <button class="chip-role" data-act="switchRoleSheet">
+      <span class="dot" style="background:${rConf.color}"></span>${rConf.label}${I.down}
+    </button>
+  `;
+  document.getElementById('hd').style.display = screen.noHeader ? 'none' : 'flex';
+
+  const bd = document.getElementById('bd');
+  bd.className = 'bd ' + (screen.cls || '');
+  bd.innerHTML = screen.html;
+  bd.scrollTop = 0;
+
+  const tabs = document.getElementById('tabs');
+  const showTabs = !screen.noTabs;
+  tabs.style.display = showTabs ? 'flex' : 'none';
+  if(showTabs){
+    const activeTab = screen.tab || name;
+    tabs.innerHTML = rConf.tabs.map(([k, l, ic]) => `
+      <button class="${k === activeTab ? 'on' : ''}" data-tab="${k}">
+        ${I[ic]}<span>${l}</span>
+      </button>
+    `).join('');
+  }
+
+  if(screen.mount) screen.mount();
+}
+
+/* ========================================================
+   [스크린 뷰 (SCREENS)]
+======================================================== */
+const SCREENS = {};
+
+/* [1] 인트로 */
+SCREENS.entry = () => ({
+  title:'시간 적금',
+  noHeader:true, noTabs:true,
+  html:`
+    <div style="height:100%;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:24px">
+      <div style="width:72px;height:72px;background:var(--brand-soft);color:var(--brand);border-radius:22px;display:grid;place-items:center;margin:0 auto 16px">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      </div>
+      <h2 style="font-size:26px;font-weight:800;letter-spacing:-.8px;margin:0 0 8px">시간 적금</h2>
+      <p class="muted" style="margin:0 0 24px">돌봄 시간은행 & 실전형 LLM 엔진 종합 플랫폼</p>
+      
+      <div class="card" style="text-align:left;margin-bottom:24px;background:#F9FBFA;border-color:#CFE3DB">
+        <div class="b" style="font-size:14px;color:var(--brand);margin-bottom:8px">🔥 검증 가능한 LLM 킬러 기능 총망라</div>
+        <ul class="small muted" style="padding-left:18px;margin:0;line-height:1.7">
+          <li><b>B-02/B-08:</b> 대화형 공고 파싱 & 4차원 정량 난이도 점수 매트릭스</li>
+          <li><b>B-09/P-01:</b> 3단계 안전 필터 & 공공 돌봄 RAG 자동 연계</li>
+          <li><b>A-08 [신규]:</b> <b>메시지 탈옥/직거래 실시간 감지 가드레일</b></li>
+          <li><b>B-13 [신규]:</b> <b>독거노인 방문 전 AI 안심 사전 브리핑</b></li>
+          <li><b>D-04 [신규]:</b> <b>운영자용 자연어 데이터 질의 (NL to DB)</b></li>
+          <li><b>P-03/P-07:</b> 일지 자동 보정 & 생활변화 리포트 즉시 생성</li>
+        </ul>
+      </div>
+
+      <button class="btn" style="min-height:52px;font-size:16px" data-act="startApp">기능 체험 시작하기</button>
+    </div>
+  `
+});
+
+/* [2] 일반 사용자 홈 */
+SCREENS.u_home = () => {
+  const p = DB.myProfile;
+  const isVol = DB.userMode === 'volunteer';
+  return {
+    title: '시간 통장',
+    tab: 'u_home',
+    html: `
+      <div class="hero">
+        <div class="bk-top"><span>${p.name} 님의 시간 통장</span><span>행복구청 시간은행</span></div>
+        <div style="font-size:13px;opacity:.85">사용 가능한 시간 잔액</div>
+        <div class="num">${fmt(p.balance)}<small>시간</small></div>
+        <div style="font-size:12.5px;opacity:.9">이번 달 +${fmt(p.monthEarned)}시간 적립 · -${fmt(p.monthUsed)}시간 사용</div>
+        <div class="acts">
+          <button data-go="u_gift">가족 선물</button>
+          <button data-go="u_wallet">통장 상세</button>
+          <button data-act="showTrustBadge">신뢰 배지</button>
+        </div>
+      </div>
+
+      <div class="sec-t">
+        <span>현재 활동 모드</span>
+        <span class="tag green">${isVol ? '이웃 돕기 (봉사자 모드)' : '도움 받기 (신청자 모드)'}</span>
+      </div>
+      <div class="btns">
+        <button class="btn ${isVol ? '' : 'ghost'} sm" data-act="setMode" data-v="volunteer">내가 돕기 (봉사 공고/검색)</button>
+        <button class="btn ${!isVol ? '' : 'ghost'} sm" data-act="setMode" data-v="need">도움 받기 (요청 공고/검색)</button>
+      </div>
+
+      <div class="sec-t">진행 중인 활동 (안심 브리핑 연계)</div>
+      ${DB.activities.map(act => `
+        <div class="card click" data-go="u_act_detail" data-id="${act.id}">
+          <div class="between">
+            <span class="tag blue">일정 확정</span>
+            <span class="mute2">${act.date}</span>
+          </div>
+          <div class="b" style="font-size:16px;margin-top:6px">${act.title}</div>
+          <div class="mute2" style="margin-top:2px">대상: ${act.recipientAlias} (${act.isSoloElder?'독거노인 · 주민센터 관리':'일반 이웃'})</div>
+          <div class="between" style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)">
+            <span class="small" style="color:var(--brand)">방문 전 AI 브리핑 및 메시지 조율 ›</span>
+            <span class="tag green">예상 +${fmt(act.hours * W(act.cat))}시간</span>
+          </div>
+        </div>
+      `).join('')}
+
+      <div class="sec-t">대화형 작성 (LLM 적용)</div>
+      <div class="card click" data-tab-go="u_write" style="background:#FAFBFB;border-style:dashed;border-color:#C4DCD3">
+        <div class="row">
+          <div style="width:44px;height:44px;border-radius:12px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:800">${I.spark}</div>
+          <div class="grow">
+            <div class="b">대화형 공고/요청 작성 (LLM)</div>
+            <div class="mute2">자연어로 말하면 AI가 4차원 난이도 분석과 필터링을 거쳐 등록해 줘요</div>
+          </div>
+        </div>
+      </div>
+    `
+  };
+};
+
+/* [3] 대화형 작성 */
+let chatLog = [];
+let pendingPostCandidate = null;
+
+SCREENS.u_write = () => {
+  if(!chatLog.length){
+    chatLog = [
+      { sender:'ai', text:'안녕하세요! 어떤 도움이 필요하시거나 봉사하고 싶으신가요? 편하게 말씀해 주시면 LLM이 내용을 분석하여 정식 공고 규격으로 정리해 드립니다.' }
+    ];
+  }
+  return {
+    title: '대화형 요청·공고 등록',
+    tab: 'u_write',
+    cls: 'chatv',
+    html: `
+      <div class="chat-wrap" id="cw">
+        ${chatLog.map(m => `
+          <div class="msg ${m.sender==='ai'?'ai':'me'}">${m.text}</div>
+          ${m.card ? `<div style="max-width:96%;margin-bottom:6px">${m.card}</div>` : ''}
+        `).join('')}
+      </div>
+
+      <div class="chat-dock">
+        <div class="quick-chips">
+          <button data-act="promptChat" data-v="내일 오후 2시에 정형외과 진료 같이 가주실 분 구해요">병원 동행 (가중치 1.5)</button>
+          <button data-act="promptChat" data-v="어르신 목욕이랑 샤워 좀 도와주실 분 급히 찾습니다">신체 목욕 (금지필터 & RAG)</button>
+          <button data-act="promptChat" data-v="쌀 10kg 마트에서 대신 장봐주세요">장보기 (수고 가중치 1.2)</button>
+          <button data-act="promptChat" data-v="어르신 혈압 재드리고 당뇨 주사 놔주실 분">의료 처치 (금지필터 & RAG)</button>
+        </div>
+        <form class="row" data-form="chatSubmit">
+          <input class="in grow" id="chatIn" placeholder="자연어로 도움 요청이나 봉사 내용을 입력하세요...">
+          <button class="btn" style="width:48px;height:48px;flex:0 0 auto;padding:0" type="submit" aria-label="전송">${I.send}</button>
+        </form>
+      </div>
+    `,
+    mount(){
+      const b = document.getElementById('bd');
+      b.scrollTop = b.scrollHeight;
+    }
+  };
+};
+
+/* [4] 공고 목록 */
+let postFilter = 'all';
+SCREENS.u_posts = () => {
+  const isVol = DB.userMode === 'volunteer';
+  let list = DB.posts.filter(p => isVol ? p.type === 'need' : p.type === 'volunteer');
+  if(postFilter !== 'all') list = list.filter(p => p.cat === postFilter);
+
+  return {
+    title: isVol ? '이웃의 도움 요청 공고' : '봉사 가능 공고 찾기',
+    tab: 'u_posts',
+    html: `
+      <div class="quick-chips">
+        <button class="${postFilter==='all'?'btn sm':'btn ghost sm'}" style="width:auto" data-act="filterCat" data-v="all">전체</button>
+        ${CATS.map(c => `
+          <button class="${postFilter===c.k?'btn sm':'btn ghost sm'}" style="width:auto" data-act="filterCat" data-v="${c.k}">
+            ${c.k}
+          </button>
+        `).join('')}
+      </div>
+
+      <div class="sec-t">
+        <span>공고 목록 <b style="color:var(--brand)">${list.length}</b>건</span>
+        <span class="mute2">30분 단위 / 1회 최대 4시간</span>
+      </div>
+
+      ${list.map(p => `
+        <div class="card click" data-go="u_post_detail" data-id="${p.id}">
+          <div class="between">
+            <div class="tags">
+              <span class="tag green">${p.cat}</span>
+              <span class="tag amber">가중치 ×${W(p.cat)}</span>
+              ${p.isSoloElder ? '<span class="tag red">독거노인 지원(무차감)</span>' : ''}
+            </div>
+            <span class="b" style="color:var(--brand);font-size:16px">+${fmt(p.hours * W(p.cat))}시간</span>
+          </div>
+          <div class="b" style="font-size:16px;margin-top:6px">${p.title}</div>
+          <div class="mute2" style="margin-top:4px">${p.area} · ${p.date} (${p.hours}시간)</div>
+        </div>
+      `).join('')}
+    `
+  };
+};
+
+/* [5] 공고 상세 */
+SCREENS.u_post_detail = ({id}) => {
+  const p = DB.posts.find(x => x.id === id);
+  const cr = p.hours * W(p.cat);
+  const diff = LLM.evaluateDifficulty(p.note, p.cat);
+
+  return {
+    title: '공고 상세',
+    noTabs: true,
+    html: `
+      <div class="tags" style="margin-bottom:10px">
+        <span class="tag green">${p.cat}</span>
+        <span class="tag amber">${LV(p.cat)} 가중치 ×${W(p.cat)}</span>
+        ${p.isSoloElder ? '<span class="tag red">독거노인 보호 공고</span>' : ''}
+      </div>
+      <h2 style="font-size:20px;font-weight:800;margin:0 0 12px">${p.title}</h2>
+      
+      <div class="card">
+        <dl class="kv">
+          <dt>일시 범위</dt><dd>${p.date}</dd>
+          <dt>예상 시간</dt><dd>${p.hours}시간</dd>
+          <dt>지역</dt><dd>${p.area}</dd>
+          <dt>신청자</dt><dd>${p.isSoloElder ? `${p.orgName} (${p.elderAlias} 님 위탁 관리)` : '일반 이웃 직접 요청'}</dd>
+        </dl>
+      </div>
+
+      <div class="ai" style="margin-top:12px">
+        <div class="ah">${I.spark} LLM 4차원 정량 난이도 분석 근거 (B-08, B-27)<span class="mod">점수 매트릭스</span></div>
+        <div class="score-matrix">
+          <div class="score-item">신체부담<b>${diff.scores.physical}/5</b></div>
+          <div class="score-item">책임위험<b>${diff.scores.responsibility}/5</b></div>
+          <div class="score-item">전문성<b>${diff.scores.expertise}/5</b></div>
+          <div class="score-item">이동성<b>${diff.scores.mobility}/5</b></div>
+        </div>
+        <div class="small muted">${diff.reason}</div>
+        <div class="between" style="margin-top:10px;padding-top:8px;border-top:1px dashed #C4DCD3">
+          <span class="b small">최종 예상 적립</span>
+          <span class="b" style="color:var(--brand);font-size:18px">+${fmt(cr)} 시간</span>
+        </div>
+      </div>
+
+      <div class="stack" style="margin-top:22px">
+        <button class="btn" data-act="applyPost" data-v="${p.id}">
+          ${p.type==='need' ? '이 도움 요청 수락하기' : '이 봉사자에게 도움 제안하기'}
+        </button>
+      </div>
+    `
+  };
+};
+
+/* [6] 활동 상세 (킬러 1: 실시간 가드레일 & 킬러 2: 안심 사전 브리핑 탑재) */
+SCREENS.u_act_detail = ({id}) => {
+  const act = DB.activities.find(x => x.id === id);
+  const elder = DB.elders.find(e => e.alias === act.recipientAlias) || DB.elders[0];
+  const briefing = LLM.generateElderBriefing(elder);
+
+  return {
+    title: '활동 조율 및 인증',
+    noTabs: true,
+    html: `
+      <!-- [킬러 2] 독거노인 방문 전 AI 안심 사전 브리핑 -->
+      <div class="ai" style="border-color:#BFDBFE;background:linear-gradient(180deg,#EFF6FF 0%,#fff 100%)">
+        <div class="ah" style="color:var(--blue)">${I.spark} [AI 안심 사전 브리핑] 어르신 맞춤 방문 가이드<span class="mod" style="background:#DBEAFE;color:var(--blue)">누적 일지 분석</span></div>
+        <div class="small" style="line-height:1.6">
+          <b>💬 추천 대화 주제:</b> ${briefing.speechTopic}<br>
+          <b>⚠️ 행동 주의사항:</b> ${briefing.cautions}<br>
+          <b>💡 최근 안부 팁:</b> ${briefing.recentNote}
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:10px">
+        <div class="between">
+          <span class="tag blue">일정 확정</span>
+          <span class="tag green">${act.cat} (가중치 ×${W(act.cat)})</span>
+        </div>
+        <div class="b" style="font-size:17px;margin-top:6px">${act.title}</div>
+        <div class="mute2">일시: ${act.date} · 대상: ${act.recipientAlias}</div>
+      </div>
+
+      <!-- [킬러 1] 실시간 메시지 안전 가드레일 (A-08) -->
+      <div class="sec-t">조율 메시지함 (실시간 AI 가드레일 작동)</div>
+      <div class="card" style="max-height:170px;overflow-y:auto" id="chatBoxAct">
+        ${act.chat.map(c => `
+          <div style="margin-bottom:8px">
+            <span class="b small">${c.from==='helper'?'나 (봉사자)':'담당자/수혜자'}:</span>
+            <span class="small">${c.text}</span>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="card" style="margin-top:8px;padding:10px 14px;background:#F9FAFB">
+        <div class="row">
+          <input class="in grow" id="actChatIn" placeholder="조율 메시지 입력 (번호/현금 입력 시 차단)">
+          <button class="btn sm" style="width:auto;padding:0 14px" data-act="sendActChat" data-v="${act.id}">전송</button>
+        </div>
+        <div class="small muted" style="margin-top:6px;font-size:11.5px">
+          💡 테스트 문장: <code>"제 번호 010-1234-5678로 문자주세요"</code> 또는 <code>"차비로 2만원 부탁드려요"</code>
+        </div>
+      </div>
+
+      <!-- LLM 활동 일지 자동 교정 엔진 (B-24) -->
+      <div class="sec-t">활동 인증 및 AI 일지 제출 (B-24)</div>
+      <div class="card">
+        <div class="b">활동 한 줄 기록</div>
+        <div class="mute2">활동 후 간단히 적어주시면 LLM이 정식 표준 일지로 교정합니다.</div>
+        <textarea class="in" id="memoIn" style="margin-top:8px;min-height:65px" placeholder="예: 병원 무릎 치료 동행 완료함. 약 타드리고 왔는데 점심을 거의 안드셨다고 해서 걱정됨."></textarea>
+        <button class="btn soft" style="margin-top:8px" data-act="generateLogAI" data-v="${act.id}">
+          ${I.spark} LLM 일지 자동 교정 및 안부 신호 분석
+        </button>
+        <div id="logResultBox" style="margin-top:10px"></div>
+      </div>
+    `
+  };
+};
+
+/* [7] 지자체 운영자: 자연어 데이터 질의 (킬러 3 탑재) */
+let nlResult = null;
+SCREENS.a_nl_insight = () => {
+  return {
+    title: 'AI 데이터 질의 (NL to Insight)',
+    tab: 'a_nl_insight',
+    html: `
+      <div class="card" style="background:#FAF5FF;border-color:#E9D5FF">
+        <div class="b" style="color:var(--purple)">[킬러 기능] 지자체 운영자용 Text-to-Insight (D-04, D-05)</div>
+        <div class="small muted">복잡한 SQL이나 통계 화면 대신, 궁금한 지표를 자연어로 편하게 질문하세요.</div>
+      </div>
+
+      <div class="card" style="margin-top:10px">
+        <div class="quick-chips" style="padding-bottom:6px">
+          <button data-act="promptNLQ" data-v="희망동에서 이번 달 병원 동행 실패한 거 몇 건이야?">희망동 병원 동행 공백</button>
+          <button data-act="promptNLQ" data-v="독거노인 지원으로 발생한 총 적립 시간 얼마야?">독거노인 무차감 적립 총량</button>
+          <button data-act="promptNLQ" data-v="이번 달 신규 가입자랑 신뢰 배지 비율 알려줘">신규 가입 & 신뢰 배지 현황</button>
+        </div>
+        <form class="row" data-form="nlSubmit" style="margin-top:4px">
+          <input class="in grow" id="nlQueryIn" placeholder="예: 희망동 병원 동행 매칭 실패 몇 건이야?">
+          <button class="btn" style="width:48px;height:48px;background:var(--purple);padding:0" type="submit">${I.send}</button>
+        </form>
+      </div>
+
+      <div id="nlResultBox" style="margin-top:12px">
+        ${nlResult ? renderNLResult(nlResult) : '<div class="muted small" style="text-align:center;padding:20px">질문을 입력하시거나 위의 추천 질문을 눌러보세요.</div>'}
+      </div>
+    `
+  };
+};
+
+function renderNLResult(res){
+  return `
+    <div class="ai" style="border-color:#DDD6FE;background:linear-gradient(180deg,#F5F3FF 0%,#fff 100%)">
+      <div class="ah" style="color:var(--purple)">${I.spark} AI 질의 분석 및 데이터 조회 결과<span class="mod" style="background:#EDE9FE;color:var(--purple)">Text-to-Insight</span></div>
+      <div class="code-box">${res.sqlQuery}</div>
+      <p class="small" style="margin:10px 0 6px;line-height:1.6">${res.answer}</p>
+      <div class="card" style="background:#fff;border-color:#E9D5FF;margin-top:8px">
+        <div class="b small" style="color:var(--purple)">📌 AI 정책 제안 액션</div>
+        <div class="small muted" style="margin-top:2px">${res.actionProposal}</div>
+      </div>
+    </div>
+  `;
+}
+
+/* [기타 필수 스크린들] */
+SCREENS.u_wallet = () => ({
+  title:'시간 통장', tab:'u_wallet',
+  html:`
+    <div class="hero">
+      <div class="bk-top"><span>행복구청 시간은행</span><span>통장번호 802-1920-44</span></div>
+      <div style="font-size:13px;opacity:.85">잔여 적립 시간</div>
+      <div class="num">${fmt(DB.myProfile.balance)}<small>시간</small></div>
+      <div style="font-size:12.5px;opacity:.9">선물 외 양도/매매/환전 불가 (B-34)</div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="between"><span class="b">본인 사용 자격 (B-33)</span><span class="tag green">사용 가능 (10시간 이상 적립)</span></div>
+      <div class="small muted" style="margin-top:4px">직접 봉사로 10시간 이상 적립하여 본인 도움 요청 시 차감 사용 가능합니다.</div>
+    </div>
+  `
+});
+SCREENS.u_gift = () => ({
+  title:'가족 시간 선물', noTabs:true,
+  html:`
+    <div class="card"><div class="b">가족 시간 선물 (B-32)</div><div class="small muted">사전 등록된 타지의 가족에게 시간을 선물합니다.</div></div>
+    <button class="btn" style="margin-top:16px" data-act="sendGiftConfirm">2.0시간 선물 보내기</button>
+  `
+});
+SCREENS.u_my = () => ({
+  title:'내 정보', tab:'u_my',
+  html:`
+    <div class="card"><div class="b">${DB.myProfile.name}</div><div class="mute2">${DB.myProfile.phone}</div></div>
+    <div class="card click" style="margin-top:10px" data-act="toggleBigText"><div class="between"><span>큰 글씨 모드</span><span class="tag">${document.body.classList.contains('big')?'켜짐':'꺼짐'}</span></div></div>
+  `
+});
+SCREENS.o_home = () => ({
+  title:'독거노인 위탁 관리', tab:'o_home',
+  html:`
+    <div class="card" style="background:#EFF6FF"><div class="b" style="color:var(--blue)">행복동 주민센터 복지팀</div><div class="small muted">독거노인은 가명(별칭)으로만 관리되며 수혜 시 시간 무차감이 적용됩니다.</div></div>
+    <div class="sec-t">담당 어르신 목록</div>
+    ${DB.elders.map(e=>`<div class="card"><div class="between"><span class="b">${e.alias}</span><span class="tag blue">${e.area}</span></div><div class="small muted">${e.reportSignal}</div></div>`).join('')}
+  `
+});
+SCREENS.o_post = () => ({
+  title:'대리 공고', tab:'o_post',
+  html:`
+    <div class="card"><div class="b">독거노인 대리 공고 등록 (C-04)</div><div class="small muted">어르신 시간 차감 없이 봉사자 적립 공고를 등록합니다.</div></div>
+    <button class="btn" style="margin-top:16px;background:var(--blue)" data-act="submitProxyPost">대리 공고 등록</button>
+  `
+});
+SCREENS.o_report = () => {
+  const rep = LLM.generateLifeReport(DB.elders[0]);
+  return {
+    title:'생활변화 리포트', tab:'o_report',
+    html:`
+      <div class="ai"><div class="ah">${I.spark} LLM 월간 생활변화 리포트 (P-03)</div><p class="small">${rep.narrative}</p></div>
+    `
+  };
+};
+SCREENS.o_confirm = () => ({
+  title:'대리 확인', tab:'o_confirm',
+  html:`
+    <div class="card"><div class="b">독거노인 활동 대리 승인 (C-10)</div><div class="small muted">행복어르신A 병원 동행 완료 건</div><button class="btn sm" style="margin-top:10px;background:var(--blue)" data-act="confirmActivityDone">대리 승인 완료</button></div>
+  `
+});
+SCREENS.a_dash = () => ({
+  title:'운영 대시보드', tab:'a_dash',
+  html:`
+    <div class="card" style="background:#FAF5FF"><div class="b" style="color:var(--purple)">행복구청 시간은행 총량 모니터링 (D-04, D-05)</div><div class="small muted">독거노인 무차감 총량을 지자체가 보증 관리합니다.</div></div>
+  `
+});
+SCREENS.a_review = () => ({
+  title:'기관 심사', tab:'a_review',
+  html:`
+    <div class="card"><div class="between"><span class="b">희망동 노인복지관</span><span class="tag amber">심사 대기</span></div><button class="btn sm" style="margin-top:10px;background:var(--purple)" data-act="approveOrg">승인 및 계정 발급 (D-01)</button></div>
+  `
+});
+SCREENS.a_report_gen = () => ({
+  title:'리포트 즉시생성 (P-07)', tab:'a_report_gen',
+  html:`
+    <div class="card"><div class="b">시연용 리포트 즉시 생성기 (P-07)</div><div class="small muted">월간 배치를 기다리지 않고 LLM 파이프라인을 즉시 구동합니다.</div><button class="btn" style="margin-top:12px;background:var(--purple)" data-act="runInstantReportGen">지금 즉시 리포트 생성</button></div><div id="instantReportResult" style="margin-top:10px"></div>
+  `
+});
+
+/* ========================================================
+   [액션 핸들러 (ACT)]
+======================================================== */
+const ACT = {
+  back, closeSheet,
+  startApp(){ nav.stack = [{name:'u_home', p:{}}]; render(); },
+  switchRoleSheet(){
+    sheet(`
+      <h2 style="font-size:18px;margin:0 0 12px">역할 전환</h2>
+      <div class="card click" data-act="setRole" data-v="user"><div class="b">일반 사용자 (손유진)</div><div class="mute2">봉사/수혜 겸용, AI 브리핑, 실시간 가드레일</div></div>
+      <div class="card click" data-act="setRole" data-v="org" style="margin-top:8px"><div class="b">기관 담당자 (박지원 주무관)</div><div class="mute2">독거노인 위탁 관리, 대리 공고, 생활변화 리포트</div></div>
+      <div class="card click" data-act="setRole" data-v="admin" style="margin-top:8px"><div class="b">지자체 운영자 (행복구청)</div><div class="mute2">AI 데이터 질의 (NL to Insight), 리포트 즉시생성</div></div>
+    `);
+  },
+  setRole(el){
+    DB.role = el.dataset.v; closeSheet();
+    if(DB.role === 'user') tab('u_home');
+    else if(DB.role === 'org') tab('o_home');
+    else tab('a_dash');
+    toast(`${ROLES[DB.role].label} 모드로 전환되었습니다.`);
+  },
+  setMode(el){ DB.userMode = el.dataset.v; render(); toast(DB.userMode==='volunteer'?'봉사자 모드':'신청자 모드'); },
+  filterCat(el){ postFilter = el.dataset.v; render(); },
+  applyPost(){ toast('신청/수락이 접수되었습니다.'); tab('u_home'); },
+  promptChat(el){ document.getElementById('chatIn').value = el.dataset.v; ACT.handleChat(el.dataset.v); },
+  handleChat(text){
+    if(!text) return;
+    chatLog.push({ sender:'me', text }); render();
+
+    setTimeout(()=>{
+      const safety = LLM.checkSafety(text);
+      if(safety.status === 'BLOCK'){
+        chatLog.push({
+          sender:'ai', text:'금지된 행위가 감지되어 등록이 차단되었습니다.',
+          card:`
+            <div class="ai warn">
+              <div class="ah">${I.spark} 안전 필터 및 공공 돌봄 RAG (B-09, P-01)</div>
+              <div class="small"><b>차단 사유:</b> ${safety.reason}</div>
+              <div class="card" style="margin-top:8px;background:#fff">
+                <div class="b small" style="color:var(--blue)">대체 공공 서비스 연계</div>
+                <div class="b" style="margin-top:4px">${safety.rag.name}</div>
+                <div class="small muted">${safety.rag.desc}</div>
+                <div class="small" style="margin-top:4px"><b>신청처:</b> ${safety.rag.apply}</div>
+              </div>
+            </div>
+          `
+        });
+      } else {
+        const extracted = LLM.extractPostJSON(text);
+        const diff = LLM.evaluateDifficulty(text, extracted.cat);
+        pendingPostCandidate = { cat:extracted.cat, hours:extracted.hours, date:extracted.date, title:extracted.rawTitle };
+
+        chatLog.push({
+          sender:'ai', text:`[${extracted.cat}] 공고 규격으로 정제되었습니다. 점수 매트릭스를 확인하세요.`,
+          card:`
+            <div class="ai">
+              <div class="ah">${I.spark} LLM 공고 규격화 & 4차원 난이도 산정 (B-02, B-08, B-27)</div>
+              <div class="score-matrix">
+                <div class="score-item">신체부담<b>${diff.scores.physical}점</b></div>
+                <div class="score-item">책임위험<b>${diff.scores.responsibility}점</b></div>
+                <div class="score-item">전문성<b>${diff.scores.expertise}점</b></div>
+                <div class="score-item">이동성<b>${diff.scores.mobility}점</b></div>
+              </div>
+              <div class="small muted">${diff.reason}</div>
+              <div class="code-box">${JSON.stringify(extracted.json, null, 2)}</div>
+              <button class="btn sm" style="margin-top:10px" onclick="ACT.confirmExtractedPost()">이 내용으로 등록 확정 (B-03)</button>
+            </div>
+          `
+        });
+      }
+      render();
+    }, 700);
+  },
+  confirmExtractedPost(){
+    if(!pendingPostCandidate) return;
+    DB.posts.unshift({
+      id:'p-'+Date.now(), type:DB.userMode==='volunteer'?'volunteer':'need',
+      author:DB.myProfile.name, elderAlias:DB.myProfile.name, isSoloElder:false,
+      cat:pendingPostCandidate.cat, title:pendingPostCandidate.title, hours:pendingPostCandidate.hours,
+      date:pendingPostCandidate.date, area:DB.myProfile.area, note:'LLM 추출 공고', status:'open'
+    });
+    chatLog = []; pendingPostCandidate = null;
+    toast('공고가 성공적으로 등록되었습니다.'); tab('u_posts');
+  },
+  sendActChat(el){
+    const inp = document.getElementById('actChatIn');
+    const txt = inp.value.trim();
+    if(!txt) return;
+
+    // [킬러 1] 실시간 메시지 안전 가드레일 작동
+    const guard = LLM.inspectChatGuardrail(txt);
+    if(guard.blocked){
+      sheet(`
+        <div style="text-align:center;padding:10px 0">
+          <div style="font-size:36px;margin-bottom:8px">🚫</div>
+          <h2 style="font-size:18px;color:var(--red);margin:0 0 6px">메시지 전송 차단 (AI 가드레일)</h2>
+          <p class="small muted" style="line-height:1.6">${guard.reason}</p>
+          <div class="card" style="margin-top:12px;background:#FFF5F5;border-color:#FED7D7;text-align:left">
+            <div class="b small" style="color:var(--red)">감지된 위반 문장:</div>
+            <div class="small" style="margin-top:4px;color:#742A2A">"${txt}"</div>
+          </div>
+          <button class="btn sm" style="margin-top:16px" onclick="closeSheet()">확인 및 주의하기</button>
+        </div>
+      `);
+      return;
+    }
+
+    const act = DB.activities.find(x => x.id === el.dataset.v);
+    act.chat.push({ from:'helper', text: txt });
+    inp.value = '';
+    render();
+    toast('조율 메시지가 안전하게 전송되었습니다.');
+  },
+  generateLogAI(el){
+    const memo = document.getElementById('memoIn').value.trim();
+    if(!memo) return toast('한 줄 메모를 작성해 주세요.');
+    const box = document.getElementById('logResultBox');
+    box.innerHTML = `<div class="skel"></div><div class="skel" style="width:70%"></div>`;
+
+    setTimeout(()=>{
+      const act = DB.activities[0];
+      const formal = LLM.generateFormalLog(DB.myProfile.name, act, memo);
+      box.innerHTML = `
+        <div class="ai">
+          <div class="ah">${I.spark} LLM 표준 일지 교정 (B-24)</div>
+          <p class="small" style="margin:0 0 6px">${formal.formalSummary}</p>
+          <div class="small" style="color:var(--amber);margin-bottom:8px"><b>• 안부 신호:</b> ${formal.signal}</div>
+          <button class="btn sm" style="width:auto" onclick="ACT.submitFinalLog()">최종 확인 요청 제출</button>
+        </div>
+      `;
+    }, 700);
+  },
+  submitFinalLog(){ toast('일지가 제출되었습니다.'); tab('u_home'); },
+  promptNLQ(el){ document.getElementById('nlQueryIn').value = el.dataset.v; ACT.handleNLQ(el.dataset.v); },
+  handleNLQ(query){
+    if(!query) return;
+    const box = document.getElementById('nlResultBox');
+    box.innerHTML = `<div class="skel"></div><div class="skel"></div>`;
+    setTimeout(()=>{
+      nlResult = LLM.queryAdminInsight(query);
+      box.innerHTML = renderNLResult(nlResult);
+    }, 600);
+  },
+  sendGiftConfirm(){ DB.myProfile.balance -= 2.0; toast('가족에게 2.0시간을 선물했습니다.'); tab('u_wallet'); },
+  showTrustBadge(){ toast('경찰청 범죄경력회보서 신뢰 배지가 인증되어 있습니다.'); },
+  toggleBigText(){ document.body.classList.toggle('big'); render(); toast('글씨 크기가 변경되었습니다.'); },
+  submitProxyPost(){ toast('독거노인 대리 공고가 등록되었습니다.'); tab('o_home'); },
+  confirmActivityDone(){ toast('독거노인 대리 승인이 완료되었습니다.'); tab('o_home'); },
+  runInstantReportGen(){
+    const box = document.getElementById('instantReportResult');
+    box.innerHTML = `<div class="skel"></div>`;
+    setTimeout(()=>{
+      const rep = LLM.generateLifeReport(DB.elders[0]);
+      box.innerHTML = `<div class="ai"><div class="ah">${I.spark} 즉시 생성 리포트</div><p class="small">${rep.narrative}</p></div>`;
+      toast('리포트가 즉시 생성되었습니다.');
+    }, 600);
+  },
+  approveOrg(){ toast('기관 서비스가 승인되었습니다.'); tab('a_dash'); }
+};
+
+/* ---------- 이벤트 리스너 바인딩 ---------- */
+document.addEventListener('click', e => {
+  if(e.target.id === 'ov') return closeSheet();
+  const t = e.target.closest('[data-act],[data-go],[data-tab],[data-tab-go]');
+  if(!t) return;
+  if(t.dataset.act && ACT[t.dataset.act]) return ACT[t.dataset.act](t);
+  if(t.dataset.tab) return tab(t.dataset.tab);
+  if(t.dataset.tabGo) return tab(t.dataset.tabGo);
+  if(t.dataset.go) return go(t.dataset.go, { id: t.dataset.id });
+});
+
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  if(e.target.dataset.form === 'chatSubmit'){
+    const inp = document.getElementById('chatIn');
+    const txt = inp.value.trim();
+    if(txt){ inp.value = ''; ACT.handleChat(txt); }
+  }
+  if(e.target.dataset.form === 'nlSubmit'){
+    const inp = document.getElementById('nlQueryIn');
+    const txt = inp.value.trim();
+    if(txt){ ACT.handleNLQ(txt); }
+  }
+});
+
+nav.stack = [{name:'entry', p:{}}];
+render();
+</script>
+</body>
+</html>
