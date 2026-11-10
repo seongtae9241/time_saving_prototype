@@ -28,6 +28,7 @@ public class DataSeeder implements ApplicationRunner {
     private final PostRepo posts; private final RequestRepo requests; private final MessageRepo messages; private final LedgerRepo ledger;
     private final RatingRepo ratings; private final NotificationRepo notis; private final InterestAlertRepo alerts; private final ReportRepo reports;
     private final InquiryRepo inquiries; private final NoticeRepo notices; private final FamilyLinkRepo family; private final DifficultyAppealRepo appeals;
+    @org.springframework.beans.factory.annotation.Autowired private CareSignalService careSignals;
     private final PublicServiceRepo services; private final RoleplayPersonaRepo personas;
     private final EduProgressRepo edu;
     private final AuthService auth; private final LifeReportService lifeReports; private final AiClient ai; private final TransactionTemplate tx;
@@ -115,6 +116,7 @@ public class DataSeeder implements ApplicationRunner {
         seedEvents(o1, org1);
         seedMisc(org1);
         seedInsights();
+        if (careSignals != null) careSignals.seedDemo(); // 7.14 C1 전달 메모 정리·생활 변화 신호 데모
         lifeReports.generate(YearMonth.from(today).minusMonths(1));
     }
 

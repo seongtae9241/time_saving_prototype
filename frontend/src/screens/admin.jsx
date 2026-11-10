@@ -7,6 +7,7 @@ import { api, post, put, del } from '../api.js';
 import { CATS, CC, SHORT, AREAS, fmt, dshort, arr, lvName } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useLogout } from './my.jsx';
+import { useTriage, TriageBox, SevChip, useAnomalyNotes, AnomalyNote, InquiryDraft, PersonaFromCases, PersonaDraftNote } from './opsai.jsx';
 
 function groupBars(rows) {
   const W2 = 320, H = 170, pt = 22, pb = 28, bw = 16, gap = 5;
@@ -234,7 +235,7 @@ export function AApprove() {
 
 /* ---------- 신고·점검 (D-02, D-06) ---------- */
 const ACTS = [['WARNING', '경고'], ['SUSPEND', '이용 정지'], ['BAN', '퇴출'], ['NONE', '신고 기각']];
-function ReportHandle({ r, onDone }) {
+function ReportHandle({ r, onDone, t, onTriage }) {
   const [a, setA] = useState('WARNING');
   const [result, setResult] = useState('');
   const { toast } = useUi();
@@ -244,6 +245,7 @@ function ReportHandle({ r, onDone }) {
       <p className="mute2" style={{ margin: 0 }}>{r.targetLabel || `${r.targetType} #${r.targetId}`} · 신고자 {r.reporter ? r.reporter.name : ''}{r.targetUser ? ` · 대상 ${r.targetUser.name}` : ''} · {dshort(r.createdAt)}</p>
       {r.content && <div className="thread" style={{ marginTop: 12 }}><div className="tm"><div className="bub">{r.content}</div></div></div>}
       {r.messageText && <div className="thread" style={{ marginTop: 8 }}><div className="tm"><div className="bub">신고된 메시지: {r.messageText}</div></div></div>}
+      <TriageBox t={t} onRefresh={onTriage} />
       <label className="f">처리</label>
       {ACTS.map(([k, l]) => <div key={k} className={'opt ' + (a === k ? 'on' : '')} role="button" tabIndex={0} onClick={() => setA(k)}><span className="rd" /><div>{l}</div></div>)}
       <textarea className="in" style={{ marginTop: 10, minHeight: 70 }} placeholder="처리 결과 (신고자에게 알림으로 가요)" value={result} onChange={(e) => setResult(e.target.value)} />
@@ -256,12 +258,15 @@ export function ASafety() {
   const [rps, reload] = useLoad(() => api('/admin/reports'), []);
   const [abs, reloadAb] = useLoad(() => api('/admin/anomalies'), []);
   const [busy, run] = useBusy();
-  const open = (rps || []).filter((r) => r.status !== 'DONE');
+  const [tri, reloadTri] = useTriage();
+  const noteOf = useAnomalyNotes();
+  const ord = (r) => (tri[r.id] ? tri[r.id].order : 9999);
+  const open = (rps || []).filter((r) => r.status !== 'DONE').sort((a, b) => ord(a) - ord(b));
   const done = (rps || []).filter((r) => r.status === 'DONE');
   return (
     <Screen title="신고·점검" back={false}>
       <div className="sec-t" style={{ marginTop: 4 }}>신고 {open.length}건</div>
-      {rps === undefined ? <Loading /> : open.length ? open.map((r) => <div key={r.id} className="card click" role="button" tabIndex={0} onClick={() => sheet(() => <ReportHandle r={r} onDone={() => { closeSheet(); reload(); }} />)}><div className="between"><span className="b">{r.type}</span><span className="st wait">{r.status === 'REVIEWING' ? '검토 중' : '접수'}</span></div><div className="mute2">{r.targetLabel || r.targetType} · {dshort(r.createdAt).split(' ')[0]}</div></div>) : <Empty>새 신고가 없어요</Empty>}
+      {rps === undefined ? <Loading /> : open.length ? open.map((r) => <div key={r.id} className="card click" role="button" tabIndex={0} onClick={() => sheet(() => <ReportHandle r={r} t={tri[r.id]} onTriage={() => { closeSheet(); reloadTri(); }} onDone={() => { closeSheet(); reload(); reloadTri(); }} />)}><div className="between"><span className="b">{r.type}</span><span style={{ display: 'flex', gap: 4 }}><SevChip s={tri[r.id] && tri[r.id].severity} /><span className="st wait">{r.status === 'REVIEWING' ? '검토 중' : '접수'}</span></span></div><div className="mute2">{r.targetLabel || r.targetType} · {dshort(r.createdAt).split(' ')[0]}</div>{tri[r.id] && <div className="small muted" style={{ marginTop: 4 }}>{tri[r.id].summary}</div>}</div>) : <Empty>새 신고가 없어요</Empty>}
       <div className="sec-t">이상 적립 패턴</div>
       {abs === undefined ? <Loading /> : (abs || []).length ? abs.map((x, i) => {
         const rqs = x.requests || [];
@@ -273,6 +278,7 @@ export function ASafety() {
             <div className="mute2">{x.volunteer ? x.volunteer.name : ''} ↔ {x.recipient} · {x.count}회 · 적립 {fmt(x.totalEarned)}시간</div>
             <div className="small muted" style={{ marginTop: 6 }}>{rqs.map((q) => `${q.date.slice(5)} ${q.hours}시간${q.held ? '(보류)' : ''}`).join(' · ')}</div>
             {held > 0 && <div className="mute2 warnc">{held}건 적립 보류 중</div>}
+            <AnomalyNote n={noteOf(x)} />
             <div className="btns" style={{ marginTop: 10 }}><button className="btn ghost sm" disabled={busy} onClick={() => all('release')}>정상</button><button className="btn sm warn" disabled={busy} onClick={() => all('hold')}>적립 보류</button></div>
           </div>
         );
@@ -392,7 +398,8 @@ function AnswerSheet({ q, onDone }) {
       <h2>{q.title}</h2>
       <p className="mute2" style={{ margin: 0 }}>{q.user ? q.user.name : ''} · {q.type} · {dshort(q.createdAt)}</p>
       <div className="card" style={{ marginTop: 10, whiteSpace: 'pre-wrap' }}>{q.content}</div>
-      <label className="f">답변</label><textarea className="in" value={a} onChange={(e) => setA(e.target.value)} />
+      <InquiryDraft q={q} onUse={(t) => setA(t)} />
+      <label className="f">답변</label><textarea className="in" style={{ minHeight: 120 }} value={a} onChange={(e) => setA(e.target.value)} />
       <button className="btn" style={{ marginTop: 12 }} onClick={async () => { if (!a.trim()) return toast('답변을 적어 주세요'); try { await post(`/admin/inquiries/${q.id}/answer`, { answer: a.trim() }); onDone(); toast('답변을 등록했어요'); } catch { /* 토스트 */ } }}>답변 등록 (알림 발송)</button>
     </>
   );
@@ -483,13 +490,15 @@ export function APub() {
 }
 
 /* ---------- 가상 상대 관리 ---------- */
-function PersonaForm({ p, onDone }) {
-  const [f, setF] = useState(p ? { ...p, turnsText: typeof p.turns === 'string' ? p.turns : JSON.stringify(p.turns || p.turnsJson || [], null, 1) } : { name: '', initial: '', ageLabel: '', fitCategory: CATS[0].k, trait: '', goal: '', opening: '', turnsText: '[]', active: true });
+function PersonaForm({ p, onDone, draft }) {
+  const src = p || (draft && draft.draft);
+  const [f, setF] = useState(src ? { ...src, turnsText: typeof src.turns === 'string' ? src.turns : JSON.stringify(src.turns || src.turnsJson || [], null, 1) } : { name: '', initial: '', ageLabel: '', fitCategory: CATS[0].k, trait: '', goal: '', opening: '', turnsText: '[]', active: true });
   const { toast } = useUi();
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   return (
     <>
       <h2>{p ? '상대 설정 수정' : '새 상대 만들기'}</h2>
+      <PersonaDraftNote res={draft} />
       {[['name', '이름 (예: 이○례 님)'], ['initial', '머리글자'], ['ageLabel', '나이·설명 (예: 82세 · 어르신)'], ['trait', '성격'], ['goal', '교육 목표'], ['opening', '첫마디']].map(([k, l]) => <div key={k}><label className="f">{l}</label><input className="in" value={f[k] || ''} onChange={set(k)} /></div>)}
       <label className="f">맞는 도움 종류</label><select className="in" value={f.fitCategory} onChange={set('fitCategory')}>{CATS.map((c) => <option key={c.k}>{c.k}</option>)}</select>
       <label className="f">대화 흐름 (JSON · 보기와 숨은 시험 상황)</label><textarea className="in" style={{ minHeight: 140, fontFamily: 'ui-monospace,monospace', fontSize: 12 }} value={f.turnsText} onChange={set('turnsText')} />
@@ -511,6 +520,7 @@ export function APersona() {
     <Screen title="가상 상대 관리" noTabs>
       <p className="su-p" style={{ marginTop: 0 }}>AI 역할극에서 쓰는 상대예요. 성격과 숨은 시험 상황을 여기서 고치면 코드 배포 없이 바로 바뀌어요.</p>
       <button className="btn" onClick={() => sheet(() => <PersonaForm onDone={done} />)}><Ic h={I.plus} /> 새 상대 만들기</button>
+      <button className="btn soft" style={{ marginTop: 8 }} onClick={() => sheet(() => <PersonaFromCases onDraft={(r) => sheet(() => <PersonaForm draft={r} onDone={done} />)} />)}><Ic n="spark" s={18} /> 실제 사례로 만들기</button>
       {list === undefined ? <Loading /> : (list || []).map((r, i) => {
         let turns = r.turns || r.turnsJson || []; if (typeof turns === 'string') { try { turns = JSON.parse(turns); } catch { turns = []; } }
         const test = turns.map((t) => ((t.o || t.options || []).find((o) => o.f || o.flag) || {})).map((o) => o.f || o.flag).filter(Boolean).join(' · ');

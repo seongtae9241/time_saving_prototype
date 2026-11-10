@@ -6,6 +6,7 @@ import { Ic, Spk, Mod, Loading, Empty, RuleNote, CatChip, useLoad, hbars } from 
 import { api, post } from '../api.js';
 import { CATS, SHORT, fmt, dlabel, hh } from '../lib/format.js';
 import { ReportView } from './my.jsx';
+import { SignalCard, CareNoteBox } from './opsai.jsx';
 
 const FREQS = [[0.25, '월 1회'], [0.5, '월 2회'], [1, '주 1회'], [2, '주 2회'], [3, '주 3회']];
 const freqTxt = (v) => (FREQS.find((f) => f[0] === Number(v)) || [0, `주 ${v}회`])[1];
@@ -32,7 +33,8 @@ export function RecentReport({ subject, showMonthly = true, empty = '아직 기�
   const monthly = d.monthly || [];
   return (
     <>
-      <div className="ai">
+      <SignalCard s={d.signal} who={d.subjectLabel} />
+      <div className="ai" style={d.signal && d.signal.flagged ? { marginTop: 10 } : undefined}>
         <div className="ah"><Spk />인수인계 요약<Mod n={5} /></div>
         <div className="small">{h.text}</div>
         {(h.points || []).length > 0 && <><div className="b" style={{ fontSize: 13.5, marginTop: 10 }}>다음에 챙길 것</div><ul className="small">{h.points.map((p, i) => <li key={i}>{p}</li>)}</ul></>}
@@ -45,6 +47,7 @@ export function RecentReport({ subject, showMonthly = true, empty = '아직 기�
           <div className="between"><CatChip k={it.category} /><span className="mute2">{dlabel(it.date)} {hh(it.startHour)} · {fmt(it.hours)}시간</span></div>
           <div className="mute2" style={{ marginTop: 6 }}>봉사자 {it.volunteer}{it.status === 'LOG_SUBMITTED' ? ' · 확인 대기' : ''}</div>
           {it.logText && <div className="small" style={{ marginTop: 6, whiteSpace: 'pre-wrap' }}>{it.logText}</div>}
+          <CareNoteBox n={it.careNote} style={{ marginTop: 8 }} />
           <CareMemo text={it.careMemo} style={{ marginTop: 8 }} />
           <button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => nav(subject.startsWith('elder:') ? `/o/reqs/${it.requestId}` : `/req/${it.requestId}`)} hidden={subject.startsWith('family:')}>요청 상세 보기</button>
         </div>
