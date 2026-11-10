@@ -54,7 +54,7 @@ class OneClassTest {
     }
 
     NeighborClass open(User by, Long elderId, String title) {
-        return svc.create(by, new ClassService.ClassCmd("일·경험", title, "경험을 들려 드려요", List.of(), null, null,
+        return svc.create(by, new ClassService.ClassCmd("말벗·이야기", title, "경험을 들려 드려요", List.of(), null, null,
                 null, null, 1.0, null, elderId, "ONE", "해외영업 30년", List.of("이직 고민"), List.of("이직할지 어떻게 정하셨어요?"),
                 List.of(new ClassService.Slot(d1, 19.0), new ClassService.Slot(d2, 10.0)), "행복동 작은도서관 1층 북카페", 2));
     }
@@ -160,14 +160,14 @@ class OneClassTest {
         assertEquals(FilterLevel.BLOCK, RuleEngine.classFilter("교회 전도 같이 해요").level());
         assertEquals(FilterLevel.ALLOW, RuleEngine.classFilter("아침 산책 같이 하며 사진 찍기").level()); // '아침'은 침이 아님
         assertEquals(FilterLevel.ALLOW, RuleEngine.classFilter("회사 생활 30년 노하우 나누기").level());
-        ApiException ex = assertThrows(ApiException.class, () -> svc.create(teacher, new ClassService.ClassCmd("생활 지혜", "쑥뜸 뜨는 법", null, List.of(), null, null,
+        ApiException ex = assertThrows(ApiException.class, () -> svc.create(teacher, new ClassService.ClassCmd("말벗·이야기", "쑥뜸 뜨는 법", null, List.of(), null, null,
                 null, null, 1.0, null, null, "ONE", null, null, null, List.of(new ClassService.Slot(d1, 10.0)), "행복동 작은도서관", 2)));
         assertEquals("FORBIDDEN_REQUEST", ex.code);
         assertTrue(ex.getMessage().contains("민간요법"));
-        assertEquals("MEET_NOT_PUBLIC", assertThrows(ApiException.class, () -> svc.create(teacher, new ClassService.ClassCmd("디지털", "카톡 배우기", null, List.of(), null, null,
+        assertEquals("MEET_NOT_PUBLIC", assertThrows(ApiException.class, () -> svc.create(teacher, new ClassService.ClassCmd("전자기기 사용법", "카톡 배우기", null, List.of(), null, null,
                 null, null, 1.0, null, null, "ONE", null, null, null, List.of(new ClassService.Slot(d1, 10.0)), "우리 집 거실", 2))).code);
         // 같이 해 보기는 4명까지
-        assertEquals("INVALID_CAPACITY", assertThrows(ApiException.class, () -> svc.create(teacher, new ClassService.ClassCmd("요리", "김치 담그기", null, List.of(), null, null,
+        assertEquals("INVALID_CAPACITY", assertThrows(ApiException.class, () -> svc.create(teacher, new ClassService.ClassCmd("전자기기 사용법", "키오스크 연습", null, List.of(), null, null,
                 d1, 10.0, 2.0, 6, null))).code);
     }
 }

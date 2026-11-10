@@ -27,7 +27,7 @@ class RulesTest {
         assertEquals(1.5, Rules.earn(1.5, Level.BASIC));
         assertEquals(4.0, Rules.earn(2.5, Level.RESPONSIBLE)); // 3.75 → 4.0
         assertEquals(0.5, Rules.earn(0.5, Level.EFFORT));      // 0.6 → 0.5
-        assertEquals(1.0, Rules.classFee(1.5));                // 수강 1.5시간 × 0.5 = 0.75 → 1.0
+        assertEquals(6.0, Rules.classTeacherEarn(4, 1.5));     // 클래스: 4명 × 1.5시간 = 6시간(평등 정산)
     }
 
     @Test

@@ -7,20 +7,24 @@ import { api, post } from '../api.js';
 import { fmt, hh, ap, dlabel, addDays, AREAS } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useSpeechInput } from './voice.jsx';
-import QrScanner, { qrText } from '../ui/QrScanner.jsx';
+import QrScanner, { qrText, QrIntro } from '../ui/QrScanner.jsx';
 import { VoiceField } from '../ui/VoiceInput.jsx';
 const checkBy = (m) => (m === 'qr' ? 'QR 확인' : m === 'code' ? '번호 확인' : 'QR 확인');
 
 const KI = { '요리': '<path d="M4 11h16v3a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6z"/><path d="M2 11h20M9 7c0-1 1-1.5 1-3M14 7c0-1 1-1.5 1-3"/>', '손재주': '<path d="M5 19L19 5"/><circle cx="18" cy="6" r="1.5"/><path d="M4 20c4-1 6-5 9-5s3 3 7 2"/>', '노래·이야기': '<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>', '디지털': '<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/>', '생활 지혜': '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>', '일·경험': '<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>' };
 const KC = { '요리': ['#FFF1E2', '#EE8424'], '손재주': ['#F0ECFF', '#7656E3'], '노래·이야기': ['#FFEDF3', '#E2557F'], '디지털': ['#EAF0FF', '#3D6DF2'], '생활 지혜': ['#E4F5F9', '#178FAD'], '일·경험': ['#ECF1F8', '#3E5C8A'] };
+/* 2026-11-09 회의: 이웃 클래스 주제는 두 가지만(지난 수업 표시용으로 옛 종류 아이콘은 남김) */
+KI['말벗·이야기'] = KI['노래·이야기']; KC['말벗·이야기'] = KC['노래·이야기'];
+KI['전자기기 사용법'] = KI['디지털']; KC['전자기기 사용법'] = KC['디지털'];
+export const CLASS_KINDS = ['말벗·이야기', '전자기기 사용법'];
 const kc = (k) => KC[k] || KC['생활 지혜'];
 export function KIc({ k, s = 44, bg }) {
   const n = Math.round(s * 0.52);
   return <span className="cat-ic" style={{ width: s, height: s, background: bg ? kc(k)[0] : '#fff', color: kc(k)[1] }}><svg viewBox="0 0 24 24" width={n} height={n} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: KI[k] || KI['생활 지혜'] }} /></span>;
 }
 const isOne = (c) => c && c.mode === 'ONE';
-/* 1:1은 1시간 = 1시간, 같이 해 보기는 × 0.5 (황수빈 v2 clCost) */
-const cost = (c) => (isOne(c) ? Number(c.hours) : Math.round(Number(c.hours) * 0.5 * 2) / 2);
+/* 평등 정산(2026-11-09): 배우는 사람은 수업 시간만큼, 여는 사람은 참석 인원 × 시간 */
+const cost = (c) => Number(c.hours);
 export const joined = (c) => Number(c.enrolledCount ?? c.joined ?? c.enrolled ?? c.applicants ?? 0);
 const myEnroll = (c) => (c.myEnrollment && typeof c.myEnrollment === 'object' ? c.myEnrollment.status : c.myEnrollment) || c.myStatus || (c.applied ? 'APPLIED' : null);
 const elderT = (c) => !!(c.elderTeacher ?? c.teacherElderId);
@@ -84,8 +88,13 @@ function OneCard({ c }) {
 }
 
 let clsModeMem = 'one';
-/* ---------- 동네 클래스 목록 ---------- */
+/* ---------- 이웃 클래스 목록 (동네 소식 화면의 "이웃 클래스" 탭) ---------- */
 export function Cls() {
+  const nav = useNavigate();
+  useEffect(() => { nav('/news?tab=cls', { replace: true }); }, []); // eslint-disable-line
+  return null;
+}
+export function ClsBody() {
   const nav = useNavigate();
   const [f, setF] = useState('전체');
   const [mode, setModeS] = useState(clsModeMem);
@@ -93,7 +102,7 @@ export function Cls() {
   const [list] = useLoad(() => api('/classes'), []);
   const [mine] = useLoad(() => api('/classes/mine', { quiet: true }), []);
   const [done] = useLoad(() => api('/classes?status=DONE', { quiet: true }), []);
-  const kinds = ['전체', ...Object.keys(KC)];
+  const kinds = ['전체', ...CLASS_KINDS];
   const pool = (list || []).filter((c) => c.status === 'OPEN' && (isOne(c) ? 'one' : 'group') === mode && (f === '전체' || c.kind === f));
   const teaching = (mine && mine.teaching) || [];
   const applied = (mine && mine.applied) || [];
@@ -111,20 +120,20 @@ export function Cls() {
   };
   const appliedShown = applied.filter((c) => !isOne(c) || myOne(c));
   return (
-    <Screen title="동네 클래스" back={false}>
-      <div className="ai-ban" style={{ marginTop: 0, background: 'linear-gradient(135deg,#FFF4E6 0%,#FFF0F4 100%)' }}><div className="grow"><div className="ah2" style={{ color: '#C2385F' }}><Ic n="star" s={13} /> 서로 가르쳐 주는 클래스</div><div className="b" style={{ fontSize: 17, marginTop: 4 }}>어르신께는 살아온 노하우를,<br />청년에게는 휴대폰 쓰는 법을</div><div className="mute2" style={{ marginTop: 4 }}>1:1로 한 시간, 열린 곳에서 만나요</div></div><div className="ai-orb" style={{ background: '#E2557F', boxShadow: '0 8px 18px rgba(226,85,127,.3)' }}><Ic n="cap" s={28} /></div></div>
-      <div className="seg" style={{ marginTop: 16 }} role="tablist"><button role="tab" aria-selected={mode === 'one'} className={mode === 'one' ? 'on' : ''} onClick={() => setMode('one')}>1:1 배우기</button><button role="tab" aria-selected={mode === 'group'} className={mode === 'group' ? 'on' : ''} onClick={() => setMode('group')}>같이 해 보기 · 4명까지</button></div>
+    <>
+      <div className="ai-ban" style={{ marginTop: 0, background: 'linear-gradient(135deg,#FFF4E6 0%,#FFF0F4 100%)' }}><div className="grow"><div className="ah2" style={{ color: '#C2385F' }}><Ic n="star" s={13} /> 이웃이 여는 클래스</div><div className="b" style={{ fontSize: 17, marginTop: 4 }}>말벗·이야기, 전자기기 사용법<br />누구나 할 수 있는 것만 열어요</div><div className="mute2" style={{ marginTop: 4 }}>1:1은 카페·도서관 같은 열린 곳에서 만나요</div></div><div className="ai-orb" style={{ background: '#E2557F', boxShadow: '0 8px 18px rgba(226,85,127,.3)' }}><Ic n="cap" s={28} /></div></div>
+      <div className="seg" style={{ marginTop: 16 }} role="tablist"><button role="tab" aria-selected={mode === 'one'} className={mode === 'one' ? 'on' : ''} onClick={() => setMode('one')}>1:1 배우기</button><button role="tab" aria-selected={mode === 'group'} className={mode === 'group' ? 'on' : ''} onClick={() => setMode('group')}>여럿이 · 4명까지</button></div>
       <div className="chips" style={{ marginTop: 12 }}>{kinds.map((k) => <button key={k} className={'chip ' + (f === k ? 'on' : '')} onClick={() => setF(k)}>{k}</button>)}</div>
       {(teaching.length > 0 || appliedShown.length > 0) && <div className="sec-t">내 수업</div>}
       {teaching.map(tRow)}
       {appliedShown.map(aRow)}
       <div className="sec-t"><span>{mode === 'one' ? '지금 신청할 수 있는 선생님' : '모집 중'} {pool.length}</span></div>
-      <div className="mute2" style={{ margin: '-4px 0 10px' }}>{mode === 'one' ? '궁금한 걸 한 사람에게 직접 물어봐요. 누가 가르치든 한 시간은 한 시간이에요.' : '요리·바느질처럼 손으로 같이 해 보는 수업이에요. 장소는 기관이 빌려줘요.'}</div>
+      <div className="mute2" style={{ margin: '-4px 0 10px' }}>{mode === 'one' ? '궁금한 걸 한 사람에게 직접 물어봐요. 누가 가르치든 한 시간은 한 시간이에요.' : '여럿이 하는 수업은 최대 4명, 기관이 신청해 장소를 정할 때만 열려요. 배우는 분 1시간 = 여는 분 +1시간씩.'}</div>
       {list === undefined ? <Loading /> : pool.length ? pool.map((c) => (mode === 'one' ? <OneCard key={c.id} c={c} /> : <ClCard key={c.id} c={c} />)) : <Empty>이 종류의 수업이 아직 없어요</Empty>}
       {past.length > 0 && <div className="sec-t">지난 수업</div>}
       {past.map((c) => <div key={'p' + c.id} className="card item click" role="button" tabIndex={0} onClick={() => nav(`/cls/${c.id}/note`)}><KIc k={c.kind} s={42} bg /><div className="grow"><div className="b">{c.title}</div><div className="mute2">{teacherName(c)} 선생님 · {dlabel(c.date)}{noteOf(c) ? ' · 배움 노트 있음' : ''}</div></div>›</div>)}
       <button className="fab" onClick={() => nav('/cls/new')}><Ic h={I.plus} /> 수업 열기</button>
-    </Screen>
+    </>
   );
 }
 
@@ -145,6 +154,7 @@ function ClsQrSheet({ c, onClose }) {
   return (
     <>
       <h2>출석 QR</h2>
+      <QrIntro />
       <p className="muted" style={{ margin: 0 }}>{c.title} · 수강생이 들어올 때 이 QR(번호)을 찍어요.</p>
       <div className="qr-show">{q === undefined ? <Loading /> : <><div className="qr-box"><QrSvg text={(q && q.qrText) || qrText('CLS', c.id, code)} size="min(220px,62vw)" /></div><div className="b" style={{ fontSize: 30, letterSpacing: 6 }}>{code}</div><div className="mute2">QR이 안 찍히면 이 번호 6자리를 불러 주세요</div></>}</div>
       <div className="sum" style={{ marginTop: 12 }}><div className="between"><span className="muted">신청</span><b>{joined(c)}/{c.capacity}명</b></div>{q && q.attended != null && <div className="between"><span className="muted">출석</span><b>{q.attended}명</b></div>}</div>
@@ -188,7 +198,7 @@ export function ClsDetail() {
   if (teach) {
     action = (
       <>
-        <div className="notice">내가 연 수업이에요. {c.status === 'SPACE_PENDING' ? '담당자가 장소를 배정하면 모집이 시작돼요.' : c.status === 'OPEN' ? '모집 중이에요.' : c.status === 'DONE' ? '끝난 수업이에요.' : ''}</div>
+        <div className="notice">내가 연 수업이에요. {c.status === 'SPACE_PENDING' ? '여럿이 하는 수업은 기관이 장소를 정해야 모집이 시작돼요.' : c.status === 'OPEN' ? '모집 중이에요.' : c.status === 'DONE' ? '끝난 수업이에요.' : ''}</div>
         {c.status === 'OPEN' && <button className="btn" style={{ marginTop: 10 }} onClick={() => sheet(() => <ClsQrSheet c={c} onClose={closeSheet} />)}><Ic n="qr" s={20} /> 출석 QR 띄우기</button>}
         {c.status === 'OPEN' && <button className="btn ghost" style={{ marginTop: 8 }} onClick={() => sheet(() => <FinishSheet c={c} onDone={() => { closeSheet(); reload(); refresh(); }} />)}>수업 마치기 · 배움 노트</button>}
         {c.status === 'DONE' && <button className="btn soft" style={{ marginTop: 8 }} onClick={() => nav(`/cls/${c.id}/note`)}>배움 노트 보기</button>}
@@ -216,8 +226,8 @@ export function ClsDetail() {
       </div>
       <div className="card" style={{ marginTop: 12 }}>
         <div className="b">시간은 이렇게 정산돼요</div>
-        <div className="settle"><span className="muted">수강하면 (수업 {fmt(c.hours)}시간 × 0.5, 30분 단위)</span><b style={{ color: '#E5484D' }}>−{fmt(cost(c))}시간</b><span className="muted">선생님 적립 (수업 + 준비 1시간)</span><b style={{ color: 'var(--brand)' }}>+{fmt(Number(c.hours) + 1)}시간</b><span className="muted">{c.capacity}명이 모두 오면 남는 시간</span><b>{fmt(Math.max(0, c.capacity * cost(c) - (Number(c.hours) + 1)))}시간 → 공동 적립</b></div>
-        <div className="mute2" style={{ marginTop: 8 }}>남는 시간은 공동 적립으로 모여 기관 대상 무차감 도움에 쓰여요. 출석은 수업 시작 QR로 확인해요.</div>
+        <div className="settle"><span className="muted">배우는 분 (수업 {fmt(c.hours)}시간)</span><b style={{ color: '#E5484D' }}>−{fmt(cost(c))}시간</b><span className="muted">여는 분 (참석 1명마다)</span><b style={{ color: 'var(--brand)' }}>+{fmt(c.hours)}시간</b><span className="muted">{c.capacity}명이 모두 오면</span><b>+{fmt(Number(c.capacity) * Number(c.hours))}시간</b></div>
+        <div className="mute2" style={{ marginTop: 8 }}>시간은 평등하게 세요. 참석한 사람 수 × 수업 시간만큼 여는 분께 쌓여요. 출석은 수업 시작 QR로 확인해요.</div>
       </div>
       <div style={{ marginTop: 16 }}>{action}</div>
     </Screen>
@@ -396,10 +406,12 @@ export function ClsNote() {
 }
 
 /* ---------- 수업 열기: AI 인터뷰 (황수빈 v2: 1:1 / 같이 해 보기) ---------- */
-const CNQ = [null, ['1시간', '1시간 30분', '2시간'], ['1:1로, 도서관이나 카페에서', '1:1로, 주민센터 라운지에서', '4명까지 같이 해 보기 (기관 공간)']];
+const CNQ = [null, ['1시간', '1시간 30분', '2시간'], ['1:1로, 도서관이나 카페에서', '1:1로, 주민센터 라운지에서', '4명까지 여럿이 (기관이 장소를 정해요)']];
 const CNQ3 = { one: ['평일 저녁 7시, 주말 오후 2시', '주말 오전 10시만 돼요'], group: ['다음 주 토요일 오전', '다음 주 수요일 오후'] };
-const cnKind = (t) => (/폰|키오스크|카톡|컴퓨터|앱|영상통화|인터넷/.test(t) ? '디지털' : /회사|직장|취업|이직|영업|창업|교사|은퇴|경험|노하우|진로/.test(t) ? '일·경험' : /김치|깍두기|찌개|반찬|요리|떡|국|장 담|시장|재료/.test(t) ? '요리' : /뜨개|바느질|목도리|수선|재봉|자수/.test(t) ? '손재주' : /노래|이야기|옛날|고향|사진/.test(t) ? '노래·이야기' : '생활 지혜');
-const CN_T = { '요리': [['재료 손질 보기', 2], ['양념·재료 알아보기', 3], ['같이 만들기', 5], ['맛보고 담기', 2], ['보관법 듣기', 1]], '손재주': [['재료와 도구 알아보기', 1], ['기본기 따라 하기', 2], ['한 단계씩 해 보기', 4], ['마무리와 다음 숙제', 1]], '노래·이야기': [['인사하고 고향 소개', 1], ['그 시절 사진·노래 같이 보기', 2], ['이야기 듣고 질문하기', 2], ['한 줄씩 기록 남기기', 1]], '디지털': [['화면 구성 알아보기', 1], ['따라 하기', 2], ['혼자 해 보기', 2], ['질문 시간', 1]], '생활 지혜': [['도구 알아보기', 1], ['시범 보기', 2], ['직접 해 보기', 3], ['정리하고 질문', 1]], '일·경험': [['지금 고민 듣기', 2], ['내 경험 들려주기', 3], ['같이 방법 찾아보기', 2], ['다음에 해 볼 것 정하기', 1]] };
+/* 2026-11-09: 주제는 말벗·이야기 / 전자기기 사용법 두 가지만. 요리·손재주처럼 수준이 높은 주제는 닫는다(서버도 막음) */
+const CN_HIGH = /김치|깍두기|찌개|반찬|요리|떡|장 담|뜨개|바느질|목도리|수선|재봉|자수|공구|수리|자전거|목공|그림|악기|외국어|영어|투자/;
+const cnKind = (t) => (/폰|휴대폰|스마트폰|키오스크|카톡|컴퓨터|앱|영상통화|인터넷|태블릿|문자|사진 보내/.test(t) ? '전자기기 사용법' : CN_HIGH.test(t) ? null : '말벗·이야기');
+const CN_T = { '말벗·이야기': [['인사하고 서로 소개', 1], ['이야기 듣고 나누기', 3], ['궁금한 것 묻기', 2], ['다음에 나눌 이야기 정하기', 1]], '전자기기 사용법': [['화면 구성 알아보기', 1], ['따라 하기', 2], ['혼자 해 보기', 2], ['질문 시간', 1]], '요리': [['재료 손질 보기', 2], ['양념·재료 알아보기', 3], ['같이 만들기', 5], ['맛보고 담기', 2], ['보관법 듣기', 1]], '손재주': [['재료와 도구 알아보기', 1], ['기본기 따라 하기', 2], ['한 단계씩 해 보기', 4], ['마무리와 다음 숙제', 1]], '노래·이야기': [['인사하고 고향 소개', 1], ['그 시절 사진·노래 같이 보기', 2], ['이야기 듣고 질문하기', 2], ['한 줄씩 기록 남기기', 1]], '디지털': [['화면 구성 알아보기', 1], ['따라 하기', 2], ['혼자 해 보기', 2], ['질문 시간', 1]], '생활 지혜': [['도구 알아보기', 1], ['시범 보기', 2], ['직접 해 보기', 3], ['정리하고 질문', 1]], '일·경험': [['지금 고민 듣기', 2], ['내 경험 들려주기', 3], ['같이 방법 찾아보기', 2], ['다음에 해 볼 것 정하기', 1]] };
 /* 서버 RuleEngine.classFilter 와 같은 금지 주제(서버가 올릴 때 한 번 더 막는다) */
 const CN_BLOCK = [
   [/침\s*(을|도)?\s*(놓|뜨|맞|술)|침술|쑥뜸|뜸\s*(을|도)?\s*(뜨|놓|떠)|마사지|안마|지압|민간\s*요법|약초/, '몸에 직접 하는 시술이나 민간요법은 다칠 수 있어서 수업으로 열 수 없어요.'],
@@ -433,7 +445,10 @@ export function ClsNew() {
   const { toast } = useUi();
   const [elders] = useLoad(() => (org ? api('/org/elders') : Promise.resolve(null)), [org]);
   const [teacherElderId, setTE] = useState(null);
-  const firstQ = org ? '어르신께 여쭤본 내용을 적어 주세요. 어떤 걸 알려 주고 싶어 하세요?' : '어떤 걸 알려 주고 싶으세요? 요리·손재주부터 회사 경험, 휴대폰 쓰는 법까지 다 좋아요. 제가 수업으로 정리해 드릴게요.';
+  const firstQ = org ? '어르신께 여쭤본 내용을 적어 주세요. 이웃 클래스는 말벗·이야기, 전자기기 사용법 두 가지만 열 수 있어요.' : '어떤 걸 나누고 싶으세요? 이웃 클래스는 말벗·이야기(살아온 이야기, 고민 나누기)와 전자기기 사용법(휴대폰·키오스크) 두 가지만 열 수 있어요.';
+  const [orgSp] = useLoad(() => (org ? api('/org/spaces', { quiet: true }) : Promise.resolve(null)), [org]);
+  const orgSpaces = (orgSp && orgSp.spaces) || [];
+  const [spacePick, setSpacePick] = useState(null);
   const [msgs, setMsgs] = useState([]);
   const [step, setStep] = useState(0);
   const [d, setD] = useState({});
@@ -456,24 +471,25 @@ export function ClsNew() {
       try { fl = await post('/classes/check-topic', { text: t }, { quiet: true }); } catch { /* 규칙만 사용 */ }
       if (local || (fl && fl.level === 'BLOCK')) { setBlocked({ reason: local ? local[1] : fl.reason, source: 'rule' }); return; }
       const kind = cnKind(t);
+      if (!kind) { setBlocked({ reason: '요리·손재주처럼 준비가 많이 필요한 주제는 이웃 클래스로 열지 않아요. 누구나 할 수 있는 말벗·이야기, 전자기기 사용법만 열 수 있어요.', source: 'rule' }); return; }
       setD({ topic: t, kind, caution0: fl && fl.level === 'CAUTION' ? fl.reason : '' });
       later(() => { setStep(1); ai(`좋아요! ${kind} 수업이네요. 한 번 만나면 얼마나 걸릴까요?`); });
     } else if (step === 1) {
       setD((x) => ({ ...x, h: /2시간/.test(t) ? 2 : /30분|반/.test(t) ? 1.5 : 1 }));
-      later(() => { setStep(2); ai('한 사람씩 1:1로 만날까요, 여럿이 같이 해 볼까요? 이야기나 요령을 나누는 건 1:1이, 요리·바느질처럼 손으로 하는 건 같이 해 보기가 좋아요.'); });
+      later(() => { setStep(2); ai('한 사람씩 1:1로 만날까요, 여럿이 할까요? 1:1은 카페·도서관 같은 열린 곳에서 만나요. 여럿이 하는 수업은 최대 4명이고, 기관이 장소를 정해야 열려요.'); });
     } else if (step === 2) {
       const grp = /같이|여럿|명까지|[2-9]\s*명/.test(t) && !/1:1/.test(t);
       let meet = '';
       if (grp) { const m = t.match(/([2-4])\s*명/); setD((x) => ({ ...x, mode: 'group', cap: m ? +m[1] : 4, items: '재료는 기관에서 준비해요' })); }
       else { meet = /라운지|주민센터/.test(t) ? '행복동 주민센터 1층 라운지' : '행복동 작은도서관 1층 북카페'; setD((x) => ({ ...x, mode: 'one', cap: 1, items: '없어요', meet })); }
-      later(() => { setStep(3); ai(grp ? '언제가 좋으세요? 같이 해 보기는 담당자가 주민센터나 경로당 공간을 잡아 드려요.' : `좋아요, ${meet}에서 만나요. 언제 시간이 되세요? 몇 개 정해 두면 배우는 분이 그중에서 골라요.`); });
+      later(() => { setStep(3); ai(grp ? (org ? '언제가 좋으세요? 장소는 마지막에 우리 기관 공간에서 골라요.' : '언제가 좋으세요? 여럿이 하는 수업은 기관 담당자가 장소를 정하면 모집이 시작돼요.') : `좋아요, ${meet}에서 만나요. 언제 시간이 되세요? 몇 개 정해 두면 배우는 분이 그중에서 골라요.`); });
     } else if (step === 3) {
       setD((x) => {
         const unit = (x.h || 1) * 60, tpl = CN_T[x.kind] || CN_T['생활 지혜'], w = tpl.reduce((a, b) => a + b[1], 0);
-        const base = { ...x, steps: tpl.map(([tt, k]) => ({ t: tt, min: Math.max(5, Math.round((unit * k) / w / 5) * 5) })), lv: x.kind === '요리' || x.caution0 ? '주의' : '허용' };
+        const base = { ...x, steps: tpl.map(([tt, k]) => ({ t: tt, min: Math.max(5, Math.round((unit * k) / w / 5) * 5) })), lv: x.caution0 ? '주의' : '허용' };
         if (x.mode === 'one') return { ...base, slots: parseSlots(t), title: x.topic.replace(/\s*(알려 ?주고 싶어요?|가르쳐 ?주고 싶어요?|하는 법|들려주기|나누기)$/, '').trim() };
         const wd = /월요일/.test(t) ? 1 : /화요일/.test(t) ? 2 : /수요일/.test(t) ? 3 : /목요일/.test(t) ? 4 : /금요일/.test(t) ? 5 : /일요일/.test(t) ? 0 : 6;
-        return { ...base, date: nextWd(wd), s: /오후/.test(t) ? 14 : /저녁/.test(t) ? 18 : 10, title: x.topic.replace(/\s*(알려 ?주고 싶어요?|가르쳐 ?주고 싶어요?|하는 법|들려주기)$/, '').trim(), caution: x.kind === '요리' ? '칼과 불을 쓰니 조심해 주세요. 알레르기가 있으면 미리 알려 주세요.' : x.kind === '손재주' ? '바늘·가위에 다치지 않게 조심해요.' : x.caution0 || '특별한 주의사항은 없어요.' };
+        return { ...base, date: nextWd(wd), s: /오후/.test(t) ? 14 : /저녁/.test(t) ? 18 : 10, title: x.topic.replace(/\s*(알려 ?주고 싶어요?|가르쳐 ?주고 싶어요?|하는 법|들려주기)$/, '').trim(), caution: x.caution0 || '특별한 주의사항은 없어요.' };
       });
       setStep(4); ai('잠깐만요, 수업 계획으로 정리해 볼게요.');
       later(() => setD((x) => ({ ...x, ready: true })), 1000);
@@ -487,11 +503,13 @@ export function ClsNew() {
       nav(org ? '/o/space' : `/cls/${c.id}`, { replace: true });
       return;
     }
-    const c = await post('/classes', { mode: 'GROUP', kind: d.kind, title: d.title, intro: org ? '담당자가 어르신 대신 열었어요.' : 'AI 인터뷰로 정리한 수업이에요.', steps: d.steps, items: d.items, caution: d.caution, date: d.date, startHour: d.s, hours: d.h, capacity: d.cap, teacherElderId: teacherElderId || undefined });
-    toast('수업을 올렸어요. 담당자가 장소를 배정하면 모집이 시작돼요');
+    const sp = org ? orgSpaces.find((x) => x.id === spacePick) : null;
+    if (org && !sp) return toast('여럿이 하는 수업은 장소를 골라야 열 수 있어요');
+    const c = await post('/classes', { mode: 'GROUP', kind: d.kind, title: d.title, intro: org ? '담당자가 어르신 대신 열었어요.' : 'AI 인터뷰로 정리한 수업이에요.', steps: d.steps, items: d.items, caution: d.caution, date: d.date, startHour: d.s, hours: d.h, capacity: d.cap, teacherElderId: teacherElderId || undefined, spaceId: sp ? sp.id : undefined, place: sp ? sp.name : undefined });
+    toast(org ? '장소를 정해 바로 모집을 시작했어요' : '수업을 올렸어요. 기관이 장소를 정하면 모집이 시작돼요');
     nav(org ? '/o/space' : `/cls/${c.id}`, { replace: true });
   });
-  const qs = blocked ? [] : step === 0 ? ['회사 생활 30년 노하우 나누기', '카톡으로 사진 보내는 법', '우리 어머니께 배운 깍두기 담그는 법', '침 놓는 법 알려 주고 싶어'] : step === 3 ? CNQ3[d.mode === 'group' ? 'group' : 'one'] : CNQ[step] || [];
+  const qs = blocked ? [] : step === 0 ? ['회사 생활 30년 이야기 나누기', '카톡으로 사진 보내는 법', '키오스크로 주문하는 법', '깍두기 담그는 법'] : step === 3 ? CNQ3[d.mode === 'group' ? 'group' : 'one'] : CNQ[step] || [];
   const done = step === 4 && d.ready;
   const Bot = () => <span className="bot"><Logo /></span>;
   const titleIn = <input className="in" style={{ background: '#fff', fontWeight: 700 }} value={d.title || ''} onChange={(e) => setD({ ...d, title: e.target.value })} aria-label="수업 제목" />;
@@ -504,7 +522,7 @@ export function ClsNew() {
           {org && <div className="mrow"><Bot /><div className="mcol wide"><div className="ai"><div className="ah"><Spk />선생님이 될 어르신</div><div className="tags">{(elders || []).filter((e) => e.status !== 'ENDED').map((e) => <button key={e.id} className={'chip ' + (teacherElderId === e.id ? 'on' : '')} onClick={() => setTE(e.id)}>{e.alias} 님</button>)}</div></div></div></div>}
           <div className="mrow"><Bot /><div className="mcol"><div className="bot-n">수업 도우미</div><div className="msg ai-m">{firstQ}</div></div></div>
           {msgs.map((m, i) => (m.a ? <div className="mrow" key={i}><Bot /><div className="mcol"><div className="msg ai-m">{m.t}</div></div></div> : <div className="msg me" key={i}>{m.t}</div>))}
-          {blocked && <div className="mrow"><Bot /><div className="mcol wide"><div className="ai warn"><div className="ah"><Spk />이 수업은 열 수 없어요<Mod n={2} /></div><div className="small">{blocked.reason}</div><div className="small muted" style={{ marginTop: 6 }}>요리, 손재주, 일 경험, 휴대폰 쓰는 법 같은 수업은 언제든 환영이에요.</div><RuleNote source={blocked.source} /></div></div></div>}
+          {blocked && <div className="mrow"><Bot /><div className="mcol wide"><div className="ai warn"><div className="ah"><Spk />이 수업은 열 수 없어요<Mod n={2} /></div><div className="small">{blocked.reason}</div><div className="small muted" style={{ marginTop: 6 }}>말벗·이야기(살아온 이야기, 고민 나누기)와 전자기기 사용법(휴대폰·키오스크) 수업은 언제든 환영이에요.</div><RuleNote source={blocked.source} /></div></div></div>}
           {done && d.mode === 'one' && (
             <div className="mrow"><Bot /><div className="mcol wide"><div className="ai">
               <div className="ah"><Spk />AI가 정리한 1:1 수업<Mod n={1} /></div>
@@ -524,7 +542,8 @@ export function ClsNew() {
               <div className="mute2" style={{ marginTop: 6 }}>{d.kind} · {fmt(d.h)}시간 · 최대 {d.cap}명 · {dlabel(d.date)} {ap(d.s)}</div>
               <ol className="curri" style={{ marginTop: 8 }}>{d.steps.map((x, i) => <li key={i}>{x.t}<span>{x.min}분</span></li>)}</ol>
               <dl className="kv"><dt>준비물</dt><dd>{d.items}</dd><dt>주의</dt><dd>{d.caution}</dd><dt>판단</dt><dd><span className={'st ' + (d.lv === '허용' ? 'ok' : 'wait')}>{d.lv}</span></dd></dl>
-              <div className="settle" style={{ borderTop: '1px solid var(--line)', paddingTop: 10 }}><span className="muted">{org ? '어르신' : '내'} 적립 (수업 + 준비)</span><b style={{ color: 'var(--brand)' }}>+{fmt(d.h + 1)}시간</b><span className="muted">학생 1명 수강</span><b>−{fmt(d.h * 0.5)}시간</b></div>
+              <div className="settle" style={{ borderTop: '1px solid var(--line)', paddingTop: 10 }}><span className="muted">{org ? '어르신' : '내'} 적립 (참석 1명마다)</span><b style={{ color: 'var(--brand)' }}>+{fmt(d.h)}시간</b><span className="muted">{d.cap}명이 모두 오면</span><b style={{ color: 'var(--brand)' }}>+{fmt(d.h * d.cap)}시간</b><span className="muted">배우는 분 1명</span><b>−{fmt(d.h)}시간</b></div>
+              {org ? <><label className="f">장소 (우리 기관 공간)</label><div className="tags">{orgSpaces.map((x) => <button key={x.id} className={'chip ' + (spacePick === x.id ? 'on' : '')} onClick={() => setSpacePick(x.id)}>{x.name}</button>)}</div>{!orgSpaces.length && <div className="mute2">먼저 동네 소식·클래스 운영에서 공간을 등록해 주세요</div>}</> : <div className="mute2" style={{ marginTop: 8 }}>여럿이 하는 수업은 기관 담당자가 장소를 정하면 모집이 시작돼요.</div>}
               {btns}
             </div></div></div>
           )}
@@ -554,14 +573,22 @@ export function OSpace() {
   const [busy, run] = useBusy();
   const wait = (list || []).filter((c) => c.status === 'SPACE_PENDING');
   const ones = (spRes && spRes.oneClasses) || [];
+  const [evs] = useLoad(() => api('/org/events', { quiet: true }).catch(() => []), []);
   return (
-    <Screen title="동네 클래스 운영" noTabs>
-      <div className="sec-t" style={{ marginTop: 0 }}>어르신 1:1 수업 {ones.length}</div><div className="mute2" style={{ margin: '-4px 0 4px' }}>휴대폰이 없는 어르신 대신 신청을 받고 수락해요. 1:1은 공간 배정이 필요 없어요.</div>
+    <Screen title="동네 소식·클래스 운영" noTabs>
+      <div className="sec-t" style={{ marginTop: 0 }}><span>기관 소식 {(evs || []).length}</span><a role="button" tabIndex={0} onClick={() => nav('/o/events/new')}>+ 행사 올리기</a></div>
+      <div className="mute2" style={{ margin: '-4px 0 4px' }}>우리 기관 행사·클래스를 동네 소식에 올려요. 링크를 넣으면 제목·사진을 가져와 카드로 보여 줘요.</div>
+      {(evs || []).slice(0, 5).map((e) => (
+        <div key={e.id} className="card item click" role="button" tabIndex={0} onClick={() => nav(`/news/${e.id}`)}><div className="ic"><Ic n="cal" s={20} /></div><div className="grow" style={{ minWidth: 0 }}><div className="b">{e.title}</div><div className="mute2">{e.date ? dlabel(e.date) : '날짜 미정'} · {e.applyType === 'LINK' ? '외부 링크 신청' : `앱 신청 ${e.applied}${e.capacity ? `/${e.capacity}` : ''}명`}</div></div><span className={'st ' + (e.status === 'OPEN' ? 'go' : 'end')}>{e.status === 'OPEN' ? '모집 중' : '마감'}</span></div>
+      ))}
+      {evs && !evs.length && <Empty>아직 올린 소식이 없어요</Empty>}
+      <button className="btn soft" style={{ marginTop: 10 }} onClick={() => nav('/o/events/new')}><Ic h={I.plus} /> 행사·클래스 홍보 올리기</button>
+      <div className="sec-t">어르신 1:1 수업 {ones.length}</div><div className="mute2" style={{ margin: '-4px 0 4px' }}>휴대폰이 없는 어르신 대신 신청을 받고 수락해요. 1:1은 공간 배정이 필요 없어요.</div>
       {spRes === undefined ? <Loading /> : ones.map((c) => (
         <div key={c.id} className="card org-one" style={{ marginTop: 10 }}><div className="row" style={{ gap: 12 }}><TAv c={c} s={42} /><div className="grow" style={{ minWidth: 0 }}><div className="b">{c.title}</div><div className="mute2">{teacherName(c)} {teacherAge(c)} · {c.meet}</div></div></div>{(c.requests || []).length ? <OneReqCards c={c} onChange={reloadSp} /> : <div className="mute2" style={{ marginTop: 10 }}>아직 신청이 없어요</div>}</div>
       ))}
-      <div className="sec-t">같이 해 보기 · 공간 배정</div>
-      <p className="su-p" style={{ marginTop: 0 }}>같이 해 보기(최대 4명)는 기관 공간에서 열려요. 장소를 배정하면 모집이 시작돼요.</p>
+      <div className="sec-t">여럿이 하는 수업 · 장소 정하기</div>
+      <p className="su-p" style={{ marginTop: 0 }}>여럿이 하는 수업(최대 4명)은 기관이 장소를 정할 때만 열려요. 장소를 정하면 모집이 시작돼요.</p>
       {list === undefined ? <Loading /> : wait.length ? wait.map((c) => (
         <div className="card" style={{ marginTop: 10 }} key={c.id}>
           <div className="row" style={{ gap: 12 }}><KIc k={c.kind} s={42} bg /><div className="grow"><div className="b">{c.title}</div><div className="mute2">{teacherName(c)} {teacherAge(c)} · {dlabel(c.date)} {ap(c.startHour)} · 최대 {c.capacity}명</div></div><span className={'st ' + (c.level === 'CAUTION' || c.level === '주의' ? 'wait' : 'ok')}>{{ ALLOW: '허용', CAUTION: '주의' }[c.level] || c.level || '허용'}</span></div>

@@ -87,7 +87,7 @@ export function My() {
       <div className="sec-t">가족</div>
       <div className="ml">
         <Mi t="가족 연결" s={fam0 ? `${fam0.relation || ''} ${fam0.user.name} · 연결됨${linked.length > 1 ? ` 외 ${linked.length - 1}명` : ''}` : '연결된 가족이 없어요'} i="users" onClick={() => nav('/my/family')} />
-        {fam0 && <Mi t="가족 대신 도움 요청" s={`${fam0.user.name} 님 이름으로 공고 올리기`} i="chat" onClick={() => nav(`/write/need?family=${encodeURIComponent(fam0.user.name)}`)} />}
+        {fam0 && <Mi t="가족 대신 도움 요청" s={`${fam0.user.name} 님 이름으로 봉사 요청`} i="chat" onClick={() => nav(`/write/need?family=${encodeURIComponent(fam0.user.name)}`)} />}
         {fam0 && <Mi t="가족 리포트" s={`${fam0.user.name} 님 최근 활동·메모 (공유 동의한 경우)`} i="chart" onClick={() => nav(`/my/family/${fam0.user.id}/report`)} />}
         <Mi t="내 리포트 공유 동의" s="가족 연결 화면에서 가족마다 켜고 꺼요" i="heart" onClick={() => nav('/my/family')} />
       </div>
@@ -202,7 +202,7 @@ export function Family() {
       <label className="f">새 가족 연결 신청</label>
       <div className="row"><select className="in" style={{ width: 110, flex: '0 0 auto' }} value={rel} onChange={(e) => setRel(e.target.value)}>{['엄마', '아빠', '할머니', '할아버지', '자녀', '배우자', '형제자매', '가족'].map((r) => <option key={r}>{r}</option>)}</select><input className="in grow" placeholder="상대 아이디 또는 휴대폰" value={q} onChange={(e) => setQ(e.target.value)} /></div>
       <button className="btn sm" style={{ marginTop: 8 }} disabled={busy} onClick={() => run(async () => { if (!q.trim()) return toast('상대 아이디나 휴대폰 번호를 적어 주세요'); await post('/family', { loginIdOrPhone: q.trim(), relation: rel }); setQ(''); reload(); toast('연결 신청을 보냈어요. 상대가 승인하면 연결돼요'); })}>신청</button>
-      {linked[0] && <button className="btn soft" style={{ marginTop: 12 }} onClick={() => nav(`/write/need?family=${encodeURIComponent(linked[0].user.name)}`)}>{linked[0].user.name} 님 대신 도움 요청 공고 올리기</button>}
+      {linked[0] && <button className="btn soft" style={{ marginTop: 12 }} onClick={() => nav(`/write/need?family=${encodeURIComponent(linked[0].user.name)}`)}>{linked[0].user.name} 님 대신 봉사 요청하기</button>}
       <div className="notice" style={{ marginTop: 12 }}>상대가 승인해야 연결돼요. 기관 등록 대상은 계정이 없어 연결할 수 없어요.</div>
     </Screen>
   );

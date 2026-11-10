@@ -72,7 +72,7 @@ export function OHome() {
         {[['대상 등록', 'plus', '#6A4FD8', () => nav('/o/elders/new')], ['공고 대신 등록', 'chat', '#EE8424', () => pick('누구 대신 공고를 올릴까요?', elders, (e) => nav(`/write/need?elder=${e.id}`))], ['봉사 공고 찾기', 'search', '#3D6DF2', () => pick('누구 대신 요청할까요?', elders, (e) => nav(`/board?elder=${e.id}`))], ['단골에게 요청', 'heart', '#E2557F', () => pick('누구의 단골에게 요청할까요?', elders, (e) => nav(`/regular?elder=${e.id}`))]].map(([t, i, c, f]) => <button key={t} onClick={f}><span style={{ background: `${c}14`, color: c }}><Ic n={i} s={22} /></span>{t}</button>)}
       </div>
       <button className="btn soft" style={{ marginTop: 12 }} onClick={() => pick('누구 대신 말로 요청할까요?', elders, (e) => nav(`/voice?elder=${e.id}`))}><Ic h={I.mic} /> 들은 내용을 말로 공고 만들기</button>
-      <div className="sec-t"><span>동네 클래스</span><a role="button" tabIndex={0} onClick={() => nav('/o/space')}>관리 ›</a></div>
+      <div className="sec-t"><span>동네 소식·클래스</span><a role="button" tabIndex={0} onClick={() => nav('/o/space')}>관리 ›</a></div>
       <div className="todo" role="button" tabIndex={0} onClick={() => nav('/o/space')}><div className="n" style={{ background: '#FFEDF3', color: '#E2557F' }}><Ic n="cap" s={20} /></div><div className="grow"><div className="t">공간 배정이 필요한 수업 {spaceWait}개</div><div className="d">배정하면 모집이 시작돼요 · 어르신 대신 수업 열기</div></div><span className="st go">배정</span></div>
       <div className="sec-t"><span>살펴볼 대상</span><a role="button" tabIndex={0} onClick={() => nav('/o/report', { replace: true })}>리포트 ›</a></div>
       {flagged.length ? flagged.map((e) => <ElderCard key={e.id} e={e} />) : <Empty>변화가 큰 대상이 없어요</Empty>}
@@ -305,7 +305,7 @@ export function OMy() {
       <div className="row" style={{ gap: 14 }}><div className="avatar lg" style={{ background: '#F1EDFF', color: '#6A4FD8' }}>{me ? me.name[0] : ''}</div><div className="grow"><div className="b" style={{ fontSize: 20 }}>{me && me.name}</div><div className="mute2">{me && (me.orgName || (me.org && me.org.name))} · 담당자 계정</div></div></div>
       <div className="ml" style={{ marginTop: 16 }}>
         <Mi t="기관 정보" s={me && (me.orgName || (me.org && me.org.name)) || '기관'} i="building" onClick={() => toast(`${(me && (me.orgName || (me.org && me.org.name))) || '기관'} · 담당자 ${me && me.name}`)} />
-        <Mi t="동네 클래스 공간 관리" s="공간 등록·배정" i="cap" onClick={() => nav('/o/space')} />
+        <Mi t="동네 소식·클래스 운영" s="공간 등록·배정" i="cap" onClick={() => nav('/o/space')} />
         <Mi t="알림" s="대상 관련 알림을 대신 받아요" i="bell" onClick={() => nav('/notif')} />
         <TextSizeRow />
         <Mi t="1:1 문의 · 신고 내역" i="msg" onClick={() => nav('/qna')} />

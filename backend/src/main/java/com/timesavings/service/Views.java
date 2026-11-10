@@ -22,8 +22,10 @@ public class Views {
     private final RequestRepo requests;
     private final PostRepo posts;
     private final MessageRepo messages;
+    private final RegularMarkRepo marks;
 
-    public Views(UserRepo users, ElderRepo elders, RatingRepo ratings, RequestRepo requests, PostRepo posts, MessageRepo messages) {
+    public Views(UserRepo users, ElderRepo elders, RatingRepo ratings, RequestRepo requests, PostRepo posts, MessageRepo messages, RegularMarkRepo marks) {
+        this.marks = marks;
         this.users = users;
         this.elders = elders;
         this.ratings = ratings;
@@ -71,7 +73,9 @@ public class Views {
 
     public boolean isRegular(Long volunteerId, Long recipientUserId, Long elderId) {
         Long n = regularCounts(volunteerId).get(elderId != null ? "E" + elderId : "U" + recipientUserId);
-        return n != null && n >= 3;
+        if (n != null && n >= 3) return true;
+        // 수동 단골(U7): 받는 사람이 직접 단골로 등록한 봉사자
+        return elderId == null && recipientUserId != null && marks.findByUserIdAndVolunteerId(recipientUserId, volunteerId).isPresent();
     }
 
     /** 프로필·소개 카드용 단골 배지 문구. viewerIsManagerOf: 담당자에게는 별칭 원문. */
@@ -96,15 +100,23 @@ public class Views {
         Map<Long, Long> cnt = requests.findAll().stream()
                 .filter(r -> r.status == ReqStatus.DONE && key.equals(r.elderId != null ? "E" + r.elderId : "U" + r.recipientId))
                 .collect(Collectors.groupingBy(r -> r.volunteerId, Collectors.counting()));
+        Set<Long> manual = new HashSet<>();
+        if (elderId == null && recipientUserId != null)
+            for (RegularMark rm : marks.findByUserId(recipientUserId)) manual.add(rm.volunteerId);
         List<Map<String, Object>> out = new ArrayList<>();
-        cnt.forEach((vid, n) -> {
-            if (n < 3) return;
+        Set<Long> ids = new LinkedHashSet<>();
+        cnt.forEach((vid, n) -> { if (n >= 3) ids.add(vid); });
+        ids.addAll(manual);
+        for (Long vid : ids) {
             User v = users.findById(vid).orElse(null);
-            if (v == null || v.status != UserStatus.ACTIVE) return;
+            if (v == null || v.status != UserStatus.ACTIVE) continue;
             Map<String, Object> m = volunteerCard(v, true);
+            long n = cnt.getOrDefault(vid, 0L);
             m.put("doneCount", n);
+            m.put("auto", n >= 3);
+            m.put("manual", manual.contains(vid));
             out.add(m);
-        });
+        }
         return out;
     }
 
