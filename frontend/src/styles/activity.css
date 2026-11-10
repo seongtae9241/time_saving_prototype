@@ -1,0 +1,35 @@
+/* 7.13 LLM 추가 B 화면 조각(채택 프로토타입 .ai 카드 톤 그대로) */
+.brief-list{margin:4px 0 0;padding-left:18px}
+.brief-list li{margin:4px 0}
+
+.msg-warn{display:flex;align-items:flex-start;gap:8px;margin:6px 0 2px;padding:9px 10px;border-radius:12px;background:var(--amber-soft,#FBF0DC);color:#8A5A12;font-size:13px;line-height:1.4;max-width:92%}
+.msg-warn.bad{background:var(--red-soft,#F8E4E0);color:var(--red,#B5483B)}
+.msg-warn .grow{flex:1;min-width:0}
+.msg-warn b{display:block;font-size:13px}
+.msg-warn span{display:block;opacity:.9}
+.msg-warn .mw-btn{flex:0 0 auto;border:0;border-radius:999px;background:#fff;color:inherit;font-weight:700;font-size:12.5px;padding:6px 10px;cursor:pointer;min-height:32px}
+.tm.me .msg-warn{margin-left:auto}
+
+.msg-help{margin:10px 0 6px}
+.qr-chips{flex-wrap:wrap;gap:6px}
+.qr-chips .chip{min-height:40px;font-size:14.5px}
+
+.jg-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+@media (max-width:360px){.jg-cols{grid-template-columns:1fr}}
+.jg-h{font-size:12.5px;font-weight:800;margin-bottom:2px}
+.jg-h.ok{color:#1F7A55}
+.jg-h.ck{color:#A6611A}
+.jg-cols ul{margin:2px 0 0;padding-left:16px}
+.jg-toggle{margin-top:10px;border:0;background:transparent;color:var(--pri);font-weight:700;padding:4px 0;cursor:pointer;font-size:13.5px}
+.jg-t{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px;table-layout:fixed}
+.jg-t th,.jg-t td{text-align:left;padding:6px 4px;border-top:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+.jg-t th{font-size:12px;color:var(--sub);font-weight:700}
+.jg-t th:first-child{width:30%}
+.jg-t tr.ck td{background:#FFF7EC}
+
+.month-note{margin-top:10px;padding:12px 14px;border-radius:12px;background:var(--pri-soft)}
+.month-note .ah{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--pri);margin-bottom:4px}
+.month-note .ah .spark{width:20px;height:20px;border-radius:6px;background:var(--pri);color:#fff;display:grid;place-items:center}
+.mn-sug{margin-top:6px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:4px}
+
+.goal-out .big{font-size:26px;font-weight:800;margin:2px 0}

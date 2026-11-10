@@ -5,6 +5,21 @@
 -- 목록형 칸(categories, time_slots, needs, tags, keywords)은 쉼표로 이은 문자열, *_json 칸은 JSON 문자열이다.
 
 
+create table ai_notes (
+    created_at datetime(6),
+    id bigint not null auto_increment,
+    ref_id bigint not null,
+    request_id bigint,
+    kind varchar(10) not null,
+    source varchar(10),
+    warn_level varchar(10),
+    ref_key varchar(20) not null,
+    provider varchar(20),
+    fingerprint varchar(120),
+    body_json TEXT,
+    primary key (id)
+) engine=InnoDB;
+
 create table auth_token (
     expires_at datetime(6) not null,
     user_id bigint not null,
@@ -379,6 +394,9 @@ create table users (
     primary key (id)
 ) engine=InnoDB;
 
+create index ix_ai_note_req
+   on ai_notes (request_id);
+
 create index ix_block_elder_vol
    on elder_blocks (elder_id, volunteer_id);
 
@@ -414,3 +432,6 @@ alter table users
 
 alter table regular_marks 
    add constraint uq_regular_mark unique (user_id, volunteer_id);
+
+alter table ai_notes 
+   add constraint ux_ai_note unique (kind, ref_id, ref_key);

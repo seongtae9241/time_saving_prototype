@@ -34,6 +34,8 @@ public class RequestService {
     /** O1 담당자 "이 봉사자 받지 않기" 검사용(생성자를 바꾸지 않으려고 필드 주입). */
     @org.springframework.beans.factory.annotation.Autowired private ElderBlockRepo blocks;
     public static final int CARE_MEMO_MAX = 500;
+    /** 7.13 LLM 추가 B 훅(브리핑·메시지 분류·판단 보조). 실패해도 본 흐름은 그대로. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private ActivityAiService activityAi;
 
     public RequestService(RequestRepo repo, PostRepo posts, UserRepo users, ElderRepo elders, MessageRepo messages,
                           RatingRepo ratings, DifficultyAppealRepo appeals, BankService bank, NotificationService noti,
@@ -252,6 +254,7 @@ public class RequestService {
         r.deadlineAt = null;
         r.checkCode = auth.sixDigits();
         sys(r, "일정이 확정됐어요. " + when(r) + " · " + Rules.fmtHours(r.hours) + "시간");
+        if (activityAi != null) activityAi.onConfirmed(r); // 7.13 방문 전 브리핑
         noti.toVolunteer(r, "CONFIRMED", "일정이 확정됐어요", noti.recipientLabel(r, false) + " · " + when(r) + " · " + r.category);
         noti.toRecipientSide(r, "CONFIRMED", "일정이 확정됐어요", noti.name(r.volunteerId) + " 님 · " + when(r)
                 + (r.elderId != null ? " · 방문 장소를 메시지로 안내해 주세요" : ""));
@@ -443,6 +446,7 @@ public class RequestService {
         r.adjustHours = hours;
         r.adjustStatus = "PENDING";
         r.adjustReason = reason;
+        if (activityAi != null) activityAi.onAdjust(r); // 7.13 판단 보조
         noti.toRecipientSide(r, "ADJUST", noti.name(r.volunteerId) + " 님이 활동 시간 조정을 요청했어요",
                 Rules.fmtHours(r.hours) + "시간 → " + Rules.fmtHours(hours) + "시간" + (reason == null ? "" : " · " + reason));
         return r;
@@ -505,6 +509,7 @@ public class RequestService {
         a.reason = reason;
         a.requestedLevel = requested;
         appeals.save(a);
+        if (activityAi != null) activityAi.onAppeal(r, a); // 7.13 판단 보조
         for (User admin : users.findByRole(Role.ADMIN))
             noti.send(admin.id, "APPEAL", "난이도 이의 신청이 접수됐어요", me.name + " · " + Rules.levelKo(r.difficulty) + " → " + Rules.levelKo(requested), "/admin/appeals");
         return a;
@@ -532,6 +537,7 @@ public class RequestService {
         m.text = text.trim();
         if (CONTACT.matcher(m.text).find()) m.warn = "연락처·계좌·돈 이야기는 주고받지 않아요. 불편한 요구를 받았다면 신고해 주세요.";
         messages.save(m);
+        if (activityAi != null) activityAi.onMessage(r, m); // 7.13 안전 감지·답장·일정 변경
         Long recSide = noti.recipientSideUser(r);
         if (!me.id.equals(r.volunteerId)) noti.toVolunteer(r, "MESSAGE", "새 메시지: " + m.senderLabel, cut(m.text));
         if (recSide != null && !me.id.equals(recSide)) noti.send(recSide, "MESSAGE", "새 메시지: " + m.senderLabel, cut(m.text), "/requests/" + r.id);
