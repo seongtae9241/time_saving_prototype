@@ -5,6 +5,7 @@ import { useAuth } from '../ui/ctx.jsx';
 import { api } from '../api.js';
 import { fmt, hh, ap, dlabel, todayISO, SHORT } from '../lib/format.js';
 import { Slider, useHomeMode, useTopCats, sortByTop } from '../ui/extras.jsx';
+import { BriefingButton } from '../ui/ActivityAi.jsx'; // 7.13 B-1
 
 /* 응답이 필요한 요청 (프로토타입 needMe) */
 export function needsMe(r) {
@@ -69,6 +70,7 @@ function UpCard({ r, today }) {
       {mine && (k === 2
         ? <button className="btn sm" style={{ marginTop: 14 }} onClick={(e) => { e.stopPropagation(); nav(`/req/${r.id}/log`); }}><Ic n="pen" s={18} /> 활동 일지 쓰기</button>
         : <button className="btn sm" style={{ marginTop: 14 }} onClick={(e) => { e.stopPropagation(); nav(`/req/${r.id}`); }}><Ic n="qr" s={18} /> {k === 0 ? '도착하면 시작 QR 찍기' : '끝나면 종료 QR 찍기'}</button>)}
+      {mine && r.status === 'CONFIRMED' && <BriefingButton id={r.id} />}
     </div>
   );
 }

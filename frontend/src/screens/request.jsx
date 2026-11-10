@@ -12,6 +12,7 @@ import QrScanner, { qrText, QrIntro } from '../ui/QrScanner.jsx';
 import { VoiceField, MicButton } from '../ui/VoiceInput.jsx';
 import { RegularButton } from '../ui/extras.jsx'; // U7 수동 단골(2026-11-09)
 import { CareMemo } from './insight.jsx';
+import { BriefingCard, useMessageAssist, WarnBand, MsgHelper, JudgeAssist } from '../ui/ActivityAi.jsx'; // 7.13 LLM 추가 B
 
 /* ---------- 담당자 봉사자 거부 (O1) ---------- */
 function MgrRejectSheet({ r, onSubmit }) {
@@ -335,6 +336,7 @@ export function RequestDetail() {
   const report = useReport();
   const profile = useProfileSheet();
   const [r, reload] = useLoad(() => api(`/requests/${id}`), [id]);
+  const ma = useMessageAssist(id, r && r.messages ? r.messages.length : 0); // 7.13 B-2·3
   const [msg, setMsg] = useState('');
   const [called, setCalled] = useState(false);
   const [, setTick] = useState(0);
@@ -421,7 +423,7 @@ export function RequestDetail() {
     const warn = k === 0 && late >= NS_MISS ? alertBox('bad', `시작 체크 없이 ${late}분이 지났어요`, `${to}에게 알림이 갈 수 있어요. 지금 도착했다면 시작 QR을 찍어 주세요. 지각으로 기록돼요.`)
       : k === 0 && late >= NS_LATE ? <>{alertBox('warn', `약속 시간이 ${late}분 지났어요`, `늦어지면 미리 알려 주세요. ${NS_MISS}분이 지나도 시작 체크가 없으면 ${to}에게 알려요.`)}<button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => run(async () => { await post(`/requests/${r.id}/messages`, { text: '조금 늦어요. 곧 도착할게요. 죄송해요!' }); await done('늦는다고 알렸어요'); })}><Ic n="msg" s={16} /> 늦는다고 알리기</button></>
         : k === 1 && late >= end ? alertBox('warn', `예정 종료 시각(${hh(Number(r.startHour) + Number(r.hours))})이 지났어요`, '끝났다면 종료 QR을 찍어 주세요.') : null;
-    if (k === 0) action = <>{r.elder && <div className="ai" style={{ marginTop: 16 }}><div className="ah"><Spk />방문 전 안내 카드<Mod n={3} /></div><ul className="small"><li>{r.elder.caution || '담당자 안내를 확인해 주세요'}</li><li>방문 장소는 담당자가 메시지로 알려 드려요</li></ul></div>}{warn}<QrStepsBar k={0} /><button className="btn big-cta" style={{ marginTop: 12 }} onClick={() => scan('in')}><Ic n="qr" s={22} /> 시작 QR 찍기</button><div className="mute2 center" style={{ marginTop: 8 }}>도착하면 {r.elder ? `${toName} 댁 현관의 QR 카드` : `${toName} 님 휴대폰의 QR`}를 찍어 주세요</div>{can(r, 'cancel', true) && <><button className="btn ghost sm" style={{ marginTop: 10 }} disabled={busy} onClick={() => reject('cancel', '일정 취소 사유', '취소했어요')}>일정 취소</button><div className="mute2 center" style={{ marginTop: 6 }}>일정 취소는 시작 24시간 전까지 무료예요. 그 뒤엔 경고가 쌓여요</div></>}</>;
+    if (k === 0) action = <><BriefingCard id={r.id} />{warn}<QrStepsBar k={0} /><button className="btn big-cta" style={{ marginTop: 12 }} onClick={() => scan('in')}><Ic n="qr" s={22} /> 시작 QR 찍기</button><div className="mute2 center" style={{ marginTop: 8 }}>도착하면 {r.elder ? `${toName} 댁 현관의 QR 카드` : `${toName} 님 휴대폰의 QR`}를 찍어 주세요</div>{can(r, 'cancel', true) && <><button className="btn ghost sm" style={{ marginTop: 10 }} disabled={busy} onClick={() => reject('cancel', '일정 취소 사유', '취소했어요')}>일정 취소</button><div className="mute2 center" style={{ marginTop: 6 }}>일정 취소는 시작 24시간 전까지 무료예요. 그 뒤엔 경고가 쌓여요</div></>}</>;
     else if (k === 1) action = <>{warn}<QrStepsBar k={1} /><div className="chk on"><span className="dotp" /><div className="grow"><b>활동 중</b> · {checkInfo}<div className="mute2">예정 종료 {hh(Number(r.startHour) + Number(r.hours))} · 끝나면 QR을 한 번 더 찍어 주세요</div></div></div><div className="btns" style={{ marginTop: 10 }}><button className="btn warn" onClick={sos}><Ic n="bell" s={18} /> 긴급</button><button className="btn" onClick={() => scan('out')}><Ic n="qr" s={18} /> 종료 QR 찍기</button></div></>;
     else action = <><QrStepsBar k={2} /><div className="chk"><span className="dotp" style={{ background: '#1F9D63', animation: 'none', boxShadow: 'none' }} /><div className="grow"><b>활동 끝</b> · {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))})<div className="mute2">{r.checkMethod === 'manual' ? '번호가 아닌 방법으로 기록돼 받는 분이 시간을 한 번 더 확인해요' : '기록된 시간이 일지에 자동으로 들어가요'}</div></div></div><button className="btn big-cta" style={{ marginTop: 10 }} onClick={() => nav(`/req/${r.id}/log`)}>활동 일지 쓰기</button></>;
   } else if (['CONFIRMED', 'IN_PROGRESS', 'CHECKED_OUT'].includes(st) && recv) {
@@ -446,7 +448,7 @@ export function RequestDetail() {
         <div className="ai" style={{ marginTop: 16 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div>{r.logPhotoUrl && <img src={r.logPhotoUrl} alt="활동 사진" style={{ width: '100%', borderRadius: 12, marginTop: 10 }} />}</div>
         <CareMemo text={r.careMemo} style={{ marginTop: 10 }} />
         {r.checkInAt && <div className="mute2" style={{ marginTop: 6 }}>체크 기록 {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))}){r.checkMethod === 'manual' ? ' · 버튼으로 기록돼 시간을 한 번 더 확인해 주세요' : ''}</div>}
-        {adj && <div className="card" style={{ marginTop: 10 }}><div className="b">시간 조정 요청</div><div className="mute2">{v.name} 님이 실제 시간을 {r.adjust.hours}시간으로 바꿔 달라고 했어요 (예정 {r.hours}시간).</div><div className="btns" style={{ marginTop: 10 }}><button className="btn ghost sm" onClick={() => act('adjust/answer', { accept: false }, '시간 조정을 거절했어요')}>거절</button><button className="btn sm" onClick={() => act('adjust/answer', { accept: true }, '시간 조정을 반영했어요')}>반영하기</button></div></div>}
+        {adj && <div className="card" style={{ marginTop: 10 }}><div className="b">시간 조정 요청</div><div className="mute2">{v.name} 님이 실제 시간을 {r.adjust.hours}시간으로 바꿔 달라고 했어요 (예정 {r.hours}시간).</div><JudgeAssist kind="ADJUST" id={r.id} /><div className="btns" style={{ marginTop: 10 }}><button className="btn ghost sm" onClick={() => act('adjust/answer', { accept: false }, '시간 조정을 거절했어요')}>거절</button><button className="btn sm" onClick={() => act('adjust/answer', { accept: true }, '시간 조정을 반영했어요')}>반영하기</button></div></div>}
         <div className="sum" style={{ marginTop: 10 }}>
           <div className="between"><span className="muted">예정 시간</span><b>{r.hours}시간</b></div>
           <div className="between"><span className="muted">{mgr || r.elder ? `${toName} 차감` : '내 통장에서 차감'}</span><b className="cr minus">{mgr || r.elder ? '없음 (기관 대상)' : `−${fmt(Number(r.hours) * lvWeight(r.difficulty, r.weight))}시간`}</b></div>
@@ -533,11 +535,13 @@ export function RequestDetail() {
                   {!mine && <div className="mute2" style={{ margin: '0 4px 3px', fontSize: 12 }}>{m.senderLabel}</div>}
                   <div className="bub">{m.text}</div>
                   {m.warn && <div className="meta" style={{ color: '#E5484D' }}>⚠ {typeof m.warn === 'string' ? m.warn : '연락처·계좌로 보이는 내용이 있어요. 연락처 교환·금전 요구는 금지예요'}</div>}
+                  {!mine && <WarnBand w={ma.warn(m.id)} onReport={() => report({ targetType: 'MESSAGE', targetId: m.id, targetLabel: `메시지 · ${m.senderLabel}` })} />}
                   <div className="meta"><span>{dshort(m.createdAt)}</span>{!mine && <a role="button" tabIndex={0} onClick={() => report({ targetType: 'MESSAGE', targetId: m.id, targetLabel: `메시지 · ${m.senderLabel}` })}>신고</a>}</div>
                 </div>
               );
             })}
           </div>
+          {!ro && <MsgHelper a={ma.data} onPick={setMsg} onCancel={can(r, 'cancel', true) && ['VOL_ACCEPTED', 'CONFIRMED'].includes(st) ? () => reject('cancel', '일정 취소 사유', '취소했어요') : null} onRerequest={recv && v.id ? () => nav(`/req/new?to=${v.id}${r.elder ? `&elder=${r.elder.id}` : ''}`) : null} />}
           {!ro && (
             <form className="tin" onSubmit={(e) => {
               e.preventDefault();

@@ -6,6 +6,7 @@ import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
 import { fmt, dshort, ACTIVE_ST, PAST_ST } from '../lib/format.js';
 import { needsMe } from './home.jsx';
+import { MonthNote } from '../ui/ActivityAi.jsx'; // 7.13 B-6
 
 /* ---------- 내 활동 (B-45) ---------- */
 export function Act() {
@@ -110,6 +111,7 @@ export function Bank() {
         <div className="between"><span className="b">월별 결산</span><span className="legend"><i style={{ background: '#3D6DF2' }} />적립<i style={{ background: '#F59E4B', marginLeft: 8 }} />사용</span></div>
         {(bk.monthly || []).length ? monthBars(bk.monthly.slice(-4).map((m) => [monthLabel(m.month), Number(m.in) || 0, Number(m.out) || 0])) : <Empty>아직 결산할 내역이 없어요</Empty>}
         <div className="between mute2" style={{ marginTop: 4 }}><span>이번 달 적립 +{fmt(bk.monthIn)}</span><span>이번 달 사용 −{fmt(bk.monthOut)}</span></div>
+        <MonthNote />
       </div>
       <div className="sec-t">내역</div>
       {entries.length ? <div className="pass">{rows}</div> : <Empty>아직 내역이 없어요</Empty>}

@@ -1,11 +1,12 @@
 // 회의반영(2026-11-09) 4장 최근 활동 리포트 · 6장 AI 개인 분석 · 내 봉사 플랜
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
 import { Ic, Spk, Mod, Loading, Empty, RuleNote, CatChip, useLoad, hbars } from '../ui/bits.jsx';
 import { api, post } from '../api.js';
 import { CATS, SHORT, fmt, dlabel, hh } from '../lib/format.js';
 import { ReportView } from './my.jsx';
+import { GoalPlan } from './goal.jsx'; // 7.13 B-5 나중에 받고 싶은 것
 
 const FREQS = [[0.25, '월 1회'], [0.5, '월 2회'], [1, '주 1회'], [2, '주 2회'], [3, '주 3회']];
 const freqTxt = (v) => (FREQS.find((f) => f[0] === Number(v)) || [0, `주 ${v}회`])[1];
@@ -128,6 +129,8 @@ function PlanRow({ p, onChange, onRemove }) {
 }
 
 export function CarePlan() {
+  const [sp, setSp] = useSearchParams();
+  const tab = sp.get('tab') === 'goal' ? 'goal' : 'now';
   const [plans, setPlans] = useState([{ category: '말동무·정서', perWeek: 1, hours: 1 }]);
   const [res, setRes] = useState(undefined);
   const seq = useRef(0);
@@ -143,6 +146,8 @@ export function CarePlan() {
   const r = (res && res.result) || {};
   return (
     <Screen title="내 봉사 플랜" noTabs>
+      <div className="chips" style={{ marginBottom: 10 }}>{[['now', '남은 시간으로 받기'], ['goal', '나중에 받고 싶은 것']].map(([k, t]) => <button key={k} className={'chip ' + (tab === k ? 'on' : '')} onClick={() => setSp(k === 'goal' ? { tab: 'goal' } : {}, { replace: true })}>{t}</button>)}</div>
+      {tab === 'goal' ? <GoalPlan /> : <>
       <div className="hero">
         <div className="lbl">지금 쓸 수 있는 시간</div><div className="num">{fmt(s.usable)}<small>시간</small></div>
         <div className="sub">잔액 {fmt(s.balance)}시간 · 보류 {fmt(s.hold)}시간 · 직접 적립 {fmt(s.earnedSelf)}시간</div>
@@ -170,6 +175,7 @@ export function CarePlan() {
           <div className="mute2" style={{ margin: '12px 2px' }}>기간은 시스템이 가중치(기본 1.0 · 수고 1.2 · 책임 1.5, 0.5 단위)를 넣어 계산해요. 실제 차감은 활동 시간에 따라 달라질 수 있어요.</div>
         </>
       )}
+      </>}
     </Screen>
   );
 }

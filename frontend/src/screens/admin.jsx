@@ -7,6 +7,7 @@ import { api, post, put, del } from '../api.js';
 import { CATS, CC, SHORT, AREAS, fmt, dshort, arr, lvName } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useLogout } from './my.jsx';
+import { JudgeAssist } from '../ui/ActivityAi.jsx'; // 7.13 B-4
 
 function groupBars(rows) {
   const W2 = 320, H = 170, pt = 22, pb = 28, bw = 16, gap = 5;
@@ -222,6 +223,7 @@ export function AApprove() {
           <div className="between"><span className="b" style={{ fontSize: 16 }}>{(a.user && a.user.name) || '봉사자'}</span><span className="mute2">{dshort(a.createdAt).split(' ')[0]}</span></div>
           <div className="mute2">{a.content || `요청 #${a.requestId}`}{a.recipient ? ` · ${a.recipient}` : ''} · {lvName(a.currentLevel)} → {lvName(a.requestedLevel)} 요청{a.hours ? ` · ${a.hours}시간` : ''}</div>
           <div className="small" style={{ marginTop: 6 }}>“{a.reason}”</div>
+          <JudgeAssist kind="APPEAL" id={a.id} />
           <div className="btns" style={{ marginTop: 12 }}>
             <button className="btn ghost sm" disabled={busy} onClick={() => run(async () => { await post(`/admin/appeals/${a.id}/answer`, { accept: false, resultLevel: a.currentLevel, note: '' }); reloadA(); toast('반려했어요'); })}>반려</button>
             <button className="btn sm" disabled={busy} onClick={() => run(async () => { await post(`/admin/appeals/${a.id}/answer`, { accept: true, resultLevel: a.requestedLevel, note: '' }); reloadA(); toast(`${lvName(a.requestedLevel)}로 조정했어요. 차액이 적립돼요`); })}>{lvName(a.requestedLevel)}로 조정</button>
