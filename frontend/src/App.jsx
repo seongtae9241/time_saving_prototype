@@ -15,6 +15,7 @@ import { News, EventDetail, OEvents, OEventNew } from './screens/news.jsx';
 import { Edu, EduCard, EduQuiz, EduRpList, EduRp, EduRpRes, EduCert } from './screens/edu.jsx';
 import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANotices, APub, APersona } from './screens/admin.jsx';
 import { MyInsight, CarePlan, MyReport, FamRecentReport } from './screens/insight.jsx';
+import { MemoToPosts } from './screens/opsai.jsx';
 
 /** 로그인·역할 확인 */
 function Guard({ roles, children }) {
@@ -101,6 +102,7 @@ function Shell() {
         <Route path="/o/reqs" element={g(<OReqs />, O)} />
         <Route path="/o/reqs/:id" element={g(<RequestDetail />, O)} />
         <Route path="/o/report" element={g(<OReport />, O)} />
+        <Route path="/o/memo-posts" element={g(<MemoToPosts />, O)} />
         <Route path="/o/my" element={g(<OMy />, O)} />
         <Route path="/o/space" element={<Navigate to="/o/events" replace />} />
 

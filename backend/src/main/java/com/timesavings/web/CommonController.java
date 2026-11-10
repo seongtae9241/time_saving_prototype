@@ -22,6 +22,7 @@ public class CommonController {
     private final ReportRepo reports;
     private final UserRepo users;
     private final NotificationService noti;
+    @org.springframework.beans.factory.annotation.Autowired private com.timesavings.service.OpsSafetyService opsSafety;
 
     public CommonController(NotificationRepo notis, NoticeRepo notices, InquiryRepo inquiries, ReportRepo reports, UserRepo users, NotificationService noti) {
         this.notis = notis; this.notices = notices; this.inquiries = inquiries; this.reports = reports; this.users = users; this.noti = noti;
@@ -79,6 +80,7 @@ public class CommonController {
         r.reporterId = u.id; r.targetType = b.targetType(); r.targetId = b.targetId(); r.targetLabel = b.targetLabel();
         r.type = b.type(); r.content = b.content();
         reports.save(r);
+        if (opsSafety != null) opsSafety.onReport(r); // 7.14 C5 신고 정리(요약·심각도 제안 저장)
         users.findByRole(Role.ADMIN).forEach(a -> noti.send(a.id, "REPORT", "새 신고가 접수됐어요", r.type + " · " + Objects.toString(r.targetLabel, ""), "/admin/reports"));
         return r;
     }

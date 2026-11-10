@@ -1,0 +1,37 @@
+/* 7.14 LLM 추가 C(담당자·운영자·안전) 화면 조각. 프로토타입 변수·톤 그대로(.ai 카드, .ai.amber 노란 표시). */
+
+/* 확인 권장(노란 표시) */
+.st.sig{background:#FFF3C9;color:#8A5A12;border:0;cursor:pointer}
+
+/* 전달 메모 정리 */
+.cnote{border:1.5px solid #CFE3DB;background:#F7FBF9;border-radius:12px;padding:10px 12px;font-size:13.5px}
+.cnote-h{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--pri);margin-bottom:6px}
+.cnote-h .spark{width:18px;height:18px;border-radius:6px;background:var(--pri);color:#fff;display:grid;place-items:center}
+.cnote-r{display:flex;gap:8px;padding:4px 0;border-top:1px dashed var(--line)}
+.cnote-r:first-of-type{border-top:0}
+.cnote-r .k{flex:0 0 84px;color:var(--sub);font-weight:700;font-size:12.5px}
+.cnote-r ul{margin:0;padding-left:16px}
+
+/* 이번 주 브리핑 */
+.ai.brief{margin-bottom:14px}
+.bchips{display:flex;flex-wrap:wrap;gap:6px}
+.bchip{display:inline-flex;align-items:baseline;gap:4px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12.5px;color:var(--sub);font-weight:600}
+.bchip b{color:var(--ink);font-size:14px}
+.bchip.warn{border-color:#F3C9A0;background:#FFF6EC}
+.bchip.warn b{color:#D9731A}
+.bchip.sig{border-color:#EED9B3;background:#FFF8E1}
+.bchip.sig b{color:#8A5A12}
+.btodo{margin:4px 0 0;padding-left:20px}
+.btodo li{margin:3px 0}
+.bflags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.bflags .st{font-size:12.5px;padding:5px 10px}
+
+/* 통화 메모 → 공고 초안 카드 */
+.dcard{margin-top:10px;border-width:1.5px}
+.dcard.on{border-color:var(--pri)}
+.dcard.done{opacity:.75}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.dgrid .in{min-width:0}
+
+/* 문의 초안 근거: 쓰인 근거 강조 */
+.ai li.used b{color:var(--pri)}

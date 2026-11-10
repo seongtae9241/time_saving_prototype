@@ -20,6 +20,18 @@ create table ai_notes (
     primary key (id)
 ) engine=InnoDB;
 
+create table ai_results (
+    created_at datetime(6),
+    id bigint not null auto_increment,
+    kind varchar(20) not null,
+    provider varchar(20),
+    ref_key varchar(60) not null,
+    source varchar(10),
+    fingerprint varchar(300),
+    payload TEXT,
+    primary key (id)
+) engine=InnoDB;
+
 create table auth_token (
     expires_at datetime(6) not null,
     user_id bigint not null,
@@ -48,6 +60,24 @@ create table edu_progress (
     diag_json TEXT,
     roleplay_json TEXT,
     primary key (user_id)
+) engine=InnoDB;
+
+create table care_notes (
+    activity_date date,
+    flag_raised bit not null,
+    created_at datetime(6),
+    id bigint not null auto_increment,
+    request_id bigint not null,
+    subject_id bigint not null,
+    updated_at datetime(6),
+    subject_type varchar(10) not null,
+    source varchar(10),
+    provider varchar(20),
+    hospital varchar(200),
+    signals varchar(200),
+    life_changes varchar(600),
+    next_steps varchar(600),
+    primary key (id)
 ) engine=InnoDB;
 
 create table elder_blocks (
@@ -396,6 +426,15 @@ create table users (
 
 create index ix_ai_note_req
    on ai_notes (request_id);
+
+create unique index ix_ai_result_key
+   on ai_results (kind, ref_key);
+
+create unique index ix_care_note_req
+   on care_notes (request_id);
+
+create index ix_care_note_subject
+   on care_notes (subject_type, subject_id);
 
 create index ix_block_elder_vol
    on elder_blocks (elder_id, volunteer_id);

@@ -33,6 +33,8 @@ public class RequestService {
     private final AuthService auth;
     /** O1 담당자 "이 봉사자 받지 않기" 검사용(생성자를 바꾸지 않으려고 필드 주입). */
     @org.springframework.beans.factory.annotation.Autowired private ElderBlockRepo blocks;
+    /** 7.14 C1 전달 메모 정리·생활 변화 신호(일지 제출 뒤 한 번). */
+    @org.springframework.beans.factory.annotation.Autowired @org.springframework.context.annotation.Lazy private CareSignalService careSignals;
     public static final int CARE_MEMO_MAX = 500;
     /** 7.13 LLM 추가 B 훅(브리핑·메시지 분류·판단 보조). 실패해도 본 흐름은 그대로. */
     @org.springframework.beans.factory.annotation.Autowired(required = false) private ActivityAiService activityAi;
@@ -402,6 +404,7 @@ public class RequestService {
             noti.toRecipientSide(r, "LOG_SUBMITTED", noti.name(r.volunteerId) + " 님이 " + (r.elderId != null ? noti.recipientLabel(r, true) + " " : "") + "활동 일지를 올렸어요. 확인해 주세요",
                     "확인하면 시간이 정산돼요. 24시간 동안 확인하지 않으면 자동 확정돼요");
         }
+        if (careSignals != null) careSignals.onLog(r);
         return r;
     }
 

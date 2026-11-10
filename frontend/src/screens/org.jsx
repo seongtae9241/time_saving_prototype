@@ -11,16 +11,17 @@ import { needsMe, todoTxt } from './home.jsx';
 import { TextSizeRow, useLogout } from './my.jsx';
 import { MicButton } from '../ui/VoiceInput.jsx';
 import { ReportView } from './my.jsx';
+import { OrgBriefing, useCareSignals, SignalChip, SignalCard } from './opsai.jsx';
 
 const elderName = (e) => (e ? `${e.alias} 님` : '');
 
-function ElderCard({ e }) {
+function ElderCard({ e, sig }) {
   const nav = useNavigate();
   return (
     <div className="ec" role="button" tabIndex={0} onClick={() => nav(`/o/elders/${e.id}`)}>
       <div className="av">{(e.alias || '?')[0]}</div>
       <div className="grow">
-        <div className="b" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>{elderName(e)}{e.flag || e.bigChange ? <span className="st no">변화 큼</span> : null}{e.status === 'ENDED' && <span className="st end">종료</span>}</div>
+        <div className="b" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>{elderName(e)}{e.flag || e.bigChange ? <span className="st no">변화 큼</span> : null}<SignalChip s={sig} />{e.status === 'ENDED' && <span className="st end">종료</span>}</div>
         <div className="mute2">{e.ageGroup} · {e.dong}{e.monthDone != null ? ` · 이번 달 활동 ${e.monthDone}회` : ''}{e.regularCount != null ? ` · 단골 ${e.regularCount}명` : e.regulars ? ` · 단골 ${e.regulars.length}명` : ''}</div>
         <Cats list={arr(e.needs)} style={{ gap: 4, marginTop: 6 }} />
       </div>›
@@ -49,10 +50,12 @@ export function OHome() {
   const [elders] = useLoad(() => api('/org/elders'), []);
   const [reqs] = useLoad(() => api('/org/requests?box=all'), []);
   const need = (reqs || []).filter(needsMe);
-  const flagged = (elders || []).filter((e) => e.flag || e.bigChange);
+  const sigs = useCareSignals();
+  const flagged = (elders || []).filter((e) => e.flag || e.bigChange || (sigs[e.id] && sigs[e.id].flagged));
   const counts = (home && home.counts) || {};
   return (
     <Screen title={me ? `${me.name} 담당자` : '담당자'} back={false}>
+      <OrgBriefing />
       <div className="hero" style={{ background: '#6A4FD8' }}>
         <div className="bk-top"><span className="bk-name">{me && (me.orgName || (me.org && me.org.name)) || '기관'}</span><span className="bk-no">담당자</span></div>
         <div className="lbl">담당 도움 대상</div><div className="num">{counts.elders ?? (elders ? elders.filter((e) => e.status !== 'ENDED').length : 0)}<small>명</small></div>
@@ -70,10 +73,11 @@ export function OHome() {
         {[['대상 등록', 'plus', '#6A4FD8', () => nav('/o/elders/new')], ['공고 대신 등록', 'chat', '#EE8424', () => pick('누구 대신 공고를 올릴까요?', elders, (e) => nav(`/write/need?elder=${e.id}`))], ['봉사 공고 찾기', 'search', '#3D6DF2', () => pick('누구 대신 요청할까요?', elders, (e) => nav(`/board?elder=${e.id}`))], ['단골에게 요청', 'heart', '#E2557F', () => pick('누구의 단골에게 요청할까요?', elders, (e) => nav(`/regular?elder=${e.id}`))]].map(([t, i, c, f]) => <button key={t} onClick={f}><span style={{ background: `${c}14`, color: c }}><Ic n={i} s={22} /></span>{t}</button>)}
       </div>
       <button className="btn soft" style={{ marginTop: 12 }} onClick={() => pick('누구 대신 말로 요청할까요?', elders, (e) => nav(`/voice?elder=${e.id}`))}><Ic h={I.mic} /> 들은 내용을 말로 공고 만들기</button>
+      <button className="btn soft" style={{ marginTop: 8 }} onClick={() => nav('/o/memo-posts')}><Ic n="spark" s={18} /> 통화 메모로 한 번에 만들기 (여러 건)</button>
       <div className="sec-t"><span>동네 소식</span><a role="button" tabIndex={0} onClick={() => nav('/o/events')}>관리 ›</a></div>
       <div className="todo" role="button" tabIndex={0} onClick={() => nav('/o/events/new')}><div className="n" style={{ background: '#FFEDF3', color: '#E2557F' }}><Ic n="cal" s={20} /></div><div className="grow"><div className="t">기관 행사·클래스 홍보 올리기</div><div className="d">동네 소식에 올리면 이웃이 앱이나 링크로 신청해요</div></div><span className="st go">올리기</span></div>
       <div className="sec-t"><span>살펴볼 대상</span><a role="button" tabIndex={0} onClick={() => nav('/o/report', { replace: true })}>리포트 ›</a></div>
-      {flagged.length ? flagged.map((e) => <ElderCard key={e.id} e={e} />) : <Empty>변화가 큰 대상이 없어요</Empty>}
+      {flagged.length ? flagged.map((e) => <ElderCard key={e.id} e={e} sig={sigs[e.id]} />) : <Empty>변화가 큰 대상이 없어요</Empty>}
       <div className="notice" style={{ marginTop: 14 }}>도움 대상은 계정이 없어요. 요청·알림·메시지·확인·평가는 모두 담당자가 대신해요. 대상에게는 앱 알림을 보내지 않아요.</div>
     </Screen>
   );
@@ -88,6 +92,7 @@ export function OElders() {
   const [busy, run] = useBusy();
   const active = (list || []).filter((e) => e.status !== 'ENDED');
   const ended = (list || []).filter((e) => e.status === 'ENDED');
+  const sigs = useCareSignals();
   const { me } = useAuth();
   const isIn = (t) => t.direction ? t.direction === 'in' : me && t.to && t.to.id === me.id;
   const incoming = (tr || []).filter((t) => t.status === 'PENDING' && isIn(t));
@@ -97,7 +102,7 @@ export function OElders() {
       <div className="lock"><Ic n="shield" s={18} /><div>이름·주소·연락처는 입력하지 않아요 (기관이 따로 보관). 별칭은 담당자 화면에만 보이고, 봉사자에게는 '이○례 님'처럼 가려서 보여요.</div></div>
       <button className="btn" style={{ marginTop: 12 }} onClick={() => nav('/o/elders/new')}><Ic h={I.plus} /> 도움 대상 등록</button>
       <div className="sec-t">관리 중 {active.length}명</div>
-      {list === undefined ? <Loading /> : active.length ? active.map((e) => <ElderCard key={e.id} e={e} />) : <Empty>등록된 대상이 없어요</Empty>}
+      {list === undefined ? <Loading /> : active.length ? active.map((e) => <ElderCard key={e.id} e={e} sig={sigs[e.id]} />) : <Empty>등록된 대상이 없어요</Empty>}
       {(incoming.length > 0 || outgoing.length > 0) && <div className="sec-t">이관 요청</div>}
       {incoming.map((t) => (
         <div key={t.id}>
@@ -121,6 +126,7 @@ export function EDetail() {
   const [reps] = useLoad(() => api('/org/reports', { quiet: true }), []);
   const [memo, setMemo] = useState('');
   const [busy, run] = useBusy();
+  const sigs = useCareSignals();
   if (e === undefined) return <Screen title="도움 대상" noTabs><Loading /></Screen>;
   if (!e) return <Screen title="도움 대상" noTabs><Empty>대상을 찾을 수 없어요</Empty></Screen>;
   const myReqs = e.requests || (reqs || []).filter((r) => r.elder && String(r.elder.id) === String(id));
@@ -134,7 +140,9 @@ export function EDetail() {
         <div className="grow"><div className="b" style={{ fontSize: 20 }}>{elderName(e)} {(e.flag || e.bigChange) && <span className="st no">변화 큼</span>}{ended && <span className="st end">지원 종료</span>}</div><div className="mute2">{e.ageGroup} · {e.dong} · {dshort(e.createdAt).split(' ')[0]}부터</div></div>
         {!ended && <button className="btn soft sm" style={{ width: 'auto', padding: '0 12px' }} onClick={() => nav(`/o/elders/${id}/edit`)}>수정</button>}
       </div>
+      <SignalCard s={sigs[e.id]} who={elderName(e)} />
       {!ended && <div className="qa" style={{ marginTop: 16 }}>{[['공고 대신 등록', 'chat', '#EE8424', () => nav(`/write/need?elder=${id}`)], ['봉사 공고에 요청', 'search', '#3D6DF2', () => nav(`/board?elder=${id}`)], ['단골에게 요청', 'heart', '#E2557F', () => nav(`/regular?elder=${id}`)], ['말로 공고 만들기', 'mic', '#6A4FD8', () => nav(`/voice?elder=${id}`)]].map(([t, i, c, f]) => <button key={t} onClick={f}><span style={{ background: `${c}14`, color: c }}><Ic n={i} s={22} /></span>{t}</button>)}</div>}
+      {!ended && <button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav(`/o/memo-posts?elder=${id}`)}><Ic n="spark" s={16} /> 통화 메모로 공고 여러 건 만들기</button>}
       <div className="card" style={{ marginTop: 14 }}>
         <dl className="kv"><dt>필요한 도움</dt><dd>{arr(e.needs).join(', ') || '-'}</dd><dt>주의사항</dt><dd>{e.caution || '-'}</dd><dt>단골</dt><dd>{(e.regulars || []).map((r) => `${r.name} ★`).join(', ') || '없음'}</dd></dl>
         <div className="mute2" style={{ marginTop: 8 }}>봉사자에게는 가린 이름({maskN(e.alias)} 님)·동·도움 내용·시간·주의사항까지만 보여요.</div>

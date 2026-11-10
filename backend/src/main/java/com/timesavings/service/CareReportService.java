@@ -27,6 +27,8 @@ public class CareReportService {
     private final LifeReportService reportSvc;
     private final NotificationService noti;
     private final InsightAi insight;
+    /** 7.14 C1 구조화 메모·확인 권장 표시 */
+    @org.springframework.beans.factory.annotation.Autowired private CareSignalService careSignals;
 
     public CareReportService(RequestRepo requests, ElderRepo elders, UserRepo users, FamilyLinkRepo family, LifeReportRepo reports,
                              LifeReportService reportSvc, NotificationService noti, InsightAi insight) {
@@ -76,16 +78,20 @@ public class CareReportService {
         List<Request> sorted = sub.list().stream()
                 .sorted(Comparator.comparing((Request r) -> r.date).reversed().thenComparing(r -> r.id, Comparator.reverseOrder())).toList();
         List<Map<String, Object>> items = new ArrayList<>();
+        Map<Long, CareNote> notes = careSignals == null ? Map.of() : careSignals.byRequest(sorted.stream().limit(LIST_N).map(r -> r.id).toList());
         for (Request r : sorted.stream().limit(LIST_N).toList()) {
             double h = "ACCEPTED".equals(r.adjustStatus) && r.adjustHours != null ? r.adjustHours : r.hours;
             items.add(Views.map("requestId", r.id, "date", r.date.toString(), "startHour", r.startHour, "hours", h, "category", r.category,
                     "content", r.content, "volunteer", noti.name(r.volunteerId), "status", r.status,
-                    "logText", r.logText, "careMemo", r.careMemo));
+                    "logText", r.logText, "careMemo", r.careMemo, "careNote", CareSignalService.view(notes.get(r.id))));
         }
         Map<String, Object> handover = insight.handover(sub.label(), items.stream().limit(HANDOVER_N).toList());
         List<Map<String, Object>> monthly = reports.findBySubjectTypeAndSubjectIdOrderByMonthDesc(sub.type(), sub.id()).stream()
                 .map(r -> reportSvc.view(r, sub.label())).toList();
-        return Views.map("subject", subject == null ? "me" : subject, "subjectType", sub.type(), "subjectId", sub.id(), "subjectLabel", sub.label(),
+        // 확인 권장: 독거노인은 담당자 리포트, 일반 사용자는 공유 동의한 가족 리포트에만(본인 화면에는 넣지 않음)
+        boolean showSignal = careSignals != null && (sub.type() == SubjectType.ELDER || (subject != null && subject.startsWith("family:")));
+        Map<String, Object> signal = showSignal ? careSignals.status(sub.type(), sub.id(), null).view() : null;
+        return Views.map("signal", signal, "subject", subject == null ? "me" : subject, "subjectType", sub.type(), "subjectId", sub.id(), "subjectLabel", sub.label(),
                 "items", items, "total", sorted.size(), "handover", handover, "monthly", monthly);
     }
 }

@@ -1,6 +1,6 @@
 # 시간 적금 DB
 
-- `schema.sql` — 실제 JPA 엔티티(`backend/src/main/java/com/timesavings/domain`)에서 Hibernate 스키마 생성으로 뽑은 MySQL 8 DDL(테이블 27개).
+- `schema.sql` — 실제 JPA 엔티티(`backend/src/main/java/com/timesavings/domain`)에서 Hibernate 스키마 생성으로 뽑은 MySQL 8 DDL(테이블 29개).
 - 기본 실행은 **H2 파일 DB**(`backend/data/timesavings.mv.db`, `MODE=MySQL`)이고 `ddl-auto=update`로 같은 구조가 자동 생성된다.
 - 데모 데이터는 SQL 파일이 아니라 서버 첫 기동 때 `DataSeeder`가 넣는다(DB가 비어 있을 때만, 오늘 날짜 기준 상대 날짜).
 
@@ -13,6 +13,8 @@
 | `organizations` | 기관 서비스 신청·승인 상태 | C-01, D-01 |
 | `elders` | 도움 대상(독거노인). **별칭·동·나이대·필요 도움·주의사항만** 저장(이름·주소·연락처 없음) | C-02 |
 | `elder_memos` | 담당자 메모 | C-02 |
+| `care_notes` | 전달 메모 정리(요청 한 건에 하나, `request_id` 유일). `subject_type`·`subject_id`(받는 사람: ELDER/USER), `next_steps`(다음에 챙길 것)·`hospital`("병원 안내 있음 (…)" — 병명·약 이름 없음)·`life_changes`(줄바꿈 구분), `signals`(생활 변화 신호 이름: 식사 거름·외출 감소·기운 없음·잠 못 잠·말수·기분 변화), `flag_raised`(이 메모로 '확인 권장'이 처음 켜져 담당자 알림을 보냄), `source`(ai/rule) | 7.14 C1 |
+| `ai_results` | 이벤트 때 한 번 만든 LLM 결과 저장·재사용(`kind`+`ref_key` 유일): `ORG_BRIEFING`(담당자 id)·`REPORT_TRIAGE`(신고 id)·`ANOMALY_NOTE`(봉사자:대상)·`INQUIRY_DRAFT`(문의 id). `fingerprint`가 바뀌면(큰 변화·근거 변경) 다시 만든다. `payload`는 화면용 JSON | 7.14 C3·C5·C6·C7 |
 | `elder_blocks` | 담당자의 "이 봉사자 받지 않기"(`elder_id`, `volunteer_id`, `reason` 필수, `manager_id`, `request_id`). 있으면 그 봉사자는 그 대상 건에 요청·제안할 수 없음(403 `VOLUNTEER_BLOCKED`) | 회의반영 O1 |
 | `elder_transfers` | 담당자 간 이관(PENDING/ACCEPTED/REJECTED, 운영자 대리 = ADMIN) | C-03, D-01 |
 | `posts` | 공고. `type` OFFER(봉사 가능)/NEED(도움 요청), 시간 범위, 카테고리, 난이도·가중치, 반복(`series_id`), 상태 | B-03~B-11, C-04 |
@@ -49,6 +51,7 @@ erDiagram
     users ||--o{ elders : "manager_id"
     elders ||--o{ elder_memos : ""
     elders ||--o{ elder_blocks : ""
+    requests ||--o| care_notes : "request_id"
     users ||--o{ elder_blocks : "volunteer_id"
     elders ||--o{ elder_transfers : ""
     users ||--o{ auth_token : ""
@@ -133,6 +136,25 @@ erDiagram
         double base_hours
         double weight
         bigint request_id
+    }
+    care_notes {
+        bigint id PK
+        bigint request_id UK
+        varchar subject_type
+        bigint subject_id
+        date activity_date
+        varchar next_steps
+        varchar hospital
+        varchar life_changes
+        varchar signals
+        bit flag_raised
+    }
+    ai_results {
+        bigint id PK
+        varchar kind
+        varchar ref_key
+        varchar fingerprint
+        text payload
     }
     regular_marks {
         bigint id PK
