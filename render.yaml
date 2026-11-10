@@ -1,0 +1,15 @@
+# Render 무료 배포 (Blueprint). Render 대시보드 → New → Blueprint → 이 저장소 연결.
+services:
+  - type: web
+    name: time-savings-demo
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/notices
+    autoDeploy: true
+    envVars:
+      - key: PHONE_DEMO          # 데모 인증번호 123456 허용
+        value: "true"
+      - key: GEMINI_API_KEY      # 값은 Render 화면에서 직접 입력(선택). 비우면 규칙 모드
+        sync: false
