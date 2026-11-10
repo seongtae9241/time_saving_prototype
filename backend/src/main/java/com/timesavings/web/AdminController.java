@@ -34,7 +34,6 @@ public class AdminController {
     private final NoticeRepo notices;
     private final PublicServiceRepo services;
     private final RoleplayPersonaRepo personas;
-    private final NeighborClassRepo classes;
     private final EduProgressRepo edu;
     private final AuthService auth;
     private final BankService bank;
@@ -47,12 +46,12 @@ public class AdminController {
     public AdminController(UserRepo users, OrganizationRepo orgs, ElderRepo elders, ElderTransferRepo transfers, RequestRepo requests,
                            PostRepo posts, LedgerRepo ledger, MessageRepo messages, DifficultyAppealRepo appeals, ReportRepo reports,
                            InquiryRepo inquiries, NoticeRepo notices, PublicServiceRepo services, RoleplayPersonaRepo personas,
-                           NeighborClassRepo classes, EduProgressRepo edu, AuthService auth, BankService bank, NotificationService noti,
+                           EduProgressRepo edu, AuthService auth, BankService bank, NotificationService noti,
                            LifeReportService lifeReports, SchedulerService scheduler, EduService eduSvc, Views views) {
         this.users = users; this.orgs = orgs; this.elders = elders; this.transfers = transfers; this.requests = requests;
         this.posts = posts; this.ledger = ledger; this.messages = messages; this.appeals = appeals; this.reports = reports;
         this.inquiries = inquiries; this.notices = notices; this.services = services; this.personas = personas;
-        this.classes = classes; this.edu = edu; this.auth = auth; this.bank = bank; this.noti = noti;
+        this.edu = edu; this.auth = auth; this.bank = bank; this.noti = noti;
         this.lifeReports = lifeReports; this.scheduler = scheduler; this.eduSvc = eduSvc; this.views = views;
     }
 
@@ -83,8 +82,8 @@ public class AdminController {
                     "elderUsage", all.stream().filter(r -> r.status == ReqStatus.DONE && r.elderId != null && YearMonth.from(r.date).equals(m)).count(),
                     "supply", allPosts.stream().filter(p -> p.type == PostType.OFFER && YearMonth.from(p.createdAt).equals(m)).count(),
                     "demand", allPosts.stream().filter(p -> p.type == PostType.NEED && YearMonth.from(p.createdAt).equals(m)).count(),
-                    "issued", r1(led.stream().filter(l -> (l.type == LedgerType.EARN || l.type == LedgerType.CLASS_EARN) && YearMonth.from(l.createdAt).equals(m)).mapToDouble(l -> l.amount).sum()),
-                    "consumed", r1(-led.stream().filter(l -> (l.type == LedgerType.USE || l.type == LedgerType.CLASS_FEE) && YearMonth.from(l.createdAt).equals(m)).mapToDouble(l -> l.amount).sum())));
+                    "issued", r1(led.stream().filter(l -> l.type == LedgerType.EARN && YearMonth.from(l.createdAt).equals(m)).mapToDouble(l -> l.amount).sum()),
+                    "consumed", r1(-led.stream().filter(l -> l.type == LedgerType.USE && YearMonth.from(l.createdAt).equals(m)).mapToDouble(l -> l.amount).sum())));
         }
         List<Map<String, Object>> weekly = new ArrayList<>();
         LocalDate today = LocalDate.now();
@@ -112,21 +111,18 @@ public class AdminController {
         double issued = (Double) cur.get("issued"), consumed = (Double) cur.get("consumed");
         double elderFree = r1(all.stream().filter(r -> r.status == ReqStatus.DONE && r.elderId != null && r.earned != null && r.doneAt != null
                 && YearMonth.from(r.doneAt).equals(now)).mapToDouble(r -> r.earned).sum());
-        double pool = r1(led.stream().filter(l -> l.type == LedgerType.POOL).mapToDouble(l -> l.amount).sum());
         int tot = rate.stream().mapToInt(m -> (Integer) m.get("total")).sum(), mat = rate.stream().mapToInt(m -> (Integer) m.get("matched")).sum();
         long volunteers = users.findAll().stream().filter(u -> u.role == Role.USER && u.idStatus == VerifyStatus.APPROVED).count();
         long eduDone = users.findAll().stream().filter(u -> u.role == Role.USER && u.eduDone).count();
-        long monthClasses = classes.findAll().stream().filter(c -> YearMonth.from(c.date).equals(now)).count();
         return Views.map(
                 "supply", cur.get("supply"), "demand", cur.get("demand"), "elderUsage", cur.get("elderUsage"),
                 "kpi", Views.map("activities", cur.get("activities"), "prevActivities", prev.get("activities"),
                         "matchRate", tot == 0 ? 0 : Math.round(mat * 100.0 / tot), "elderUsage", cur.get("elderUsage"), "prevElderUsage", prev.get("elderUsage")),
                 "matchRateByArea", rate,
-                "timeBalance", Views.map("issued", issued, "consumed", consumed, "elderFree", elderFree, "pool", pool,
+                "timeBalance", Views.map("issued", issued, "consumed", consumed, "elderFree", elderFree,
                         "useRatio", issued == 0 ? 0 : Math.round(consumed * 100 / issued)),
                 "monthly", monthly, "weekly", weekly,
                 "edu", Views.map("volunteers", volunteers, "eduDone", eduDone),
-                "classes", Views.map("thisMonth", monthClasses, "pool", pool),
                 "pending", Views.map(
                         "orgs", orgs.findAll().stream().filter(o -> o.status == OrgStatus.PENDING).count(),
                         "ids", users.findAll().stream().filter(u -> u.idStatus == VerifyStatus.PENDING).count(),
@@ -255,7 +251,7 @@ public class AdminController {
             double hours = "ACCEPTED".equals(r.adjustStatus) && r.adjustHours != null ? r.adjustHours : r.hours;
             double newEarn = Rules.earn(hours, lv);
             diff = Rules.round05(newEarn - (r.earned == null ? 0 : r.earned));
-            if (diff != 0) bank.add(r.volunteerId, LedgerType.ADJUST, diff, hours, Rules.weight(lv), r.id, null,
+            if (diff != 0) bank.add(r.volunteerId, LedgerType.ADJUST, diff, hours, Rules.weight(lv), r.id,
                     "난이도 조정 " + Rules.levelKo(r.difficulty) + " → " + Rules.levelKo(lv));
             r.difficulty = lv;
             r.weight = Rules.weight(lv);
@@ -351,10 +347,10 @@ public class AdminController {
         if (hold == r.anomalyHold) return Views.map("id", r.id, "anomalyHold", r.anomalyHold);
         boolean done = r.status == ReqStatus.DONE && r.earned != null;
         if (hold) {
-            if (done) bank.add(r.volunteerId, LedgerType.ADJUST, -r.earned, r.hours, r.weight, r.id, null, "이상 패턴 점검으로 적립 보류");
+            if (done) bank.add(r.volunteerId, LedgerType.ADJUST, -r.earned, r.hours, r.weight, r.id, "이상 패턴 점검으로 적립 보류");
             noti.send(r.volunteerId, "ANOMALY", "활동 적립이 재확인을 위해 보류됐어요", r.category + " · " + r.date, "/bank");
         } else if (done) {
-            bank.add(r.volunteerId, LedgerType.ADJUST, r.earned, r.hours, r.weight, r.id, null, "점검 완료 · 보류 해제");
+            bank.add(r.volunteerId, LedgerType.ADJUST, r.earned, r.hours, r.weight, r.id, "점검 완료 · 보류 해제");
             noti.send(r.volunteerId, "ANOMALY", "보류됐던 적립이 풀렸어요", "+" + r.earned + "시간", "/bank");
         }
         r.anomalyHold = hold;

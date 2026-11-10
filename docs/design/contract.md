@@ -68,10 +68,9 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - 메시지(A-08): 상대가 수락한 뒤(VOL_ACCEPTED 또는 CONFIRMED 이후)부터 DONE 전까지 작성 가능, 끝나면 읽기만. 연락처·계좌 패턴(전화번호, 카톡, 계좌)은 서버가 막지 않되 경고 문구를 붙이고 신고 버튼 제공.
 
 ### 3.3 시간 통장
-- `ledger` 거래 종류: `EARN`(적립) / `HOLD`(보류) / `RELEASE`(보류 해제) / `USE`(사용·차감) / `GIFT_OUT` / `GIFT_IN` / `CLASS_FEE`(수강) / `CLASS_EARN`(선생님 적립) / `ADJUST`(운영자 조정) / `REFUND`.
+- `ledger` 거래 종류: `EARN`(적립) / `HOLD`(보류) / `RELEASE`(보류 해제) / `USE`(사용·차감) / `GIFT_OUT` / `GIFT_IN` / `ADJUST`(운영자 조정) / `REFUND`.
 - 잔액 = 합계(보류 제외), 보류 = 미해제 HOLD 합.
-- 시간 선물(B-32): 승인된 가족 연결 상대에게만. 선물·수강 외 양도·매매 없음(B-34).
-- 동네 클래스: 수강생은 `수업 시간 × 0.5`(0.5 단위)를 신청 때 보류, 출석 때 차감. 선생님은 `수업 시간 + 준비 1시간` 적립(어르신 선생님은 담당자 기관이 대신 받는 것으로 기록만). 정원이 다 차서 남는 시간은 "공동 적립"(community pool)으로 기록.
+- 시간 선물(B-32): 승인된 가족 연결 상대에게만. 선물 외 양도·매매 없음(B-34).
 
 ### 3.4 독거노인(도움 대상) — 개인정보 최소
 - 저장: `alias`(별칭), `dong`(동 단위), `ageGroup`(예: 80대), `needs`(카테고리), `caution`(방문 주의사항), 담당자 메모. 이름·주소·연락처는 **저장하지 않는다**(C-02).
@@ -91,7 +90,7 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 `posts`(id, type[OFFER/NEED], owner_id, elder_id, created_by, date, start_hour, end_hour, area, categories, title, detail, note, est_hours, difficulty, difficulty_reason, weight, repeat_rule, series_id, status[OPEN/MATCHED/CLOSED/DELETED], created_at)
 `requests`(id, kind, post_id, sender_id, elder_id, volunteer_id, recipient_id, date, start_hour, hours, category, content, memo, difficulty, weight, est_earn, status, reject_reason, deadline_at, check_code, check_in_at, check_out_at, check_method, log_raw, log_text, log_photo_url, photo_consent, adjust_hours, adjust_status, earned, confirmed_at, done_at, created_at)
 `messages`(id, request_id, sender_id, sender_label, system_msg, text, warn, created_at)
-`ledger`(id, user_id, type, amount, base_hours, weight, request_id, class_id, label, created_at)
+`ledger`(id, user_id, type, amount, base_hours, weight, request_id, label, created_at)
 `ratings`(id, request_id, rater_id, target_user_id, stars, tags, comment, is_private, created_at)
 `notifications`(id, user_id, type, title, body, link, is_read, created_at)
 `interest_alerts`(id, user_id, area, categories, day_type, enabled)
@@ -104,9 +103,6 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 `life_reports`(id, subject_type[USER/ELDER], subject_id, month, stats_json, narrative, big_change, source, created_at)
 `edu_progress`(user_id, diag_json, cards_done, quiz_score, roleplay_json, completed_at)
 `roleplay_personas`(id, name, initial, age_label, fit_category, trait, goal, opening, turns_json, active)
-`classes`(id, teacher_id, teacher_elder_id, created_by, mode[ONE/GROUP], kind, title, intro, steps_json, items, caution, level, level_reason, date, start_hour, hours, place, space_id, capacity, status[SPACE_PENDING/OPEN/DONE/CANCELLED], note_json, bio, tags, met, weekly_cap, qs_json, slots_json, meet, teacher_label, teacher_age_label, created_at)
-`class_enrollments`(id, class_id, user_id, status[APPLIED/ATTENDED/CANCELLED], review, one_status[WAIT/OK/MET/DONE/CANCELLED], slot_date, slot_hour, question, proposed, note, check_in_at, check_out_at, created_at)
-`spaces`(id, org_id, name, capacity, equipment)
 `auth_token`(token, user_id, expires_at)
 
 ## 5. API 목록
@@ -184,17 +180,8 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - `POST /api/edu/roleplay/{personaId}/finish` {log:[…]} → {safe, comm, emp, pass, fixes[]}
 - `POST /api/edu/complete` → 수료(조건: 카드 완료, 퀴즈 4/5 이상, 역할극 1명 이상 통과) → `users.edu_done=true`
 
-### 5.9 동네 클래스 (프로토타입 cls)
-- `GET /api/classes?kind=` → [Class] · `GET /api/classes/{id}` · `POST /api/classes` {kind,title,intro,steps:[{t,min}],items,caution,date,startHour,hours,capacity,teacherElderId?} → 상태 SPACE_PENDING (금지 필터·난이도(허용/주의) 함께)
-- `POST /api/classes/{id}/apply` · `POST /api/classes/{id}/cancel` · `POST /api/classes/{id}/attend` {code}
-- `GET /api/classes/{id}/qr` (선생님/담당자: 출석 코드) · `POST /api/classes/{id}/finish` {steps[], tip} → 배움 노트, 정산 · `POST /api/classes/{id}/review` {text}
-- `GET /api/classes/mine` → {teaching:[…], applied:[…], past:[…]}
-- 담당자: `GET /api/org/spaces` · `POST /api/org/spaces` · `POST /api/org/classes/{id}/assign-space` {spaceId, place}
-- **1:1 클래스(황수빈 v2)**: `POST /api/classes` {mode:'ONE', kind, title, intro, steps, hours(기본 1), slots:[{date, hour}], meet, bio, tags[], qs[], weeklyCap(기본 2), teacherElderId?} → 공간 배정 없이 바로 OPEN
-- `POST /api/classes/{id}/one/apply` {slotDate, slotHour, question} (질문 필수, 슬롯은 선생님이 정한 것 중) → 수강생 HOLD h · `POST /api/classes/{id}/one/cancel` · `POST /api/classes/{id}/one/accept-proposal`
-- `POST /api/classes/one/enrollments/{eid}/accept` (선생님/담당자) · `POST /api/classes/one/enrollments/{eid}/propose` {date, hour}
-- `POST /api/classes/{id}/one/start` {code} (만나서 시작 QR: 보류 해제·−h, 선생님 +h) · `POST /api/classes/{id}/one/end` {code} (마침 QR: 만남 끝, met+1) · `POST /api/classes/{id}/one/note` {text}
-- `POST /api/classes/check-topic` {text} → {level, reason, category, source:'rule'} (수업 열기 인터뷰 금지 주제 확인)
+### 5.9 동네 클래스 — 삭제
+- 2026-11-10 사용자 결정으로 동네 클래스(1:1 수업·여럿 수업·수업 열기 인터뷰·출석 QR·배움 노트·공간 배정)와 그 API(`classes`·`org/spaces`·`org/classes` 경로 전부)를 지웠다. 기관 행사·클래스 홍보는 동네 소식(7.11 "2장·O3")으로 남는다.
 
 ### 5.10 담당자 (C-02~C-10, P-05)
 - `GET /api/org/home` → {todo:[…], counts:{elders, pendingFinal, logsToConfirm, active}, alerts:[…]}
@@ -227,12 +214,11 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 |---|---|---|
 | 사용자 | `yujin` / `1234` | 손유진, 행복동, 20대 — 프로토타입 `D.me` |
 | 사용자 | `sky`, `mikyung`, `doyun`, `bok`, `mom` / `1234` | 김하늘·최미경·이도윤·김복남·이순자(손유진 가족) |
-| 사용자 | `youngho`, `miyoung` / `1234` | 박영호(70대)·이미영(60대) — 1:1 클래스 어르신 선생님(화면 표시는 박○호 72세·이○영 68세) |
 | 담당자 | `org1` / `1234` | 박지원 (행복동 주민센터) — 도움 대상 4명(별칭 이순례·정말순·한영자·오덕수) |
 | 담당자 | `org2` / `1234` | 같은 기관 다른 담당자(이관 시연) |
 | 운영자 | `admin` / `1234` | 김운영 |
 
-시드 데이터는 프로토타입 `D.P`(공고), `D.R`/`D.RE`(요청), `D.L`(통장), `D.N`(알림), `CLS`(클래스), `RP`(역할극 상대), `QZ`(퀴즈), 공공 서비스 10개 안팎을 **오늘 날짜 기준 상대 날짜**로 옮긴다.
+시드 데이터는 프로토타입 `D.P`(공고), `D.R`/`D.RE`(요청), `D.L`(통장), `D.N`(알림), `RP`(역할극 상대), `QZ`(퀴즈), 공공 서비스 10개 안팎을 **오늘 날짜 기준 상대 날짜**로 옮긴다.
 
 ## 7. 추가 기록 (개발 중 계약에 더한 것)
 
@@ -269,8 +255,8 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 ### 7.4 시간 통장
 - `GET /api/bank`·`GET /api/me` 추가 필드: `available`(= balance − hold), `usable`(B-33 반영해 지금 쓸 수 있는 시간), `canUseSelf`, `selfUseMin`(10). `balance`는 보류를 빼지 않은 합계.
 - 오류 코드: `SELF_USE_LOCKED`(직접 적립 10시간 미만, 선물받은 시간 부족), `INSUFFICIENT_BALANCE`.
-- ledger 거래 종류에 `POOL`(공동 적립, user_id 없음) 추가. `ledger.elder_id` 칸 추가: 어르신 선생님(도움 대상) 적립을 "기관이 대신 받음"으로 기록(user_id 없음).
-- entries 항목에 `requestId`, `classId`도 준다.
+- `ledger.elder_id` 칸 추가(user_id 없는 시스템 기록용). entries 항목에 `requestId`도 준다.
+- (2026-11-10) 동네 클래스 삭제로 `ledger.class_id`·entries `classId`를 지웠다. `CLASS_FEE`/`CLASS_EARN`/`POOL`은 기존 DB 행을 읽기 위해 enum에만 남기고 새로 쓰지 않으며, 적립·사용 합계(직접 적립 10시간 판단, 운영자 발행·소비)에도 넣지 않는다.
 
 ### 7.5 마이페이지·가족
 - `GET /api/family` 항목에 `theyShare`(상대가 나에게 리포트 공유에 동의했는지). `shareReport`는 내 동의. DB `family_links.target_share_report` 칸 추가(받은 쪽의 동의).
@@ -280,28 +266,17 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - `GET /api/me/withdraw-check`에 `canWithdraw`. 진행 중인 요청이 있으면 `POST /api/me/withdraw`는 409 `ACTIVE_REQUESTS`.
 - `GET /api/users/{id}/profile`에 `area`, `categories`, `timeSlots`, `idVerified`, `helpCount` 추가.
 
-### 7.6 교육·클래스
+### 7.6 교육
 - `GET /api/edu`: `personas[].turns[].options`는 문장(`t`)만(판정 숨김), `quiz`는 정답 없이 `{no, q, options, card}`. `rules`는 진단 카테고리에 맞춤 카드 2장까지 더한 목록.
 - `POST /api/ai/roleplay` 응답에 `turn`, `source` 추가. 대본 선택지와 같은 문장이면 대본 판정을 쓴다.
 - `POST /api/edu/roleplay/{personaId}/finish` 응답: `{safe, comm, emp, pass, flags, fixes:[{said, better, flag}], good}`. log 항목 `{who:'me'|'them', text, quality?, flag?}`.
-- 클래스 응답 필드: `teacherName`(도움 대상 선생님은 담당자에게만 별칭 원문, 그 외 "한○자"), `teacherAgeGroup`, `elderTeacher`(60대 이상 또는 도움 대상), `byOrg`, `steps:[{t,min}]`, `joined`, `fee`, `teacherEarn`, `poolIfFull`, `myEnrollment`, `host`, `note`, `reviews`.
-- `GET /api/classes?status=DONE`으로 지난 수업(배움 노트) 목록. 기본은 OPEN, 어르신 선생님 먼저.
-- `GET /api/org/spaces` → `{spaces, pendingClasses}`. 클래스 생성 시 담당자 전원에게 공간 배정 알림.
-- 수업을 마치면(`finish`) 오지 않은 수강생은 보류만 풀고 차감하지 않는다. 공동 적립 = 출석 수 × 수강료 − (수업 + 1시간), 0보다 클 때만.
-- DB `classes.check_code`(출석 코드) 추가.
-- **1:1 클래스(황수빈 v2, 2026-11-09)**: 클래스 `mode` ONE/GROUP(비면 GROUP). 같이 해 보기 정원은 1~4명(`INVALID_CAPACITY`), 수강료 = 시간 × 0.5. 1:1은 1시간 = 1시간(가중치 없음), 새 종류 `일·경험`.
-  - 1:1 응답 추가 필드: `mode`, `bio`, `tags`, `met`, `weeklyCap`, `left`(= 주당 정원 − (WAIT/OK/MET 신청 + 최근 7일 안에 끝난 만남)), `qs`, `slots:[{date,hour}]`, `meet`, `teacherAge`(표시 나이, 없으면 나이대), `managerName`(기관 어르신 선생님일 때), `myOne`{id,status,slotDate,slotHour,slotText,question,proposed,note,checkInAt,checkOutAt}(내 마지막 신청), 선생님/담당자에게만 `requests`[…+userName,userAgeGroup]·`newRequests`. `fee`=h, `teacherEarn`=h.
-  - 상태: WAIT(수락 대기) → OK(확정) → MET(시작 QR, 정산) → DONE(마침 QR). 다른 시간 제안 = WAIT + `proposed=true`, 학생이 `accept-proposal`하면 OK. 취소는 WAIT 언제든, OK는 약속 전날까지(당일 `LATE_CANCEL`), MET 이후 불가. 진행 중 신청이 있으면 `DUPLICATE`, 자리 없으면 `CLASS_FULL`, 질문 없으면 `QUESTION_REQUIRED`, 정하지 않은 시간이면 `INVALID_SLOT`.
-  - 정산: 신청 HOLD h → 시작 QR 때 RELEASE h + CLASS_FEE −h, 선생님 CLASS_EARN +h(어르신 선생님은 `ledger.elder_id`로 "기관이 대신 받음"). 만남 장소에 집·자택·호수 등 닫힌 곳이면 `MEET_NOT_PUBLIC`.
-  - 알림: 신청(선생님, 기관 어르신이면 담당자 → `/o/space`), 수락·시간 제안(학생), 제안 수락·취소·만남 끝·오늘 배운 한 줄(선생님/담당자). 유형 `CLASS_ONE_APPLY|ACCEPT|PROPOSE|CANCEL|DONE|NOTE`.
-  - 금지 주제(`RuleEngine.classFilter`): 침·뜸·마사지·지압·민간요법·약초 / 투자·주식·코인·보험·대출 / 전도·교회·포교·판매 → 400 `FORBIDDEN_REQUEST`(이유 문장). 그다음 봉사 금지 필터를 그대로 적용. 같이 해 보기 생성에도 쓴다.
-  - `GET /api/classes?mode=ONE|GROUP` 선택 필터. OPEN 목록은 1:1 먼저(연 순서), 같이 해 보기는 어르신 선생님 먼저. `GET /api/org/spaces`에 `oneClasses`(내가 맡은 어르신의 1:1 수업, `requests` 포함) 추가. 기존 `/apply`·`/attend`·`/finish`는 1:1 수업이면 400 `ONE_CLASS`, `/cancel`은 1:1 취소로 넘긴다.
+- (2026-11-10) 이 절에 있던 동네 클래스·1:1 클래스 기록(응답 필드, 상태, 정산, 금지 주제 `RuleEngine.classFilter`, 공간 배정)은 기능 삭제로 지웠다.
 
 ### 7.7 담당자·운영자
 - 도움 대상 등록·수정·메모에 전화번호·계좌·상세 주소가 보이면 400 `PII_NOT_ALLOWED`. 동은 "○○동" 형식만.
-- `GET /api/org/elders` 항목: `alias`, `displayName`, `maskedName`, `regularCount`, `activeCount`, `monthDone`, `doneTotal`, `flag`(최근 리포트 큰 변화). `GET /api/org/transfers` 항목에 `direction`('in'|'out'). `GET /api/org/home`의 `counts`에 `spacePending`, `flaggedReports`, `transfersIn`.
+- `GET /api/org/elders` 항목: `alias`, `displayName`, `maskedName`, `regularCount`, `activeCount`, `monthDone`, `doneTotal`, `flag`(최근 리포트 큰 변화). `GET /api/org/transfers` 항목에 `direction`('in'|'out'). `GET /api/org/home`의 `counts`에 `flaggedReports`, `transfersIn`.
 - `GET /api/org/reports?month=` 기본은 지난달, 항목에 `reportConsent`.
-- 운영자 대시보드 추가: `kpi{activities, prevActivities, matchRate, elderUsage, prevElderUsage}`, `weekly:[{label, supply, demand}]`, `timeBalance.useRatio`, `edu`, `classes`, `pending.anomalies`. `monthly` 항목: `{month, activities, elderUsage, supply, demand, issued, consumed}`.
+- 운영자 대시보드 추가: `kpi{activities, prevActivities, matchRate, elderUsage, prevElderUsage}`, `weekly:[{label, supply, demand}]`, `timeBalance.useRatio`, `edu`, `pending.anomalies`. `monthly` 항목: `{month, activities, elderUsage, supply, demand, issued, consumed}`.
 - `POST /api/admin/orgs/{id}/approve` → `{managerLoginId, tempPassword, managerId, ...}`(임시 비밀번호는 이 응답에서만).
 - 이상 패턴(D-06): 최근 30일 같은 쌍의 1시간 이하 DONE 3회 이상. `hold`는 이미 적립된 건이면 ADJUST −적립, `release`는 ADJUST +적립(정산 전 보류면 정산 때 적립하지 않음).
 - `POST /api/admin/reports/{id}/handle`의 `action`이 없으면 상태만 REVIEWING. WARNING은 대상 `warningCount+1`, SUSPEND/BAN은 계정 정지.
@@ -335,10 +310,10 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - `POST /api/auth/phone/send`는 데모용으로 남김(데모 꺼짐이면 400 `DEMO_DISABLED`).
 - 화면: Firebase 켜짐이면 "인증번호 받기" = 실제 문자, 데모 켜짐이면 아래 작은 글씨 "프로토타입 테스트: 123456 입력으로도 인증돼요"(문자를 받지 않고 바로 123456을 넣어도 됨). 문자 발송 실패(할당량·결제 미설정·도메인 미승인 등)면 오류 문장 + 데모 코드 안내. Firebase 꺼짐이면 지금처럼 테스트 코드 안내.
 
-**QR (요청 체크인·아웃, 동네 클래스 출석, 1:1 시작·마침)**
-- QR 내용: `TS1|<REQ|CLS|ONE>|<대상 id>|<6자리 코드>`. 요청은 RequestView에 `qrText`(받는 쪽·담당자에게만, `checkCode`와 함께), 클래스는 `GET /api/classes/{id}/qr`의 `qrText`(1:1이면 ONE, 같이 해 보기면 CLS).
+**QR (요청 체크인·아웃)**
+- QR 내용: `TS1|REQ|<요청 id>|<6자리 코드>`. RequestView에 `qrText`(받는 쪽·담당자에게만, `checkCode`와 함께). (클래스용 CLS·ONE 종류는 2026-11-10 삭제)
 - 스캐너: 후면 카메라(`facingMode: environment`) 영상 → `BarcodeDetector`(있으면) / `jsqr`. 형식·종류·대상 id가 맞으면 `{code, method:'qr'}`로 해당 API 호출. 카메라 권한 거부·https 아님·카메라 없음이면 안내. 6자리 번호 입력칸은 항상 같이 보이고 `{code, method:'code'}`. 영상은 저장·전송하지 않는다.
-- `POST /api/classes/{id}/attend`, `/one/start`, `/one/end` 본문에 `method`(`qr`|`code`, 기본 code) 추가. DB `class_enrollments.check_method`(출석·시작), `check_out_method`(1:1 마침) 칸 추가. 응답: 1:1 `myOne`/`requests[]`에 `checkMethod`·`checkOutMethod`, 같이 해 보기 `myEnrollment`에 `checkMethod`·`checkInAt`. 화면 표시 `qr`→"QR 확인", `code`→"번호 확인", `manual`→"버튼 확인"(요청만).
+- 요청 체크인·아웃 화면 표시 `qr`→"QR 확인", `code`→"번호 확인", `manual`→"버튼 확인".
 
 **AI 공급자 (`AiClient` 한 곳, `LlmProvider` = `AnthropicProvider` | `GeminiProvider`)**
 - Gemini: `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`, 헤더 `x-goog-api-key`, 본문 `systemInstruction`·`contents[{role:'user',parts:[{text}]}]`·`generationConfig.responseMimeType:"application/json"`. 응답 `candidates[0].content.parts[*].text`(생각 part 제외)를 이어 JSON 객체로 읽는다. 429·HTTP 오류·형식 이상이면 그 호출만 규칙 결과 + 로그(공급자 이름과 상태 코드만, 키·본문 없음).
@@ -384,10 +359,7 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 **AI 공통**: 새 글쓰기는 `ai/InsightAi`가 `AiClient`가 고른 `LlmProvider`(gemini/anthropic)를 그대로 쓴다(`AiClient`는 바꾸지 않음). 실패·키 없음이면 호출한 쪽이 계산한 규칙 문장을 돌려주고 `source:"rule"`.
 
 ### 7.11 2026-11-09 회의 반영 — 홈·공고·단골·위치 공공 서비스·동네 소식 (`docs/meetings/2026-11-09-회의반영.md` 1·2장, O2·O3)
-**클래스 규칙 변경(7.6을 덮어씀)**
-- 새로 여는 클래스 `kind`는 `말벗·이야기` / `전자기기 사용법` 두 가지만(`Rules.CLASS_KINDS`). 그 밖은 400 `INVALID_KIND`. 옛 종류(요리·손재주·일·경험 등)는 지난 수업 기록에만 남는다(시드의 열린 요리·손재주·생활 지혜 수업은 CANCELLED, 1:1 o1~o4는 두 종류로 바꿈).
-- 여럿이 하는 수업(GROUP)은 최대 4명(`INVALID_CAPACITY`)이고 **기관이 장소를 정할 때만 열린다**: 담당자가 `place` 또는 `spaceId`(우리 기관 공간)와 함께 만들면 바로 OPEN(없으면 400 `SPACE_REQUIRED`), 사용자가 만들면 SPACE_PENDING → 담당자 `assign-space` 뒤 OPEN. `POST /api/classes` 본문에 `place`, `spaceId` 추가.
-- **평등 정산**: 배우는 사람은 수업 시간 h를 쓴다(HOLD h → 출석 때 RELEASE h + CLASS_FEE −h, 가중치 1.0). 여는 사람은 `참석 인원 × h`를 번다(`Rules.classTeacherEarn`). ×0.5 수강료·준비 1시간·공동 적립(POOL) 계산은 없앰(`Rules.classFee` 삭제). 응답 `fee`=h, `teacherEarn`=h(참석 1명당), `teacherEarnIfFull`=정원 × h, `kindOpen`(지금도 열 수 있는 종류인지). `poolIfFull` 없음. `finish` 응답에서 `pool` 없음.
+**클래스 규칙 변경** — (2026-11-10) 동네 클래스 삭제로 지웠다(주제 두 가지·4명·기관 장소·평등 정산 `Rules.CLASS_KINDS`/`classTeacherEarn` 모두 없음).
 
 **U3 내가 자주 받는 도움** — `GET /api/me/top-categories` → `{top:[{category,count,score}], order:[6개 카테고리], basis}`. 내가 받는 쪽인 요청(거절·취소·만료 제외, DONE은 2점, 그 밖 1점)과 내가 올린 NEED 공고(1점)로 센다. 홈 "내가 자주 받는 도움", 공고(봉사 가능) 필터 칩 순서(★)와 목록 정렬(같은 순위 안에서는 기존 정렬 유지)에 쓴다. 공고 화면은 `?cat=` 쿼리로 칩을 미리 고를 수 있다.
 
@@ -400,11 +372,11 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 
 **O2 대리 공고 AI로 정리하기** — `POST /api/ai/tidy-post {text, elderId?}` → `{title, detail, caution, categories, piiRemoved, source}`. 입력에 있는 사실만 다듬고 전화번호·계좌·상세 주소는 지우며, 주의사항에는 병명 대신 행동 문장만(서버가 AI 결과에도 다시 적용). `elderId`는 내가 담당하는 대상만(403). 규칙 모드는 카테고리 + 장소 낱말로 짧은 제목(예 "병원 동행 (정형외과)"). 화면은 정리 결과를 고친 뒤 대화로 날짜·시간을 채우고, 올릴 때 정리한 제목·내용·주의사항을 쓴다(기존 대화형 작성 유지).
 
-**2장·O3 동네 소식** — 테이블 `org_events`, `event_applications`. 아래 탭 "클래스" → "동네 소식"(`/news`, 안에 "기관 소식" / "이웃 클래스" 탭, `/cls`는 `/news?tab=cls`로 넘김).
+**2장·O3 동네 소식** — 테이블 `org_events`, `event_applications`. 아래 탭 "클래스" → "동네 소식"(`/news`, 기관 소식만 — 2026-11-10 사용자 클래스 탭 삭제, 예전 `/cls*` 주소는 `/news`로, `/o/space`는 담당자 소식 관리 `/o/events`로 넘김).
 - `GET /api/events`(열린 소식, 날짜 지나지 않은 것, 날짜 순) · `GET /api/events/{id}` → `{id, orgId, orgName, title, content, date, startHour, place, capacity(0=제한 없음), applied, applyType:'APP'|'LINK', url, preview:{title,image,description}|null, status:'OPEN'|'CLOSED', myApplied, full, owner, applicants?(우리 기관 담당자에게만 [{userId,name,ageGroup,appliedAt}])}`.
 - `POST /api/events`(담당자만) `{title, content, date, startHour, place, capacity, applyType, url?, ogTitle?, ogImage?, ogDesc?}`. LINK면 url 필수(`URL_REQUIRED`). 저장 전에 url 형식·내부 주소 검사(`URL_NOT_ALLOWED`). 화면에서 받은 미리보기를 같이 보내면 그대로 저장, 없으면 서버가 한 번 가져와 본다(실패해도 글은 올라감).
 - `POST /api/events/{id}/apply`(사용자, APP만 — LINK는 400 `EXTERNAL_APPLY`, 정원 409 `EVENT_FULL`, 중복 409 `DUPLICATE`, 마감 409 `EVENT_CLOSED`) · `/cancel` · `/close`(우리 기관 담당자) · `GET /api/org/events`(우리 기관 소식, 신청자 포함). 신청하면 올린 담당자에게 알림 `EVENT_APPLY`(링크 `/news/{id}`).
 - `POST /api/link-preview {url}` → `{url, title, image, description, siteName}`(저장 안 함, 사용자·담당자). **SSRF 방지**: http/https만, 80·443 포트만, 아이디·비밀번호 포함 주소 거부, localhost·*.local·*.internal 거부, 이름을 풀어 나온 **모든** 주소가 사설(10/8·172.16/12·192.168/16)·루프백·링크로컬(169.254 — 클라우드 메타데이터 포함)·0.0.0.0/8·CGNAT(100.64/10)·멀티캐스트·IPv6 ULA(fc00::/7)·fe80::/10·IPv4 매핑 주소면 거부(400 `URL_NOT_ALLOWED`). 리다이렉트는 자동으로 따르지 않고 직접 따라가며 매번 다시 검사(최대 3회), 연결·응답 3초, 본문 512KB까지만, HTML이 아니면 읽지 않음, 시스템 프록시 안 씀. `og:title`→없으면 `<title>`, `og:image`(상대 경로는 절대 경로로, http/https만), `og:description`/`description`. 남은 위험: 검사와 연결 사이 DNS 응답이 바뀌는 경우(DNS 리바인딩)는 완전히 막지 못한다 → 운영 때 나가는 요청을 프록시로 제한 권장.
 - 시드: 행복동 주민센터 소식 4개(앱 신청 2, `https://example.org/…` 외부 링크 2 — 시드에서는 미리보기를 가져오지 않음).
 
-**화면(서버 계약 없음)** — U2 홈 교육 배너 → 홈 위 빠른 메뉴 아이콘(교육 n/4단계, 수료 전 빨간 점) · U4 "응답 필요"·"다가오는 일정(확정된 내 봉사/받는 일정)" 가로 슬라이드(스크롤 스냅·스와이프·점, 카드 누르면 상세) · U5 공고 화면 아래 "봉사 요청"(NEED 작성) / "도움 가능"(OFFER 작성) 버튼, 작성 화면 제목도 같게("공고 올리기" 문구 교체) · U6 홈 "도움 받기 / 봉사하기" 전환(브라우저 `localStorage` `ts-home-mode`, 막히면 기본 받기), 고른 쪽 카드가 먼저 · U9 QR 처음 쓸 때 한 줄 설명(`ts-qr-intro-seen`).
+**화면(서버 계약 없음)** — U2 홈 교육 배너 → 홈 위 빠른 메뉴 아이콘(교육 n/4단계, 수료 전 빨간 점) · U4 "응답 필요"·"다가오는 일정(확정된 내 봉사/받는 일정)" 가로 슬라이드(스크롤 스냅·스와이프·점, 카드 누르면 상세) · U5 공고 화면 아래 "봉사 요청"(NEED 작성) / "도움 가능"(OFFER 작성) 버튼, 작성 화면 제목도 같게("공고 올리기" 문구 교체) · U6 홈 "도움 받기 / 봉사하기" 전환(브라우저 `localStorage` `ts-home-mode`, 막히면 기본 받기), 고른 쪽 카드가 먼저 · U9 QR 처음 쓸 때 한 줄 설명(`ts-qr-intro-seen`, 요청 시작·종료 QR 찍기 시트).

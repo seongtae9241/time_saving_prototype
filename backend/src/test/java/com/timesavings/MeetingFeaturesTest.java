@@ -48,7 +48,7 @@ class MeetingFeaturesTest {
         u.loginId = id; u.name = id; u.passwordHash = auth.hash("1234"); u.role = role; u.area = "행복동"; u.ageGroup = "60대";
         u.idStatus = VerifyStatus.APPROVED; u.phone = "010-0000-" + (2000 + id.length());
         users.save(u);
-        if (earned > 0) bank.add(u.id, LedgerType.EARN, earned, earned, 1.0, null, null, "초기 적립");
+        if (earned > 0) bank.add(u.id, LedgerType.EARN, earned, earned, 1.0, null, "초기 적립");
         return u;
     }
 
@@ -85,9 +85,9 @@ class MeetingFeaturesTest {
 
     @Test
     void U1_통장_전체_적립_사용_합계() throws Exception {
-        bank.add(rec.id, LedgerType.USE, -3.0, 3.0, 1.0, null, null, "사용");
-        bank.add(rec.id, LedgerType.HOLD, 2.0, 2.0, 1.0, null, null, "보류"); // 보류는 합계에서 빠진다
-        bank.add(rec.id, LedgerType.GIFT_IN, 1.5, null, null, null, null, "선물");
+        bank.add(rec.id, LedgerType.USE, -3.0, 3.0, 1.0, null, "사용");
+        bank.add(rec.id, LedgerType.HOLD, 2.0, 2.0, 1.0, null, "보류"); // 보류는 합계에서 빠진다
+        bank.add(rec.id, LedgerType.GIFT_IN, 1.5, null, null, null, "선물");
         mvc.perform(get("/api/bank").header("Authorization", tok(rec))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalEarned").value(21.5)).andExpect(jsonPath("$.totalUsed").value(3.0))
                 .andExpect(jsonPath("$.balance").value(18.5));

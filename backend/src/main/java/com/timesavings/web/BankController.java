@@ -46,7 +46,7 @@ public class BankController {
         List<Map<String, Object>> entries = new ArrayList<>();
         for (Ledger l : bank.entries(u.id))
             entries.add(Views.map("id", l.id, "type", l.type, "amount", l.amount, "baseHours", l.baseHours, "weight", l.weight,
-                    "label", l.label, "requestId", l.requestId, "classId", l.classId, "createdAt", l.createdAt));
+                    "label", l.label, "requestId", l.requestId, "createdAt", l.createdAt));
         double[] tot = bank.totals(u.id);
         return Views.map("totalEarned", tot[0], "totalUsed", tot[1],
                 "balance", s.balance(), "hold", s.hold(), "available", s.available(), "usable", s.usable(),
@@ -69,8 +69,8 @@ public class BankController {
         User to = users.findById(b.toUserId()).orElseThrow(() -> ApiException.notFound("받는 사람을 찾을 수 없어요"));
         if (bank.summary(u.id).available() < amt) throw ApiException.bad("INSUFFICIENT_BALANCE", "선물할 시간이 부족해요");
         String msg = b.message() == null || b.message().isBlank() ? "" : " · " + b.message();
-        bank.add(u.id, LedgerType.GIFT_OUT, -amt, null, null, null, null, to.name + " 님에게 선물" + msg);
-        bank.add(to.id, LedgerType.GIFT_IN, amt, null, null, null, null, u.name + " 님이 보낸 선물" + msg);
+        bank.add(u.id, LedgerType.GIFT_OUT, -amt, null, null, null, to.name + " 님에게 선물" + msg);
+        bank.add(to.id, LedgerType.GIFT_IN, amt, null, null, null, u.name + " 님이 보낸 선물" + msg);
         noti.send(to.id, "GIFT", u.name + " 님이 " + amt + "시간을 선물했어요", b.message(), "/bank");
         return Views.map("ok", true, "balance", bank.summary(u.id).balance());
     }

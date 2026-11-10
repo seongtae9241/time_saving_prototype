@@ -1,6 +1,7 @@
 -- 시간 적금 DB 스키마 (MySQL 8 호환)
 -- 실제 JPA 엔티티(backend/src/main/java/com/timesavings/domain)에서 Hibernate 스키마 생성으로 뽑은 DDL이다.
 -- 다시 만들기: backend 에서 SPRING_PROFILES_ACTIVE=schema 로 실행(README 참고). H2(MODE=MySQL)에서도 같은 구조가 ddl-auto=update 로 생성된다.
+-- 동네 클래스 테이블(classes·class_enrollments·spaces)과 ledger.class_id는 2026-11-10 사용자 결정으로 삭제했다(기존 DB의 남은 칸·행은 쓰지 않음).
 -- 목록형 칸(categories, time_slots, needs, tags, keywords)은 쉼표로 이은 문자열, *_json 칸은 JSON 문자열이다.
 
 
@@ -9,60 +10,6 @@ create table auth_token (
     user_id bigint not null,
     token varchar(64) not null,
     primary key (token)
-) engine=InnoDB;
-
-create table class_enrollments (
-    proposed bit,
-    slot_date date,
-    slot_hour float(53),
-    check_in_at datetime(6),
-    check_out_at datetime(6),
-    class_id bigint not null,
-    created_at datetime(6),
-    id bigint not null auto_increment,
-    user_id bigint not null,
-    one_status varchar(10),
-    note varchar(300),
-    question varchar(300),
-    review varchar(500),
-    status enum ('APPLIED','ATTENDED','CANCELLED') not null,
-    primary key (id)
-) engine=InnoDB;
-
-create table classes (
-    capacity integer not null,
-    date date not null,
-    hours float(53) not null,
-    met integer,
-    start_hour float(53) not null,
-    weekly_cap integer,
-    check_code varchar(6),
-    mode varchar(5),
-    teacher_age_label varchar(10),
-    teacher_label varchar(30),
-    meet varchar(100),
-    bio varchar(200),
-    tags varchar(200),
-    created_at datetime(6),
-    created_by bigint,
-    id bigint not null auto_increment,
-    space_id bigint,
-    teacher_elder_id bigint,
-    teacher_id bigint,
-    level varchar(10),
-    kind varchar(20),
-    place varchar(100),
-    title varchar(100) not null,
-    level_reason varchar(200),
-    items varchar(300),
-    caution varchar(500),
-    intro varchar(1000),
-    note_json TEXT,
-    status enum ('CANCELLED','DONE','OPEN','SPACE_PENDING') not null,
-    steps_json TEXT,
-    qs_json TEXT,
-    slots_json TEXT,
-    primary key (id)
 ) engine=InnoDB;
 
 create table difficulty_appeals (
@@ -180,7 +127,6 @@ create table ledger (
     amount float(53) not null,
     base_hours float(53),
     weight float(53),
-    class_id bigint,
     created_at datetime(6),
     elder_id bigint,
     id bigint not null auto_increment,
@@ -400,15 +346,6 @@ create table roleplay_personas (
     trait varchar(200),
     opening varchar(300),
     turns_json TEXT,
-    primary key (id)
-) engine=InnoDB;
-
-create table spaces (
-    capacity integer not null,
-    id bigint not null auto_increment,
-    org_id bigint not null,
-    name varchar(100) not null,
-    equipment varchar(300),
     primary key (id)
 ) engine=InnoDB;
 

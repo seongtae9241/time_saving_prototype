@@ -55,7 +55,7 @@ npm run build      # 결과물 frontend/dist
 | qna (문의·신고 내역) | `/qna` | `GET /inquiries/mine`, `GET /reports/mine` | B-37, B-47, B-49 |
 | qnaNew | `/qna/new` | `POST /inquiries` | B-48 |
 | 신고 시트 | (시트) | `POST /reports` | B-36 |
-| u_home | `/u/home` | `GET /me`, `/bank`, `/requests?box=all`, `/posts?type=OFFER`, `/classes`, `/edu` | A-06, B-46 |
+| u_home | `/u/home` | `GET /me`, `/bank`, `/requests?box=all`, `/posts?type=OFFER`, `/events`, `/edu` | A-06, B-46 |
 | **voice_req (추가 요구(사용자 요청): 음성 요청서)** | `/voice`, `/voice?elder=` | `POST /ai/post-chat` {type:'NEED', inputMode:'voice'}, `POST /posts`, `GET /org/elders/{id}` | B-02, B-03, B-05, B-09, B-42, C-04, P-01 |
 | board | `/board?type=OFFER\|NEED`, `/board?elder=` | `GET /posts?type&area&date&cat&sort` | B-20, C-05 |
 | post | `/post/:id` | `GET /posts/{id}`, `DELETE /posts/{id}`, `POST /posts`(다시 올리기), `GET /users/{id}/profile` | B-11, B-12, B-13, B-20 |
@@ -88,18 +88,16 @@ npm run build      # 결과물 frontend/dist
 | edu_quiz | `/edu/quiz` | `POST /edu/quiz` | B-01 |
 | edu_rp_list · edu_rp · edu_rp_res | `/edu/rp`, `/edu/rp/:id`, `/edu/rp/:id/result` | `POST /ai/roleplay`, `POST /edu/roleplay/{id}/finish`, `POST /edu/complete` | B-01 |
 | edu_cert | `/edu/cert` | `GET /edu` | B-01 |
-| cls | `/cls` | `GET /classes`, `GET /classes/mine` | — |
-| cls_detail | `/cls/:id` | `GET /classes/{id}`, `apply`, `cancel`, `attend`, `qr`, `finish`, `review` | — |
-| cls_note | `/cls/:id/note` | `GET /classes/{id}` | — |
-| cls_new | `/cls/new`, `/cls/new?org=1` | `POST /ai/filter`, `POST /classes` | — |
-| o_home | `/o/home` | `GET /org/home`, `/org/elders`, `/org/requests`, `/classes` | C-02~C-10 |
+| 동네 소식 (기관 소식만) | `/news`, `/news/:id` | `GET /events`, `GET /events/{id}`, `apply`, `cancel`, `close` | 2026-11-09 회의 2장 |
+| (동네 클래스 — 2026-11-10 삭제) | `/cls…` → `/news`로 넘김 | — | — |
+| o_home | `/o/home` | `GET /org/home`, `/org/elders`, `/org/requests` | C-02~C-10 |
 | o_elders | `/o/elders` | `GET /org/elders`, `GET /org/transfers`, `POST /org/transfers/{id}/answer` | C-02, C-03 |
 | e_detail | `/o/elders/:id` | `GET /org/elders/{id}`, `memos`, `consent`, `end`, `transfer`, `GET /org/managers` | C-02, C-03, P-05, P-06 |
 | e_new · (수정) | `/o/elders/new`, `/o/elders/:id/edit` | `POST /org/elders`, `PUT /org/elders/{id}` | C-02 |
 | o_reqs | `/o/reqs?seg=` | `GET /org/requests?box=all` | C-05~C-10 |
 | o_report | `/o/report` | `GET /org/reports`, `POST /org/reports/{id}/flag` | P-05 |
 | o_my | `/o/my` | — | A-09 |
-| o_space | `/o/space` | `GET /classes?status=SPACE_PENDING`, `GET/POST /org/spaces`, `POST /org/classes/{id}/assign-space` | — |
+| 동네 소식 운영 (담당자) | `/o/events`, `/o/events/new` (`/o/space` → `/o/events`) | `GET /org/events`, `POST /events`, `POST /link-preview` | 2026-11-09 회의 O3 |
 | a_dash | `/a/dash` | `GET /admin/dashboard`, `POST /admin/reports/generate`, `POST /admin/scheduler/run` | D-04, D-05, P-07 |
 | a_approve | `/a/approve?seg=org\|vol\|diff` | `GET /admin/orgs`, `approve/reject`, `GET /admin/verifications`, `…/{kind}/approve\|reject`, `GET /admin/appeals`, `answer` | D-01, D-03, B-28 |
 | a_safety | `/a/safety` | `GET /admin/reports`, `handle`, `GET /admin/anomalies`, `hold\|release` | D-02, D-06 |

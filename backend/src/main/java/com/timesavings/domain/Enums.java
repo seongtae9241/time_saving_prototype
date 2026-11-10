@@ -20,6 +20,7 @@ public final class Enums {
         public boolean pending() { return this == SENT || this == VOL_ACCEPTED; }
         public boolean active() { return this == CONFIRMED || this == IN_PROGRESS || this == CHECKED_OUT || this == LOG_SUBMITTED; }
     }
+    /** CLASS_FEE·CLASS_EARN·POOL은 삭제된 동네 클래스(2026-11-10) 기록이 남은 기존 DB를 읽기 위해서만 남긴다. 새로 쓰지 않는다. */
     public enum LedgerType { EARN, HOLD, RELEASE, USE, GIFT_OUT, GIFT_IN, CLASS_FEE, CLASS_EARN, ADJUST, REFUND, POOL }
     public enum ReportTarget { POST, REQUEST, MESSAGE, USER }
     public enum ReportStatus { RECEIVED, REVIEWING, DONE }
@@ -28,7 +29,5 @@ public final class Enums {
     public enum LinkStatus { PENDING, ACCEPTED, REJECTED }
     public enum AppealStatus { RECEIVED, ACCEPTED, REJECTED }
     public enum SubjectType { USER, ELDER }
-    public enum ClassStatus { SPACE_PENDING, OPEN, DONE, CANCELLED }
-    public enum EnrollStatus { APPLIED, ATTENDED, CANCELLED }
     public enum FilterLevel { ALLOW, CAUTION, BLOCK }
 }

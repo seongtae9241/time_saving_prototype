@@ -11,8 +11,7 @@ import { My, ProfileEdit, Verify, Family, FamReport, AlertSet, NotiSet, Cert, In
 import { Recommend, Public } from './screens/ai.jsx';
 import { VoiceReq } from './screens/voice.jsx';
 import { OHome, OElders, EDetail, EForm, OReqs, OReport, OMy } from './screens/org.jsx';
-import { Cls, ClsDetail, ClsNote, ClsNew, OSpace } from './screens/cls.jsx';
-import { News, EventDetail, OEventNew } from './screens/news.jsx';
+import { News, EventDetail, OEvents, OEventNew } from './screens/news.jsx';
 import { Edu, EduCard, EduQuiz, EduRpList, EduRp, EduRpRes, EduCert } from './screens/edu.jsx';
 import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANotices, APub, APersona } from './screens/admin.jsx';
 import { MyInsight, CarePlan, MyReport, FamRecentReport } from './screens/insight.jsx';
@@ -89,11 +88,10 @@ function Shell() {
 
         <Route path="/news" element={g(<News />, U)} />
         <Route path="/news/:id" element={g(<EventDetail />, UO)} />
+        <Route path="/o/events" element={g(<OEvents />, O)} />
         <Route path="/o/events/new" element={g(<OEventNew />, O)} />
-        <Route path="/cls" element={g(<Cls />, U)} />
-        <Route path="/cls/new" element={g(<ClsNew />, UO)} />
-        <Route path="/cls/:id" element={g(<ClsDetail />, UO)} />
-        <Route path="/cls/:id/note" element={g(<ClsNote />, UO)} />
+        {/* 동네 클래스는 2026-11-10 사용자 결정으로 삭제: 예전 링크는 동네 소식으로 */}
+        <Route path="/cls/*" element={<Navigate to="/news" replace />} />
 
         <Route path="/o/home" element={g(<OHome />, O)} />
         <Route path="/o/elders" element={g(<OElders />, O)} />
@@ -104,7 +102,7 @@ function Shell() {
         <Route path="/o/reqs/:id" element={g(<RequestDetail />, O)} />
         <Route path="/o/report" element={g(<OReport />, O)} />
         <Route path="/o/my" element={g(<OMy />, O)} />
-        <Route path="/o/space" element={g(<OSpace />, O)} />
+        <Route path="/o/space" element={<Navigate to="/o/events" replace />} />
 
         <Route path="/a/dash" element={g(<ADash />, A)} />
         <Route path="/a/approve" element={g(<AApprove />, A)} />

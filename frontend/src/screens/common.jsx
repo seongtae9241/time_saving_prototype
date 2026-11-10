@@ -25,8 +25,8 @@ export function goLink(nav, link, role) {
   if (!link) return;
   let l = String(link);
   if (!l.startsWith('/')) l = '/' + l;
-  // 서버 알림 링크(/classes/1, /requests/1, /org/spaces)를 화면 경로로
-  l = l.replace(/^\/classes\/(\d+)/, '/cls/$1').replace(/^\/requests\/(\d+)/, '/req/$1').replace(/^\/org\/spaces/, '/o/space');
+  // 서버 알림 링크(/requests/1)를 화면 경로로
+  l = l.replace(/^\/requests\/(\d+)/, '/req/$1');
   // 담당자는 요청 상세를 담당자 화면으로
   if (role === 'ORG') l = l.replace(/^\/req\/(\d+)/, '/o/reqs/$1');
   nav(l);

@@ -48,7 +48,7 @@ class FlowIntegrationTest {
         u.loginId = id; u.name = id; u.passwordHash = auth.hash("1234"); u.role = role; u.area = "행복동";
         u.idStatus = VerifyStatus.APPROVED; u.phone = "010-0000-" + (1000 + id.length());
         users.save(u);
-        if (earned > 0) bank.add(u.id, LedgerType.EARN, earned, earned, 1.0, null, null, "초기 적립");
+        if (earned > 0) bank.add(u.id, LedgerType.EARN, earned, earned, 1.0, null, "초기 적립");
         return u;
     }
 
@@ -153,11 +153,11 @@ class FlowIntegrationTest {
         Post p = offer(vol);
         ApiException e = assertThrows(ApiException.class, () -> request(newbie, p, 14, 1, "동행", null));
         assertEquals("SELF_USE_LOCKED", e.code);
-        bank.add(newbie.id, LedgerType.GIFT_IN, 2.0, null, null, null, null, "선물");
+        bank.add(newbie.id, LedgerType.GIFT_IN, 2.0, null, null, null, "선물");
         Request r = request(newbie, p, 14, 1, "동행", null); // 선물 2시간으로 1.5시간 요청 가능
         assertEquals(1.5, r.estEarn);
         User poor = user("poor", Role.USER, 10);
-        bank.add(poor.id, LedgerType.USE, -9.5, null, null, null, null, "사용");
+        bank.add(poor.id, LedgerType.USE, -9.5, null, null, null, "사용");
         assertEquals("INSUFFICIENT_BALANCE", assertThrows(ApiException.class, () -> request(poor, p, 13, 2, "동행", null)).code);
     }
 

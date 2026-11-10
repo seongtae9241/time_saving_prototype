@@ -8,7 +8,7 @@ import { CATS, SHORT, W, LV, fmt, hh, dlabel, dshort, KIND_LABEL, lvName, lvWeig
 import { I } from '../ui/icons.js';
 import { useReport } from './common.jsx';
 import { FilterBox } from './ai.jsx';
-import QrScanner, { qrText } from '../ui/QrScanner.jsx';
+import QrScanner, { qrText, QrIntro } from '../ui/QrScanner.jsx';
 import { VoiceField, MicButton } from '../ui/VoiceInput.jsx';
 import { RegularButton } from '../ui/extras.jsx'; // U7 수동 단골(2026-11-09)
 import { CareMemo } from './insight.jsx';
@@ -209,6 +209,7 @@ function ScanSheet({ r, mode, onDone, onClose }) {
     <>
       <h2>{mode === 'in' ? '시작 QR 찍기' : '종료 QR 찍기'}</h2>
       <p className="muted" style={{ margin: 0 }}>{who}를 화면 네모 안에 맞춰 주세요.</p>
+      <QrIntro />
       <QrScanner kind="REQ" id={r.id} submit={submit} onDone={() => { onClose(); onDone(); }}
         foot={r.elder ? '카드가 안 보이면 담당자에게 메시지로 알려 주세요' : '상대방이 휴대폰 화면 밝기를 높이면 잘 찍혀요'} />
       <button className="au-demo" disabled={busy} onClick={manual}>번호 없이 {mode === 'in' ? '시작' : '마치기'} (받는 분이 한 번 더 확인해요)</button>

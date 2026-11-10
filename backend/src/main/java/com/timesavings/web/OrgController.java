@@ -26,17 +26,16 @@ public class OrgController {
     private final RequestRepo requests;
     private final PostRepo posts;
     private final NotificationRepo notis;
-    private final NeighborClassRepo classes;
     private final LifeReportRepo reports;
     private final LifeReportService reportSvc;
     private final NotificationService noti;
     private final Views views;
 
     public OrgController(ElderRepo elders, ElderMemoRepo memos, ElderTransferRepo transfers, UserRepo users, RequestRepo requests,
-                         PostRepo posts, NotificationRepo notis, NeighborClassRepo classes, LifeReportRepo reports,
+                         PostRepo posts, NotificationRepo notis, LifeReportRepo reports,
                          LifeReportService reportSvc, NotificationService noti, Views views) {
         this.elders = elders; this.memos = memos; this.transfers = transfers; this.users = users; this.requests = requests;
-        this.posts = posts; this.notis = notis; this.classes = classes; this.reports = reports; this.reportSvc = reportSvc;
+        this.posts = posts; this.notis = notis; this.reports = reports; this.reportSvc = reportSvc;
         this.noti = noti; this.views = views;
     }
 
@@ -79,7 +78,6 @@ public class OrgController {
             todo.add(Views.map("requestId", r.id, "type", what, "elder", noti.recipientLabel(r, true), "volunteer", noti.name(r.volunteerId),
                     "date", r.date.toString(), "startHour", r.startHour, "category", r.category, "leftText", Views.leftText(r.deadlineAt)));
         }
-        long spacePending = classes.findAll().stream().filter(c -> c.status == ClassStatus.SPACE_PENDING).count();
         List<Notification> recent = notis.findByUserIdOrderByCreatedAtDescIdDesc(u.id).stream().filter(n -> !n.isRead).limit(5).toList();
         Set<Long> ids = myElderIds(u);
         String last = YearMonth.now().minusMonths(1).toString();
@@ -89,7 +87,7 @@ public class OrgController {
                         "pendingFinal", list.stream().filter(OrgController::needsMe).count(),
                         "logsToConfirm", list.stream().filter(r -> r.status == ReqStatus.LOG_SUBMITTED).count(),
                         "active", list.stream().filter(r -> r.status.active()).count(),
-                        "spacePending", spacePending, "flaggedReports", flagged,
+                        "flaggedReports", flagged,
                         "transfersIn", transfers.findAll().stream().filter(t -> t.status == TransferStatus.PENDING && u.id.equals(t.toManagerId)).count()),
                 "alerts", recent);
     }

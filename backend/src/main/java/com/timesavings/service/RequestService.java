@@ -245,7 +245,7 @@ public class RequestService {
     private void confirmMatch(Request r) {
         if (r.recipientId != null) {
             bank.requireUsable(r.recipientId, r.estEarn);
-            bank.add(r.recipientId, LedgerType.HOLD, r.estEarn, r.hours, r.weight, r.id, null, r.category + " 예약 보류");
+            bank.add(r.recipientId, LedgerType.HOLD, r.estEarn, r.hours, r.weight, r.id, r.category + " 예약 보류");
         }
         r.status = ReqStatus.CONFIRMED;
         r.confirmedAt = LocalDateTime.now();
@@ -294,7 +294,7 @@ public class RequestService {
         if (r.recipientId == null) return;
         boolean held = bank.entries(r.recipientId).stream().anyMatch(l -> r.id.equals(l.requestId) && l.type == LedgerType.HOLD);
         boolean released = bank.entries(r.recipientId).stream().anyMatch(l -> r.id.equals(l.requestId) && l.type == LedgerType.RELEASE);
-        if (held && !released) bank.add(r.recipientId, LedgerType.RELEASE, r.estEarn, r.hours, r.weight, r.id, null, r.category + " 보류 해제");
+        if (held && !released) bank.add(r.recipientId, LedgerType.RELEASE, r.estEarn, r.hours, r.weight, r.id, r.category + " 보류 해제");
     }
 
     // ======================= 취소·노쇼 (B-25) =======================
@@ -422,10 +422,10 @@ public class RequestService {
         r.deadlineAt = null;
         String recLabel = noti.recipientLabel(r, false) + (r.elderId != null ? " (기관)" : "");
         if (!r.anomalyHold)
-            bank.add(r.volunteerId, LedgerType.EARN, earned, hours, r.weight, r.id, null, r.category + " · " + recLabel);
+            bank.add(r.volunteerId, LedgerType.EARN, earned, hours, r.weight, r.id, r.category + " · " + recLabel);
         if (r.recipientId != null) {
             releaseHold(r);
-            bank.add(r.recipientId, LedgerType.USE, -earned, hours, r.weight, r.id, null, r.category + " · " + noti.name(r.volunteerId) + " 님에게 받음");
+            bank.add(r.recipientId, LedgerType.USE, -earned, hours, r.weight, r.id, r.category + " · " + noti.name(r.volunteerId) + " 님에게 받음");
         }
         sys(r, (auto ? "24시간이 지나 자동으로 확정됐어요. " : "확인이 끝났어요. ") + noti.name(r.volunteerId) + " 님에게 " + earned + "시간이 적립됐어요.");
         noti.toVolunteer(r, "EARNED", "+" + earned + "시간이 적립됐어요" + (r.anomalyHold ? " (점검 중이라 보류)" : ""),

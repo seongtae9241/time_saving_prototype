@@ -64,13 +64,13 @@ AI 호출은 모두 `ai/AiClient`(공급자: `ai/LlmProvider` ← `GeminiProvide
 com.timesavings
 ├─ TimeSavingsApplication      (@EnableScheduling)
 ├─ config   ApiException, GlobalExceptionHandler({error, code}), AuthInterceptor(Bearer 토큰·역할), CurrentUser, WebConfig(CORS·인자 주입), SpaController
-├─ domain   엔티티 25개 + Enums(상태 값) + StringListConverter
+├─ domain   엔티티 26개 + Enums(상태 값) + StringListConverter
 ├─ repo     Spring Data JPA 저장소
 ├─ ai       AiClient(유일한 AI 호출), RuleEngine, KoreanParser, PostChatRule, VoiceSafety
-├─ service  Rules(적립·일정 규칙), AuthService, BankService, RequestService(상태 흐름), PostService, ClassService,
+├─ service  Rules(적립·일정 규칙), AuthService, BankService, RequestService(상태 흐름), PostService, EventService·LinkPreviewService,
 │           EduService·EduContent, LifeReportService, NotificationService, SchedulerService, FileService, Views(응답 모양), DataSeeder
 └─ web      AuthController, PostController, AiController, RequestController, BankController, CommonController,
-            EduClassController, OrgController, AdminController
+            EduController, NewsController, OrgController, AdminController
 ```
 
 ## 스케줄러 (`SchedulerService`, 1분 간격)

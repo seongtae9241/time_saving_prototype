@@ -26,8 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * 2026-11-09 회의 반영: 클래스 평등 정산(참석 인원 × 시간)·주제 제한·여럿 수업은 기관 장소,
- * 링크 미리보기 SSRF 차단, 수동 단골, 동네 소식 신청, 위치 공공 서비스·AI 정리(키 없음 → 규칙), 자주 받는 도움 순위.
+ * 2026-11-09 회의 반영: 링크 미리보기 SSRF 차단, 수동 단골, 동네 소식 신청, 위치 공공 서비스·AI 정리(키 없음 → 규칙), 자주 받는 도움 순위.
  * 외부 네트워크·AI 를 부르지 않는다.
  */
 @SpringBootTest
@@ -40,8 +39,6 @@ class MeetingChangesTest {
     @Autowired ElderRepo elders;
     @Autowired LedgerRepo ledger;
     @Autowired RequestRepo requests;
-    @Autowired SpaceRepo spaces;
-    @Autowired ClassService classes;
     @Autowired EventService events;
     @Autowired BankService bank;
     @Autowired AuthService auth;
@@ -56,7 +53,7 @@ class MeetingChangesTest {
         u.idStatus = VerifyStatus.APPROVED;
         if (role == Role.ORG) u.orgId = org.id;
         users.save(u);
-        if (earned > 0) bank.add(u.id, LedgerType.EARN, earned, earned, 1.0, null, null, "초기 적립");
+        if (earned > 0) bank.add(u.id, LedgerType.EARN, earned, earned, 1.0, null, "초기 적립");
         return u;
     }
 
@@ -76,57 +73,6 @@ class MeetingChangesTest {
         s2 = user("st2", Role.USER, 10);
         s3 = user("st3", Role.USER, 10);
         mgr = user("mgr", Role.ORG, 0);
-    }
-
-    ClassService.ClassCmd group(String kind, Integer cap, String place) {
-        return new ClassService.ClassCmd(kind, "키오스크 주문 연습", "천천히 눌러 봐요", List.of(), null, null,
-                d, 14.0, 1.5, cap, null, "GROUP", null, null, null, null, null, null, place, null);
-    }
-
-    @Test
-    void 클래스_정산은_참석_인원_곱하기_시간() {
-        // 사용자가 연 여럿 수업 → 기관이 장소를 정해야 열림
-        NeighborClass c = classes.create(teacher, group("전자기기 사용법", 4, null));
-        assertEquals(ClassStatus.SPACE_PENDING, c.status);
-        assertThrows(ApiException.class, () -> classes.apply(s1, c.id)); // 아직 모집 전
-        classes.assignSpace(mgr, c.id, null, "행복동 주민센터 1층");
-        assertEquals(ClassStatus.OPEN, c.status);
-
-        for (User s : List.of(s1, s2, s3)) classes.apply(s, c.id);
-        assertEquals(1.5, sum(s1, LedgerType.HOLD)); // 수강 = 수업 시간 그대로(×0.5 없음)
-        classes.attend(s1, c.id, c.checkCode);
-        classes.attend(s2, c.id, c.checkCode);
-        var r = classes.finish(teacher, c.id, List.of("화면 보기"), null);
-        assertEquals(2, r.get("attended"));
-        assertEquals(3.0, r.get("teacherEarn")); // 2명 × 1.5시간 (준비 1시간 없음)
-        assertEquals(3.0, sum(teacher, LedgerType.CLASS_EARN));
-        assertEquals(-1.5, sum(s1, LedgerType.CLASS_FEE));
-        assertEquals(0.0, sum(s3, LedgerType.CLASS_FEE)); // 불참: 보류만 풀림
-        assertTrue(ledger.findAll().stream().noneMatch(l -> l.type == LedgerType.POOL && c.id.equals(l.classId))); // 공동 적립 없음
-    }
-
-    @Test
-    void 클래스_주제는_두_가지만_여럿_수업은_4명_기관_장소() {
-        assertEquals("INVALID_KIND", assertThrows(ApiException.class, () -> classes.create(teacher, group("요리", 4, null))).code);
-        assertEquals("INVALID_KIND", assertThrows(ApiException.class, () -> classes.create(teacher, group("일·경험", 4, null))).code);
-        assertEquals("INVALID_CAPACITY", assertThrows(ApiException.class, () -> classes.create(teacher, group("말벗·이야기", 5, null))).code);
-
-        Elder e = new Elder();
-        e.alias = "한영자"; e.dong = "행복동"; e.managerId = mgr.id; e.orgId = org.id; e.needs = List.of("디지털 도움"); e.ageGroup = "70대";
-        elders.save(e);
-        ClassService.ClassCmd noPlace = new ClassService.ClassCmd("말벗·이야기", "옛날 노래 이야기", null, List.of(), null, null,
-                d, 15.0, 1.0, 4, e.id, "GROUP", null, null, null, null, null, null, null, null);
-        assertEquals("SPACE_REQUIRED", assertThrows(ApiException.class, () -> classes.create(mgr, noPlace)).code);
-        ClassService.ClassCmd withPlace = new ClassService.ClassCmd("말벗·이야기", "옛날 노래 이야기", null, List.of(), null, null,
-                d, 15.0, 1.0, 4, e.id, "GROUP", null, null, null, null, null, null, "행복동 경로당", null);
-        NeighborClass c = classes.create(mgr, withPlace);
-        assertEquals(ClassStatus.OPEN, c.status); // 기관이 장소를 정하면 바로 모집
-        assertEquals("행복동 경로당", c.place);
-        classes.apply(s1, c.id);
-        classes.attend(s1, c.id, c.checkCode);
-        classes.finish(mgr, c.id, List.of(), null);
-        double elderEarn = ledger.findAll().stream().filter(l -> e.id.equals(l.elderId) && l.type == LedgerType.CLASS_EARN).mapToDouble(l -> l.amount).sum();
-        assertEquals(1.0, elderEarn); // 1명 × 1시간, 기관이 대신 받음
     }
 
     @Test

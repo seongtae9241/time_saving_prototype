@@ -33,10 +33,10 @@ public class BankService {
                 case RELEASE -> hold -= l.amount;
                 default -> bal += l.amount;
             }
-            if (l.type == LedgerType.EARN || l.type == LedgerType.CLASS_EARN) earned += l.amount;
+            if (l.type == LedgerType.EARN) earned += l.amount;
             if (l.type == LedgerType.ADJUST && l.requestId != null) earned += l.amount; // 이의 신청 차액도 본인 적립
             if (l.type == LedgerType.GIFT_IN) giftIn += l.amount;
-            if (l.type == LedgerType.USE || l.type == LedgerType.CLASS_FEE) spent += -l.amount;
+            if (l.type == LedgerType.USE) spent += -l.amount;
         }
         hold = Math.max(0, r2(hold));
         bal = r2(bal);
@@ -69,7 +69,7 @@ public class BankService {
         throw ApiException.bad("INSUFFICIENT_BALANCE", "시간이 부족해요. 쓸 수 있는 시간 " + s.usable() + "시간, 필요한 시간 " + amount + "시간");
     }
 
-    public Ledger add(Long userId, LedgerType type, double amount, Double baseHours, Double weight, Long requestId, Long classId, String label) {
+    public Ledger add(Long userId, LedgerType type, double amount, Double baseHours, Double weight, Long requestId, String label) {
         Ledger l = new Ledger();
         l.userId = userId;
         l.type = type;
@@ -77,7 +77,6 @@ public class BankService {
         l.baseHours = baseHours;
         l.weight = weight;
         l.requestId = requestId;
-        l.classId = classId;
         l.label = label;
         l.createdAt = LocalDateTime.now();
         return repo.save(l);

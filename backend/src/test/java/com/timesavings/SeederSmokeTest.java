@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class SeederSmokeTest {
     @Autowired UserRepo users;
     @Autowired PublicServiceRepo services;
-    @Autowired NeighborClassRepo classes;
     @Autowired RoleplayPersonaRepo personas;
     @Autowired BankService bank;
     @Autowired OrgEventRepo orgEvents;
@@ -24,17 +23,12 @@ class SeederSmokeTest {
         assertTrue(users.findByLoginId("org1").isPresent());
         assertTrue(users.findByLoginId("admin").isPresent());
         assertTrue(services.count() >= 10);
-        assertTrue(classes.count() >= 6);
-        assertEquals(4, classes.findAll().stream().filter(c -> c.one()).count()); // 1:1 클래스 o1~o4
-        assertTrue(classes.findAll().stream().filter(c -> !c.one() && !"DONE".equals(c.status.name())).allMatch(c -> c.capacity <= 4)); // 같이 해 보기 4명까지
         assertEquals(3, personas.count());
-        // 열린 클래스는 말벗·이야기 / 전자기기 사용법 두 가지만
-        assertTrue(classes.findAll().stream().filter(c -> "OPEN".equals(c.status.name()) || "SPACE_PENDING".equals(c.status.name()))
-                .allMatch(c -> com.timesavings.service.Rules.CLASS_KINDS.contains(c.kind)));
         assertTrue(orgEvents.count() >= 3); // 동네 소식(기관 행사)
         BankService.Summary s = bank.summary(users.findByLoginId("yujin").orElseThrow().id);
         assertTrue(s.canUseSelf());
-        assertEquals(23.0, s.balance()); // 지난 클래스 1.5시간 수강 = 1.5시간(평등 정산, 이전 ×0.5)
+        assertTrue(users.findByLoginId("youngho").isEmpty()); // 1:1 클래스 선생님 데모 계정 삭제(2026-11-10)
+        assertEquals(24.5, s.balance()); // 동네 클래스 수강 기록(−1.5) 시드 삭제 후(2026-11-10). (프로토타입 표시값은 23.5)
         for (String id : new String[]{"bok", "mom", "sky", "mikyung", "doyun"})
             assertTrue(bank.summary(users.findByLoginId(id).orElseThrow().id).balance() >= 0, id);
     }

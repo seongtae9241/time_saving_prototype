@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
 import { Ic, Loading, Empty, useLoad, useBusy } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
 import { ap, dlabel, addDays } from '../lib/format.js';
-import { ClsBody } from './cls.jsx';
 import '../styles/meeting.css';
 
-/* ---------- 동네 소식 (2026-11-09 회의 2장): 기관 소식 / 이웃 클래스 ---------- */
+/* ---------- 동네 소식 (2026-11-09 회의 2장): 기관 소식만 (사용자 클래스는 2026-11-10 삭제) ---------- */
 const host = (u) => { try { return new URL(u).host; } catch { return u; } };
 const when = (e) => (e.date ? `${dlabel(e.date)}${e.startHour != null ? ` ${ap(e.startHour)}` : ''}` : '날짜 미정');
 
@@ -31,21 +30,11 @@ function EventCard({ e }) {
 }
 
 export function News() {
-  const [sp, setSp] = useSearchParams();
-  const tab = sp.get('tab') === 'cls' ? 'cls' : 'org';
-  const [list] = useLoad(() => (tab === 'org' ? api('/events') : Promise.resolve(null)), [tab]);
+  const [list] = useLoad(() => api('/events'), []);
   return (
     <Screen title="동네 소식" back={false} tab="/news">
-      <div className="seg" role="tablist" style={{ marginBottom: 14 }}>
-        <button role="tab" aria-selected={tab === 'org'} className={tab === 'org' ? 'on' : ''} onClick={() => setSp({}, { replace: true })}>기관 소식</button>
-        <button role="tab" aria-selected={tab === 'cls'} className={tab === 'cls' ? 'on' : ''} onClick={() => setSp({ tab: 'cls' }, { replace: true })}>이웃 클래스</button>
-      </div>
-      {tab === 'cls' ? <ClsBody /> : (
-        <>
-          <div className="mute2">주민센터·복지관이 여는 행사와 클래스예요. 앱에서 바로 신청하거나 안내 링크로 신청해요.</div>
-          {list === undefined ? <Loading /> : list && list.length ? list.map((e) => <EventCard key={e.id} e={e} />) : <Empty>지금 올라온 기관 소식이 없어요</Empty>}
-        </>
-      )}
+      <div className="mute2">주민센터·복지관이 여는 행사와 클래스예요. 앱에서 바로 신청하거나 안내 링크로 신청해요.</div>
+      {list === undefined ? <Loading /> : list && list.length ? list.map((e) => <EventCard key={e.id} e={e} />) : <Empty>지금 올라온 기관 소식이 없어요</Empty>}
     </Screen>
   );
 }
@@ -94,6 +83,23 @@ export function EventDetail() {
               : e.full ? <button className="btn" disabled style={{ opacity: 0.45 }}>정원이 찼어요</button>
                 : <button className="btn" disabled={busy} onClick={() => run(async () => { await post(`/events/${e.id}/apply`); await reload(); toast('신청했어요. 담당자에게 알렸어요'); })}>앱에서 신청하기</button>)}
       </div>
+    </Screen>
+  );
+}
+
+/* ---------- 담당자: 우리 기관 소식 관리 ---------- */
+export function OEvents() {
+  const nav = useNavigate();
+  const [evs] = useLoad(() => api('/org/events', { quiet: true }).catch(() => []), []);
+  return (
+    <Screen title="동네 소식 운영" noTabs>
+      <div className="sec-t" style={{ marginTop: 0 }}><span>기관 소식 {(evs || []).length}</span><a role="button" tabIndex={0} onClick={() => nav('/o/events/new')}>+ 행사 올리기</a></div>
+      <div className="mute2" style={{ margin: '-4px 0 4px' }}>우리 기관 행사·클래스를 동네 소식에 올려요. 링크를 넣으면 제목·사진을 가져와 카드로 보여 줘요.</div>
+      {evs === undefined ? <Loading /> : evs.map((e) => (
+        <div key={e.id} className="card item click" role="button" tabIndex={0} onClick={() => nav(`/news/${e.id}`)}><div className="ic"><Ic n="cal" s={20} /></div><div className="grow" style={{ minWidth: 0 }}><div className="b">{e.title}</div><div className="mute2">{e.date ? dlabel(e.date) : '날짜 미정'} · {e.applyType === 'LINK' ? '외부 링크 신청' : `앱 신청 ${e.applied}${e.capacity ? `/${e.capacity}` : ''}명`}</div></div><span className={'st ' + (e.status === 'OPEN' ? 'go' : 'end')}>{e.status === 'OPEN' ? '모집 중' : '마감'}</span></div>
+      ))}
+      {evs && !evs.length && <Empty>아직 올린 소식이 없어요</Empty>}
+      <button className="btn soft" style={{ marginTop: 10 }} onClick={() => nav('/o/events/new')}><Ic n="plus" s={18} /> 행사·클래스 홍보 올리기</button>
     </Screen>
   );
 }

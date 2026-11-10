@@ -574,7 +574,6 @@ code.fn{background:#fff;border-radius:8px;padding:6px 9px;margin:0 0 10px}
 .ec .av{width:46px;height:46px;border-radius:16px;background:#F1EDFF;color:#6A4FD8;display:grid;place-items:center;font-weight:800;flex:0 0 auto}
 .lock{display:flex;gap:10px;align-items:flex-start;background:#F4F1FF;border-radius:14px;padding:12px 14px;font-size:13.5px;color:#4B3A9E}
 /* fab */
-.fab{position:sticky;bottom:12px;margin-left:auto;display:flex;align-items:center;gap:6px;border:0;background:var(--ink);color:#fff;border-radius:999px;padding:0 18px;height:50px;font-weight:700;font-size:15px;box-shadow:0 8px 20px rgba(0,0,0,.2);cursor:pointer;margin-top:16px;width:max-content}
 /* mic */
 .mic{width:50px;height:50px;border-radius:50%;border:0;background:var(--fill);color:var(--ink);display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
 .wave{display:flex;gap:5px;justify-content:center;align-items:center;height:60px;margin:18px 0}
@@ -620,7 +619,7 @@ details summary{list-style:none} details summary::-webkit-details-marker{display
 .plink.ghost{background:#EEF3FF;color:var(--brand)}
 .btn.sm{white-space:nowrap;flex-shrink:0}
 
-/* ===== 추가: 첫 활동 교육 · 동네 클래스 ===== */
+/* ===== 추가: 첫 활동 교육 ===== */
 .mod.m6{background:#FFF3D1;color:#A66F00}
 .new-badge{display:inline-block;font-size:10.5px;font-weight:800;color:#fff;background:#E5484D;border-radius:999px;padding:2px 7px;margin-left:6px;vertical-align:2px}
 .edu-ban{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#FFF6E0 0%,#FFFDF6 100%);border:1px solid #F5E2B0;border-radius:22px;padding:18px;margin-top:18px;cursor:pointer}
@@ -653,28 +652,7 @@ details summary{list-style:none} details summary::-webkit-details-marker{display
 .fix.soft{border-left-color:#F2B233}
 .cert-c{text-align:center;background:linear-gradient(180deg,#F3F6FF 0%,#fff 100%);border:1px solid #E3EAFD;border-radius:24px;padding:28px 20px}
 .cert-c .medal{width:84px;height:84px;margin:0 auto 14px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;box-shadow:0 10px 26px rgba(61,109,242,.3)}
-.cl-card{background:#fff;border:1px solid #EEF0F3;border-radius:22px;overflow:hidden;box-shadow:0 4px 14px rgba(27,36,64,.05);cursor:pointer}
-.cl-card + .cl-card{margin-top:12px}
-.cl-card .cv{height:96px;display:flex;align-items:flex-end;justify-content:space-between;padding:12px 16px;font-size:40px}
-.cl-card .clb{padding:14px 16px 16px}
-.cl-card .ct{font-size:17px;font-weight:700;letter-spacing:-.4px;margin-top:2px}
-.tch{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 9px;background:rgba(255,255,255,.9)}
-.cl-hs{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:2px 20px 4px}
-.cl-hs::-webkit-scrollbar{display:none}
-.cl-hs .cl-card{flex:0 0 220px;margin:0}
-.cl-hs .cl-card .cv{height:72px;font-size:30px}
-.curri{counter-reset:c;margin:0;padding:0;list-style:none}
-.curri li{position:relative;padding:10px 0 10px 40px;border-bottom:1px dashed var(--line)}
-.curri li:last-child{border-bottom:0}
-.curri li::before{counter-increment:c;content:counter(c);position:absolute;left:0;top:9px;width:26px;height:26px;border-radius:50%;background:var(--pri-soft);color:var(--brand);font-weight:800;font-size:13px;display:grid;place-items:center}
-.curri li span{float:right;color:var(--mute);font-size:13px}
-.settle{display:grid;grid-template-columns:1fr auto;gap:6px 10px;font-size:14px;margin-top:10px}
-.settle b{text-align:right}
 .ring-wrap{display:flex;gap:14px;align-items:center}
-.seat{display:flex;gap:4px;margin-top:8px}
-.seat i{width:18px;height:18px;border-radius:6px;background:var(--fill)}
-.seat i.on{background:var(--brand)}
-.fab{position:sticky;bottom:12px;margin-left:auto;display:flex;align-items:center;gap:6px;width:auto;min-height:50px;padding:0 20px;border-radius:999px;border:0;background:var(--brand);color:#fff;font-weight:700;font-size:15px;box-shadow:0 10px 24px rgba(61,109,242,.35);cursor:pointer;margin-top:16px}
 /* ---------- QR 시작·종료 체크 ---------- */
 .qr-steps{display:flex;gap:6px;margin-top:16px}
 .qr-steps div{flex:1 1 0;min-width:0;background:var(--fill);border-radius:12px;padding:8px 4px;font-size:12.5px;line-height:1.3;text-align:center;color:var(--mute);font-weight:600}
@@ -730,7 +708,7 @@ details summary{list-style:none} details summary::-webkit-details-marker{display
 .flow > div.cur{color:var(--brand);font-weight:700}
 .tb-l{font-size:12px}
 .badge{font-size:12px;padding:2px 8px}
-.stepl,.vbars .col span,.doc b,.rq-cr span,.reg-b,.kpis em,.mod,.tm .meta,.hero .row3 div,.nc .cats .cat-chip,.kind,.dl,.st,.tch,.qr-by,.new-badge,pre.json{font-size:12px}
+.stepl,.vbars .col span,.doc b,.rq-cr span,.reg-b,.kpis em,.mod,.tm .meta,.hero .row3 div,.nc .cats .cat-chip,.kind,.dl,.st,.qr-by,.new-badge,pre.json{font-size:12px}
 .ml .grow span{font-size:13px;margin-top:1px}
 /* 버튼 글이 길어도 아이콘은 줄어들지 않게 */
 .btn svg,.chip svg,.tag2 svg,.demo-clock svg,.plink svg{flex:0 0 auto}
@@ -752,8 +730,8 @@ input,textarea{caret-color:var(--brand)}
 /* 누를 때 반응 */
 .btn,.chip,.tag2,.qa button,.tabs button,.demo-clock,.opt{transition:transform .12s ease-out,background-color .15s ease-out}
 .btn:active:not([disabled]),.chip:active,.tag2:active,.qa button:active,.demo-clock:active{transform:scale(.97)}
-.click,.todo,.cl-card,.reg,.nc,.ml > div,.opt{transition:transform .14s ease-out,background-color .15s ease-out}
-.click:active,.todo:active,.cl-card:active,.reg:active,.nc:active,.opt:active{transform:scale(.985)}
+.click,.todo,.reg,.nc,.ml > div,.opt{transition:transform .14s ease-out,background-color .15s ease-out}
+.click:active,.todo:active,.reg:active,.nc:active,.opt:active{transform:scale(.985)}
 .tabs button:active{transform:scale(.94)}
 /* 시트 열림 */
 .ov.on{animation:ovIn .2s ease-out}
@@ -773,30 +751,7 @@ html.big #app{height:calc(100dvh / 1.15) !important}
 .toggle{background:#D5DAE3}
 @media (prefers-reduced-motion:reduce){
  .bd.nav-fwd,.bd.nav-bwd,.bd.nav-swap,.ov.on,.ov.on .sheet{animation:none}
- .btn,.chip,.tag2,.qa button,.tabs button,.click,.todo,.cl-card,.reg,.nc,.ml > div,.opt{transition:none}
- .btn:active,.chip:active,.click:active,.todo:active,.cl-card:active,.reg:active,.nc:active,.opt:active,.tabs button:active{transform:none}
+ .btn,.chip,.tag2,.qa button,.tabs button,.click,.todo,.reg,.nc,.ml > div,.opt{transition:none}
+ .btn:active,.chip:active,.click:active,.todo:active,.reg:active,.nc:active,.opt:active,.tabs button:active{transform:none}
 }
-/* ---------- 1:1 클래스 (황수빈 v2) ---------- */
-.one-card .ct,.one-hero .ct{font-size:17px;font-weight:700;letter-spacing:-.4px;line-height:1.35}
-.one-who{display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;background:#fff;color:#5B6370;white-space:nowrap}
-.one-who.e{background:#FFE4EC;color:#B02F56}
-.one-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.one-tags span{font-size:12.5px;font-weight:600;padding:4px 9px;border-radius:8px;background:#fff;color:#5B6370}
-.one-ft{display:flex;align-items:center;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(0,0,0,.06);font-size:13px;color:var(--sub)}
-.one-ft svg{flex:0 0 auto;color:#8A919C}
-.one-ft b{color:var(--ink);font-weight:700;white-space:nowrap}
-.one-q{list-style:none;margin:10px 0 0;padding:0}
-.one-q li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid rgba(0,0,0,.06);font-size:14.5px;line-height:1.45}
-.one-q li:first-child{border-top:0;padding-top:4px}
-.one-q li svg{flex:0 0 auto;margin-top:2px;color:var(--brand)}
-.one-quote{margin-top:10px;background:#fff;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.5}
-.one-safe{display:flex;gap:10px;margin-top:12px;padding:14px 16px;border-radius:var(--r);background:#EAF6EF;color:#17603E}
-.one-safe svg{flex:0 0 auto;margin-top:1px}
-.one-safe b{font-size:14.5px}
-.one-safe ul{margin:6px 0 0;padding-left:16px;font-size:13.5px;line-height:1.6;color:#1F5A3E}
-.org-one .card{background:#fff;padding:14px}
-.org-one .one-quote{background:var(--fill)}
-.one-qs{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-.one-qs button{text-align:left;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;transition:transform .12s ease-out}
-.one-qs button:active{transform:scale(.985);background:var(--fill)}
 

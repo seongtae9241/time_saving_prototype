@@ -18,7 +18,7 @@
 | `posts` | 공고. `type` OFFER(봉사 가능)/NEED(도움 요청), 시간 범위, 카테고리, 난이도·가중치, 반복(`series_id`), 상태 | B-03~B-11, C-04 |
 | `requests` | 요청·제안·단골 요청과 활동 진행 전체(상태, 응답 기한, 체크인 코드·시각, 일지, 시간 조정, 적립, 이상 패턴 보류). `care_memo`=일지와 함께 남기는 전달 메모(선택, 500자, 건강 정보가 들어갈 수 있는 민감정보 — 봉사자 본인·받은 사람·담당자·공유 동의한 가족만) | A-05, B-12~B-25, C-05~C-10, 회의반영 4장 |
 | `messages` | 요청별 메시지(시스템 메시지 포함, 연락처·계좌 패턴이면 `warn`) | A-08, C-09 |
-| `ledger` | 시간 통장 거래(EARN/HOLD/RELEASE/USE/GIFT_OUT/GIFT_IN/CLASS_FEE/CLASS_EARN/ADJUST/REFUND/POOL). `user_id`가 비면 시스템 기록(공동 적립, 기관이 대신 받은 어르신 선생님 적립 — 이때 `elder_id`) | A-06, B-26~B-34 |
+| `ledger` | 시간 통장 거래(EARN/HOLD/RELEASE/USE/GIFT_OUT/GIFT_IN/ADJUST/REFUND). CLASS_FEE/CLASS_EARN/POOL은 삭제된 동네 클래스 기록을 읽기 위해 enum에만 남김(새로 쓰지 않음) | A-06, B-26~B-34 |
 | `ratings` | 평가(봉사자 평가는 공개, 받는 사람 평가는 `is_private`) | B-38~B-40 |
 | `notifications` | 알림 | A-07, C-08 |
 | `interest_alerts` | 관심 조건(지역·카테고리·평일/주말) | B-21 |
@@ -31,12 +31,11 @@
 | `life_reports` | 월간 생활 변화 리포트(`report_month`=YYYY-MM, 숫자는 `stats_json`, 서술은 `narrative`) | P-03~P-07 |
 | `edu_progress` | 첫 활동 교육 진행(진단·카드·퀴즈·역할극 결과) | B-01 |
 | `roleplay_personas` | 교육 역할극 가상 상대(대본 `turns_json`) | 교육 |
-| `classes` | 동네 클래스(선생님=사용자 또는 도움 대상, 공간·정원·출석 코드·배움 노트). `mode`=ONE(1:1 배우기, 공간 배정 없이 바로 OPEN)/GROUP(여럿이, 4명까지 · 기관이 장소를 정할 때만 OPEN). `kind`는 새로 열 때 `말벗·이야기`/`전자기기 사용법` 두 가지만(옛 종류는 지난 수업 기록에만). 1:1은 `bio`·`tags`·`met`(만난 수)·`weekly_cap`(주당 정원)·`qs_json`(질문 예시)·`slots_json`(가능한 시간)·`meet`(열린 공공장소)·`teacher_label`/`teacher_age_label`(가림 표시 이름·나이) | 동네 클래스 |
-| `class_enrollments` | 수강 신청·출석·후기. 1:1 신청은 `one_status`(WAIT/OK/MET/DONE/CANCELLED)·`slot_date`·`slot_hour`·`question`(궁금한 점)·`proposed`(다른 시간 제안 중)·`note`(오늘 배운 한 줄)·`check_in_at`·`check_out_at` | 동네 클래스 |
-| `spaces` | 기관 공간 | 동네 클래스 |
 | `regular_marks` | 수동 단골 등록(받는 사람 `user_id` → 봉사자 `volunteer_id`, 한 쌍에 하나). 자동 단골(DONE 3회 이상)과 합쳐 `/api/regulars`에 나온다. 함께 끝낸 활동이 1번 이상일 때만 등록 | 2026-11-09 회의 U7 |
 | `org_events` | 동네 소식: 기관 행사·클래스 홍보(제목·내용·일시·장소·정원(0=제한 없음)·`apply_type` APP/LINK·`url`, 링크 미리보기 `og_title`/`og_image`/`og_desc`, `status` OPEN/CLOSED) | 2026-11-09 회의 2장·O3 |
 | `event_applications` | 동네 소식 앱 신청(`status` APPLIED/CANCELLED) | 2026-11-09 회의 2장 |
+
+동네 클래스용 `classes`·`class_enrollments`·`spaces` 테이블과 `ledger.class_id`는 2026-11-10 사용자 결정으로 삭제했다(동네 소식 `org_events`는 유지).
 
 외래 키는 DB 제약 대신 `*_id` 숫자 칸으로 두고 서버 코드에서 검사한다(데모 규모, H2·MySQL 공통 단순화).
 
@@ -46,7 +45,6 @@
 erDiagram
     organizations ||--o{ users : "담당자(org_id)"
     organizations ||--o{ elders : "org_id"
-    organizations ||--o{ spaces : "org_id"
     users ||--o{ elders : "manager_id"
     elders ||--o{ elder_memos : ""
     elders ||--o{ elder_blocks : ""
@@ -69,12 +67,6 @@ erDiagram
     users ||--o{ inquiries : ""
     users ||--o{ family_links : "requester / target"
     users ||--|| edu_progress : ""
-    users ||--o{ classes : "teacher_id"
-    elders ||--o{ classes : "teacher_elder_id"
-    spaces ||--o{ classes : "space_id"
-    classes ||--o{ class_enrollments : ""
-    users ||--o{ class_enrollments : ""
-    classes ||--o{ ledger : "class_id"
     users ||--o{ regular_marks : "user_id"
     users ||--o{ regular_marks : "volunteer_id"
     organizations ||--o{ org_events : "org_id"
@@ -139,33 +131,6 @@ erDiagram
         double base_hours
         double weight
         bigint request_id
-        bigint class_id
-    }
-    classes {
-        bigint id PK
-        bigint teacher_id
-        bigint teacher_elder_id
-        varchar mode
-        varchar kind
-        date date
-        double hours
-        int capacity
-        int weekly_cap
-        int met
-        varchar meet
-        text slots_json
-        varchar status
-    }
-    class_enrollments {
-        bigint id PK
-        bigint class_id
-        bigint user_id
-        varchar status
-        varchar one_status
-        date slot_date
-        double slot_hour
-        varchar question
-        varchar note
     }
     regular_marks {
         bigint id PK

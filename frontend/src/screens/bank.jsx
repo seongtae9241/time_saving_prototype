@@ -35,7 +35,7 @@ export function Act() {
   );
 }
 
-const LT = { EARN: '적립', HOLD: '보류', RELEASE: '보류 해제', USE: '사용', GIFT_OUT: '선물', GIFT_IN: '선물 받음', CLASS_FEE: '수강', CLASS_EARN: '수업 적립', ADJUST: '조정', REFUND: '환불' };
+const LT = { EARN: '적립', HOLD: '보류', RELEASE: '보류 해제', USE: '사용', GIFT_OUT: '선물', GIFT_IN: '선물 받음', ADJUST: '조정', REFUND: '환불' };
 function monthBars(rows) {
   const W2 = 320, H = 140, pt = 18, pb = 24, bw = 18;
   const max = Math.max(4, ...rows.flatMap((r) => [r[1], r[2]])) * 1.1;

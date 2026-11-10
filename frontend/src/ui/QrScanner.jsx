@@ -4,14 +4,14 @@ import { Ic } from './bits.jsx';
 /*
  * 실제 QR 인식 + 6자리 번호 입력(항상 같이 보임).
  * 카메라(후면) 영상 → 브라우저 내장 BarcodeDetector, 없으면 jsQR 로 프레임을 읽는다.
- * QR 내용 형식: TS1|<REQ|CLS|ONE>|<대상 id>|<6자리 코드>
+ * QR 내용 형식: TS1|REQ|<요청 id>|<6자리 코드>
  * 인식되면 submit({code, method:'qr'}), 번호로 넣으면 submit({code, method:'code'}).
  * 영상은 화면에만 보이고 저장·전송하지 않는다.
  */
 export function qrText(kind, id, code) { return `TS1|${kind}|${id}|${code || ''}`; }
 
 export function parseQr(text) {
-  const m = /^TS1\|(REQ|CLS|ONE)\|(\d+)\|(\d{6})$/.exec(String(text || '').trim());
+  const m = /^TS1\|(REQ)\|(\d+)\|(\d{6})$/.exec(String(text || '').trim());
   return m ? { kind: m[1], id: Number(m[2]), code: m[3] } : null;
 }
 
@@ -40,7 +40,7 @@ async function makeDetector() {
 }
 
 /**
- * props: kind('REQ'|'CLS'|'ONE'), id(대상 id), submit(body) → Promise(실패하면 throw), onDone(), codeLabel, foot(아래 작은 안내)
+ * props: kind('REQ'), id(대상 id), submit(body) → Promise(실패하면 throw), onDone(), codeLabel, foot(아래 작은 안내)
  */
 /** U9: QR을 처음 쓸 때 한 줄 설명(한 번 닫으면 다시 안 보임 · 브라우저에만 기억) */
 const QR_INTRO_KEY = 'ts-qr-intro-seen';
