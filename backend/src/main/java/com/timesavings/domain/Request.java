@@ -37,6 +37,8 @@ public class Request {
     @Column(length = 1000) public String logText;
     @Column(length = 200) public String logPhotoUrl;
     public boolean photoConsent;
+    /** LLM 추가 A(7.12): "왜 이 봉사자?" 한 줄 이유(요청 생성 때 1회 계산·저장, 숫자는 코드 값) */
+    @Column(name = "match_reason", length = 200) public String matchReason;
     public LocalDateTime logSubmittedAt;
     /** 전달 메모(4장): 병원에서 들은 말·다음에 챙길 것. 봉사자 본인·받은 사람·담당자·공유 동의한 가족만 본다. */
     @Column(name = "care_memo", length = 500) public String careMemo;

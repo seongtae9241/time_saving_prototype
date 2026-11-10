@@ -7,6 +7,7 @@ import { api, post } from '../api.js';
 import { CATS, SHORT, AREAS, fmt, hh, dlabel, lvName, lvWeight, addDays } from '../lib/format.js';
 import { PubCards } from './ai.jsx';
 import { useSpeechInput, SttServerToggle } from '../ui/VoiceInput.jsx';
+import { PostCheck, mergeChecks } from './assist.jsx'; // LLM 추가 A(7.12) 빠진 정보 점검
 
 /* ---------- 음성 도구: 받아쓰기는 공용 ui/VoiceInput.jsx(브라우저 → 서버 음성 인식) · 읽어 주기(speechSynthesis) ---------- */
 export { useSpeechInput, speechSupported } from '../ui/VoiceInput.jsx';
@@ -54,6 +55,7 @@ export function VoiceReq() {
   const [asks, setAsks] = useState(0);
   const [typed, setTyped] = useState('');
   const [editing, setEditing] = useState(false);
+  const [chk, setChk] = useState([]); // 빠진 정보 점검에서 답한 것(올릴 때 내용·주의사항에 붙임)
   const [busy, run] = useBusy();
   const sendRef = useRef(null);
   const sp2 = useSpeechInput({ onFinal: (t) => sendRef.current && sendRef.current(t), onInterim: setTyped, toastErrors: false });
@@ -102,10 +104,10 @@ export function VoiceReq() {
   }, [msgs, elderId, say, tts, sp2]);
   sendRef.current = send;
 
-  const reset = () => { stopSpeak(); sp2.stop(); setMsgs([]); setRes(null); setDraft(null); setAsks(0); setPhase('idle'); setTyped(''); setEditing(false); };
+  const reset = () => { stopSpeak(); sp2.stop(); setMsgs([]); setRes(null); setDraft(null); setAsks(0); setPhase('idle'); setTyped(''); setEditing(false); setChk([]); };
 
   const publish = () => run(async () => {
-    const d = draft;
+    const d = mergeChecks(draft, chk);
     if (!d.date || d.startHour == null || d.endHour == null) return toast('날짜와 시간을 정해 주세요');
     if (!d.categories || !d.categories.length) return toast('도움 종류를 골라 주세요');
     const body = {
@@ -142,7 +144,7 @@ export function VoiceReq() {
   return (
     <Screen title={who ? `${who} 대신 말로 요청` : '말로 요청하기'} noTabs cls="vr">
       <div className="between" style={{ marginBottom: 8 }}>
-        <span className="mute2">{who ? '어르신께 들은 내용을 말하거나 적어 주세요' : '말씀하시면 요청서로 정리해 드려요'}</span>
+        <span className="mute2">{who ? '어르신께 들은 내용을 말하거나 적어 주세요' : '말씀하시면 요청서로 정리해 드려요'}{!who && <><br /><a role="button" tabIndex={0} style={{ color: 'var(--brand)', fontWeight: 700 }} onClick={() => nav('/ask')}>궁금한 건 물어보기 ›</a></>}</span>
         <span className="row" style={{ gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}><SttServerToggle compact /><button className={'vr-tts' + (tts ? ' on' : '')} onClick={() => { const v = !tts; setTtsState(v); setTts(v); if (!v) stopSpeak(); }} aria-pressed={tts}>{tts ? '🔊 소리로 읽어 주기 켜짐' : '🔇 소리 꺼짐'}</button></span>
       </div>
 
@@ -209,8 +211,8 @@ export function VoiceReq() {
               {field('time', '시간', `${hh(draft.startHour)} ~ ${hh(draft.endHour)}${draft.estHours ? ` (${draft.estHours}시간)` : ''}`)}
               {field('area', '장소', draft.area || (elder ? elder.dong : me && me.area))}
               {field('category', '도움 종류', (draft.categories || []).join(', ') || '고르지 않음')}
-              {draft.detail && <div className="vr-f"><span className="vr-l">내용</span><span className="vr-v">{draft.detail}</span></div>}
-              {draft.caution && <div className="vr-f"><span className="vr-l">방문 시 주의사항</span><span className="vr-v">{draft.caution}</span></div>}
+              {mergeChecks(draft, chk).detail && <div className="vr-f"><span className="vr-l">내용</span><span className="vr-v">{mergeChecks(draft, chk).detail}</span></div>}
+              {mergeChecks(draft, chk).caution && <div className="vr-f"><span className="vr-l">방문 시 주의사항</span><span className="vr-v">{mergeChecks(draft, chk).caution}</span></div>}
               <div className="vr-f"><span className="vr-l">난이도</span><span className="vr-v">{diff ? `${lvName(diff.level)} ${dWeight.toFixed(1)}` : '-'}</span></div>
               <div className="vr-f"><span className="vr-l">{who ? '대상 차감' : '예상 차감 시간'}</span><span className="vr-v">{who ? '없음 (기관 대상)' : `${fmt(deduct)}시간 (확정되면 보류, 끝나면 차감)`}</span></div>
               {diff && diff.reason && <div className="mute2" style={{ marginTop: 6 }}>근거: {diff.reason}</div>}
@@ -220,6 +222,7 @@ export function VoiceReq() {
           ) : (
             <DraftEditor draft={draft} setDraft={setDraft} />
           )}
+          {!editing && <PostCheck draft={draft} elderId={elderId} onChange={setChk} big />}
           <div className="stack" style={{ marginTop: 16 }}>
             <button className="btn vr-big" disabled={busy} onClick={publish}>{busy ? '올리는 중…' : '이대로 올리기'}</button>
             <div className="btns">

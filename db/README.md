@@ -15,12 +15,12 @@
 | `elder_memos` | 담당자 메모 | C-02 |
 | `elder_blocks` | 담당자의 "이 봉사자 받지 않기"(`elder_id`, `volunteer_id`, `reason` 필수, `manager_id`, `request_id`). 있으면 그 봉사자는 그 대상 건에 요청·제안할 수 없음(403 `VOLUNTEER_BLOCKED`) | 회의반영 O1 |
 | `elder_transfers` | 담당자 간 이관(PENDING/ACCEPTED/REJECTED, 운영자 대리 = ADMIN) | C-03, D-01 |
-| `posts` | 공고. `type` OFFER(봉사 가능)/NEED(도움 요청), 시간 범위, 카테고리, 난이도·가중치, 반복(`series_id`), 상태 | B-03~B-11, C-04 |
-| `requests` | 요청·제안·단골 요청과 활동 진행 전체(상태, 응답 기한, 체크인 코드·시각, 일지, 시간 조정, 적립, 이상 패턴 보류). `care_memo`=일지와 함께 남기는 전달 메모(선택, 500자, 건강 정보가 들어갈 수 있는 민감정보 — 봉사자 본인·받은 사람·담당자·공유 동의한 가족만) | A-05, B-12~B-25, C-05~C-10, 회의반영 4장 |
+| `posts` | 공고. `type` OFFER(봉사 가능)/NEED(도움 요청), 시간 범위, 카테고리, 난이도·가중치, 반복(`series_id`), 상태. LLM 추가 A: `easy_text`(쉬운 말 읽어 주기 문장, 공고별 1회 생성·수정하면 지움), `fix_tips_json`·`fix_checked_at`(24시간 요청 없는 공고 고치기 제안·근거, 공고당 1회) | B-03~B-11, C-04, 7.12 |
+| `requests` | 요청·제안·단골 요청과 활동 진행 전체(상태, 응답 기한, 체크인 코드·시각, 일지, 시간 조정, 적립, 이상 패턴 보류). `match_reason`="왜 이 봉사자?" 한 줄(요청 생성 때 1회, 숫자는 코드 값, LLM 추가 A). `care_memo`=일지와 함께 남기는 전달 메모(선택, 500자, 건강 정보가 들어갈 수 있는 민감정보 — 봉사자 본인·받은 사람·담당자·공유 동의한 가족만) | A-05, B-12~B-25, C-05~C-10, 회의반영 4장 |
 | `messages` | 요청별 메시지(시스템 메시지 포함, 연락처·계좌 패턴이면 `warn`) | A-08, C-09 |
 | `ledger` | 시간 통장 거래(EARN/HOLD/RELEASE/USE/GIFT_OUT/GIFT_IN/ADJUST/REFUND). CLASS_FEE/CLASS_EARN/POOL은 삭제된 동네 클래스 기록을 읽기 위해 enum에만 남김(새로 쓰지 않음) | A-06, B-26~B-34 |
 | `ratings` | 평가(봉사자 평가는 공개, 받는 사람 평가는 `is_private`) | B-38~B-40 |
-| `notifications` | 알림 | A-07, C-08 |
+| `notifications` | 알림. `voice_text`=음성 알림 켠 사용자에게 전화로 읽을 문장(숫자는 한글 읽기, LLM 추가 A) | A-07, C-08, B-42 |
 | `interest_alerts` | 관심 조건(지역·카테고리·평일/주말) | B-21 |
 | `reports` | 신고와 처리 결과(경고·정지·퇴출) | B-36, B-37, D-02 |
 | `inquiries` | 1:1 문의·답변 | B-48, B-49, D-08 |

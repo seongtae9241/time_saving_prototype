@@ -179,6 +179,7 @@ create table notifications (
     link varchar(200),
     title varchar(200) not null,
     body varchar(500),
+    voice_text varchar(300),
     primary key (id)
 ) engine=InnoDB;
 
@@ -224,6 +225,7 @@ create table posts (
     start_hour float(53) not null,
     weight float(53),
     created_at datetime(6),
+    fix_checked_at datetime(6),
     created_by bigint,
     elder_id bigint,
     id bigint not null auto_increment,
@@ -234,8 +236,10 @@ create table posts (
     title varchar(100),
     categories varchar(200),
     difficulty_reason varchar(300),
+    easy_text varchar(300),
     note varchar(500),
     detail varchar(1000),
+    fix_tips_json varchar(3000),
     difficulty enum ('BASIC','EFFORT','RESPONSIBLE'),
     status enum ('CLOSED','DELETED','MATCHED','OPEN') not null,
     type enum ('NEED','OFFER') not null,
@@ -323,6 +327,7 @@ create table requests (
     check_method varchar(10),
     category varchar(20),
     log_photo_url varchar(200),
+    match_reason varchar(200),
     adjust_reason varchar(300),
     reject_reason varchar(300),
     log_raw varchar(500),

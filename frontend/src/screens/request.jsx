@@ -12,6 +12,7 @@ import QrScanner, { qrText, QrIntro } from '../ui/QrScanner.jsx';
 import { VoiceField, MicButton } from '../ui/VoiceInput.jsx';
 import { RegularButton } from '../ui/extras.jsx'; // U7 수동 단골(2026-11-09)
 import { CareMemo } from './insight.jsx';
+import { MatchWhy } from '../ui/assist.jsx'; // LLM 추가 A(7.12) 봉사자 카드 한 줄
 
 /* ---------- 담당자 봉사자 거부 (O1) ---------- */
 function MgrRejectSheet({ r, onSubmit }) {
@@ -486,6 +487,7 @@ export function RequestDetail() {
         <div className="intro" style={{ marginTop: 14 }}>
           <div className="mute2" style={{ marginBottom: 10 }}>{st === 'VOL_ACCEPTED' ? `${v.name} 님이 수락했어요 · 소개 카드` : '봉사자'}</div>
           <div className="row" style={{ gap: 14 }}><div className="ph">{v.name[0]}</div><div className="grow"><div className="b" style={{ fontSize: 18 }}>{v.name} <span className="mute2" style={{ fontWeight: 500 }}>{v.ageGroup}</span></div><div><Stars r={v.ratingAvg} /> <span className="mute2">· 활동 {v.ratingCount || 0}회</span></div><div className="tags" style={{ marginTop: 6 }}>{v.crime && <span className="badge trust">✓ 범죄경력 확인</span>}{v.eduDone && <span className="badge trust">✓ 교육 수료</span>}{v.isRegular && <span className="badge">★ {mgr ? `${toName} 단골` : '내 단골'}</span>}</div></div></div>
+          {!iVol && <MatchWhy text={v.matchReason} style={{ marginTop: 12 }} />}
           {v.intro && <div className="small" style={{ marginTop: 12 }}>“{v.intro}”</div>}
           {v.experience && <div className="mute2" style={{ marginTop: 6 }}>{v.experience}</div>}
           {v.tags && v.tags.length > 0 && <div className="tags" style={{ marginTop: 8 }}>{v.tags.map((t) => <span key={t} className="tag2">{t}</span>)}</div>}
@@ -495,7 +497,7 @@ export function RequestDetail() {
       {!r.elder && !showIntro && !mgr && (() => {
         const o = iVol ? r.recipient : r.volunteer;
         if (!o) return null;
-        return <div className="card item click" style={{ marginTop: 14 }} role="button" tabIndex={0} onClick={() => profile(o.id)}><Avatar name={o.name} /><div className="grow"><div className="b">{o.name} {!iVol && v.isRegular && <span className="badge">★ 단골</span>}</div><div className="mute2">{iVol ? '도움 받는 분' : '봉사하는 분'}{!iVol && <> · <Stars r={v.ratingAvg} /></>}</div></div>›</div>;
+        return <div className="card item click" style={{ marginTop: 14 }} role="button" tabIndex={0} onClick={() => profile(o.id)}><Avatar name={o.name} /><div className="grow"><div className="b">{o.name} {!iVol && v.isRegular && <span className="badge">★ 단골</span>}</div><div className="mute2">{iVol ? '도움 받는 분' : '봉사하는 분'}{!iVol && <> · <Stars r={v.ratingAvg} /></>}</div>{!iVol && <MatchWhy text={v.matchReason} style={{ marginTop: 6 }} />}</div>›</div>;
       })()}
       <div className="card" style={{ marginTop: 10 }}>
         <div className="row" style={{ gap: 12 }}><CatIc k={r.category} size={44} /><div className="grow"><div className="b" style={{ fontSize: 16.5 }}>{r.content}</div><div className="mute2">{mgr ? `${toName} · ${r.elder ? r.elder.dong : ''}` : `${r.category} · ${diffText(r)}`}</div></div></div>

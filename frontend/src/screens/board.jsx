@@ -9,6 +9,8 @@ import { I } from '../ui/icons.js';
 import { useReport } from './common.jsx';
 import { useProfileSheet } from './request.jsx';
 import { useTopCats, sortByTop, RegularButton } from '../ui/extras.jsx';
+import { MatchWhy, EasyListen } from '../ui/assist.jsx';
+import { FixTips } from './assist.jsx';
 
 const DATES = [['all', '전체 날짜'], ['today', '오늘'], ['week', '이번 주'], ['next', '다음 주']];
 const SLOTS = [['all', '시간대'], ['am', '오전'], ['pm', '오후'], ['eve', '저녁']];
@@ -123,7 +125,10 @@ export function PostDetail() {
         <div className="grow"><div className="b" style={{ fontSize: 18, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>{w.name}{w.badge}</div><div className="mute2">{w.sub}</div></div>
         {p.ownerId && !mine && !w.elder && <button className="btn soft sm" style={{ width: 'auto', padding: '0 12px' }} onClick={() => profile(p.ownerId)}>프로필</button>}
       </div>
+      {offer && !mine && <MatchWhy text={p.matchReason} style={{ marginTop: 10 }} />}
       {offer && p.ownerId && !mine && !w.elder && me && me.role === 'USER' && <RegularButton volunteerId={p.ownerId} compact style={{ marginTop: 10 }} />}
+      <div style={{ marginTop: 12 }}><EasyListen postId={p.id} showText /></div>
+      {mine && <FixTips p={p} />}
       <div className="card" style={{ marginTop: 16 }}>
         <div className="mute2">{offer ? '봉사할 수 있는 시간' : '도움이 필요한 시간'}</div>
         <div className="b" style={{ fontSize: 20, marginTop: 2 }}>{dlabel(p.date)} {hh(p.startHour)} ~ {hh(p.endHour)}</div>

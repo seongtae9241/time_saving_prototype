@@ -24,6 +24,9 @@ public class PostController {
     private final ElderRepo elders;
     private final InterestAlertRepo alerts;
     private final Views views;
+    /** LLM 추가 A(7.12): 봉사자 공고의 추천 이유(코드), 내 공고의 고치기 제안 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private MatchReasonService matchReasons;
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private UnmatchedPostService unmatched;
 
     public PostController(PostService posts, PostRepo postRepo, RequestRepo requests, ElderRepo elders, InterestAlertRepo alerts, Views views) {
         this.posts = posts; this.postRepo = postRepo; this.requests = requests; this.elders = elders; this.alerts = alerts; this.views = views;
@@ -45,7 +48,9 @@ public class PostController {
                                           @RequestParam(required = false) String area,
                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                           @RequestParam(required = false) String cat, @RequestParam(required = false) String sort) {
-        return posts.list(u, type, area, date, cat, sort);
+        List<Map<String, Object>> list = posts.list(u, type, area, date, cat, sort);
+        if (matchReasons != null) matchReasons.decorateCards(u, list);
+        return list;
     }
 
     @GetMapping("/posts/mine")
@@ -68,6 +73,8 @@ public class PostController {
         Post p = posts.get(id);
         if (p.status == PostStatus.DELETED) throw ApiException.notFound("삭제된 공고예요");
         Map<String, Object> card = views.postCard(p, u);
+        if (matchReasons != null) matchReasons.decorateCards(u, List.of(card));
+        if (unmatched != null && posts.canEdit(p, u) && p.status == PostStatus.OPEN) card.put("fixTips", unmatched.tipsOf(p));
         if (posts.canEdit(p, u)) {
             card.put("requests", requests.findByPostId(p.id).stream().sorted(Comparator.comparing((Request r) -> r.id).reversed())
                     .map(r -> views.requestView(r, u)).toList());

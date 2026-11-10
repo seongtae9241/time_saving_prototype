@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 import { I, ic, LOGO } from './icons.js';
 import { CI, ccOf, SHORT, ST, hh, fmt, dlabel, KIND_LABEL, lvName, lvWeight } from '../lib/format.js';
 import { api } from '../api.js';
+import { MatchWhy, EasyListen } from './assist.jsx'; // LLM 추가 A(7.12)
 
 /** SVG 문자열을 그대로 그린다(감싼 span은 박스를 만들지 않음) */
 export function Ic({ n, s, h }) {
@@ -101,8 +102,10 @@ export function PostCard({ p, to }) {
       <div className="top"><Avatar name={w.name} elder={w.elder} /><div className="grow"><div className="who">{w.name}{w.badge}{p.repeatRule && <span className="kind reg">{p.repeatRule}</span>}</div><div className="sub">{w.sub}</div></div><span className={`kind ${offer ? 'offer' : 'need'}`}>{offer ? '봉사 가능' : '도움 요청'}</span></div>
       <div className="ttl">{offer ? (p.note || p.title) : p.title}</div>
       <Cats list={postCats(p)} style={{ marginTop: 10 }} />
+      {offer && <MatchWhy text={p.matchReason} style={{ marginTop: 10 }} />}
       <div className="between" style={{ marginTop: 12 }}><span className="tr-t">{dlabel(p.date)} {hh(p.startHour)}~{hh(p.endHour)}</span>{!offer && p.estEarn != null && <span className="pill">예상 +{fmt(p.estEarn)}시간</span>}{p.status && p.status !== 'OPEN' && <span className="st end">{{ MATCHED: '매칭됨', CLOSED: '마감', DELETED: '삭제' }[p.status] || p.status}</span>}</div>
       <TBar s={p.startHour} e={p.endHour} />
+      <div style={{ marginTop: 10 }}><EasyListen postId={p.id} compact /></div>
     </div>
   );
 }
@@ -125,6 +128,7 @@ export function ReqRow({ r }) {
         <div className="rq-cat" style={{ color: fg }}>{role} · {KIND_LABEL[r.kind] || '요청'}</div>
         <div className="rq-t">{r.content}</div>
         <div className="rq-m">{reqOther(r)} · {dlabel(r.date)} {hh(r.startHour)}~{hh(Number(r.startHour) + Number(r.hours))}</div>
+        {r.myRole !== 'VOLUNTEER' && r.volunteer && <MatchWhy text={r.volunteer.matchReason} style={{ marginTop: 6 }} />}
       </div>
       <div style={{ textAlign: 'right' }}><StTag st={r.status} />{r.leftText && ['SENT', 'VOL_ACCEPTED'].includes(r.status) && <div className="mute2" style={{ marginTop: 6, fontSize: 12 }}>{r.leftText} 남음</div>}</div>
     </div>
