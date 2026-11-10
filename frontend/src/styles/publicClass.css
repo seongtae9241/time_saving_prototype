@@ -1,0 +1,25 @@
+/* 기관 클래스 추천 (2026-11-10) — 동네 소식 카드(ev-card) 톤 + AI 결과 .ai 카드 */
+.pc-sec{margin-top:4px}
+.pc-chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none}
+.pc-chips::-webkit-scrollbar{display:none}
+.pc-card{background:#fff;border:1px solid #EEF0F3;border-radius:20px;padding:14px 16px 14px;margin-top:10px;cursor:pointer;box-shadow:0 4px 14px rgba(27,36,64,.05)}
+.pc-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pc-org{font-size:12.5px;font-weight:700;color:#6A4FD8;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-t{font-size:17px;font-weight:800;letter-spacing:-.4px;line-height:1.35;margin-top:4px}
+.pc-m{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:13.5px;color:var(--sub)}
+.pc-m span{display:inline-flex;align-items:center;gap:4px}
+.pc-why{display:flex;gap:6px;align-items:flex-start;background:var(--pri-soft);color:#28479E;border-radius:12px;padding:8px 10px;margin-top:10px;font-size:13.5px;line-height:1.45;font-weight:600}
+.pc-why .spark{flex:0 0 auto;margin-top:1px}
+.pc-src{flex:0 0 auto;font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 8px;white-space:nowrap}
+.pc-src.ai{background:#FFF4E6;color:#A66F00}
+.pc-src.pub{background:#E6F7EE;color:#1F9D63}
+.pc-src.org{background:#F1EDFF;color:#6A4FD8}
+.pc-ainote{display:flex;align-items:center;gap:6px;background:#FFF4E6;color:#A66F00;border-radius:12px;padding:8px 10px;font-size:13px;font-weight:700;margin-top:10px}
+.pc-week{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid #EEF0F3;border-radius:18px;padding:12px 14px;margin-top:14px;cursor:pointer}
+.pc-week .ic{width:42px;height:42px;border-radius:14px;background:#F1EDFF;color:#6A4FD8;display:grid;place-items:center;flex:0 0 auto}
+.pc-week .t{font-size:12.5px;font-weight:700;color:#6A4FD8}
+.pc-week .b{font-size:15.5px;font-weight:800;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-week .d{font-size:12.5px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-adm{background:#fff;border:1px solid #EEF0F3;border-radius:16px;padding:12px 14px;margin-top:8px}
+.pc-adm.off{opacity:.6}
+.pc-imp{background:#fff;border:1px dashed #C9D3EE;border-radius:16px;padding:14px;margin-top:10px}

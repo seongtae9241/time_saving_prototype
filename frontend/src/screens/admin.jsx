@@ -294,6 +294,7 @@ export function AManage() {
         <Mi t="1:1 문의" s="답변 등록" i="msg" onClick={() => nav('/a/inquiries')} />
         <Mi t="공지사항" s="등록·수정·삭제" i="file" onClick={() => nav('/a/notices')} />
         <Mi t="공공 서비스 정보" s="AI 안내에 쓰는 DB" i="shield" onClick={() => nav('/a/pub')} />
+        <Mi t="기관 클래스" s="공공기관 강좌 · CSV 가져오기 · AI 다시 찾기" i="cap" onClick={() => nav('/a/classes')} />
         <Mi t="가상 상대 관리" s="AI 역할극 상대 · 숨은 시험 상황" i="users" onClick={() => nav('/a/persona')} />
         <Mi t="로그아웃" i="logout" onClick={logout} />
       </div>

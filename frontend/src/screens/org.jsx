@@ -11,6 +11,7 @@ import { needsMe, todoTxt } from './home.jsx';
 import { TextSizeRow, useLogout } from './my.jsx';
 import { MicButton } from '../ui/VoiceInput.jsx';
 import { ReportView } from './my.jsx';
+import { ElderClasses } from './publicClass.jsx';
 
 const elderName = (e) => (e ? `${e.alias} 님` : '');
 
@@ -147,6 +148,7 @@ export function EDetail() {
       <div className="sec-t"><span>요청·활동</span></div>
       {myReqs.length ? myReqs.map((r) => <ReqRow key={r.id} r={{ ...r, myRole: 'MANAGER' }} />) : <Empty>진행 중인 요청이 없어요</Empty>}
       <BlockList elderId={id} />
+      {!ended && <ElderClasses elderId={id} />}
       <div className="sec-t"><span>리포트</span><a role="button" tabIndex={0} className="mute2" style={{ fontWeight: 600, cursor: 'pointer' }} onClick={() => nav(`/o/report?elder=${id}`)}>최근 활동 리포트 ›</a></div>
       {rep ? <ReportView rep={rep} who={elderName(e)} /> : <Empty>아직 만들어진 리포트가 없어요</Empty>}
       <div className="ml" style={{ marginTop: 14 }}>

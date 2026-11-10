@@ -242,6 +242,39 @@ create table posts (
     primary key (id)
 ) engine=InnoDB;
 
+create table public_classes (
+    end_date date,
+    hidden bit not null,
+    lat float(53),
+    lng float(53),
+    start_date date,
+    verified bit not null,
+    created_at datetime(6),
+    expires_at datetime(6),
+    fetched_at datetime(6),
+    id bigint not null auto_increment,
+    org_event_id bigint,
+    verified_at datetime(6),
+    category varchar(10) not null,
+    source varchar(12) not null,
+    fee_text varchar(60),
+    capacity_text varchar(60),
+    region varchar(60),
+    search_key varchar(80),
+    org_name varchar(100),
+    apply_how varchar(200),
+    page_title varchar(200),
+    place varchar(200),
+    schedule_text varchar(200),
+    target varchar(200),
+    title varchar(200) not null,
+    apply_url varchar(500),
+    image_url varchar(500),
+    description varchar(1000),
+    raw_json TEXT,
+    primary key (id)
+) engine=InnoDB;
+
 create table public_services (
     created_at datetime(6),
     id bigint not null auto_increment,
@@ -402,6 +435,15 @@ create index ix_posts_date
 
 create index ix_posts_owner 
    on posts (owner_id);
+
+create index ix_pc_source 
+   on public_classes (source);
+
+create index ix_pc_start 
+   on public_classes (start_date);
+
+create index ix_pc_search_key 
+   on public_classes (search_key);
 
 create index ix_req_status 
    on requests (status);
