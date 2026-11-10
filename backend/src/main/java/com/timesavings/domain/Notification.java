@@ -14,5 +14,7 @@ public class Notification {
     @Column(length = 500) public String body;
     @Column(length = 200) public String link;
     public boolean isRead;
+    /** LLM 추가 A(7.12, B-42): 음성 전화 알림으로 읽을 문장(voiceAlert 사용자만, 숫자는 한글 읽기) */
+    @Column(name = "voice_text", length = 300) public String voiceText;
     public LocalDateTime createdAt = LocalDateTime.now();
 }

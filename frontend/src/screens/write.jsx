@@ -8,6 +8,7 @@ import { CATS, AREAS, SHORT, hh, fmt, dlabel, addDays, lvName, lvWeight } from '
 import { I } from '../ui/icons.js';
 import { PubCards } from './ai.jsx';
 import { useSpeechInput } from './voice.jsx';
+import { PostCheck, mergeChecks } from './assist.jsx'; // LLM 추가 A(7.12) 빠진 정보 점검
 
 /* ---------- 봉사 요청 · 도움 가능 선택 ---------- */
 export function Write() {
@@ -98,13 +99,16 @@ export function PostEdit() {
   const { id } = useParams();
   const nav = useNavigate();
   const { toast } = useUi();
+  const [sp] = useSearchParams(); // LLM 추가 A(7.12): "이렇게 바꿔 보세요" 버튼이 넘긴 값(시간대·카테고리·날짜)
+  const tip = sp.get('tip');
   const [p] = useLoad(() => api(`/posts/${id}`), [id]);
   if (p === undefined) return <Screen title="공고 수정" noTabs><Loading /></Screen>;
   if (!p) return <Screen title="공고 수정" noTabs><Empty>공고를 찾을 수 없어요</Empty></Screen>;
   return (
     <Screen title="공고 수정" noTabs>
       <div className="notice" style={{ marginBottom: 6 }}>요청을 수락하기 전까지만 수정할 수 있어요.</div>
-      <PostForm type={p.type} submitLabel="저장" init={{ date: String(p.date).slice(0, 10), startHour: Number(p.startHour), endHour: Number(p.endHour), area: p.area || '행복동', categories: postCats(p), title: p.title, detail: p.detail, note: p.note }}
+      {tip && <div className="ai amber" style={{ marginBottom: 6 }}><div className="ah"><Spk />AI 제안을 미리 넣었어요<Mod n={4} /></div><div className="small">{{ TIME: '시간대를 바꿔 두었어요.', SPLIT: `도움 종류를 ${sp.get('cats') || ''}만 남겼어요.${sp.get('rest') ? ` 저장한 뒤 ${sp.get('rest')}는 새 공고로 올려 주세요.` : ''}`, DATE: '날짜를 바꿔 두었어요.', EDIT: '할 일을 한두 줄 더 적어 주세요.' }[tip] || ''} 확인하고 저장을 눌러야 바뀌어요.</div></div>}
+      <PostForm type={p.type} submitLabel="저장" init={{ date: sp.get('date') || String(p.date).slice(0, 10), startHour: sp.get('startHour') ? Number(sp.get('startHour')) : Number(p.startHour), endHour: sp.get('endHour') ? Number(sp.get('endHour')) : Number(p.endHour), area: p.area || '행복동', categories: sp.get('cats') ? sp.get('cats').split(',') : postCats(p), title: p.title, detail: p.detail, note: p.note }}
         onSubmit={async (f) => {
           try { await put(`/posts/${p.id}`, { type: p.type, date: f.date, startHour: f.startHour, endHour: f.endHour, area: f.area, categories: f.categories, title: p.type === 'OFFER' ? f.note || p.title : f.title, detail: f.detail, estHours: p.type === 'NEED' ? Math.min(Number(p.estHours) || 4, f.endHour - f.startHour) : undefined, note: f.note, elderId: p.elderId || undefined }); toast('저장했어요'); nav(-1); } catch { /* 토스트 */ }
         }} />
@@ -134,6 +138,7 @@ export function WriteNeed() {
   const [tidyRes, setTidyRes] = useState(null);
   const [tidyFix, setTidyFix] = useState(null);
   const [tidyBusy, setTidyBusy] = useState(false);
+  const [chk, setChk] = useState([]); // 빠진 정보 점검에서 답한 것
   const canTidy = !!elderId || (me && me.role === 'ORG');
   const runTidy = async () => {
     if (!tidyText.trim()) return toast('정리할 글을 먼저 적어 주세요');
@@ -165,7 +170,7 @@ export function WriteNeed() {
     } catch { setChat(next); }
     setBusy(false);
   };
-  const reset = () => { setChat([]); setRes(null); setText(''); setTidyFix(null); setTidyRes(null); };
+  const reset = () => { setChat([]); setRes(null); setText(''); setTidyFix(null); setTidyRes(null); setChk([]); };
   const done = chat.some((m) => m.card === 'done');
   const blocked = res && res.filter && res.filter.level === 'BLOCK';
   const missing = (res && res.missing) || [];
@@ -177,11 +182,12 @@ export function WriteNeed() {
   const publish = (r) => run(async () => {
     const d = r.draft;
     const tf = tidyFix || {};
+    const m = mergeChecks({ ...d, detail: tf.detail || d.detail, caution: tf.caution || d.caution }, chk);
     const baseTitle = tf.title || d.title;
     const title = family ? `${baseTitle} (${family} 님)` : baseTitle;
-    const caution = tf.caution || d.caution;
+    const caution = m.caution;
     const cats = tf.categories && tf.categories.length && !(d.categories || []).length ? tf.categories : d.categories;
-    const p = await post('/posts', { type: 'NEED', date: d.date, startHour: d.startHour, endHour: d.endHour, estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), area: d.area || (elder ? elder.dong : me.area), categories: cats, title, detail: tf.detail || d.detail, note: caution ? `방문 시 주의: ${caution}` : d.note, caution, elderId: elderId ? Number(elderId) : undefined });
+    const p = await post('/posts', { type: 'NEED', date: d.date, startHour: d.startHour, endHour: d.endHour, estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), area: d.area || (elder ? elder.dong : me.area), categories: cats, title, detail: m.detail, note: caution ? `방문 시 주의: ${caution}` : d.note, caution, elderId: elderId ? Number(elderId) : undefined });
     const pf = Array.isArray(p) ? p[0] : p;
     toast(elderId ? `${who} 대신 공고를 올렸어요` : family ? `${who} 이름으로 올렸어요. 최종 수락은 가족이 해요` : '공고를 올렸어요');
     nav(`/post/${pf.id}`, { replace: true });
@@ -222,7 +228,11 @@ export function WriteNeed() {
               const f = m.res.filter;
               return <div className="mrow" key={i}><Bot /><div className="mcol wide"><div className="ai warn"><div className="ah"><Spk />이 요청은 보낼 수 없어요 · 불가<Mod n={2} /></div><div className="small">{f.reason}</div>{(f.alternatives || []).length > 0 && <PubCards list={f.alternatives} />}<RuleNote source={m.res.source} /></div></div></div>;
             }
-            if (m.card === 'done') return <div className="mrow" key={i}><Bot /><div className="mcol wide"><DraftCard r={tidyFix ? { ...m.res, draft: { ...m.res.draft, title: tidyFix.title || m.res.draft.title, detail: tidyFix.detail || m.res.draft.detail, caution: tidyFix.caution || m.res.draft.caution } } : m.res} elderId={elderId} onReset={reset} onPost={() => publish(m.res)} posting={posting} /></div></div>;
+            if (m.card === 'done') {
+              const base = tidyFix ? { ...m.res.draft, title: tidyFix.title || m.res.draft.title, detail: tidyFix.detail || m.res.draft.detail, caution: tidyFix.caution || m.res.draft.caution } : m.res.draft;
+              return <div className="mrow" key={i}><Bot /><div className="mcol wide"><DraftCard r={{ ...m.res, draft: mergeChecks(base, chk) }} elderId={elderId} onReset={reset} onPost={() => publish(m.res)} posting={posting}
+                check={<PostCheck draft={base} elderId={elderId} onChange={setChk} />} /></div></div>;
+            }
             if (m.role === 'assistant') { firstAI = false; return <div className="mrow" key={i}><Bot /><div className="mcol"><div className="msg ai-m">{m.text}</div></div></div>; }
             return <div className="msg me" key={i}>{m.text}</div>;
           })}
@@ -247,7 +257,7 @@ export function WriteNeed() {
   );
 }
 
-function DraftCard({ r, elderId, onReset, onPost, posting }) {
+function DraftCard({ r, elderId, onReset, onPost, posting, check }) {
   const d = r.draft;
   const df = r.difficulty || {};
   const w = lvWeight(df.level, df.weight);
@@ -274,6 +284,7 @@ function DraftCard({ r, elderId, onReset, onPost, posting }) {
         {df.reason && <div className="small muted">근거: {df.reason}</div>}
         <div className="small muted">금지 요청 확인: {{ ALLOW: '허용 ✓', CAUTION: '주의' }[r.filter && r.filter.level] || '허용 ✓'}{r.filter && r.filter.level === 'CAUTION' && r.filter.reason ? ` (${r.filter.reason})` : ''} · {elderId ? '기관 대상이라 시간 차감 없음' : '완료 후 실제 시간만큼 차감'}</div>
       </div>
+      {check}
       <div className="btns" style={{ marginTop: 10 }}><button className="btn ghost" onClick={onReset}>다시 쓰기</button><button className="btn" disabled={posting} onClick={onPost}>공고 등록</button></div>
     </>
   );

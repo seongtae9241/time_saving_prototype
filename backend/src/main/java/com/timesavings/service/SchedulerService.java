@@ -24,6 +24,8 @@ public class SchedulerService {
     private final PostService posts;
     private final LifeReportService reports;
     private final boolean enabled;
+    /** LLM 추가 A(7.12): 24시간 요청 없는 공고 고치기 제안(공고당 1번). 생성자를 바꾸지 않으려고 필드 주입. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private UnmatchedPostService unmatched;
 
     public SchedulerService(RequestService requests, PostService posts, LifeReportService reports,
                             @Value("${app.scheduler.enabled:true}") boolean enabled) {
@@ -54,6 +56,7 @@ public class SchedulerService {
         YearMonth prev = YearMonth.from(today).minusMonths(1);
         if (today.getDayOfMonth() == 1 && !reports.existsFor(prev)) lr = reports.generate(prev);
         out.put("lifeReports", lr);
+        out.put("unmatchedTips", unmatched == null ? 0 : unmatched.run(now));
         out.put("ranAt", now.toString());
         return out;
     }

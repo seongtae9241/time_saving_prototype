@@ -381,6 +381,31 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 
 **화면(서버 계약 없음)** — U2 홈 교육 배너 → 홈 위 빠른 메뉴 아이콘(교육 n/4단계, 수료 전 빨간 점) · U4 "응답 필요"·"다가오는 일정(확정된 내 봉사/받는 일정)" 가로 슬라이드(스크롤 스냅·스와이프·점, 카드 누르면 상세) · U5 공고 화면 아래 "봉사 요청"(NEED 작성) / "도움 가능"(OFFER 작성) 버튼, 작성 화면 제목도 같게("공고 올리기" 문구 교체) · U6 홈 "도움 받기 / 봉사하기" 전환(브라우저 `localStorage` `ts-home-mode`, 막히면 기본 받기), 고른 쪽 카드가 먼저 · U9 QR 처음 쓸 때 한 줄 설명(`ts-qr-intro-seen`, 요청 시작·종료 QR 찍기 시트).
 
+
+### 7.12 LLM 추가 A — 요청·매칭·접근성 (2026-11-10)
+**공통**: 숫자·순위·규칙 판정(빠진 항목, 추천 점수, 미매칭 근거, 의도별 답, 숫자 읽기)은 코드, LLM은 문장 다듬기·의도 분류만. 수락·취소·공고 수정 같은 결정·실행은 하지 않는다. 새 AI 클래스는 모두 `LlmJson`(→ `AiClient.provider()`)을 쓰고 `AiClient`는 바꾸지 않았다. 키가 없거나 실패·형식 이상이면 코드 결과(`source:'rule'`, 화면 "AI 키 없음 · 규칙 모드"). LLM 결과에 코드에 없는 숫자가 섞이면 버리고 코드 문장을 쓴다. **비용**: 화면을 열 때 부르지 않고 이벤트 때 1번 → DB 저장 후 재사용(아래 저장 칸).
+
+| # | 엔드포인트 | 저장 칸 | 언제 LLM을 부르나 |
+|---|---|---|---|
+| 1 빠진 정보 점검 | `POST /api/ai/post-check` | 없음(응답만) | 요청서 카드가 나올 때 1번(빠진 항목이 있을 때만) |
+| 2 추천 이유 | 요청 생성(`POST /api/requests`) 안에서 | `requests.match_reason` | 요청 생성 때 1번. 목록 카드는 코드 문장(LLM 없음) |
+| 3 고치기 제안 | 스케줄러 + `GET /api/posts/{id}/fix-tips`, 공고 상세 `fixTips` | `posts.fix_tips_json`, `posts.fix_checked_at` | 공고당 1번(등록 24시간 뒤 요청·제안 0건) |
+| 4 쉬운 말 | `GET /api/posts/{id}/easy` | `posts.easy_text` | 공고별 처음 들을 때 1번(공고 수정하면 지움) |
+| 5 음성 비서 | `POST /api/ai/assistant` | 없음 | 질문마다 의도 분류 1번(답은 코드) |
+| 6 전화 알림 문장 | 알림 생성 안에서, `GET /api/me/voice-preview` | `notifications.voice_text` | `voiceAlert` 사용자에게 알림이 생길 때 1번 |
+
+**1. 요청서 빠진 정보 점검** — `POST /api/ai/post-check {draft:{categories[], title, detail, caution, note}, elderId?}` → `{questions:[{key, label, text, choices[], target:'detail'|'caution'}](최대 2개), covered[], skippable:true, source}`. 체크리스트(`PostCheckAi.CHECKLIST`, 중요한 순): 동행=만날 곳·이동 방법 / 장보기=무거운 짐·살 물건·계단 / 집안일=엘리베이터·계단·반려동물·준비물 / 생활 정리=무거운 짐·계단·반려동물 / 말동무=만날 곳·반려동물 / 디지털=기기 종류·만날 곳. 글(제목·내용·주의사항·메모, 담당자 대리면 대상 기본 주의사항 포함)에 해당 낱말이 있으면 묻지 않는다. LLM은 질문 문장만 바꾼다(항목 수·선택지는 코드). `elderId`는 내 담당만(403). 화면: 대화형 작성(`/write/need`, 담당자 대리 포함) 요청서 카드 아래, 말로 요청하기(`/voice`) 요청서 카드 아래(큰 글씨). 선택지·직접 적기로 답하면 `target`에 따라 "라벨: 답"을 내용(detail) 또는 주의사항(caution → note "방문 시 주의: …")에 붙여 올린다. "건너뛰기" 가능.
+
+**2. "왜 이 봉사자?"** — 점수(`MatchReasonService.facts`): 단골 +4, 그 카테고리 DONE 횟수 ×0.5(최대 10회), 같은 동 +3(가까운 동 +1.5), 공개 평가 3개 이상·평균 4.0 이상이면 (평균−3.5)×2, 범죄경력 확인 +1, 안전 교육 수료 +1. 근거 문장은 중요한 순 3개(예 "단골 · 동행 11회 · 같은 동네"). 요청 생성 때 LLM이 한 줄로 다듬어(숫자 같아야 채택) `requests.match_reason`에 저장, RequestView `volunteer.matchReason`. 공고 목록·상세의 봉사자 공고(OFFER, 남의 공고, 사용자 계정)에는 `matchReason`(코드 문장)·`matchScore`(정렬은 바꾸지 않음). 서버가 켜질 때 이유가 빈 진행 중 요청은 코드 문장으로 채움(LLM 없음). 화면: 공고 카드·공고 상세 봉사자 줄, 받은 제안 목록(`ReqRow`, 봉사자 본인 제외), 요청 상세 봉사자 소개 카드(`request.jsx`에 `MatchWhy` 한 줄만 추가).
+
+**3. 안 맞춰지는 공고 고치기** — 스케줄러(`runAll` 결과 `unmatchedTips`): OPEN·날짜 안 지남·등록 24시간 지남·`fix_checked_at` 없음. 요청·제안이 1건이라도 있으면 `fix_checked_at`만 찍고 끝(다시 보지 않음). 근거(코드): 같은 카테고리 반대쪽 OPEN 공고 수(`oppositeOpen`)·같은 요일(`sameWeekday`)·시간 맞는 것(`overlapTime`)·최근 90일 확정 이후 연결(`recentMatched`)·시간대(오전/오후/저녁)·요일 분포(`bestSlot`, `bestWeekday`). 후보: TIME(많은 시간대로, 또는 범위 앞뒤 1시간 넓히기 — `suggest{startHour,endHour}`), SPLIT(카테고리 2개 이상 — `suggest{categories:[첫째], rest[]}`), DATE(많은 요일 — `suggest{date, weekday}`), EDIT(내용 15자 미만). LLM은 후보 중 1~3개를 골라 문장만 다듬고(후보 밖 행동·근거 밖 숫자는 버림) `suggest` 값은 코드 값. 저장 `{tips, evidence, source, createdAt}` → 공고 주인(독거노인 건은 담당자)에게 알림 `POST_TIPS`(링크 `/post/{id}`). `GET /api/posts/{id}`(주인·담당자, OPEN일 때) `fixTips`, `GET /api/posts/{id}/fix-tips`(남은 403). 공고를 고치면 `fix_tips_json`을 지워 카드를 숨기고 다시 만들지 않는다. 화면: 공고 상세 "24시간 동안 요청이 없어요 · 이렇게 바꿔 보세요" 카드, 버튼 → `/post/{id}/edit?tip=TIME&startHour=&endHour=` · `?tip=SPLIT&cats=&rest=` · `?tip=DATE&date=`(수정 화면이 값을 미리 넣고 "저장"을 눌러야 바뀜).
+
+**4. 쉬운 말로 듣기** — `GET /api/posts/{id}/easy` → `{postId, text, cached, source:'cache'|'ai'|'rule', lang:'ko-KR', rate:0.9}`. 코드 문장(`EasyTextAi.base`): "{이름} 님이 {십일월 십팔일 수요일} {오후 한 시}부터 {다섯 시} 사이에 {쉬운 카테고리 말}을 도와줄 수 있어요."(도움 요청은 "…도와줄 이웃을 찾고 있어요. 두 시간 정도 걸려요."), 독거노인은 가린 이름, 열두 시는 "낮 열두 시". LLM이 말투만 다듬되 숫자를 쓰거나 시각·요일 표현이 빠지면 버림. 화면: 공고 카드(작은 버튼, 눌러도 상세로 안 넘어감)·공고 상세(문장 함께 표시) "🔊 쉬운 말로 듣기" → `speechSynthesis`(ko-KR, rate 0.9).
+
+**5. 음성 비서 "물어보기"** — `POST /api/ai/assistant {text}` → `{intent, date, answer(화면), speech(숫자 한글 읽기), actions:[{label, link, confirm, kind?, requestId?}], items[], executed:false, source}`. 의도 `BALANCE|TOMORROW|NEXT|CANCEL|REGULAR|NOTI|CREATE|UNKNOWN`(LLM, 모르는 값이면 규칙 `AssistantAi.ruleIntent`), 날짜는 `KoreanParser.parseDate`("목요일", "내일", "11월 20일"). 답은 코드: 잔액(`BankService.summary` usable·hold·B-33), 다가오는 일정(VOL_ACCEPTED·CONFIRMED·IN_PROGRESS, 내가 당사자·담당자), 단골(`Views.regularsOf`), 알림(안 읽은 수·최근 제목). **CANCEL·CREATE는 실행하지 않고** 요청 상세(`/req/{id}`, 담당자 `/o/reqs/{id}`) 또는 `/voice`·`/write/need` 링크에 `confirm:true`만 준다(시작 24시간 안 봉사자면 경고 문구). 화면: `/ask`(사용자·담당자) — 마이크(공용 음성 입력)·글·예시 질문, 답을 소리로 읽기(rate 0.9), 확인 버튼은 확인 시트 뒤 화면만 연다. 진입: 홈 빠른 메뉴 아래 "물어보기" 줄, 말로 요청하기 화면 "궁금한 건 물어보기 ›".
+
+**6. 음성 전화 알림 문장(B-42)** — `NotificationService.send`: 받는 사용자가 `voiceAlert`이면 `VoiceTextAi`가 "시간 적금입니다. …" 한두 문장(LLM은 말투만, 원문에 없는 숫자면 버림) → `KoreanSpeech.speakable`로 숫자를 한글 읽기("11/18 14:00 · 3.0시간" → "십일월 십팔일 오후 두 시, 세 시간")해 `notifications.voice_text`(Notification JSON `voiceText`)에 저장, `[VOICE-MOCK]` 로그에 `text="…"`로 남김(전화는 여전히 모의). `GET /api/me/voice-preview` → `{text, sample, notificationId, title, voiceAlert}`: 최근 알림의 전화 문장(없으면 그때 1번 만들어 그 알림에 저장, 알림이 없으면 예시). 화면: 마이 → 알림 설정 "AI 음성 안내 미리 듣기"가 이 문장을 읽는다.
+
 ### 7.13 LLM 추가 B — 활동·메시지·시간 통장 (2026-11-10)
 **공통** — 새 클래스 `ai/ActivityAi`(AI 글쓰기, `AiClient`가 고른 `LlmProvider` 그대로 사용, `AiClient`는 바꾸지 않음) + `ai/ActivityRules`(코드 판정) + `service/ActivityAiService` + `web/ActivityAiController`. 숫자·규칙 판정은 코드, LLM은 정리·설명·제안만, 수락·제재·적립 조정 같은 결정은 하지 않는다. **이벤트 때 한 번** 부르고 테이블 `ai_notes`(kind·ref_id·ref_key 하나에 한 행, `body_json`, `source`, `provider`, `fingerprint`)에 저장해 다시 쓴다. 키가 없거나 실패하면 규칙 결과(`source:"rule"`, 화면은 기존 `.ai` 카드 + "AI 키 없음 · 규칙 모드"). 훅은 `RequestService`에 한 줄씩(확정·메시지 저장·시간 조정·난이도 이의) — 훅 오류는 본 흐름을 막지 않는다. 시드는 규칙 모드로만 돈다.
 

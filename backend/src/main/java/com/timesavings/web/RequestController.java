@@ -21,6 +21,8 @@ public class RequestController {
     private final RequestRepo repo;
     private final ElderRepo elders;
     private final Views views;
+    /** LLM 추가 A(7.12): 요청 생성 때 "왜 이 봉사자?" 이유를 1번 저장(생성자를 바꾸지 않으려고 필드 주입) */
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private MatchReasonService matchReasons;
 
     public RequestController(RequestService svc, RequestRepo repo, ElderRepo elders, Views views) {
         this.svc = svc; this.repo = repo; this.elders = elders; this.views = views;
@@ -72,6 +74,7 @@ public class RequestController {
     public Map<String, Object> create(@CurrentUser User u, @RequestBody CreateBody b) {
         Request r = svc.create(u, new RequestService.CreateCmd(b.kind(), b.postId(), b.volunteerId(), b.elderId(), b.date(),
                 b.startHour(), b.hours(), b.category(), b.content(), b.memo()));
+        if (matchReasons != null) matchReasons.fill(r);
         return view(r, u);
     }
 

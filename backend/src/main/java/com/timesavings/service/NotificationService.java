@@ -18,6 +18,8 @@ public class NotificationService {
     private final NotificationRepo repo;
     private final UserRepo users;
     private final ElderRepo elders;
+    /** LLM 추가 A(7.12, B-42): 전화로 읽을 문장(생성자를 바꾸지 않으려고 필드 주입, 테스트에서 없으면 규칙 문장) */
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private com.timesavings.ai.VoiceTextAi voiceAi;
 
     public NotificationService(NotificationRepo repo, UserRepo users, ElderRepo elders) {
         this.repo = repo;
@@ -33,10 +35,17 @@ public class NotificationService {
         n.title = title;
         n.body = body;
         n.link = link;
+        User target = users.findById(userId).orElse(null);
+        if (target != null && target.voiceAlert) n.voiceText = voiceText(title, body);
         repo.save(n);
-        users.findById(userId).filter(u -> u.voiceAlert).ifPresent(u ->
-                log.info("[VOICE-MOCK] 음성 안내 발송(모의) userId={} type={}", u.id, type));
+        if (target != null && target.voiceAlert)
+            log.info("[VOICE-MOCK] 음성 안내 발송(모의) userId={} type={} text=\"{}\"", target.id, type, n.voiceText);
         return n;
+    }
+
+    /** 전화로 읽을 문장(LLM 다듬기 → 숫자는 코드가 한글 읽기). */
+    public String voiceText(String title, String body) {
+        return voiceAi != null ? voiceAi.make(title, body).text() : com.timesavings.ai.VoiceTextAi.rule(title, body);
     }
 
     /** 받는 쪽: 일반 사용자면 그 사람, 독거노인이면 담당자. */

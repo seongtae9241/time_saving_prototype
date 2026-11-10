@@ -1,0 +1,29 @@
+/* LLM 추가 A(계약서 7.12): 추천 이유 한 줄 · 쉬운 말로 듣기 · 빠진 정보 점검 · 고치기 제안 · 물어보기 — 채택 프로토타입 .ai 카드 톤 */
+.match-why{display:flex;align-items:flex-start;gap:6px;font-size:12.5px;line-height:1.45;color:var(--ink);background:var(--pri-soft);border-radius:10px;padding:6px 10px}
+.match-why .spark{width:16px;height:16px;border-radius:5px;background:var(--brand,var(--pri));color:#fff;display:grid;place-items:center;flex:0 0 auto;margin-top:1px}
+.match-why .spark svg{width:11px;height:11px}
+.match-why b{color:var(--brand,var(--pri));font-weight:800;margin-right:2px}
+.easy-btn{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:700;cursor:pointer;min-height:40px}
+.easy-btn.sm{padding:4px 11px;font-size:12.5px;min-height:32px}
+.easy-btn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.easy-text{margin-top:8px;font-size:17px;line-height:1.6;font-weight:600;background:#FFF9EC;border:1px solid #F1E2BD;border-radius:14px;padding:12px 14px}
+.pc-q{margin-top:10px}
+.pc-q + .pc-q{border-top:1px dashed var(--line);padding-top:10px}
+.pc-q .q{font-weight:700;font-size:15px}
+.pc-q .tags{margin-top:6px}
+.pc-done{font-size:13px;color:var(--sub);margin-top:6px}
+.fix-tip{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px dashed var(--line)}
+.fix-tip:first-of-type{border-top:0;padding-top:4px}
+.fix-tip .n{width:22px;height:22px;border-radius:50%;background:var(--amber-soft,#FBF0DC);color:#A66F00;font-weight:800;font-size:12px;display:grid;place-items:center;flex:0 0 auto}
+.fix-ev{font-size:12px;color:var(--mute);margin-top:6px}
+.ask-bar{display:flex;align-items:center;gap:10px;width:100%;border:1.5px solid var(--line);background:var(--card);border-radius:16px;padding:10px 14px;margin:0 0 12px;cursor:pointer;text-align:left}
+.ask-bar .o{width:36px;height:36px;border-radius:12px;background:var(--pri-soft);color:var(--brand,var(--pri));display:grid;place-items:center;flex:0 0 auto}
+.ask-bar .t{font-weight:800;font-size:15px}
+.ask-bar .d{font-size:12.5px;color:var(--mute)}
+.ask-ans{font-size:18px;line-height:1.6;font-weight:600}
+.ask-mic{width:96px;height:96px;border-radius:50%;border:0;background:var(--brand,var(--pri));color:#fff;display:grid;place-items:center;margin:8px auto 0;cursor:pointer;box-shadow:0 8px 24px rgba(61,109,242,.25)}
+.ask-mic.on{background:#E5484D}
+.ask-q{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.ask-q button{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:8px 13px;font-size:14px;font-weight:600;cursor:pointer}
+.ask-me{align-self:flex-end;background:var(--ink);color:#fff;border-radius:16px 16px 4px 16px;padding:10px 14px;font-size:16px;max-width:85%;margin-left:auto;margin-top:14px;width:fit-content}
+.voice-line{font-size:16px;line-height:1.6;font-weight:600}

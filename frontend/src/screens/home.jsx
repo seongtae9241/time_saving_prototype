@@ -6,6 +6,7 @@ import { api } from '../api.js';
 import { fmt, hh, ap, dlabel, todayISO, SHORT } from '../lib/format.js';
 import { Slider, useHomeMode, useTopCats, sortByTop } from '../ui/extras.jsx';
 import { BriefingButton } from '../ui/ActivityAi.jsx'; // 7.13 B-1
+import { AskBar } from './assist.jsx';
 
 /* 응답이 필요한 요청 (프로토타입 needMe) */
 export function needsMe(r) {
@@ -169,6 +170,7 @@ export function UHome() {
         <button role="tab" aria-selected={give} className={give ? 'on' : ''} onClick={() => setMode('give')}>봉사하기</button>
       </div>
       <QuickMenu me={me} mode={mode} />
+      <AskBar />
       {!give && <VoiceCard />}
       <div className="hero" style={{ marginTop: 14 }}>
         <div className="bk-top"><span className="bk-name">시간 통장</span><span className="bk-no">{me ? `TS-${String(me.id).padStart(6, '0')}` : ''}</span></div>

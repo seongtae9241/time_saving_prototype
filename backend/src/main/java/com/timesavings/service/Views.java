@@ -262,6 +262,7 @@ public class Views {
         boolean manager = "MANAGER".equals(role);
         boolean rated = ratings.findByRequestId(r.id).stream().anyMatch(x -> x.raterId.equals(viewer.id));
         Map<String, Object> vc = vol == null ? null : volunteerCard(vol, isRegular(r.volunteerId, r.recipientId, r.elderId));
+        if (vc != null && r.matchReason != null && !r.matchReason.isBlank()) vc.put("matchReason", r.matchReason); // LLM 추가 A(7.12)
         Map<String, Object> m = map("id", r.id, "kind", r.kind, "postId", r.postId, "postTitle", post == null ? null : post.title,
                 "status", r.status, "date", r.date.toString(), "startHour", r.startHour, "hours", r.hours,
                 "category", r.category, "content", r.content, "memo", r.memo, "difficulty", r.difficulty, "weight", r.weight,

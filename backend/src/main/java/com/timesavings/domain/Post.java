@@ -32,4 +32,9 @@ public class Post {
     @Column(length = 40) public String seriesId;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 10) public PostStatus status = PostStatus.OPEN;
     public LocalDateTime createdAt = LocalDateTime.now();
+    /** LLM 추가 A(7.12): 쉬운 말 읽어 주기 문장(공고별 1회 생성, 수정하면 지움) */
+    @Column(name = "easy_text", length = 300) public String easyText;
+    /** LLM 추가 A(7.12): 안 맞춰지는 공고 고치기 제안 JSON {tips, evidence, source}, 한 번 확인한 시각(공고당 1회) */
+    @Column(name = "fix_tips_json", length = 3000) public String fixTipsJson;
+    @Column(name = "fix_checked_at") public LocalDateTime fixCheckedAt;
 }

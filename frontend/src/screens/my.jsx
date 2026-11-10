@@ -287,8 +287,10 @@ export function NotiSet() {
   const [notis] = useLoad(() => api('/notifications', { quiet: true }), []);
   const [local, setLocal] = useState(() => { try { return JSON.parse(localStorage.getItem('ts-noti') || '{}'); } catch { return {}; } });
   const tg = (k) => { const n = { ...local, [k]: local[k] === false }; setLocal(n); try { localStorage.setItem('ts-noti', JSON.stringify(n)); } catch { /* 무시 */ } };
+  // LLM 추가 A(7.12, B-42): 서버가 알림마다 만든 "전화로 읽을 문장"(voiceText, 숫자는 한글 읽기)을 미리 듣기에 쓴다
+  const [vp] = useLoad(() => api('/me/voice-preview', { quiet: true }), [notis && notis.length]);
   const sample = (notis || [])[0];
-  const text = sample ? `안녕하세요, 시간 적금입니다. ${sample.title}. ${sample.body || ''}` : '안녕하세요, 시간 적금입니다. 김하늘 님이 수요일 오후 2시 병원 동행을 수락했어요. 앱에서 최종 수락을 눌러 주세요.';
+  const text = (vp && vp.text) || (sample ? `안녕하세요, 시간 적금입니다. ${sample.title}. ${sample.body || ''}` : '안녕하세요, 시간 적금입니다. 김하늘 님이 수요일 오후 2시 병원 동행을 수락했어요. 앱에서 최종 수락을 눌러 주세요.');
   if (!me) return <Screen title="알림 설정" noTabs><Loading /></Screen>;
   return (
     <Screen title="알림 설정" noTabs>
@@ -301,7 +303,7 @@ export function NotiSet() {
       </div>
       <SttServerToggle />
       <button className="btn ghost" style={{ marginTop: 14 }} onClick={async () => { const ok = await speak(text, { force: true }); if (!ok) toast('이 브라우저는 소리로 읽기를 지원하지 않아요'); }}><Ic n="mic" s={20} /> AI 음성 안내 미리 듣기</button>
-      <div className="ai" style={{ marginTop: 10 }}><div className="small">“{text}”</div></div>
+      <div className="ai" style={{ marginTop: 10 }}><div className="ah"><Spk />전화로 이렇게 읽어 드려요{vp && vp.title ? ` · 최근 알림 “${vp.title}”` : ''}</div><div className="voice-line">“{text}”</div><div className="mute2" style={{ marginTop: 6, fontSize: 12 }}>숫자는 소리 내 읽기 좋게 바꿔요 · 전화 연결은 아직 모의예요</div></div>
     </Screen>
   );
 }

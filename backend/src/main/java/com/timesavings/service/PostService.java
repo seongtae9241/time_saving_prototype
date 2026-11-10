@@ -169,6 +169,8 @@ public class PostService {
         p.categories = new ArrayList<>(merged.categories()); p.title = merged.title(); p.detail = merged.detail(); p.note = merged.note();
         p.estHours = p.type == PostType.NEED ? merged.estHours() : null;
         applyDifficulty(p, merged);
+        p.easyText = null;    // LLM 추가 A(7.12): 쉬운 말은 다음에 들을 때 다시 만든다
+        p.fixTipsJson = null; // 고치기 제안은 고친 뒤 숨긴다(fixCheckedAt 은 남겨 다시 만들지 않음)
         return p;
     }
 

@@ -16,6 +16,7 @@ import { Edu, EduCard, EduQuiz, EduRpList, EduRp, EduRpRes, EduCert } from './sc
 import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANotices, APub, APersona } from './screens/admin.jsx';
 import { MyInsight, CarePlan, MyReport, FamRecentReport } from './screens/insight.jsx';
 import { MemoToPosts } from './screens/opsai.jsx';
+import { Ask } from './screens/assist.jsx'; // LLM 추가 A(7.12) 음성 비서
 
 /** 로그인·역할 확인 */
 function Guard({ roles, children }) {
@@ -48,6 +49,7 @@ function Shell() {
 
         <Route path="/u/home" element={g(<UHome />, U)} />
         <Route path="/voice" element={g(<VoiceReq />, UO)} />
+        <Route path="/ask" element={g(<Ask />, UO)} />
         <Route path="/board" element={g(<Board />, UO)} />
         <Route path="/post/:id" element={g(<PostDetail />)} />
         <Route path="/post/:id/edit" element={g(<PostEdit />, UO)} />
