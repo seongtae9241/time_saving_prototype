@@ -35,6 +35,7 @@ public class DataSeeder implements ApplicationRunner {
     private final boolean enabled;
     @org.springframework.beans.factory.annotation.Autowired private OrgEventRepo orgEvents; // 동네 소식(2026-11-09)
     @org.springframework.beans.factory.annotation.Autowired private EventApplicationRepo eventApps;
+    @org.springframework.beans.factory.annotation.Autowired private PublicClassRepo publicClasses; // 기관 클래스 추천 샘플(2026-11-10)
 
     private LocalDate today;
     private final Map<String, User> U = new HashMap<>();
@@ -114,6 +115,7 @@ public class DataSeeder implements ApplicationRunner {
         seedHistory();
         seedCurrent(org1);
         seedEvents(o1, org1);
+        PublicClassSeed.seed(publicClasses, today); // 기관 클래스 추천 "(예시)" 샘플
         seedMisc(org1);
         seedInsights();
         if (careSignals != null) careSignals.seedDemo(); // 7.14 C1 전달 메모 정리·생활 변화 신호 데모

@@ -7,6 +7,7 @@ import { fmt, hh, ap, dlabel, todayISO, SHORT } from '../lib/format.js';
 import { Slider, useHomeMode, useTopCats, sortByTop } from '../ui/extras.jsx';
 import { BriefingButton } from '../ui/ActivityAi.jsx'; // 7.13 B-1
 import { AskBar } from './assist.jsx';
+import { WeekClassCard } from './publicClass.jsx';
 
 /* 응답이 필요한 요청 (프로토타입 needMe) */
 export function needsMe(r) {
@@ -181,6 +182,7 @@ export function UHome() {
       {upSec}
       {give ? nearSec : <>{favSec}{nearSec}</>}
       {!give && <div className="ai-ban click" role="button" tabIndex={0} onClick={() => nav('/recommend')}><div className="grow"><div className="ah2"><Spk />AI 도움 추천</div><div className="b" style={{ fontSize: 16.5, marginTop: 4 }}>어떤 도움을 받을 수 있을지<br />말로 물어보세요</div><div className="mute2" style={{ marginTop: 4 }}>“무릎이 아파서 장보기가 힘들어요”</div></div><div className="ai-orb"><Ic n="chat" s={28} /></div></div>}
+      <WeekClassCard />
       {newsSec}
       {give && <div style={{ marginTop: 14 }}><VoiceCard /></div>}
     </Screen>

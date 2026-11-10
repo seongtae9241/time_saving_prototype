@@ -452,3 +452,38 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 **C7 문의 답변 초안** — `POST /api/admin/ai/inquiries/{id}/draft?refresh=` → `{draft, used[근거 번호], basis[{kind(rule|notice|bank|request), label, text}], autoSend:false, notice, source}`. 근거 = 이용 규칙 요약(계약서 3장, `OpsSafetyService.RULES` 코드 상수) 중 문의와 맞는 것 + 맞는 공지 + 그 사용자의 통장 최근 5건 + 관련 요청 상태. 규칙 초안은 적립 문의에서 "일지 미제출"/"확인 대기" 요청을 찾아 안내. **발송하지 않는다** — 화면 문의 답변 시트의 "답변 초안 만들기 → 답변 칸에 넣기" 후 운영자가 고쳐 기존 `POST /api/admin/inquiries/{id}/answer`.
 
 **저장 칸**: `care_notes`, `ai_results`(db/README.md). **데모**: 시드에서 이순례 님 최근 두 건 메모에 식사 거름·기운 없음·외출 감소 표현을 넣어 '확인 권장'과 담당자 알림이 보이게 했다(시드는 규칙 모드).
+
+### 7.15 기관 클래스 추천 (2026-11-10, 동네 클래스 삭제 뒤 대신)
+공공기관(주민센터·평생학습관·복지관·도서관·보건소)이 여는 강좌를 모아 사용자에게 추천한다. **신청은 기관 사이트에서(외부 링크)**, 강좌는 시간 통장 시간을 쓰지 않는다(동행 봉사를 부르면 그 동행만 정산). 휴대폰·디지털, 정서·건강처럼 쉬운 강좌와 5060·7080 대상을 앞에 둔다. 환경변수 추가 없음(Gemini 키 재사용). 데이터 넣는 법: `docs/guides/기관클래스-데이터-넣기.md`.
+
+**테이블 `public_classes`** — 세 경로가 한 테이블(`source`): `AI_SEARCH`(AI 웹 검색) · `PUBLIC_DATA`(공공데이터 CSV) · `ORG`(동네 소식 `org_events`를 옮겨 둔 것, `org_event_id`, 추천·목록을 열 때 맞춤 — 마감·삭제되면 `hidden`). 칸: title, org_name, region(시군구·동), place, start_date, end_date, schedule_text, target, fee_text, capacity_text, apply_url, apply_how, image_url, category(디지털/정서·건강/생활/기타 — 제목·내용 낱말로 코드가 분류), description, verified, verified_at, page_title, fetched_at, expires_at, hidden, search_key, lat, lng, raw_json.
+- **사용자에게 보이는 조건**: `hidden=false` · `verified=true` · 끝나지 않음(end_date ≥ 오늘, 끝 날짜가 없으면 시작이 30일 안) · `expires_at` 전.
+
+**① AI 웹 검색(Gemini 구글 검색 그라운딩)** — `ai/GeminiGrounding`(새 클래스, `generateContent` body에 `tools:[{google_search:{}}]`, JSON 응답 모드는 쓰지 않고 텍스트로 받음, `groundingMetadata.groundingChunks[].web.uri` 파싱)·`ai/PublicClassAi`(프롬프트·JSON 추출). `AiClient`는 바꾸지 않았다.
+- 켜짐 = AI 켜짐 + `AiClient.provider()`가 Gemini + `GEMINI_API_KEY` 있음. Anthropic 공급자·규칙 모드면 꺼짐(`searchAvailable:false`).
+- 프롬프트: 지역(시군구·동, 사용자가 동의하면 좌표를 소수 둘째 자리로 줄여 함께) 주변 공공기관 강좌를 `{"classes":[{title, orgName, place, startDate, endDate, schedule, target, fee, applyUrl(원래 페이지 주소), summary}]}`로, 모르는 값은 비우고 지어내지 말 것, 최대 8개.
+- **검증(코드)**: `applyUrl` 없는 항목은 버림 → 서버가 `LinkPreviewService.fetch`(7.11의 SSRF 규칙 그대로: http/https·80/443·사설 주소 차단·리다이렉트마다 재검사·3초·512KB)로 그 주소를 실제로 열어 200이고 제목을 얻으면 `verified=true`(`page_title`, 최종 주소를 `apply_url`로), 아니면 `hidden=true`. 끝난 강좌도 숨김. 같은 `search_key`의 예전 AI 항목은 새 결과로 바꾼다. `expires_at`=끝 날짜 다음 날, 없으면 14일 뒤.
+- **캐시**: 지역(`search_key`)별 하루 1회(결과 0건이어도). 운영자 "다시 찾기"는 `force`로 다시 부른다.
+- 화면 배지: "AI가 찾은 정보 · 신청 전 기관에 확인".
+
+**② 공공데이터 CSV** — `POST /api/admin/public-classes/import` (multipart `file`, 운영자) → `{encoding:'UTF-8'|'CP949', total, imported, updated, skippedEnded, skippedInvalid, mapped:{칸:원래 열 이름}, unmapped:[열 이름]}`.
+- 글자 코드: UTF-8(BOM 허용)을 엄격하게 읽어 보고 깨지면 CP949. 따옴표·쉼표·줄바꿈 있는 CSV 지원, 최대 5000줄.
+- 열 맞추기(공백·괄호 무시 → 정확한 이름 → 비슷한 이름 포함 규칙): 강좌명·강사명·교육시작일자·교육종료일자·교육시작시각·교육종료시각·교육요일·교육시간·교육대상·교육방법·수강정원·교육비(수강료)·교육장소·교육장도로명주소(주소)·운영기관명·운영기관전화번호·접수방법·홈페이지주소·위도·경도·강좌내용. 나머지 열은 `raw_json`. 강좌명 열이 없으면 400 `CSV_NO_TITLE`.
+- 끝난 강좌(종료일 < 오늘, 종료일 없으면 시작 30일 지남) 제외, 강좌명 빈 줄 제외. 교육비 0 → "무료", 숫자 → "12,000원". 주소 → region("서울특별시 금천구 독산동 1" → "금천구 독산동"). `verified=true`. (강좌명+기관명+시작일)이 같으면 새로 넣지 않고 고친다.
+- 시드: "(예시)"를 붙인 샘플 7건(행복구 평생학습관 (예시) 등, 주소는 `https://example.org/…` 또는 비움, 초등학생 대상 1건 포함).
+
+**③ 기관 직접 등록** — 동네 소식(`POST /api/events`) 그대로. 추천에는 `source:'ORG'`로 들어가고, 화면은 `/news/{orgEventId}`(기존 동네 소식 상세·앱 신청)로 연다.
+
+**추천** — `GET /api/public-classes/recommend` (USER) → `{items:[항목], source:'ai'|'rule', cached, date, basis:{area, ageGroup, interests}, searchAvailable, categories}`. 항목 = `{id, source, title, orgName, region, place, startDate, endDate, when("이번 주 목요일" 등), schedule, target, fee, capacity, applyUrl, applyHow, imageUrl, category, verified, aiFound, notice, orgEventId, sample, reason, reasonSource:'ai'|'rule', score}`.
+- **코드 점수**(상위 12개): 같은 동 +40 · 같은 시군구 +20 · 디지털 +25 / 정서·건강 +20 / 생활 +8 · 관심 분야 +15(프로필 카테고리 + 최근 180일 받은·준 도움 카테고리: 디지털 도움→디지털, 말동무·정서·동행→정서·건강, 생활 정리·장보기·집안일→생활) · 50대 이상이고 대상이 어르신·5060 등 +10, 아동·청소년 대상 −40 · 시작까지 7일 안 +20 / 14일 +12 / 30일 +6 / 진행 중 +8 · 확인됨 +15 · 공공데이터 +5. 같으면 날짜 가까운 순.
+- **LLM**: 고른 항목마다 추천 이유 한 줄(프롬프트에는 동네·나이대·관심 분야만, 이름·연락처 없음). 키 없음·실패면 규칙 문장 "같은 동네 · 휴대폰 사용법 · 이번 주 목요일 · 무료".
+- **캐시**: 사용자별 하루. 데이터가 바뀌면(CSV·검색·숨김·삭제·기관 소식 추가/마감) 새로 만든다.
+- `GET /api/public-classes/{id}` (로그인) → 항목 + `{description, pageTitle, easySummary(소리로 듣기용 쉬운 말 — 코드가 만든 문장), companionText("11월 20일 오후 2시부터 오후 4시까지 ○○에서 하는 '○○' 강좌에 같이 가 주세요 (동행)"), timeNote}`. 보이지 않는 항목은 404(운영자는 볼 수 있음, `hidden`·`searchKey`·`rawJson` 추가).
+- `POST /api/public-classes/search {lat?, lng?}` (USER·ORG) — "내 위치로 다시 찾기": 프로필 동네(+좌표)로 ①을 부른다(하루 1회). → `{searched, cached, searchAvailable, region, found, dropped, verified, hidden, message?}`. 좌표 범위 밖 400 `INVALID_LOCATION`.
+- `GET /api/public-classes/status` → `{searchAvailable, counts:{AI_SEARCH, PUBLIC_DATA, ORG, visible, hidden}}`.
+
+**담당자** — `GET /api/org/elders/{id}/public-classes` (내가 담당하는 대상만, 아니면 403) → 추천과 같은 모양(대상의 동·나이대·필요 도움으로, 대상별 하루 캐시).
+
+**운영자** — `GET /api/admin/public-classes?source=` → `{items:[항목 + hidden, visible, searchKey, pageTitle, fetchedAt], searchAvailable, counts}` · `POST /api/admin/public-classes/search {region, force?(기본 true)}` · `POST /api/admin/public-classes/{id}/hide {hidden}`(확인 못 한 AI 항목은 보이게 할 수 없음 409 `NOT_VERIFIED`) · `DELETE /api/admin/public-classes/{id}`(ORG는 400 `ORG_EVENT` — 숨기기만).
+
+**화면** — 동네 소식(`/news`) 맨 위 "가까운 기관 클래스"(카테고리 칩 전체/디지털/정서·건강/생활, 카드: 기관명·제목·일정·장소·대상·수강료·추천 이유·출처 배지, 검색 가능할 때 "내 위치로 다시 찾기") · 상세 `/news/class/:id`(신청하기 → 기관 사이트 새 창, 쉬운 말 소리로 듣기, "같이 갈 봉사자 요청" → `/write/need?prefill=…`로 열어 미리 채운 문장으로 초안까지 만들고 등록은 사용자) · 사용자 홈 "이번 주 가까운 클래스" 한 줄 카드 · 담당자 대상 상세 "이 어르신께 맞는 기관 클래스"(카드 → "동행 요청 대신 만들기" `/write/need?elder={id}&prefill=…`) · 운영자 관리 → "기관 클래스"(`/a/classes`: 목록·출처·검증, 숨기기/삭제, CSV 가져오기, 지역 다시 찾기).

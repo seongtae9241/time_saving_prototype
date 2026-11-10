@@ -17,6 +17,7 @@ import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANo
 import { MyInsight, CarePlan, MyReport, FamRecentReport } from './screens/insight.jsx';
 import { MemoToPosts } from './screens/opsai.jsx';
 import { Ask } from './screens/assist.jsx'; // LLM 추가 A(7.12) 음성 비서
+import { ClassDetail, APublicClasses } from './screens/publicClass.jsx';
 
 /** 로그인·역할 확인 */
 function Guard({ roles, children }) {
@@ -90,6 +91,7 @@ function Shell() {
         <Route path="/edu/cert" element={g(<EduCert />, U)} />
 
         <Route path="/news" element={g(<News />, U)} />
+        <Route path="/news/class/:id" element={g(<ClassDetail />, UO)} />
         <Route path="/news/:id" element={g(<EventDetail />, UO)} />
         <Route path="/o/events" element={g(<OEvents />, O)} />
         <Route path="/o/events/new" element={g(<OEventNew />, O)} />
@@ -118,6 +120,7 @@ function Shell() {
         <Route path="/a/notices" element={g(<ANotices />, A)} />
         <Route path="/a/pub" element={g(<APub />, A)} />
         <Route path="/a/persona" element={g(<APersona />, A)} />
+        <Route path="/a/classes" element={g(<APublicClasses />, A)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

@@ -6,6 +6,7 @@ import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
 import { ap, dlabel, addDays } from '../lib/format.js';
 import '../styles/meeting.css';
+import { ClassSection } from './publicClass.jsx';
 
 /* ---------- 동네 소식 (2026-11-09 회의 2장): 기관 소식만 (사용자 클래스는 2026-11-10 삭제) ---------- */
 const host = (u) => { try { return new URL(u).host; } catch { return u; } };
@@ -33,6 +34,7 @@ export function News() {
   const [list] = useLoad(() => api('/events'), []);
   return (
     <Screen title="동네 소식" back={false} tab="/news">
+      <ClassSection />
       <div className="mute2">주민센터·복지관이 여는 행사와 클래스예요. 앱에서 바로 신청하거나 안내 링크로 신청해요.</div>
       {list === undefined ? <Loading /> : list && list.length ? list.map((e) => <EventCard key={e.id} e={e} />) : <Empty>지금 올라온 기관 소식이 없어요</Empty>}
     </Screen>

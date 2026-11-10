@@ -171,6 +171,8 @@ export function WriteNeed() {
     setBusy(false);
   };
   const reset = () => { setChat([]); setRes(null); setText(''); setTidyFix(null); setTidyRes(null); setChk([]); };
+  const prefilled = useRef(false); // 기관 클래스 "같이 갈 봉사자 요청": 미리 채운 문장으로 초안까지 만들고, 올리기는 사용자가 한다
+  useEffect(() => { const pf = sp.get('prefill'); if (pf && !prefilled.current) { prefilled.current = true; say(pf.slice(0, 300)); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const done = chat.some((m) => m.card === 'done');
   const blocked = res && res.filter && res.filter.level === 'BLOCK';
   const missing = (res && res.missing) || [];

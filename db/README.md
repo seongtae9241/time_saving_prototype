@@ -1,6 +1,6 @@
 # 시간 적금 DB
 
-- `schema.sql` — 실제 JPA 엔티티(`backend/src/main/java/com/timesavings/domain`)에서 Hibernate 스키마 생성으로 뽑은 MySQL 8 DDL(테이블 29개).
+- `schema.sql` — 실제 JPA 엔티티(`backend/src/main/java/com/timesavings/domain`)에서 Hibernate 스키마 생성으로 뽑은 MySQL 8 DDL(테이블 30개).
 - 기본 실행은 **H2 파일 DB**(`backend/data/timesavings.mv.db`, `MODE=MySQL`)이고 `ddl-auto=update`로 같은 구조가 자동 생성된다.
 - 데모 데이터는 SQL 파일이 아니라 서버 첫 기동 때 `DataSeeder`가 넣는다(DB가 비어 있을 때만, 오늘 날짜 기준 상대 날짜).
 
@@ -37,6 +37,7 @@
 | `org_events` | 동네 소식: 기관 행사·클래스 홍보(제목·내용·일시·장소·정원(0=제한 없음)·`apply_type` APP/LINK·`url`, 링크 미리보기 `og_title`/`og_image`/`og_desc`, `status` OPEN/CLOSED) | 2026-11-09 회의 2장·O3 |
 | `event_applications` | 동네 소식 앱 신청(`status` APPLIED/CANCELLED) | 2026-11-09 회의 2장 |
 | `ai_notes` | 7.13 LLM 추가 B: 이벤트 때 한 번 만든 AI(키 없으면 규칙) 결과 저장·재사용. `kind`+`ref_id`(+`ref_key`) 하나에 한 행 — BRIEFING(요청 id, 확정 때 방문 전 체크리스트) · MESSAGE(메시지 id, 안전 감지 `warn_level` none/caution/warn·답장 후보·일정 변경, 메시지당 1회) · ADJUST(요청 id, 시간 조정 판단 보조) · APPEAL(이의 신청 id) · GOAL(사용자 id, 거꾸로 플랜 추천) · MONTH(사용자 id + `ref_key`=YYYY-MM, 월별 결산 한 줄). `fingerprint`가 바뀌면(그 달 거래·목표 입력·조정 시간) 다시 만든다. 결과는 `body_json`, `source` ai/rule, `provider`. 지난 전달 메모·연락처는 넣지 않음 | 계약서 7.13 |
+| `public_classes` | 기관 클래스 추천: 공공기관 강좌 한 테이블. `source` AI_SEARCH(Gemini 구글 검색 그라운딩 — 서버가 `apply_url`을 열어 제목을 얻은 것만 `verified`, 아니면 `hidden`, `search_key`=지역별 하루 1회 캐시 키)/PUBLIC_DATA(공공데이터포털 평생학습강좌 CSV)/ORG(동네 소식 `org_events`를 옮겨 둔 것, `org_event_id`). 제목·기관·지역(시군구·동)·장소·기간·일정·대상·수강료·정원·신청 주소·`category`(디지털/정서·건강/생활/기타)·`expires_at`·`raw_json`(CSV 나머지 열·AI 원본) | 2026-11-10 기관 클래스 추천 |
 
 동네 클래스용 `classes`·`class_enrollments`·`spaces` 테이블과 `ledger.class_id`는 2026-11-10 사용자 결정으로 삭제했다(동네 소식 `org_events`는 유지).
 
@@ -77,6 +78,7 @@ erDiagram
     organizations ||--o{ org_events : "org_id"
     org_events ||--o{ event_applications : "event_id"
     users ||--o{ event_applications : "user_id"
+    org_events ||--o| public_classes : "org_event_id (source ORG)"
     users ||--o{ life_reports : "subject (USER)"
     elders ||--o{ life_reports : "subject (ELDER)"
 
@@ -181,6 +183,20 @@ erDiagram
         bigint event_id
         bigint user_id
         varchar status
+    }
+    public_classes {
+        bigint id PK
+        varchar source
+        varchar title
+        varchar org_name
+        varchar region
+        date start_date
+        varchar apply_url
+        varchar category
+        bit verified
+        bit hidden
+        varchar search_key
+        bigint org_event_id
     }
     life_reports {
         bigint id PK
