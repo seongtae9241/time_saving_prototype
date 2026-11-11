@@ -4,7 +4,7 @@ import Screen from '../ui/Frame.jsx';
 import { Ic, Loading, Empty, useLoad, useBusy } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
-import { ap, dlabel, addDays } from '../lib/format.js';
+import { ap, dlabel, addDays, AREAS } from '../lib/format.js';
 import '../styles/meeting.css';
 import { ClassSection } from './publicClass.jsx';
 
@@ -20,7 +20,7 @@ function EventCard({ e }) {
       <div className="ev-cv">{img ? <img src={img} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(x) => { x.currentTarget.style.display = 'none'; }} /> : <Ic n="cal" s={40} />}<span className="ev-org">{e.orgName || '기관'}</span></div>
       <div className="ev-b">
         <div className="ev-t">{e.title}</div>
-        <div className="ev-m"><span><Ic n="clock" s={14} />{when(e)}</span>{e.place && <span><Ic n="pin" s={14} />{e.place}</span>}</div>
+        <div className="ev-m"><span><Ic n="clock" s={14} />{when(e)}</span>{(e.place || e.area) && <span><Ic n="pin" s={14} />{e.place || e.area}</span>}{e.near ? <span className="st go">내 동네</span> : e.area ? <span className="mute2">{e.area}{e.distanceKm != null ? ` · ${e.distanceKm}km` : ''}</span> : null}</div>
         <div className="ev-ft">
           <span className="mute2">{e.applyType === 'LINK' ? `외부 신청 · ${host(e.url)}` : e.capacity ? `앱 신청 ${e.applied}/${e.capacity}명` : `앱 신청 ${e.applied}명`}</span>
           {e.myApplied ? <span className="st ok">신청함</span> : e.full ? <span className="st end">정원 마감</span> : <span className="st go">{e.applyType === 'LINK' ? '링크로 신청' : '신청 가능'}</span>}
@@ -31,12 +31,20 @@ function EventCard({ e }) {
 }
 
 export function News() {
-  const [list] = useLoad(() => api('/events'), []);
+  const { me } = useAuth();
+  const [area, setArea] = useState('');
+  // 2026-11-11: 근처 지역 기준 — 지역을 안 고르면 서버가 내 동네 → 가까운 동 순으로 준다
+  const [list] = useLoad(() => api(`/events${area ? `?area=${encodeURIComponent(area)}` : ''}`), [area]);
+  const myArea = me && me.area;
   return (
-    <Screen title="동네 소식" back={false} tab="/news">
+    <Screen title="동네 기관 소식" noTabs>
+      <div className="locb">📍 {myArea || '동네 미설정'} <span>내 동네 소식이 먼저 나와요</span></div>
+      <div className="chips" role="tablist" aria-label="지역" style={{ marginTop: 10 }}>
+        {[['', '가까운 순'], ...AREAS.map((a) => [a, a === myArea ? `${a} (내 동네)` : a])].map(([v, l]) => <button key={v || 'all'} role="tab" aria-selected={area === v} className={'chip ' + (area === v ? 'on' : '')} onClick={() => setArea(v)}>{l}</button>)}
+      </div>
+      <div className="mute2" style={{ marginTop: 8 }}>주민센터·복지관이 여는 교실·모임·행사예요. 시간 통장 적립·차감은 없어요.</div>
+      {list === undefined ? <Loading /> : list && list.length ? list.map((e) => <EventCard key={e.id} e={e} />) : <Empty>{area ? `${area}에 올라온 기관 소식이 없어요` : '지금 올라온 기관 소식이 없어요'}</Empty>}
       <ClassSection />
-      <div className="mute2">주민센터·복지관이 여는 행사와 클래스예요. 앱에서 바로 신청하거나 안내 링크로 신청해요.</div>
-      {list === undefined ? <Loading /> : list && list.length ? list.map((e) => <EventCard key={e.id} e={e} />) : <Empty>지금 올라온 기관 소식이 없어요</Empty>}
     </Screen>
   );
 }
@@ -132,13 +140,14 @@ export function OEventNew() {
     const body = { title: f.title.trim(), content: f.content, date: f.date || undefined, startHour: f.startHour, place: f.place, capacity: Number(f.capacity) || 0, applyType: f.applyType, url: f.url.trim() || undefined };
     if (pv && pv.url) { body.ogTitle = pv.title || undefined; body.ogImage = pv.image || undefined; body.ogDesc = pv.description || undefined; }
     const e = await post('/events', body);
-    toast('동네 소식에 올렸어요');
+    toast('기관 소식을 올렸어요. 근처 사용자 홈에 보여요');
     nav(`/news/${e.id}`, { replace: true });
   });
   return (
-    <Screen title="행사·클래스 홍보 올리기" noTabs>
-      <label className="f">안내 링크 (선택)</label>
-      <div className="row"><input className="in grow" inputMode="url" placeholder="https://… 행사 안내 페이지" value={f.url} onChange={(e) => { set('url', e.target.value); setPv(null); }} aria-label="안내 링크" /><button type="button" className="btn soft sm" style={{ width: 'auto', padding: '0 14px', flex: '0 0 auto' }} disabled={pvBusy} onClick={fetchPreview}>{pvBusy ? '가져오는 중…' : '미리보기'}</button></div>
+    <Screen title="기관 소식 올리기" noTabs>
+      <p className="su-p" style={{ marginTop: 0 }}>기관이 여는 교실·모임·행사를 알려요. 링크만 넣으면 제목과 이미지를 가져와요.</p>
+      <label className="f">기관 공지 링크</label>
+      <div className="row"><input className="in grow" inputMode="url" placeholder="https://… 행사 안내 페이지" value={f.url} onChange={(e) => { set('url', e.target.value); setPv(null); }} aria-label="안내 링크" /><button type="button" className="btn soft sm" style={{ width: 'auto', padding: '0 14px', flex: '0 0 auto' }} disabled={pvBusy} onClick={fetchPreview}>{pvBusy ? '불러오는 중…' : '불러오기'}</button></div>
       <div className="mute2" style={{ marginTop: 6 }}>링크를 넣으면 그 페이지의 제목·사진을 가져와 카드로 보여 줘요.</div>
       {pv && <LinkCard url={pv.url} preview={pv} />}
       <label className="f">제목</label><input className="in" value={f.title} onChange={(e) => set('title', e.target.value)} placeholder="예) 스마트폰 사진 정리 교실" maxLength={100} />
@@ -150,8 +159,9 @@ export function OEventNew() {
       <label className="f">장소</label><input className="in" value={f.place} onChange={(e) => set('place', e.target.value)} placeholder="예) 행복동 주민센터 1층 다목적실" />
       <label className="f">신청 방법</label>
       <div className="seg"><button type="button" className={f.applyType === 'APP' ? 'on' : ''} onClick={() => set('applyType', 'APP')}>앱에서 신청</button><button type="button" className={f.applyType === 'LINK' ? 'on' : ''} onClick={() => set('applyType', 'LINK')}>외부 링크로 신청</button></div>
-      {f.applyType === 'APP' && <><label className="f">정원 (0이면 제한 없음)</label><input className="in" type="number" min={0} max={500} value={f.capacity} onChange={(e) => set('capacity', e.target.value)} aria-label="정원" /></>}
-      <button className="btn big-cta" style={{ marginTop: 18 }} disabled={busy} onClick={submit}>동네 소식에 올리기</button>
+      {f.applyType === 'APP' && <><label className="f">정원</label><div className="tags">{[[4, '4명'], [8, '8명'], [20, '20명'], [0, '제한 없음']].map(([n, t]) => <button key={n} type="button" className={'chip ' + (Number(f.capacity) === n ? 'on' : '')} onClick={() => set('capacity', n)}>{t}</button>)}</div><label className="f">직접 입력 (0이면 제한 없음)</label><input className="in" type="number" min={0} max={500} value={f.capacity} onChange={(e) => set('capacity', e.target.value)} aria-label="정원" /></>}
+      <div className="notice" style={{ marginTop: 12 }}>기관 행사는 시간 통장 적립·차감이 없어요. 올리면 근처 사용자 홈의 "동네 기관 소식"에 보여요.</div>
+      <button className="btn big-cta" style={{ marginTop: 16 }} disabled={busy} onClick={submit}>올리기</button>
     </Screen>
   );
 }

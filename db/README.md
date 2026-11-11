@@ -38,6 +38,10 @@
 | `event_applications` | 동네 소식 앱 신청(`status` APPLIED/CANCELLED) | 2026-11-09 회의 2장 |
 | `ai_notes` | 7.13 LLM 추가 B: 이벤트 때 한 번 만든 AI(키 없으면 규칙) 결과 저장·재사용. `kind`+`ref_id`(+`ref_key`) 하나에 한 행 — BRIEFING(요청 id, 확정 때 방문 전 체크리스트) · MESSAGE(메시지 id, 안전 감지 `warn_level` none/caution/warn·답장 후보·일정 변경, 메시지당 1회) · ADJUST(요청 id, 시간 조정 판단 보조) · APPEAL(이의 신청 id) · GOAL(사용자 id, 거꾸로 플랜 추천) · MONTH(사용자 id + `ref_key`=YYYY-MM, 월별 결산 한 줄). `fingerprint`가 바뀌면(그 달 거래·목표 입력·조정 시간) 다시 만든다. 결과는 `body_json`, `source` ai/rule, `provider`. 지난 전달 메모·연락처는 넣지 않음 | 계약서 7.13 |
 | `public_classes` | 기관 클래스 추천: 공공기관 강좌 한 테이블. `source` AI_SEARCH(Gemini 구글 검색 그라운딩 — 서버가 `apply_url`을 열어 제목을 얻은 것만 `verified`, 아니면 `hidden`, `search_key`=지역별 하루 1회 캐시 키)/PUBLIC_DATA(공공데이터포털 평생학습강좌 CSV)/ORG(동네 소식 `org_events`를 옮겨 둔 것, `org_event_id`). 제목·기관·지역(시군구·동)·장소·기간·일정·대상·수강료·정원·신청 주소·`category`(디지털/정서·건강/생활/기타)·`expires_at`·`raw_json`(CSV 나머지 열·AI 원본) | 2026-11-10 기관 클래스 추천 |
+| `category_suggestions` | 카테고리 추가 건의(2026-11-11): 사용자·담당자 `user_id`가 낸 이름 `name`·이유 `reason`. 같은 이름 묶기용 `name_key`(공백·가운뎃점 제거), `status` RECEIVED/REVIEWING/ADOPTED/HELD, 운영자 `answer`·`answered_by`·`answered_at`. 실제 카테고리 6종은 바꾸지 않는다(운영자 결정용 기록) | 2026-11-11 역할별 기능 목록 |
+| `life_plans` | 생애 플랜 조건(사용자당 1행, PK `user_id`): `age`, `start_age`, `monthly_hours`, 받고 싶은 도움 `needs_json`({카테고리: 한 달 시간}). 결과 숫자는 저장하지 않고 볼 때마다 서버가 계산. 상속 칸 없음 | 플래너 3번째 칸 |
+| `planner_picks` | 플래너 "추천 봉사"에서 내 계획에 넣은 봉사 요청 공고(`user_id`+`post_id` 한 쌍에 하나). 계획일 뿐이고 제안은 사용자가 직접 보낸다 | 플래너 2번째 칸 |
+| `app_settings` | 운영 설정 키-값(`setting_key`, `setting_value`). 지금은 `verify.items`(봉사 인증 항목 켜짐·필수 JSON)만 | a_verify |
 
 동네 클래스용 `classes`·`class_enrollments`·`spaces` 테이블과 `ledger.class_id`는 2026-11-10 사용자 결정으로 삭제했다(동네 소식 `org_events`는 유지).
 
@@ -75,6 +79,10 @@ erDiagram
     users ||--|| edu_progress : ""
     users ||--o{ regular_marks : "user_id"
     users ||--o{ regular_marks : "volunteer_id"
+    users ||--o{ category_suggestions : "user_id"
+    users ||--o| life_plans : "user_id"
+    users ||--o{ planner_picks : "user_id"
+    posts ||--o{ planner_picks : "post_id"
     organizations ||--o{ org_events : "org_id"
     org_events ||--o{ event_applications : "event_id"
     users ||--o{ event_applications : "user_id"
@@ -208,6 +216,8 @@ erDiagram
         bit big_change
     }
 ```
+
+> 2026-11-11: `posts.issue_note`(300자) — 담당자 대리 공고의 "관리 대상 이슈". 비어 있으면 `elders.caution`을 보여 준다. 연락처·주소는 저장 전에 막고 병명은 걸러 낸다.
 
 ## H2 ↔ MySQL 전환
 

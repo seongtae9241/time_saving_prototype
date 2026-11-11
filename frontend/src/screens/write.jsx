@@ -9,6 +9,8 @@ import { I } from '../ui/icons.js';
 import { PubCards } from './ai.jsx';
 import { useSpeechInput } from './voice.jsx';
 import { PostCheck, mergeChecks } from './assist.jsx'; // LLM 추가 A(7.12) 빠진 정보 점검
+import { DIc } from '../ui/proto.jsx';
+import { SuggestLink } from '../ui/suggest.jsx';
 
 /* ---------- 봉사 요청 · 도움 가능 선택 ---------- */
 export function Write() {
@@ -17,12 +19,17 @@ export function Write() {
   const [mine] = useLoad(() => api('/posts/mine', { quiet: true }), []);
   const past = (mine || []).slice(0, 3);
   return (
-    <Screen title="봉사 요청 · 도움 가능" noTabs>
-      <h2 className="su-h" style={{ marginTop: 4 }}>무엇을<br />올릴까요?</h2>
-      <p className="su-p">자동 매칭은 없어요. 공고를 보고 온 사람의 요청을 직접 골라요.</p>
-      <div className="su-role" role="button" tabIndex={0} onClick={() => nav('/write/offer')}><div className="su-ic" style={{ color: '#1F9D63' }}><Ic h={I.hand} /></div><div className="grow"><div className="su-rt">도움 가능 <span className="mute2" style={{ fontWeight: 500 }}>도울 수 있어요</span></div><div className="su-rd">“금요일 1시~5시 비어요” → 필요한 사람이 원하는 시간에 요청해요</div></div>›</div>
-      <div className="su-role" role="button" tabIndex={0} onClick={() => nav('/write/need')}><div className="su-ic" style={{ color: '#EE8424' }}><Ic h={I.chat} /></div><div className="grow"><div className="su-rt">봉사 요청 <span className="mute2" style={{ fontWeight: 500 }}>도움이 필요해요</span> <span className="mod m1" style={{ marginLeft: 4 }}>AI 작성</span></div><div className="su-rd">말로 설명하면 AI가 날짜·시간·장소를 물어보고 공고로 정리해요</div></div>›</div>
-      <div className="su-role" role="button" tabIndex={0} onClick={() => nav('/voice')}><div className="su-ic" style={{ color: '#3D6DF2' }}><Ic h={I.mic} /></div><div className="grow"><div className="su-rt">말로 요청하기</div><div className="su-rd">마이크를 누르고 말하면 큰 글씨 요청서로 만들어 드려요</div></div>›</div>
+    <Screen title="공고 올리기" noTabs>
+      <h2 className="su-h" style={{ marginTop: 4 }}>어떤 공고를<br />올릴까요?</h2>
+      <p className="su-p">자동 매칭은 없어요. 공고를 보고 온 요청을 직접 골라요.</p>
+      <div className="bbtn big">
+        <button onClick={() => nav('/write/offer')}><DIc k="offer" size={48} /><b>도움 가능</b><em>내가 도와줄 수 있는 시간을 올려요</em></button>
+        <button onClick={() => nav('/write/need')}><DIc k="req" size={48} /><b>봉사 요청</b><em>도움이 필요한 일을 AI와 정리해요</em></button>
+      </div>
+      <div className="ml" style={{ marginTop: 12 }}>
+        <div role="button" tabIndex={0} onClick={() => nav('/write/need/manual')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/write/need/manual'); }}><Ic n="pen" s={20} /><div className="grow">봉사 요청 직접 적기<span>AI 없이 칸을 직접 채워요 (수동)</span></div>›</div>
+        <div role="button" tabIndex={0} onClick={() => nav('/voice')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/voice'); }}><Ic n="mic" s={20} /><div className="grow">말로 요청하기<span>마이크를 누르고 말하면 큰 글씨 요청서로 만들어 드려요</span></div>›</div>
+      </div>
       {past.length > 0 && <div className="sec-t">지난 공고 다시 올리기</div>}
       {past.map((p) => (
         <div key={p.id} className="card item click" role="button" tabIndex={0} onClick={() => nav(`/post/${p.id}`)}>
@@ -35,7 +42,7 @@ export function Write() {
   );
 }
 
-/* ---------- 봉사 가능 공고 (B-04, B-06) · 공고 수정(B-11) ---------- */
+/* ---------- 도움 가능 공고 (B-04, B-06) · 공고 수정(B-11) ---------- */
 function PostForm({ init, type, onSubmit, submitLabel }) {
   const [f, setF] = useState(init);
   const sp = useSpeechInput({ onFinal: (t) => setF((x) => ({ ...x, note: t })), onInterim: (t) => setF((x) => ({ ...x, note: t })) });
@@ -58,6 +65,7 @@ function PostForm({ init, type, onSubmit, submitLabel }) {
       <select className="in" value={f.area} onChange={(e) => set('area', e.target.value)}>{AREAS.map((a) => <option key={a}>{a}</option>)}</select>
       <label className="f">{offer ? '할 수 있는 도움 (여러 개)' : '필요한 도움'}</label>
       <div className="tags">{CATS.map((c) => <button key={c.k} className={'chip ' + (f.categories.includes(c.k) ? 'on' : '')} onClick={() => set('categories', f.categories.includes(c.k) ? f.categories.filter((x) => x !== c.k) : [...f.categories, c.k])}>{c.k}</button>)}</div>
+      <SuggestLink />
       {!offer && <><label className="f">제목</label><input className="in" value={f.title || ''} onChange={(e) => set('title', e.target.value)} placeholder="예) 일주일치 장보기" /><label className="f">내용</label><textarea className="in" value={f.detail || ''} onChange={(e) => set('detail', e.target.value)} /></>}
       <label className="f">{offer ? '한마디' : '메모'}</label>
       <div className="row">
@@ -65,11 +73,55 @@ function PostForm({ init, type, onSubmit, submitLabel }) {
         <button type="button" className={'mic' + (sp.listening ? ' on' : '')} aria-label="음성 입력" onClick={sp.toggle}><Ic h={I.mic} /></button>
       </div>
       {sp.msg && <div className="mute2" style={{ marginTop: 6 }}>{sp.msg}</div>}
+      {init.elderIssue !== undefined && <IssueField value={f.elderIssue} onChange={(v) => set('elderIssue', v)} />}
       {init.repeatable && (
         <div className={'su-check ' + (f.rep ? 'on' : '')} role="button" tabIndex={0} style={{ marginTop: 10 }} onClick={() => set('rep', !f.rep)}><span className="bx" /><div><div className="b">매주 같은 요일 반복 (4주)</div><div className="mute2">공고 1개에는 요청 1건만 받아요</div></div></div>
       )}
       <button className="btn big-cta" style={{ marginTop: 18 }} onClick={() => onSubmit(f)}>{submitLabel}</button>
     </>
+  );
+}
+
+/** 담당자 대리 공고의 "관리 대상 이슈": 대상 등록 때의 주의사항을 기본값으로 채우고 공고별로 고친다. */
+export function IssueField({ value, onChange, base }) {
+  return (
+    <>
+      <label className="f" htmlFor="elder-issue">관리 대상 이슈 <span className="mute2" style={{ fontWeight: 500 }}>(메이트에게 보일 주의사항)</span></label>
+      <textarea id="elder-issue" className="in" style={{ minHeight: 76 }} maxLength={300} value={value || ''} onChange={(e) => onChange(e.target.value)} placeholder="예) 오전에는 기운이 없으셔서 천천히 걸어 주세요" />
+      <div className="mute2" style={{ marginTop: 6 }}>이 공고에만 적용돼요. 병명·연락처·주소는 적지 않아요{base ? ` · 대상 기본 주의사항: ${base}` : ''}</div>
+    </>
+  );
+}
+
+/* ---------- 봉사 요청 직접 적기(수동) · 담당자 대리 수동 등록 ---------- */
+export function WriteNeedManual() {
+  const nav = useNavigate();
+  const [sp] = useSearchParams();
+  const elderId = sp.get('elder');
+  const { me } = useAuth();
+  const { toast } = useUi();
+  const [busy, run] = useBusy();
+  const [elder] = useLoad(() => (elderId ? api(`/org/elders/${elderId}`) : Promise.resolve(null)), [elderId]);
+  if (!me || (elderId && elder === undefined)) return <Screen title="봉사 요청" noTabs><Loading /></Screen>;
+  const who = elder ? `${elder.alias} 님` : null;
+  return (
+    <Screen title={who ? '대신 봉사 요청' : '봉사 요청'} noTabs>
+      {who ? <div className="lock"><Ic n="users" s={18} /><div><b>{who}</b>({elder.dong}) 대신 올려요. 대상 시간은 차감되지 않아요.</div></div>
+        : <div className="mute2" style={{ margin: '-2px 0 6px' }}>칸을 직접 채워 올려요. AI와 대화로 만들려면 <button type="button" className="linkbtn" onClick={() => nav('/write/need', { replace: true })}>AI로 정리하기</button></div>}
+      <PostForm type="NEED" submitLabel={busy ? '올리는 중…' : '공고 등록하기'}
+        init={{ date: addDays(1), startHour: 10, endHour: 12, area: (elder && elder.dong) || me.area || '행복동', categories: elder && elder.needs && elder.needs.length ? elder.needs.slice(0, 1) : [], title: '', detail: '', note: '', ...(elder ? { elderIssue: elder.caution || '' } : {}) }}
+        onSubmit={(f) => run(async () => {
+          if (!f.categories.length) return toast('필요한 도움을 골라 주세요');
+          if (!(f.title || '').trim()) return toast('제목을 적어 주세요');
+          const chk = await post('/ai/filter', { text: `${f.title} ${f.detail || ''}` }, { quiet: true }).catch(() => null);
+          if (chk && chk.level === 'BLOCK') return toast(chk.reason || '이 요청은 올릴 수 없어요');
+          const r = await post('/posts', { type: 'NEED', date: f.date, startHour: f.startHour, endHour: f.endHour, estHours: Math.min(4, f.endHour - f.startHour), area: f.area, categories: f.categories, title: f.title.trim(), detail: f.detail || '', note: f.note,
+            ...(elder ? { elderId: Number(elderId), elderIssue: f.elderIssue || '' } : {}) });
+          toast(who ? `${who} 대신 봉사 요청을 올렸어요` : '공고를 올렸어요');
+          const first = Array.isArray(r) ? r[0] : r;
+          nav(`/post/${first.id}`, { replace: true });
+        })} />
+    </Screen>
   );
 }
 
@@ -116,7 +168,7 @@ export function PostEdit() {
   );
 }
 
-/* ---------- 대화형 도움 요청 공고 (B-02, B-03, C-04) ---------- */
+/* ---------- 대화형 봉사 요청 공고 (B-02, B-03, C-04) ---------- */
 export function WriteNeed() {
   const nav = useNavigate();
   const [sp] = useSearchParams();
@@ -126,19 +178,22 @@ export function WriteNeed() {
   const { toast } = useUi();
   const [elder] = useLoad(() => (elderId ? api(`/org/elders/${elderId}`) : Promise.resolve(null)), [elderId]);
   const who = elderId ? (elder ? elder.alias + ' 님' : '대상') : family ? `${family} 님` : null;
-  const first = elderId ? `${who} 대신 도움 요청 공고를 만들어 볼게요. 어떤 도움이 필요하신가요?` : family ? `${who} 대신 공고를 만들어 볼게요. 어떤 도움이 필요하세요? 최종 수락은 가족이 직접 하세요.` : '어떤 도움이 필요하세요? 편하게 말해 주시면 제가 공고로 정리할게요.';
+  const first = elderId ? `${who} 대신 봉사 요청 공고를 만들어 볼게요. 어떤 도움이 필요하신가요?` : family ? `${who} 대신 공고를 만들어 볼게요. 어떤 도움이 필요하세요? 최종 수락은 가족이 직접 하세요.` : '어떤 도움이 필요하세요? 편하게 말해 주시면 제가 공고로 정리할게요.';
   const [chat, setChat] = useState([]); // {role, text} | {card:'done'|'block', res}
   const [res, setRes] = useState(null);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [posting, run] = useBusy();
   // O2: 담당자 대리 공고 "AI로 정리하기" — 정리한 제목·내용·주의사항은 올릴 때 그대로 쓴다(날짜·시간·장소는 대화로)
-  const [tidyOpen, setTidyOpen] = useState(false);
+  const [tidyOpen, setTidyOpen] = useState(!!elderId); // 2026-11-11: 담당자 대리 요청은 프로토타입 o_write 처럼 적는 칸이 먼저 열려 있다
   const [tidyText, setTidyText] = useState('');
   const [tidyRes, setTidyRes] = useState(null);
   const [tidyFix, setTidyFix] = useState(null);
   const [tidyBusy, setTidyBusy] = useState(false);
   const [chk, setChk] = useState([]); // 빠진 정보 점검에서 답한 것
+  // 2026-11-11: 담당자 대리 공고의 "관리 대상 이슈" — 대상 등록 때의 주의사항이 기본값, 공고별로 고칠 수 있다
+  const [issue, setIssue] = useState(null);
+  const issueVal = issue != null ? issue : (elder && elder.caution) || '';
   const canTidy = !!elderId || (me && me.role === 'ORG');
   const runTidy = async () => {
     if (!tidyText.trim()) return toast('정리할 글을 먼저 적어 주세요');
@@ -189,7 +244,7 @@ export function WriteNeed() {
     const title = family ? `${baseTitle} (${family} 님)` : baseTitle;
     const caution = m.caution;
     const cats = tf.categories && tf.categories.length && !(d.categories || []).length ? tf.categories : d.categories;
-    const p = await post('/posts', { type: 'NEED', date: d.date, startHour: d.startHour, endHour: d.endHour, estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), area: d.area || (elder ? elder.dong : me.area), categories: cats, title, detail: m.detail, note: caution ? `방문 시 주의: ${caution}` : d.note, caution, elderId: elderId ? Number(elderId) : undefined });
+    const p = await post('/posts', { type: 'NEED', date: d.date, startHour: d.startHour, endHour: d.endHour, estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), area: d.area || (elder ? elder.dong : me.area), ...(elderId ? { elderIssue: issueVal } : {}), categories: cats, title, detail: m.detail, note: caution ? `방문 시 주의: ${caution}` : d.note, caution, elderId: elderId ? Number(elderId) : undefined });
     const pf = Array.isArray(p) ? p[0] : p;
     toast(elderId ? `${who} 대신 공고를 올렸어요` : family ? `${who} 이름으로 올렸어요. 최종 수락은 가족이 해요` : '공고를 올렸어요');
     nav(`/post/${pf.id}`, { replace: true });
@@ -197,32 +252,38 @@ export function WriteNeed() {
   let firstAI = true;
   const Bot = () => <span className="bot"><Logo /></span>;
   return (
-    <Screen title={elderId ? `${who} 대신 봉사 요청` : family ? '가족 대신 봉사 요청' : '봉사 요청'} noTabs cls="chatv" bodyRef={bd}>
+    <Screen title={elderId ? '대신 봉사 요청' : family ? '가족 대신 봉사 요청' : '봉사 요청'} noTabs cls="chatv" bodyRef={bd}>
       <div className="chat-wrap">
         <div className="chat-day"><span>AI가 공고를 정리해요 · 작성 도우미 AI</span></div>
         <div className="chat">
           <div className="mrow"><Bot /><div className="mcol"><div className="bot-n">작성 도우미</div><div className="msg ai-m">{first}</div></div></div>
+          {!elderId && !chat.length && <div className="mrow"><Bot /><div className="mcol wide"><SuggestLink style={{ marginTop: 0 }} /></div></div>}
           {canTidy && !chat.length && (
             <div className="mrow"><Bot /><div className="mcol wide">
               {!tidyOpen ? <button className="btn soft sm" style={{ width: 'auto', padding: '0 14px' }} onClick={() => setTidyOpen(true)}><Spk /> 적어 둔 글을 AI로 정리하기</button> : (
                 <div className="tidy-box">
                   <div className="ah2"><Spk />AI로 정리하기<Mod n={1} /></div>
-                  <div className="mute2" style={{ margin: '4px 0 8px' }}>메모처럼 적으면 제목·내용·주의사항으로 다듬어요. 전화번호·주소는 지워요.</div>
+                  <div className="mute2" style={{ margin: '4px 0 8px' }}>{elderId ? '전화로 들은 내용을 편하게 적으면 AI가 공고 칸에 맞게 정리해요. 정리된 내용은 고칠 수 있어요. 전화번호·주소는 지워요.' : '메모처럼 적으면 제목·내용·주의사항으로 다듬어요. 전화번호·주소는 지워요.'}</div>
                   <textarea className="in" value={tidyText} onChange={(e) => setTidyText(e.target.value)} placeholder="예) 어르신 다음 주 화요일 오전 정형외과 재진. 무릎이 안 좋으셔서 천천히 걸어야 함. 택시 같이 타 줄 분" aria-label="정리할 글" />
-                  <button className="btn sm" style={{ marginTop: 8 }} disabled={tidyBusy} onClick={runTidy}>{tidyBusy ? '정리하는 중…' : 'AI로 정리하기'}</button>
+                  <button className="btn sm" style={{ marginTop: 8 }} disabled={tidyBusy} onClick={runTidy}>{tidyBusy ? '정리하는 중…' : elderId ? 'AI로 공고 정리하기' : 'AI로 정리하기'}</button>
                   {tidyRes && (
                     <div className="ai" style={{ marginTop: 10 }}>
                       <div className="ah"><Spk />이렇게 정리했어요</div>
                       <label className="f" style={{ marginTop: 0 }}>제목</label><input className="in" value={tidyRes.title || ''} onChange={(e) => setTidyRes({ ...tidyRes, title: e.target.value })} />
                       <label className="f">내용</label><textarea className="in" value={tidyRes.detail || ''} onChange={(e) => setTidyRes({ ...tidyRes, detail: e.target.value })} />
-                      <label className="f">주의사항</label><input className="in" value={tidyRes.caution || ''} onChange={(e) => setTidyRes({ ...tidyRes, caution: e.target.value })} placeholder="없으면 비워 두세요" />
+                      <label className="f">{elderId ? '관리 대상 이슈 (주의사항)' : '주의사항'}</label><input className="in" value={tidyRes.caution || ''} onChange={(e) => setTidyRes({ ...tidyRes, caution: e.target.value })} placeholder="없으면 비워 두세요" />
                       {(tidyRes.piiRemoved || []).length > 0 && <div className="mute2" style={{ marginTop: 6 }}>개인정보({tidyRes.piiRemoved.map((x) => ({ phone: '전화번호', account: '계좌', address: '주소' }[x] || x)).join('·')})를 지웠어요</div>}
                       <RuleNote source={tidyRes.source} />
-                      <button className="btn sm" style={{ marginTop: 10 }} onClick={() => { setTidyFix(tidyRes); say(tidyText); }}>이 내용으로 공고 만들기 ›</button>
+                      <button className="btn sm" style={{ marginTop: 10 }} onClick={() => { setTidyFix(tidyRes); if (elderId && tidyRes.caution) setIssue(tidyRes.caution); say(tidyText); }}>이 내용으로 공고 만들기 ›</button>
                     </div>
                   )}
                 </div>
               )}
+            </div></div>
+          )}
+          {elderId && elder && (
+            <div className="mrow"><Bot /><div className="mcol wide"><div className="tidy-box"><IssueField value={issueVal} onChange={setIssue} base={elder.caution} /></div>
+              {!chat.length && <button className="btn ghost sm" style={{ width: 'auto', padding: '0 14px', marginTop: 8 }} onClick={() => nav(`/write/need/manual?elder=${elderId}`, { replace: true })}>AI 없이 직접 적기 (수동)</button>}
             </div></div>
           )}
           {chat.map((m, i) => {
@@ -263,7 +324,7 @@ function DraftCard({ r, elderId, onReset, onPost, posting, check }) {
   const d = r.draft;
   const df = r.difficulty || {};
   const w = lvWeight(df.level, df.weight);
-  const json = JSON.stringify({ type: '도움 요청 공고', date: d.date, time_range: [hh(d.startHour), hh(d.endHour)], area: d.area, categories: d.categories, title: d.title, detail: d.detail, caution: d.caution, difficulty: df.level, expected_hours: d.estHours, filter: r.filter && r.filter.level }, null, 1);
+  const json = JSON.stringify({ type: '봉사 요청 공고', date: d.date, time_range: [hh(d.startHour), hh(d.endHour)], area: d.area, categories: d.categories, title: d.title, detail: d.detail, caution: d.caution, difficulty: df.level, expected_hours: d.estHours, filter: r.filter && r.filter.level }, null, 1);
   return (
     <>
       <div className="ai">

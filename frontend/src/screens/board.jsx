@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
 import { Ic, Spk, Mod, TBar, Cats, PostCard, ReqRow, Avatar, Stars, Loading, Empty, RuleNote, useLoad, postWho, postCats } from '../ui/bits.jsx';
@@ -11,6 +11,7 @@ import { useProfileSheet } from './request.jsx';
 import { useTopCats, sortByTop, RegularButton } from '../ui/extras.jsx';
 import { MatchWhy, EasyListen } from '../ui/assist.jsx';
 import { FixTips } from './assist.jsx';
+import { DIc, useMode } from '../ui/proto.jsx';
 
 const DATES = [['all', '전체 날짜'], ['today', '오늘'], ['week', '이번 주'], ['next', '다음 주']];
 const SLOTS = [['all', '시간대'], ['am', '오전'], ['pm', '오후'], ['eve', '저녁']];
@@ -25,7 +26,17 @@ export function Board() {
   const { sheet, closeSheet } = useUi();
   const [sp, setSp] = useSearchParams();
   const elderId = sp.get('elder');
-  const type = elderId ? 'OFFER' : sp.get('type') || 'OFFER';
+  const { mode, setMode } = useMode();
+  const isUser = !!(me && me.role === 'USER');
+  // 2026-11-11: 주소에 type 이 없으면 헤더 모드를 따른다(도움 받기 → 도움 가능 공고, 봉사하기 → 봉사 요청 공고)
+  const type = elderId ? 'OFFER' : sp.get('type') || (isUser && mode === 'give' ? 'NEED' : 'OFFER');
+  // 프로토타입 render(): 공고 탭에서는 보는 공고 종류에 따라 화면 색이 바뀐다
+  useEffect(() => {
+    if (!isUser || elderId) return undefined;
+    document.body.dataset.mode = type === 'OFFER' ? 'recv' : 'give';
+    return () => { document.body.dataset.mode = mode; };
+  }, [type, isUser, elderId, mode]);
+  const pickType = (t) => { setSp({ type: t }, { replace: true }); setCat('전체'); if (isUser) setMode(t === 'OFFER' ? 'recv' : 'give'); };
   const [cat, setCat] = useState(sp.get('cat') || '전체');
   const top = useTopCats();
   const [sort, setSort] = useState('near');
@@ -44,7 +55,7 @@ export function Board() {
     shown = shown.filter((p) => p.date >= a && p.date < b);
   }
   if (slot !== 'all') shown = shown.filter((p) => (slot === 'am' ? p.startHour < 12 : slot === 'pm' ? p.endHour > 12 && p.startHour < 18 : p.endHour > 18));
-  // U3: 도움 받고 싶을 때(봉사 가능 공고)는 "내가 자주 받는 도움" 공고가 먼저, 칩도 그 순서로
+  // U3: 도움 받고 싶을 때(도움 가능 공고)는 "내가 자주 받는 도움" 공고가 먼저, 칩도 그 순서로
   const favSet = new Set(((top && top.top) || []).map((t) => t.category));
   if (type === 'OFFER') shown = sortByTop(shown, top);
   const catOrder = type === 'OFFER' && top && top.order ? [...top.order.filter((c) => favSet.has(c)), ...CATS.map((c) => c.k).filter((c) => !favSet.has(c))] : CATS.map((c) => c.k);
@@ -58,11 +69,11 @@ export function Board() {
   return (
     <Screen title={elderId ? `${eName} 대신 요청` : '공고'} tab={me && me.role === 'ORG' ? '/o/elders' : '/board'} noTabs={!!elderId} back={elderId ? true : false}>
       {elderId ? (
-        <><div className="lock"><Ic n="users" s={18} /><div><b>{eName}</b>({elder ? elder.dong : ''}) 대신 요청할 봉사 가능 공고를 골라요. 대상 시간은 차감되지 않아요.</div></div><div style={{ height: 12 }} /></>
+        <><div className="lock"><Ic n="users" s={18} /><div><b>{eName}</b>({elder ? elder.dong : ''}) 대신 요청할 도움 가능 공고를 골라요. 대상 시간은 차감되지 않아요.</div></div><div style={{ height: 12 }} /></>
       ) : (
-        <div className="seg2">
-          <button className={type === 'OFFER' ? 'on' : ''} onClick={() => { setSp({ type: 'OFFER' }, { replace: true }); setCat('전체'); }}>봉사 가능 공고<br /><span style={{ fontSize: 12, fontWeight: 500 }}>도움 받고 싶을 때</span></button>
-          <button className={type === 'NEED' ? 'on' : ''} onClick={() => { setSp({ type: 'NEED' }, { replace: true }); setCat('전체'); }}>도움 요청 공고<br /><span style={{ fontSize: 12, fontWeight: 500 }}>봉사하고 싶을 때</span></button>
+        <div className="bbtn" role="tablist" aria-label="공고 종류">
+          <button role="tab" aria-selected={type === 'OFFER'} className={type === 'OFFER' ? 'on' : ''} onClick={() => pickType('OFFER')}><DIc k="recv" size={44} /><b>도움 받기</b><em>도움 가능 공고</em></button>
+          <button role="tab" aria-selected={type === 'NEED'} className={type === 'NEED' ? 'on' : ''} onClick={() => pickType('NEED')}><DIc k="offer" size={44} /><b>봉사하기</b><em>봉사 요청 공고</em></button>
         </div>
       )}
       <div className="row" style={{ gap: 6, marginBottom: 8 }}>
@@ -77,10 +88,7 @@ export function Board() {
       <div className="sec-t"><span>공고 <span style={{ color: 'var(--brand)' }}>{shown.length}</span>개</span></div>
       {list === undefined ? <Loading /> : shown.length ? shown.map((p) => <PostCard key={p.id} p={p} to={elderId ? `/post/${p.id}?elder=${elderId}` : undefined} />) : <Empty>조건에 맞는 공고가 없어요</Empty>}
       {!elderId && me && me.role === 'USER' && (
-        <div className="dual-fab">
-          <button className="need" onClick={() => nav('/write/need')}><Ic n="chat" s={20} /><span>봉사 요청<small>도움이 필요해요</small></span></button>
-          <button className="offer" onClick={() => nav('/write/offer')}><Ic n="hand" s={20} /><span>도움 가능<small>도울 수 있어요</small></span></button>
-        </div>
+        <button className="fab" onClick={() => nav('/write')}><Ic n="plus" s={20} /> 공고 올리기</button>
       )}
     </Screen>
   );
@@ -119,7 +127,7 @@ export function PostDetail() {
     nav(`/req/new?post=${p.id}${elderId ? `&elder=${elderId}` : ''}`);
   };
   return (
-    <Screen title={offer ? '봉사 가능 공고' : '도움 요청 공고'} noTabs>
+    <Screen title={offer ? '도움 가능 공고' : '봉사 요청 공고'} noTabs>
       <div className="row" style={{ gap: 12 }}>
         <Avatar name={w.name} s={56} elder={w.elder} />
         <div className="grow"><div className="b" style={{ fontSize: 18, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>{w.name}{w.badge}</div><div className="mute2">{w.sub}</div></div>

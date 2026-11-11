@@ -3,6 +3,7 @@ import { Children, useEffect, useRef, useState } from 'react';
 import { api, del, post } from '../api.js';
 import { useLoad } from './bits.jsx';
 import { useUi } from './ctx.jsx';
+import { useMode } from './proto.jsx';
 import '../styles/meeting.css';
 
 /** 가로 슬라이드: 스크롤 스냅 + 손가락으로 넘기기 + 점 표시. 점을 누르면 그 카드로 간다. */
@@ -36,12 +37,10 @@ export function Slider({ children, label }) {
   );
 }
 
-/** U6: 홈에서 마지막으로 고른 쪽('get' 도움 받기 | 'give' 봉사하기). 저장이 막혀도 동작한다. */
-const MODE_KEY = 'ts-home-mode';
+/** U6 → 2026-11-11: 홈 세그먼트 대신 헤더의 전역 모드(ui/proto.jsx useMode). 예전 호출부 호환용('get' | 'give'). */
 export function useHomeMode() {
-  const [mode, setMode] = useState(() => { try { return localStorage.getItem(MODE_KEY) === 'give' ? 'give' : 'get'; } catch { return 'get'; } });
-  const set = (m) => { setMode(m); try { localStorage.setItem(MODE_KEY, m); } catch { /* 무시 */ } };
-  return [mode, set];
+  const { mode, setMode } = useMode();
+  return [mode === 'give' ? 'give' : 'get', (m) => setMode(m === 'give' ? 'give' : 'recv')];
 }
 
 /** U3: 내가 자주 받는 도움 {top:[{category,count}], order:[...]} — 실패하면 빈 값 */

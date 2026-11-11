@@ -24,6 +24,7 @@ public class InsightController {
     private final CareReportService care;
     private final PersonalInsightService personal;
     private final AnalyticsService analytics;
+    @org.springframework.beans.factory.annotation.Autowired private com.timesavings.repo.CategorySuggestionRepo suggestions;
 
     public InsightController(CareReportService care, PersonalInsightService personal, AnalyticsService analytics) {
         this.care = care; this.personal = personal; this.analytics = analytics;
@@ -55,6 +56,20 @@ public class InsightController {
     /** refresh=true 면 1시간 캐시를 무시하고 다시 분석한다("다시 분석" 버튼). */
     @GetMapping("/admin/insights")
     public Map<String, Object> adminInsights(@RequestParam(required = false, defaultValue = "false") boolean refresh) {
-        return analytics.insights(refresh);
+        Map<String, Object> out = new java.util.LinkedHashMap<>(analytics.insights(refresh));
+        // 2026-11-11: 사용자·담당자가 직접 건의한 카테고리(같은 이름 묶음 건수)를 "새 카테고리 후보" 옆에 보여 준다
+        Map<String, int[]> by = new java.util.LinkedHashMap<>();
+        Map<String, String> names = new java.util.HashMap<>();
+        for (var s : suggestions.findAll()) {
+            int[] c = by.computeIfAbsent(s.nameKey, k -> new int[2]);
+            c[0]++;
+            if (s.status.equals("RECEIVED") || s.status.equals("REVIEWING")) c[1]++;
+            names.putIfAbsent(s.nameKey, s.name);
+        }
+        List<Map<String, Object>> sug = new java.util.ArrayList<>();
+        by.forEach((k, c) -> sug.add(com.timesavings.service.Views.map("key", k, "name", names.get(k), "count", c[0], "waiting", c[1])));
+        sug.sort(java.util.Comparator.<Map<String, Object>>comparingInt(m -> -(int) m.get("count")));
+        out.put("categorySuggestions", sug);
+        return out;
     }
 }

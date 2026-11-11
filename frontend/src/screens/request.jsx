@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
+import { hmTxt, useMode } from '../ui/proto.jsx';
 import { Ic, Spk, Mod, TBar, CatIc, Avatar, Stars, StTag, FlowBar, Loading, Empty, AiLoading, RuleNote, QrSvg, Upload, useLoad, useBusy, postWho, postCats, diffText } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
@@ -124,7 +125,7 @@ export function ReqForm() {
   });
   const dates = Array.from({ length: 7 }, (_, i) => addDays(i + 1));
   return (
-    <Screen title={isProp ? '봉사 제안' : kind === 'REGULAR' ? '단골에게 요청' : '도움 요청'} noTabs>
+    <Screen title={isProp ? '봉사 제안' : kind === 'REGULAR' ? '단골에게 요청' : '봉사 요청 보내기'} noTabs>
       <div className="row" style={{ gap: 10 }}>
         <Avatar name={w.name} elder={w.elder} />
         <div className="grow"><div className="b">{w.name}{kind === 'REGULAR' && <> <span className="badge">단골</span></>}</div><div className="mute2">{p ? `${dlabel(p.date)} ${hh(p.startHour)}~${hh(p.endHour)} 공고` : '공고 없이 바로 요청'}</div></div>
@@ -328,6 +329,17 @@ function RateSheetOrg({ r, onDone }) {
   );
 }
 
+/** 요청 상세에서는 헤더 모드와 상관없이 이 요청의 쪽(받기=주황, 하기=초록)으로 화면 색을 맞춘다. 나가면 헤더 모드로 되돌린다. */
+function ModeTint({ side }) {
+  const { mode } = useMode();
+  useEffect(() => {
+    if (!side) return undefined;
+    document.body.dataset.mode = side;
+    return () => { document.body.dataset.mode = mode; };
+  }, [side, mode]);
+  return null;
+}
+
 export function RequestDetail() {
   const { id } = useParams();
   const nav = useNavigate();
@@ -480,9 +492,23 @@ export function RequestDetail() {
   }
 
   const showIntro = (st === 'VOL_ACCEPTED' && recv) || mgr;
-  const title = mgr ? `${toName} · ${KIND_LABEL[r.kind] || '요청'}` : r.kind === 'PROPOSAL' ? '봉사 제안' : r.kind === 'REGULAR' ? '단골 요청' : '도움 요청';
+  // 2026-11-11: 요청 상세 제목·색·머리 배너가 도움 받기 / 봉사하기에 따라 바뀐다(프로토타입 r_detail 패치)
+  const mineSide = mgr ? null : iVol ? 'give' : 'recv';
+  const title = mgr ? (r.kind === 'PROPOSAL' ? '봉사 제안' : r.kind === 'REGULAR' ? '단골 요청' : '요청 상세') : mineSide === 'recv' ? '도움 받기' : '봉사하기';
+  const otherName = iVol ? (r.elder ? r.elder.displayName : r.recipient ? `${r.recipient.name} 님` : '') : v.name ? `${v.name} 님` : '';
+  const pastSt = ['LOG_SUBMITTED', 'DONE', 'CHECKED_OUT'].includes(st);
+  const banSt = { CONFIRMED: '확정', IN_PROGRESS: '활동 중', VOL_ACCEPTED: '최종 확인 대기', SENT: '답 기다리는 중', CHECKED_OUT: '활동 끝', LOG_SUBMITTED: '활동 끝', DONE: '완료' }[st] || '';
   return (
-    <Screen title={title} noTabs bodyRef={bodyRef}>
+    <Screen title={title} noTabs bodyRef={bodyRef} cls={mineSide ? `rd-${mineSide}` : ''}>
+      <ModeTint side={mineSide} />
+      {mineSide && banSt && (
+        <div className={`rban ${mineSide}`}>
+          <div className="rb-l"><span className="rb-chip">{mineSide === 'recv' ? '도움 받는 일정' : '봉사 일정'}</span><span className="rb-st">{banSt}</span></div>
+          <div className="rb-t"><b>{otherName}</b>{mineSide === 'recv' ? '이' : '을'}<br />{mineSide === 'recv' ? (pastSt ? '나를 도와줬어요' : '나를 도와주러 와요') : (pastSt ? '도왔어요' : '도우러 가요')}</div>
+          <div className="rb-row"><span>{dlabel(r.date)} {hh(r.startHour)}</span><span>내 시간 {mineSide === 'recv' ? (r.elder ? '차감 없음' : `−${hmTxt(r.hours)}`) : `+${hmTxt(r.estEarn)}`}</span></div>
+          <div className="rb-tip">{mineSide === 'recv' ? <><Ic n="shield" s={16} /> 만나면 내 QR을 보여주세요 · 집 정리·준비물 미리 챙기기</> : <><Ic n="pin" s={16} /> 도착하면 상대 QR을 찍어 시작해요 · 활동 후 일지 쓰기</>}</div>
+        </div>
+      )}
       <div className="between"><StTag st={st} /><span className="mute2">{mgr ? '담당자가 대신 진행' : iVol ? '내가 봉사' : '내가 도움 받음'}{r.leftText && ['SENT', 'VOL_ACCEPTED'].includes(st) && <> · <b style={{ color: '#E5484D' }}>{r.leftText} 남음</b></>}</span></div>
       <FlowBar r={r} />
       {showIntro && v.name && (

@@ -49,6 +49,10 @@ public class EventService {
                 "preview", e.ogTitle == null && e.ogImage == null ? null : Views.map("title", e.ogTitle, "image", e.ogImage, "description", e.ogDesc),
                 "status", e.status, "myApplied", mine, "full", e.capacity > 0 && list.size() >= e.capacity,
                 "owner", owner(e, viewer), "createdAt", e.createdAt == null ? null : e.createdAt.toString());
+        String area = areaOf(e, orgName);
+        m.put("area", area);
+        m.put("near", viewer != null && viewer.area != null && viewer.area.equals(area));
+        m.put("distanceKm", area == null || viewer == null ? null : Views.distanceKm(viewer.area, area, e.id == null ? 0 : e.id));
         if (owner(e, viewer)) {
             List<Map<String, Object>> who = new ArrayList<>();
             for (EventApplication a : list)
@@ -56,6 +60,29 @@ public class EventService {
             m.put("applicants", who);
         }
         return m;
+    }
+
+    private static final java.util.regex.Pattern DONG = java.util.regex.Pattern.compile("([가-힣]{1,6}동)(?![가-힣])");
+
+    /** 행사 지역(동): 기관 이름 → 기관 주소 → 행사 장소 순으로 처음 나오는 "○○동". 없으면 null(지역 미정). */
+    String areaOf(OrgEvent e, String orgName) {
+        String addr = e.orgId == null ? null : orgs.findById(e.orgId).map(o -> o.address).orElse(null);
+        for (String t : new String[]{orgName, addr, e.place}) {
+            if (t == null) continue;
+            java.util.regex.Matcher m = DONG.matcher(t);
+            if (m.find()) return m.group(1);
+        }
+        return null;
+    }
+
+    /** 근처 지역 기준 목록: area 를 주면 그 동만, 아니면 내 동네 → 가까운 동 → 날짜 순. */
+    public List<Map<String, Object>> list(User viewer, String area) {
+        List<Map<String, Object>> all = list(viewer);
+        if (area != null && !area.isBlank()) return all.stream().filter(m -> area.equals(m.get("area"))).toList();
+        List<Map<String, Object>> out = new ArrayList<>(all);
+        out.sort(Comparator.<Map<String, Object>>comparingInt(m -> Boolean.TRUE.equals(m.get("near")) ? 0 : 1)
+                .thenComparingDouble(m -> m.get("distanceKm") == null ? 99 : ((Number) m.get("distanceKm")).doubleValue()));
+        return out; // 정렬이 안정적이라 같은 거리 안에서는 날짜 순이 유지된다
     }
 
     /** 사용자 목록: 열린 소식, 날짜가 지나지 않은 것 먼저(날짜 순). */

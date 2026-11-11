@@ -7,31 +7,42 @@ import { api, post } from '../api.js';
 import { fmt, dshort, ACTIVE_ST, PAST_ST } from '../lib/format.js';
 import { needsMe } from './home.jsx';
 import { MonthNote } from '../ui/ActivityAi.jsx'; // 7.13 B-6
+import { DIc, CalIcon, HmBig, hmTxt, useMode } from '../ui/proto.jsx';
 
 /* ---------- 내 활동 (B-45) ---------- */
 export function Act() {
   const [sp, setSp] = useSearchParams();
   const seg = sp.get('seg') || 'need';
+  const { mode, setMode, give } = useMode();
   const [reqs] = useLoad(() => api('/requests?box=all'), []);
   const [posts] = useLoad(() => api('/posts/mine'), []);
-  const list = reqs || [];
+  const all = reqs || [];
+  // 2026-11-11: 헤더 모드(도움 받기 / 봉사하기)에 맞는 쪽만 보여 준다. 여기서 바꿔도 헤더가 같이 바뀐다.
+  const side = (r) => (r.myRole === 'VOLUNTEER') === give;
+  const list = all.filter(side);
+  const cnt = (g) => all.filter((r) => (r.myRole === 'VOLUNTEER') === g && needsMe(r)).length;
   const need = list.filter(needsMe);
   const going = list.filter((r) => ACTIVE_ST.includes(r.status) && !need.includes(r));
   const past = list.filter((r) => PAST_ST.includes(r.status));
-  const mine = posts || [];
+  const mine = (posts || []).filter((p) => (p.type === 'OFFER') === give);
   const segs = [['need', '응답 필요', need.length], ['going', '진행 중', going.length], ['posts', '내 공고', mine.length], ['past', '지난 활동', past.length]];
   const done = past.filter((r) => r.status === 'DONE');
   const body = seg === 'need' ? need : seg === 'going' ? going : seg === 'past' ? past : null;
   return (
     <Screen title="내 활동" back={false}>
+      <div className="bbtn" role="tablist" aria-label="내 활동 보기">
+        <button role="tab" aria-selected={!give} className={!give ? 'on' : ''} onClick={() => setMode('recv')}><DIc k="recv" size={44} /><b>도움받기</b><em>내가 받는 도움{cnt(false) ? ` · 응답 ${cnt(false)}` : ''}</em></button>
+        <button role="tab" aria-selected={give} className={give ? 'on' : ''} onClick={() => setMode('give')}><DIc k="offer" size={44} /><b>봉사하기</b><em>내가 하는 봉사{cnt(true) ? ` · 응답 ${cnt(true)}` : ''}</em></button>
+      </div>
       <div className="chips" style={{ marginBottom: 6 }}>{segs.map(([k, t, n]) => <button key={k} className={'chip ' + (seg === k ? 'on' : '')} onClick={() => setSp({ seg: k }, { replace: true })}>{t} {n}</button>)}</div>
-      {reqs === undefined ? <Loading /> : body ? (body.length ? body.map((r) => <ReqRow key={r.id} r={r} />) : <Empty>없어요</Empty>) : (mine.length ? mine.map((p) => <PostCard key={p.id} p={{ ...p, mine: true }} />) : <Empty>올린 공고가 없어요</Empty>)}
+      {reqs === undefined ? <Loading /> : body ? (body.length ? body.map((r) => <ReqRow key={r.id} r={r} />) : <Empty>{give ? '봉사하기' : '도움받기'}에는 없어요</Empty>) : (mine.length ? mine.map((p) => <PostCard key={p.id} p={{ ...p, mine: true }} />) : <Empty>올린 {give ? '도움 가능' : '봉사 요청'} 공고가 없어요</Empty>)}
       {seg === 'past' && done.length > 0 && (
         <div className="card" style={{ marginTop: 10 }}>
           <div className="b">활동 결산</div>
-          <div className="stat2" style={{ marginTop: 10 }}><div><b>{done.filter((r) => r.myRole === 'VOLUNTEER').length}회</b><span>봉사</span></div><div><b>{done.filter((r) => r.myRole !== 'VOLUNTEER').length}회</b><span>도움 받음</span></div></div>
+          <div className="stat2" style={{ marginTop: 10 }}><div><b>{done.length}회</b><span>{give ? '봉사' : '도움 받음'}</span></div><div><b>{fmt(done.reduce((x, r) => x + (Number(r.hours) || 0), 0))}시간</b><span>{give ? '봉사한 시간' : '받은 시간'}</span></div></div>
         </div>
       )}
+      <span hidden>{mode}</span>
     </Screen>
   );
 }
@@ -48,9 +59,9 @@ function monthBars(rows) {
         const last = i === rows.length - 1;
         return (
           <g key={m}>
-            <rect x={cx - bw - 2} y={by - ha} width={bw} height={ha} rx="5" fill="#3D6DF2" />
+            <rect x={cx - bw - 2} y={by - ha} width={bw} height={ha} rx="5" fill="#5B8DEF" />
             <rect x={cx + 2} y={by - hb} width={bw} height={hb} rx="5" fill="#F59E4B" />
-            <text x={cx - bw / 2 - 2} y={by - ha - 5} textAnchor="middle" fontSize="10" fill="#3D6DF2" fontWeight="700">{fmt(a)}</text>
+            <text x={cx - bw / 2 - 2} y={by - ha - 5} textAnchor="middle" fontSize="10" fill="#5B8DEF" fontWeight="700">{fmt(a)}</text>
             <text x={cx + bw / 2 + 2} y={by - hb - 5} textAnchor="middle" fontSize="10" fill="#C46A17" fontWeight="700">{fmt(b)}</text>
             <text x={cx} y={H - 6} textAnchor="middle" fontSize="11.5" fill={last ? '#1B1D22' : '#687080'} fontWeight={last ? 700 : 400}>{m}</text>
           </g>
@@ -86,7 +97,7 @@ export function Bank() {
     const row = (
       <div key={l.id}>{head}
         <div className="pass-r"><div className="pc"><b>{l.label || LT[l.type]}</b><span>{LT[l.type] || l.type}{l.baseHours ? ` · ${l.baseHours}시간 × ${Number(l.weight || 1).toFixed(1)}` : ''}</span></div>
-          <div className="pa"><b className={v > 0 ? 'p-in' : 'p-out'}>{isHold ? '' : v > 0 ? '+' : '−'}{fmt(Math.abs(v))}</b><span>{isHold ? '보류' : `잔액 ${fmt(bal)}`}</span></div></div>
+          <div className="pa"><b className={v > 0 ? 'p-in' : 'p-out'}>{isHold ? '' : v > 0 ? '+' : '−'}{hmTxt(v)}</b><span>{isHold ? '보류' : `잔액 ${hmTxt(bal)}`}</span></div></div>
       </div>
     );
     if (!isHold) bal -= v;
@@ -94,26 +105,25 @@ export function Bank() {
   });
   return (
     <Screen title="시간 통장" back={false}>
-      <div className="kpis" style={{ marginBottom: 10 }}>
-        <div><b>{fmt(bk.totalEarned)}</b><span>전체 적립</span></div>
-        <div><b>{fmt(bk.totalUsed)}</b><span>전체 사용</span></div>
-        <div><b style={{ color: 'var(--brand)' }}>{fmt(bk.balance)}</b><span>남은 시간</span></div>
+      <div className="pb">
+        <div className="pb-head"><span className="pb-mark"><CalIcon s={18} /></span><b>시간 적금 통장</b><span className="pb-no">{me ? `TS-${String(me.id).padStart(6, '0')}` : ''}</span></div>
+        <div className="pb-body" style={{ paddingBottom: 12 }}>
+          <div className="pb-who"><span>예금주</span><b>{me ? me.name : ''}</b></div>
+          <div className="pb-l">쓸 수 있는 시간</div><div className="pb-n"><HmBig v={bk.available ?? bk.balance} /></div>
+          <div className="pb-note">적립 한도 없음 · 가족에게 선물할 수 있어요{Number(bk.hold) > 0 ? ` · 보류 ${hmTxt(bk.hold)}` : ''}</div>
+        </div>
+        <div className="pb-acts pb3"><button onClick={() => nav('/gift')}>가족에게 선물</button><button onClick={() => nav('/planner')}>플래너</button><button onClick={rule}>이용 규칙</button></div>
       </div>
-      <div className="hero">
-        <div className="bk-top"><span className="bk-name">시간 통장</span><span className="bk-no">{me ? `TS-${String(me.id).padStart(6, '0')}` : ''}</span></div>
-        <div className="lbl">쓸 수 있는 시간</div><div className="num">{fmt(bk.available ?? bk.balance)}<small>시간</small></div>
-        <div className="sub">잔액 {fmt(bk.balance)}시간 중 보류 {fmt(bk.hold)}시간 (확정된 요청) · 직접 적립 {fmt(bk.earnedSelf)}시간 · 선물받음 {fmt(bk.giftReceived)}시간</div>
-        <div className="acts"><button onClick={() => nav('/gift')}>가족에게 선물</button><button onClick={rule}>이용 규칙</button></div>
-      </div>
+      <div className="stat2" style={{ marginTop: 12 }}><div><b>{hmTxt(bk.totalEarned)}</b><span>전체 적립 시간</span></div><div><b>{hmTxt(bk.totalUsed)}</b><span>전체 사용 시간</span></div></div>
+      <div className="mute2" style={{ margin: '8px 2px 0' }}>잔액 {hmTxt(bk.balance)} · 직접 적립 {hmTxt(bk.earnedSelf)} · 선물받음 {hmTxt(bk.giftReceived)}</div>
       {bk.canUseSelf === false && <div className="notice" style={{ marginTop: 12 }}>직접 적립한 시간이 10시간이 되면 도움을 받을 때 쓸 수 있어요. 선물받은 시간은 바로 쓸 수 있어요.</div>}
-      <div className="card item click" style={{ marginTop: 12 }} role="button" tabIndex={0} onClick={() => nav('/bank/plan')}><div className="ic"><Ic n="cal" s={20} /></div><div className="grow"><div className="b">내 봉사 플랜</div><div className="mute2">남은 시간으로 얼마나 도움을 받을 수 있는지 계산해요</div></div>›</div>
       <div className="card" style={{ marginTop: 12 }}>
-        <div className="between"><span className="b">월별 결산</span><span className="legend"><i style={{ background: '#3D6DF2' }} />적립<i style={{ background: '#F59E4B', marginLeft: 8 }} />사용</span></div>
+        <div className="between"><span className="b">월별 결산</span><span className="legend"><i style={{ background: '#5B8DEF' }} />적립<i style={{ background: '#F59E4B', marginLeft: 8 }} />사용</span></div>
         {(bk.monthly || []).length ? monthBars(bk.monthly.slice(-4).map((m) => [monthLabel(m.month), Number(m.in) || 0, Number(m.out) || 0])) : <Empty>아직 결산할 내역이 없어요</Empty>}
         <div className="between mute2" style={{ marginTop: 4 }}><span>이번 달 적립 +{fmt(bk.monthIn)}</span><span>이번 달 사용 −{fmt(bk.monthOut)}</span></div>
         <MonthNote />
       </div>
-      <div className="sec-t">내역</div>
+      <div className="sec-t"><span>월 내역</span></div>
       {entries.length ? <div className="pass">{rows}</div> : <Empty>아직 내역이 없어요</Empty>}
     </Screen>
   );

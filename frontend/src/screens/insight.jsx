@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
-import { Ic, Spk, Mod, Loading, Empty, RuleNote, CatChip, useLoad, hbars } from '../ui/bits.jsx';
+import { Ic, Spk, Mod, Loading, Empty, RuleNote, CatChip, CatIc, useLoad, hbars } from '../ui/bits.jsx';
 import { api, post } from '../api.js';
 import { CATS, SHORT, fmt, dlabel, hh } from '../lib/format.js';
 import { ReportView } from './my.jsx';
@@ -36,18 +36,18 @@ export function RecentReport({ subject, showMonthly = true, empty = '아직 기�
     <>
       <SignalCard s={d.signal} who={d.subjectLabel} />
       <div className="ai" style={d.signal && d.signal.flagged ? { marginTop: 10 } : undefined}>
-        <div className="ah"><Spk />인수인계 요약<Mod n={5} /></div>
+        <div className="ah"><Spk />최근 기록 요약<Mod n={5} /></div>
         <div className="small">{h.text}</div>
         {(h.points || []).length > 0 && <><div className="b" style={{ fontSize: 13.5, marginTop: 10 }}>다음에 챙길 것</div><ul className="small">{h.points.map((p, i) => <li key={i}>{p}</li>)}</ul></>}
         <div className="mute2" style={{ marginTop: 8 }}>최근 {h.count ?? 0}건을 묶어 정리했어요. 진단·건강 판단은 하지 않고, 병원 이야기는 해당 날짜 메모에서 직접 확인해 주세요.</div>
         <RuleNote source={h.source} />
       </div>
-      <div className="sec-t"><span>최근 활동</span><span className="mute2" style={{ fontWeight: 500 }}>최신순 · {d.total ?? items.length}건</span></div>
+      <div className="sec-t"><span>건별 기록</span><span className="mute2" style={{ fontWeight: 500 }}>최신순 · {d.total ?? items.length}건</span></div>
       {items.length ? items.slice(0, open).map((it) => (
-        <div key={it.requestId} className="card" style={{ marginTop: 8 }}>
-          <div className="between"><CatChip k={it.category} /><span className="mute2">{dlabel(it.date)} {hh(it.startHour)} · {fmt(it.hours)}시간</span></div>
-          <div className="mute2" style={{ marginTop: 6 }}>봉사자 {it.volunteer}{it.status === 'LOG_SUBMITTED' ? ' · 확인 대기' : ''}</div>
-          {it.logText && <div className="small" style={{ marginTop: 6, whiteSpace: 'pre-wrap' }}>{it.logText}</div>}
+        <div key={it.requestId} className="hist">
+          <div className="between"><span className="row" style={{ gap: 8 }}><CatIc k={it.category} size={30} /><b>{dlabel(it.date)} · {SHORT[it.category] || it.category}</b></span><span className="mute2">{it.volunteer}{it.status === 'LOG_SUBMITTED' ? ' · 확인 대기' : ''}</span></div>
+          <div className="mute2" style={{ marginTop: 4 }}>{hh(it.startHour)} · {fmt(it.hours)}시간</div>
+          {it.logText && <ul className="small">{String(it.logText).split(/\n+/).map((x) => x.replace(/^[-·•\s]+/, '').trim()).filter(Boolean).map((x, i) => <li key={i}>{x}</li>)}</ul>}
           <CareNoteBox n={it.careNote} style={{ marginTop: 8 }} />
           <CareMemo text={it.careMemo} style={{ marginTop: 8 }} />
           <button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => nav(subject.startsWith('elder:') ? `/o/reqs/${it.requestId}` : `/req/${it.requestId}`)} hidden={subject.startsWith('family:')}>요청 상세 보기</button>
@@ -67,7 +67,7 @@ export function RecentReport({ subject, showMonthly = true, empty = '아직 기�
 /* ---------- 마이 → 내 리포트 ---------- */
 export function MyReport() {
   return (
-    <Screen title="내가 받은 도움 리포트" noTabs>
+    <Screen title="받은 도움 기록" noTabs>
       <p className="su-p" style={{ marginTop: 0 }}>봉사자가 남긴 일지와 전달 메모를 최근 순서로 모았어요. 나와 공유에 동의한 가족만 볼 수 있어요.</p>
       <RecentReport subject="me" />
     </Screen>
@@ -78,7 +78,7 @@ export function MyReport() {
 export function FamRecentReport() {
   const { userId } = useParams();
   return (
-    <Screen title="가족 리포트" noTabs>
+    <Screen title="가족 최근 기록" noTabs>
       <RecentReport subject={`family:${userId}`} />
     </Screen>
   );

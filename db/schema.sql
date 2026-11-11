@@ -3,6 +3,7 @@
 -- 다시 만들기: backend 에서 SPRING_PROFILES_ACTIVE=schema 로 실행(README 참고). H2(MODE=MySQL)에서도 같은 구조가 ddl-auto=update 로 생성된다.
 -- 동네 클래스 테이블(classes·class_enrollments·spaces)과 ledger.class_id는 2026-11-10 사용자 결정으로 삭제했다(기존 DB의 남은 칸·행은 쓰지 않음).
 -- 목록형 칸(categories, time_slots, needs, tags, keywords)은 쉼표로 이은 문자열, *_json 칸은 JSON 문자열이다.
+-- 2026-11-11 역할별 정리판: category_suggestions · life_plans · planner_picks · app_settings 추가, posts.issue_note(담당자 대리 공고의 관리 대상 이슈) 추가.
 
 
 create table ai_notes (
@@ -13,8 +14,8 @@ create table ai_notes (
     kind varchar(10) not null,
     source varchar(10),
     warn_level varchar(10),
-    ref_key varchar(20) not null,
     provider varchar(20),
+    ref_key varchar(20) not null,
     fingerprint varchar(120),
     body_json TEXT,
     primary key (id)
@@ -23,13 +24,20 @@ create table ai_notes (
 create table ai_results (
     created_at datetime(6),
     id bigint not null auto_increment,
+    source varchar(10),
     kind varchar(20) not null,
     provider varchar(20),
     ref_key varchar(60) not null,
-    source varchar(10),
     fingerprint varchar(300),
     payload TEXT,
     primary key (id)
+) engine=InnoDB;
+
+create table app_settings (
+    updated_at datetime(6),
+    setting_key varchar(50) not null,
+    setting_value varchar(2000),
+    primary key (setting_key)
 ) engine=InnoDB;
 
 create table auth_token (
@@ -37,6 +45,38 @@ create table auth_token (
     user_id bigint not null,
     token varchar(64) not null,
     primary key (token)
+) engine=InnoDB;
+
+create table care_notes (
+    activity_date date,
+    flag_raised bit not null,
+    created_at datetime(6),
+    id bigint not null auto_increment,
+    request_id bigint not null,
+    subject_id bigint not null,
+    updated_at datetime(6),
+    source varchar(10),
+    provider varchar(20),
+    hospital varchar(200),
+    signals varchar(200),
+    life_changes varchar(600),
+    next_steps varchar(600),
+    subject_type enum ('ELDER','USER') not null,
+    primary key (id)
+) engine=InnoDB;
+
+create table category_suggestions (
+    answered_at datetime(6),
+    answered_by bigint,
+    created_at datetime(6),
+    id bigint not null auto_increment,
+    user_id bigint not null,
+    status varchar(10) not null,
+    name varchar(30) not null,
+    name_key varchar(30) not null,
+    answer varchar(500),
+    reason varchar(500),
+    primary key (id)
 ) engine=InnoDB;
 
 create table difficulty_appeals (
@@ -60,24 +100,6 @@ create table edu_progress (
     diag_json TEXT,
     roleplay_json TEXT,
     primary key (user_id)
-) engine=InnoDB;
-
-create table care_notes (
-    activity_date date,
-    flag_raised bit not null,
-    created_at datetime(6),
-    id bigint not null auto_increment,
-    request_id bigint not null,
-    subject_id bigint not null,
-    updated_at datetime(6),
-    subject_type varchar(10) not null,
-    source varchar(10),
-    provider varchar(20),
-    hospital varchar(200),
-    signals varchar(200),
-    life_changes varchar(600),
-    next_steps varchar(600),
-    primary key (id)
 ) engine=InnoDB;
 
 create table elder_blocks (
@@ -182,6 +204,16 @@ create table ledger (
     primary key (id)
 ) engine=InnoDB;
 
+create table life_plans (
+    age integer not null,
+    monthly_hours float(53) not null,
+    start_age integer not null,
+    updated_at datetime(6),
+    user_id bigint not null,
+    needs_json varchar(500),
+    primary key (user_id)
+) engine=InnoDB;
+
 create table life_reports (
     big_change bit not null,
     source varchar(5),
@@ -223,8 +255,8 @@ create table notifications (
     type varchar(30),
     link varchar(200),
     title varchar(200) not null,
-    body varchar(500),
     voice_text varchar(300),
+    body varchar(500),
     primary key (id)
 ) engine=InnoDB;
 
@@ -232,11 +264,11 @@ create table org_events (
     capacity integer not null,
     event_date date,
     start_hour float(53),
+    apply_type varchar(5) not null,
     created_at datetime(6),
     created_by bigint,
     id bigint not null auto_increment,
     org_id bigint,
-    apply_type varchar(5) not null,
     status varchar(10) not null,
     place varchar(100),
     title varchar(100) not null,
@@ -263,6 +295,14 @@ create table organizations (
     primary key (id)
 ) engine=InnoDB;
 
+create table planner_picks (
+    created_at datetime(6),
+    id bigint not null auto_increment,
+    post_id bigint not null,
+    user_id bigint not null,
+    primary key (id)
+) engine=InnoDB;
+
 create table posts (
     date date not null,
     end_hour float(53) not null,
@@ -270,9 +310,9 @@ create table posts (
     start_hour float(53) not null,
     weight float(53),
     created_at datetime(6),
-    fix_checked_at datetime(6),
     created_by bigint,
     elder_id bigint,
+    fix_checked_at datetime(6),
     id bigint not null auto_increment,
     owner_id bigint,
     area varchar(30),
@@ -282,6 +322,7 @@ create table posts (
     categories varchar(200),
     difficulty_reason varchar(300),
     easy_text varchar(300),
+    issue_note varchar(300),
     note varchar(500),
     detail varchar(1000),
     fix_tips_json varchar(3000),
@@ -306,8 +347,8 @@ create table public_classes (
     verified_at datetime(6),
     category varchar(10) not null,
     source varchar(12) not null,
-    fee_text varchar(60),
     capacity_text varchar(60),
+    fee_text varchar(60),
     region varchar(60),
     search_key varchar(80),
     org_name varchar(100),
@@ -387,7 +428,6 @@ create table requests (
     start_hour float(53) not null,
     weight float(53) not null,
     check_code varchar(6),
-    care_memo varchar(500),
     check_in_at datetime(6),
     check_out_at datetime(6),
     confirmed_at datetime(6),
@@ -408,6 +448,7 @@ create table requests (
     match_reason varchar(200),
     adjust_reason varchar(300),
     reject_reason varchar(300),
+    care_memo varchar(500),
     log_raw varchar(500),
     memo varchar(500),
     content varchar(1000),
@@ -462,22 +503,28 @@ create table users (
     primary key (id)
 ) engine=InnoDB;
 
-create index ix_ai_note_req
+create index ix_ai_note_req 
    on ai_notes (request_id);
 
-create unique index ix_ai_result_key
-   on ai_results (kind, ref_key);
+alter table ai_notes 
+   add constraint ux_ai_note unique (kind, ref_id, ref_key);
 
-create unique index ix_care_note_req
-   on care_notes (request_id);
+alter table ai_results 
+   add constraint ix_ai_result_key unique (kind, ref_key);
 
-create index ix_care_note_subject
+create index ix_care_note_subject 
    on care_notes (subject_type, subject_id);
 
-create index ix_block_elder_vol
+alter table care_notes 
+   add constraint ix_care_note_req unique (request_id);
+
+create index ix_cat_sug_user 
+   on category_suggestions (user_id);
+
+create index ix_block_elder_vol 
    on elder_blocks (elder_id, volunteer_id);
 
-create index ix_ledger_user
+create index ix_ledger_user 
    on ledger (user_id);
 
 create index ix_lr_subject 
@@ -491,6 +538,9 @@ create index ix_noti_user
 
 create index ix_org_events_date 
    on org_events (event_date);
+
+alter table planner_picks 
+   add constraint uq_planner_pick unique (user_id, post_id);
 
 create index ix_posts_date 
    on posts (date);
@@ -507,6 +557,9 @@ create index ix_pc_start
 create index ix_pc_search_key 
    on public_classes (search_key);
 
+alter table regular_marks 
+   add constraint uq_regular_mark unique (user_id, volunteer_id);
+
 create index ix_req_status 
    on requests (status);
 
@@ -515,9 +568,3 @@ create index ix_req_post
 
 alter table users 
    add constraint ux_users_login unique (login_id);
-
-alter table regular_marks 
-   add constraint uq_regular_mark unique (user_id, volunteer_id);
-
-alter table ai_notes 
-   add constraint ux_ai_note unique (kind, ref_id, ref_key);

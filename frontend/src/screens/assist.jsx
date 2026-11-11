@@ -103,7 +103,7 @@ export function FixTips({ p }) {
           </div>
         </div>
       ))}
-      <div className="fix-ev">근거: 같은 도움의 {p.type === 'NEED' ? '봉사 가능' : '도움 요청'} 공고 {ev.oppositeOpen ?? 0}개 · 시간 맞는 것 {ev.overlapTime ?? 0}개 · 최근 연결 {ev.recentMatched ?? 0}건{ev.bestSlot ? ` · 많은 시간대 ${ev.bestSlot}` : ''}</div>
+      <div className="fix-ev">근거: 같은 도움의 {p.type === 'NEED' ? '도움 가능' : '봉사 요청'} 공고 {ev.oppositeOpen ?? 0}개 · 시간 맞는 것 {ev.overlapTime ?? 0}개 · 최근 연결 {ev.recentMatched ?? 0}건{ev.bestSlot ? ` · 많은 시간대 ${ev.bestSlot}` : ''}</div>
       <RuleNote source={ft.source} />
     </div>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
+import { SUG_ST } from '../ui/suggest.jsx';
 import { Ic, Mi, Spk, Mod, RuleNote, Loading, Empty, useLoad, useBusy, hbars } from '../ui/bits.jsx';
 import { useUi } from '../ui/ctx.jsx';
 import { api, post, put, del } from '../api.js';
@@ -21,9 +22,9 @@ function groupBars(rows) {
         return (
           <g key={d}>
             <rect x={cx - bw - gap / 2} y={by - ha} width={bw} height={ha} rx="6" fill="#F59E4B" />
-            <rect x={cx + gap / 2} y={by - hb} width={bw} height={hb} rx="6" fill="#3D6DF2" />
+            <rect x={cx + gap / 2} y={by - hb} width={bw} height={hb} rx="6" fill="#5B8DEF" />
             <text x={cx - bw / 2 - gap / 2} y={by - ha - 6} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#C46A17">{a}</text>
-            <text x={cx + bw / 2 + gap / 2} y={by - hb - 6} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#3D6DF2">{b}</text>
+            <text x={cx + bw / 2 + gap / 2} y={by - hb - 6} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#5B8DEF">{b}</text>
             <text x={cx} y={H - 8} textAnchor="middle" fontSize="12" fill="#5F6672">{d}</text>
           </g>
         );
@@ -33,7 +34,7 @@ function groupBars(rows) {
 }
 
 /* ---------- 5장 분석: 나이대·월별 추이·수요 공급·AI 인사이트 ---------- */
-const ccOf2 = (k) => (CC[k] || ['#EEF3FF', '#3D6DF2'])[1];
+const ccOf2 = (k) => (CC[k] || ['#EEF3FF', '#5B8DEF'])[1];
 function stackBars(months) {
   const W2 = 320, H = 170, pt = 18, pb = 26;
   const max = Math.max(1, ...months.map((m) => Number(m.total) || 0)) * 1.1;
@@ -82,6 +83,7 @@ function AgeCard({ a }) {
 }
 
 function InsightCard() {
+  const nav = useNavigate();
   const [ins, setIns] = useState(undefined);
   const [busy, run] = useBusy();
   const load = (refresh) => run(async () => { const r = await api(`/admin/insights${refresh ? '?refresh=true' : ''}`); setIns(r); });
@@ -94,6 +96,7 @@ function InsightCard() {
           <div className="small">{ins.summary}</div>
           {(ins.shortages || []).length > 0 && <><div className="b" style={{ fontSize: 13.5, marginTop: 10 }}>공급이 부족한 봉사</div>
             {ins.shortages.map((s) => <div key={s.category} className="small" style={{ marginTop: 6 }}><b>{s.category}</b> <span className="mute2">수요 {s.demand} · 공급 {s.supply} (−{s.gap})</span><div>{s.reason}</div></div>)}</>}
+          {(ins.categorySuggestions || []).length > 0 && <div className="small" style={{ marginTop: 12 }}><span className="b" style={{ fontSize: 13.5 }}>사용자 건의</span> {ins.categorySuggestions.slice(0, 4).map((c) => <span key={c.key} className="tag2" style={{ marginLeft: 6 }}>{c.name} {c.count}건</span>)} <a role="button" tabIndex={0} style={{ color: 'var(--brand)', fontWeight: 700, marginLeft: 6 }} onClick={() => nav('/a/suggest')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/a/suggest'); }}>처리하기 ›</a></div>}
           {(ins.newCategories || []).length > 0 && <><div className="b" style={{ fontSize: 13.5, marginTop: 12 }}>새 카테고리 후보</div>
             {ins.newCategories.map((c) => <div key={c.name} className="small" style={{ marginTop: 6 }}><span className="tag2">{c.name}</span> {c.reason}{(c.examples || []).length > 0 && <div className="mute2" style={{ marginTop: 3 }}>예: “{c.examples.join('”, “')}”</div>}</div>)}</>}
           <div className="mute2" style={{ marginTop: 10 }}>카테고리에 안 맞는 요청 문장 {ins.unmatchedCount ?? 0}개 분석 · 숫자는 시스템 집계, 이유는 AI 짐작 · {ins.cached ? '1시간 안 결과(캐시)' : '방금 분석'} {ins.generatedAt ? `· ${dshort(ins.generatedAt)}` : ''}</div>
@@ -120,10 +123,10 @@ function AnalyticsCards() {
         <div className="small muted" style={{ marginTop: 8 }}>{(a.seasons || []).filter((s) => s.total > 0).map((s) => `${s.season}: ${(s.top || []).map((t) => SHORT[t.category] || t.category).join('·')}`).join(' / ')}</div>
       </div>
       <div className="card" style={{ marginTop: 12 }}>
-        <div className="between"><span className="b">카테고리별 수요 vs 공급</span><span className="legend"><i style={{ background: '#F59E4B' }} />수요<i style={{ background: '#3D6DF2', marginLeft: 8 }} />공급</span></div>
+        <div className="between"><span className="b">카테고리별 수요 vs 공급</span><span className="legend"><i style={{ background: '#F59E4B' }} />수요<i style={{ background: '#5B8DEF', marginLeft: 8 }} />공급</span></div>
         {groupBars(sd.map((s) => [SHORT[s.category] || s.category, Number(s.demand) || 0, Number(s.supply) || 0]))}
         <div className="small muted" style={{ marginTop: 4 }}>{sd.filter((s) => s.gap > 0).map((s) => `${SHORT[s.category] || s.category} ${s.gap}건 부족`).join(' · ') || '부족한 카테고리가 없어요'}</div>
-        <div className="mute2" style={{ marginTop: 6 }}>최근 {a.supplyDemandDays}일 · 수요 = 도움 요청 공고 + 받는 쪽 요청, 공급 = 봉사 가능 공고 + 수락된 건</div>
+        <div className="mute2" style={{ marginTop: 6 }}>최근 {a.supplyDemandDays}일 · 수요 = 봉사 요청 공고 + 받는 쪽 요청, 공급 = 도움 가능 공고 + 수락된 건</div>
       </div>
       <InsightCard />
     </>
@@ -147,7 +150,7 @@ export function ADash() {
   return (
     <Screen title="운영 대시보드" back={false}>
       <div className="kpis"><div><b>{kpi.activities ?? 0}</b><span>이번 달 활동</span>{delta(kpi.activities, kpi.prevActivities)}</div><div><b>{kpi.matchRate ?? 0}%</b><span>매칭 성공률</span></div><div><b>{kpi.elderUsage ?? x.elderUsage ?? 0}건</b><span>기관 대상 이용</span>{delta(kpi.elderUsage, kpi.prevElderUsage)}</div></div>
-      <div className="stat2" style={{ marginTop: 8 }}><div><b>{x.demand ?? 0}</b><span>이번 달 도움 요청 공고</span></div><div><b>{x.supply ?? 0}</b><span>이번 달 봉사 가능 공고</span></div></div>
+      <div className="stat2" style={{ marginTop: 8 }}><div><b>{x.demand ?? 0}</b><span>이번 달 봉사 요청 공고</span></div><div><b>{x.supply ?? 0}</b><span>이번 달 도움 가능 공고</span></div></div>
       {Object.values(pend).some((v) => v) && (
         <div className="card" style={{ marginTop: 12 }}>
           <div className="b">처리할 일</div>
@@ -156,8 +159,8 @@ export function ADash() {
           </div>
         </div>
       )}
-      {monthly.length > 0 && <div className="card" style={{ marginTop: 12 }}><div className="between"><span className="b">수요 vs 공급 (주별 공고)</span><span className="legend"><i style={{ background: '#F59E4B' }} />도움 요청<i style={{ background: '#3D6DF2', marginLeft: 8 }} />봉사 가능</span></div>{groupBars(monthly)}</div>}
-      <div className="card" style={{ marginTop: 12 }}><div className="b">지역별 매칭 성공률</div>{(x.matchRateByArea || []).length ? hbars(x.matchRateByArea.map((a) => [a.area, Number(a.rate) || 0]), '#3D6DF2') : <Empty>아직 데이터가 없어요</Empty>}<div className="mute2" style={{ marginTop: 8 }}>요청·제안 중 일정 확정까지 간 비율(%)이에요.</div></div>
+      {monthly.length > 0 && <div className="card" style={{ marginTop: 12 }}><div className="between"><span className="b">수요 vs 공급 (주별 공고)</span><span className="legend"><i style={{ background: '#F59E4B' }} />봉사 요청<i style={{ background: '#5B8DEF', marginLeft: 8 }} />도움 가능</span></div>{groupBars(monthly)}</div>}
+      <div className="card" style={{ marginTop: 12 }}><div className="b">지역별 매칭 성공률</div>{(x.matchRateByArea || []).length ? hbars(x.matchRateByArea.map((a) => [a.area, Number(a.rate) || 0]), '#5B8DEF') : <Empty>아직 데이터가 없어요</Empty>}<div className="mute2" style={{ marginTop: 8 }}>요청·제안 중 일정 확정까지 간 비율(%)이에요.</div></div>
       <AnalyticsCards />
       <div className="card" style={{ marginTop: 12 }}>
         <div className="b">시간 균형</div>
@@ -301,7 +304,9 @@ export function AManage() {
         <Mi t="담당자 계정" s="정지·해제 · 대상 대신 이관" i="building" onClick={() => nav('/a/managers')} />
         <Mi t="1:1 문의" s="답변 등록" i="msg" onClick={() => nav('/a/inquiries')} />
         <Mi t="공지사항" s="등록·수정·삭제" i="file" onClick={() => nav('/a/notices')} />
-        <Mi t="공공 서비스 정보" s="AI 안내에 쓰는 DB" i="shield" onClick={() => nav('/a/pub')} />
+        <Mi t="봉사 인증 항목 설정" s="신분증 · 안전 교육 · 범죄경력 · 오리엔테이션" i="shield" onClick={() => nav('/a/verify')} />
+        <Mi t="카테고리 건의" s="사용자·담당자가 건의한 새 종류 · 답변" i="flag" onClick={() => nav('/a/suggest')} />
+        <Mi t="공공 서비스 정보" s="AI 안내에 쓰는 DB" i="building" onClick={() => nav('/a/pub')} />
         <Mi t="기관 클래스" s="공공기관 강좌 · CSV 가져오기 · AI 다시 찾기" i="cap" onClick={() => nav('/a/classes')} />
         <Mi t="가상 상대 관리" s="AI 역할극 상대 · 숨은 시험 상황" i="users" onClick={() => nav('/a/persona')} />
         <Mi t="로그아웃" i="logout" onClick={logout} />
@@ -518,7 +523,7 @@ export function APersona() {
   const { toast, confirm, sheet, closeSheet } = useUi();
   const [list, reload] = useLoad(() => api('/admin/personas'), []);
   const done = () => { closeSheet(); reload(); };
-  const PC = [['#FFEDF3', '#E2557F'], ['#FFF1E2', '#EE8424'], ['#EAF0FF', '#3D6DF2'], ['#E4F5F9', '#178FAD'], ['#FFF6D6', '#C99500']];
+  const PC = [['#FFEDF3', '#E2557F'], ['#FFF1E2', '#EE8424'], ['#EAF0FF', '#5B8DEF'], ['#E4F5F9', '#178FAD'], ['#FFF6D6', '#C99500']];
   return (
     <Screen title="가상 상대 관리" noTabs>
       <p className="su-p" style={{ marginTop: 0 }}>AI 역할극에서 쓰는 상대예요. 성격과 숨은 시험 상황을 여기서 고치면 코드 배포 없이 바로 바뀌어요.</p>
@@ -539,3 +544,69 @@ export function APersona() {
   );
 }
 export const _x = AREAS;
+
+/* ---------- 봉사 인증 항목 (프로토타입 a_verify) ---------- */
+export function AVerify() {
+  const { toast } = useUi();
+  const [d] = useLoad(() => api('/verify-items'), []);
+  const [items, setItems] = useState(null);
+  const [busy, run] = useBusy();
+  const list = items || (d && d.items) || [];
+  const upd = (k, patch) => setItems(list.map((x) => (x.key === k ? { ...x, ...patch } : x)));
+  return (
+    <Screen title="봉사 인증 항목" noTabs>
+      <p className="su-p" style={{ marginTop: 0 }}>봉사를 시작하기 전에 받을 인증을 정해요. 바꾸면 새로 가입한 사람부터 적용돼요.</p>
+      {d === undefined ? <Loading /> : (
+        <div className="ml">
+          {list.map((x) => (
+            <div key={x.key}>
+              <div className="grow">{x.title}<span>{x.desc}</span></div>
+              <button type="button" className={`st ${x.required ? 'go' : 'end'}`} style={{ marginRight: 8, border: 0, cursor: x.locked || !x.on ? 'default' : 'pointer', minHeight: 44, minWidth: 44 }} disabled={x.locked || !x.on} aria-label={`${x.title} ${x.required ? '필수' : '선택'} · 누르면 바뀌어요`} onClick={() => upd(x.key, { required: !x.required })}>{x.required ? '필수' : '선택'}</button>
+              <button type="button" className={'toggle ' + (x.on ? 'on' : '')} role="switch" aria-checked={x.on} aria-label={`${x.title} 받기`} disabled={x.locked} onClick={() => upd(x.key, { on: !x.on, required: !x.on ? x.required : false })} />
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="notice" style={{ marginTop: 12 }}>기관 대상(혼자 사시는 분) 방문은 범죄경력 회보서를 낸 메이트만 하도록 설정할 수 있어요. 휴대폰 본인인증은 끌 수 없어요.</div>
+      <div className="mute2" style={{ marginTop: 8 }}>지금은 설정을 저장해 가입·인증 안내에 쓰고, 실제 봉사 조건(신분증 승인·첫 활동 교육)은 기존 규칙대로 적용돼요.</div>
+      <button className="btn big-cta" style={{ marginTop: 14 }} disabled={busy || !list.length} onClick={() => run(async () => { const r = await api('/admin/verify-items', { method: 'PUT', body: { items: list.map((x) => ({ key: x.key, on: x.on, required: x.required })) } }); setItems(r.items); toast('저장했어요'); })}>저장</button>
+    </Screen>
+  );
+}
+
+/* ---------- 카테고리 건의 처리 (2026-11-11) ---------- */
+function SuggestAnswer({ g, onDone }) {
+  const { toast } = useUi();
+  const [status, setStatus] = useState(g.status === 'RECEIVED' ? 'REVIEWING' : g.status);
+  const [answer, setAnswer] = useState((g.items[0] && g.items[0].answer) || '');
+  const [busy, run] = useBusy();
+  return (
+    <>
+      <h2>{g.name} · {g.count}건</h2>
+      <p className="mute2" style={{ margin: '0 0 8px' }}>같은 이름의 건의 {g.count}건에 한꺼번에 답해요. 건의한 사람 모두에게 알림이 가요.</p>
+      <div className="tags">{Object.entries(SUG_ST).map(([k, v]) => <button key={k} type="button" className={'chip ' + (status === k ? 'on' : '')} aria-pressed={status === k} onClick={() => setStatus(k)}>{v[1]}</button>)}</div>
+      <label className="f" htmlFor="sug-ans">답변</label>
+      <textarea id="sug-ans" className="in" style={{ minHeight: 90 }} maxLength={500} value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="예) 비슷한 요청이 많아 다음 개편 때 검토할게요. 지금은 '가벼운 집안일'로 올려 주세요." />
+      <button className="btn" style={{ marginTop: 12 }} disabled={busy} onClick={() => run(async () => { await post(`/admin/category-suggestions/${g.items[0].id}/answer`, { status, answer }); toast('답변했어요. 건의자에게 알렸어요'); onDone(); })}>답변 보내기</button>
+    </>
+  );
+}
+export function ASuggest() {
+  const { sheet, closeSheet } = useUi();
+  const [d, reload] = useLoad(() => api('/admin/category-suggestions'), []);
+  const groups = (d && d.groups) || [];
+  return (
+    <Screen title="카테고리 건의" noTabs>
+      <div className="stat2"><div><b>{d ? d.total : 0}건</b><span>전체 건의</span></div><div><b>{d ? d.waiting : 0}건</b><span>답변 기다리는 중</span></div></div>
+      <div className="notice" style={{ marginTop: 12 }}>{(d && d.note) || '카테고리 6종을 바꾸는 것은 운영자 결정 사항이에요.'}</div>
+      {d === undefined ? <Loading /> : groups.length ? groups.map((g) => (
+        <div key={g.key} className="card" style={{ marginTop: 10 }}>
+          <div className="between"><span className="b" style={{ fontSize: 16 }}>{g.name} <span className="pill">{g.count}건</span></span><span className={`st ${(SUG_ST[g.status] || SUG_ST.RECEIVED)[0]}`}>{(SUG_ST[g.status] || SUG_ST.RECEIVED)[1]}</span></div>
+          {g.items.map((it) => <div key={it.id} className="small" style={{ marginTop: 8 }}><span className="mute2">{dshort(it.createdAt).split(' ')[0]} · {it.userRole === 'ORG' ? '담당자' : '사용자'} {it.userName}</span><br />{it.reason}</div>)}
+          {g.items[0].answer && <div className="hnote" style={{ marginTop: 8 }}>답변: {g.items[0].answer}</div>}
+          <button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => sheet(() => <SuggestAnswer g={g} onDone={() => { closeSheet(); reload(); }} />)}>{g.items[0].answer ? '답변 고치기' : '답변하기'}</button>
+        </div>
+      )) : <Empty>아직 건의가 없어요</Empty>}
+    </Screen>
+  );
+}

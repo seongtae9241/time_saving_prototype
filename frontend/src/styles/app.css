@@ -86,3 +86,11 @@ a.btn{text-decoration:none}
 .qr-cam>.qr-frame,.qr-cam>.qr-okm,.qr-cam>.qr-hint{z-index:1}
 .qr-hint{padding:0 14px}
 @media (prefers-reduced-motion:reduce){.vi-dots i{animation:none;opacity:.8}}
+
+/* ===== 2026-11-11 역할별 정리판에 더한 것 ===== */
+.linkbtn{border:0;background:none;padding:10px 2px;margin:-10px 0;color:var(--brand);font-weight:700;font-size:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.qa button{position:relative}
+.qa .qm-sub{display:block;font-size:12px;font-weight:600;color:#B5483B;margin-top:2px}
+.pl-needs .pl-n{cursor:default}
+.ai-fill[disabled]{cursor:default}
+.bbtn + .chips{margin-top:12px}

@@ -10,6 +10,7 @@ import com.timesavings.domain.User;
 import com.timesavings.repo.ElderRepo;
 import com.timesavings.service.EduService;
 import com.timesavings.service.PostService;
+import com.timesavings.service.Rules;
 import com.timesavings.service.Views;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,9 +25,10 @@ public class AiController {
     private final ElderRepo elders;
     private final PostService posts;
     private final EduService edu;
+    private final com.timesavings.service.PlannerService planner;
 
-    public AiController(AiClient ai, ElderRepo elders, PostService posts, EduService edu) {
-        this.ai = ai; this.elders = elders; this.posts = posts; this.edu = edu;
+    public AiController(AiClient ai, ElderRepo elders, PostService posts, EduService edu, com.timesavings.service.PlannerService planner) {
+        this.ai = ai; this.elders = elders; this.posts = posts; this.edu = edu; this.planner = planner;
     }
 
     public record ChatMsg(String role, String text) {}
@@ -91,9 +93,31 @@ public class AiController {
         List<Map<String, Object>> list = posts.list(u, helper ? PostType.NEED : PostType.OFFER, null, null, null, "near").stream()
                 .filter(p -> !Boolean.TRUE.equals(p.get("mine")))
                 .filter(p -> { @SuppressWarnings("unchecked") List<String> pc = (List<String>) p.get("categories"); return cats.isEmpty() || pc.stream().anyMatch(cats::contains); })
-                .limit(5).toList();
-        r.put("posts", list);
+                .toList();
+        // 2026-11-11: 단골 추천 / 가까운 사람 추천 두 섹션(순위·매칭은 코드)
+        Map<String, List<Map<String, Object>>> split = planner.splitByRegular(u, list, helper, 5);
+        r.put("regularPosts", split.get("regular"));
+        r.put("nearbyPosts", split.get("nearby"));
+        List<Map<String, Object>> all = new ArrayList<>(split.get("regular"));
+        all.addAll(split.get("nearby"));
+        r.put("posts", all.subList(0, Math.min(5, all.size()))); // 예전 화면 호환
+        r.put("help", helpInfo(b.question(), cats));
         return r;
+    }
+
+    /** 받을 수 있는 도움 설명: 맞는 카테고리(난이도·가중치), 금지 요청 여부, 대신 쓸 수 있는 공공 서비스. */
+    private Map<String, Object> helpInfo(String question, List<String> cats) {
+        List<Map<String, Object>> cs = new ArrayList<>();
+        for (String c : cats) {
+            if (!Rules.isCategory(c)) continue;
+            var lv = Rules.categoryLevel(c);
+            cs.add(Views.map("category", c, "level", lv, "levelLabel", Rules.levelKo(lv), "weight", Rules.weight(lv)));
+        }
+        Map<String, Object> f = question == null || question.isBlank() ? Map.of() : ai.filter(question);
+        String level = String.valueOf(f.getOrDefault("level", "ALLOW"));
+        return Views.map("categories", cs, "level", level, "blocked", "BLOCK".equals(level), "reason", f.get("reason"),
+                "publicServices", f.get("alternatives") == null ? List.of() : f.get("alternatives"),
+                "note", "봉사자는 말동무·디지털·생활 정리·장보기·집안일·동행을 도울 수 있어요. 목욕·투약 같은 신체 돌봄, 의료 행위, 돈 관리는 받을 수 없어요.");
     }
 
     @PostMapping("/roleplay")

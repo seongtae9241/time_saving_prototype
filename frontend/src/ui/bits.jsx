@@ -4,6 +4,8 @@ import QRCode from 'qrcode';
 import { I, ic, LOGO } from './icons.js';
 import { CI, ccOf, SHORT, ST, hh, fmt, dlabel, KIND_LABEL, lvName, lvWeight } from '../lib/format.js';
 import { api } from '../api.js';
+import { DIc, duoColor } from './proto.jsx';
+import { DI } from './duoIcons.js';
 import { MatchWhy, EasyListen } from './assist.jsx'; // LLM 추가 A(7.12)
 
 /** SVG 문자열을 그대로 그린다(감싼 span은 박스를 만들지 않음) */
@@ -18,16 +20,9 @@ export const Mod = ({ n }) => <span className={`mod m${n}`}>{MODS[n]}</span>;
 /** AI 응답이 규칙 기반이면 작게 표시 */
 export const RuleNote = ({ source }) => (source === 'rule' ? <div className="mute2" style={{ fontSize: 12, marginTop: 6 }}>AI 키 없음 · 규칙 모드</div> : null);
 
-export function CatIc({ k, size = 48 }) {
-  const [bg, fg] = ccOf(k);
-  const s = Math.round(size * 0.52);
-  return (
-    <span className="cat-ic" style={{ width: size, height: size, background: bg, color: fg }}>
-      <svg viewBox="0 0 24 24" width={s} height={s} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: CI[k] || CI['말동무·정서'] }} />
-    </span>
-  );
-}
-export const CatChip = ({ k }) => <span className="cat-chip" style={{ background: ccOf(k)[0], color: ccOf(k)[1] }}><CatIc k={k} size={22} />{SHORT[k] || k}</span>;
+/** 카테고리 아이콘·칩: 새 프로토타입의 듀오톤(dIc) */
+export function CatIc({ k, size = 48 }) { return <DIc k={DI[k] ? k : '말동무·정서'} size={size} />; }
+export const CatChip = ({ k }) => { const c = duoColor(DI[k] ? k : '말동무·정서'); return <span className="cat-chip" style={{ background: c[2], color: c[0] }}><DIc k={DI[k] ? k : '말동무·정서'} size={16} bare />{SHORT[k] || k}</span>; };
 export const Cats = ({ list, style }) => <div className="cats" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', ...style }}>{(list || []).map((k) => <CatChip key={k} k={k} />)}</div>;
 
 export function TBar({ s, e, ss, se }) {
@@ -54,7 +49,7 @@ export function FlowBar({ r }) {
 }
 
 export function Avatar({ name, s = 44, elder, style }) {
-  return <div className="avatar" style={{ width: s, height: s, fontSize: Math.round(s * 0.38), ...(elder ? { background: '#F1EDFF', color: '#6A4FD8' } : {}), ...style }}>{(name || '?')[0]}</div>;
+  return <div className="avatar" style={{ width: s, height: s, fontSize: Math.round(s * 0.38), ...(elder ? { background: '#E1ECFE', color: '#3A6FD8' } : {}), ...style }}>{(name || '?')[0]}</div>;
 }
 
 /** AI 로딩 스켈레톤 (프로토타입 aiRun) */
@@ -99,7 +94,7 @@ export function PostCard({ p, to }) {
   const offer = p.type === 'OFFER';
   return (
     <div className="pc2 click" role="button" tabIndex={0} onClick={() => nav(to || `/post/${p.id}`)}>
-      <div className="top"><Avatar name={w.name} elder={w.elder} /><div className="grow"><div className="who">{w.name}{w.badge}{p.repeatRule && <span className="kind reg">{p.repeatRule}</span>}</div><div className="sub">{w.sub}</div></div><span className={`kind ${offer ? 'offer' : 'need'}`}>{offer ? '봉사 가능' : '도움 요청'}</span></div>
+      <div className="top"><Avatar name={w.name} elder={w.elder} /><div className="grow"><div className="who">{w.name}{w.badge}{p.repeatRule && <span className="kind reg">{p.repeatRule}</span>}</div><div className="sub">{w.sub}</div></div><span className={`kind ${offer ? 'offer' : 'need'}`}>{offer ? '도움 가능' : '봉사 요청'}</span></div>
       <div className="ttl">{offer ? (p.note || p.title) : p.title}</div>
       <Cats list={postCats(p)} style={{ marginTop: 10 }} />
       {offer && <MatchWhy text={p.matchReason} style={{ marginTop: 10 }} />}

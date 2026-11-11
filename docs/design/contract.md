@@ -487,3 +487,41 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 **운영자** — `GET /api/admin/public-classes?source=` → `{items:[항목 + hidden, visible, searchKey, pageTitle, fetchedAt], searchAvailable, counts}` · `POST /api/admin/public-classes/search {region, force?(기본 true)}` · `POST /api/admin/public-classes/{id}/hide {hidden}`(확인 못 한 AI 항목은 보이게 할 수 없음 409 `NOT_VERIFIED`) · `DELETE /api/admin/public-classes/{id}`(ORG는 400 `ORG_EVENT` — 숨기기만).
 
 **화면** — 동네 소식(`/news`) 맨 위 "가까운 기관 클래스"(카테고리 칩 전체/디지털/정서·건강/생활, 카드: 기관명·제목·일정·장소·대상·수강료·추천 이유·출처 배지, 검색 가능할 때 "내 위치로 다시 찾기") · 상세 `/news/class/:id`(신청하기 → 기관 사이트 새 창, 쉬운 말 소리로 듣기, "같이 갈 봉사자 요청" → `/write/need?prefill=…`로 열어 미리 채운 문장으로 초안까지 만들고 등록은 사용자) · 사용자 홈 "이번 주 가까운 클래스" 한 줄 카드 · 담당자 대상 상세 "이 어르신께 맞는 기관 클래스"(카드 → "동행 요청 대신 만들기" `/write/need?elder={id}&prefill=…`) · 운영자 관리 → "기관 클래스"(`/a/classes`: 목록·출처·검증, 숨기기/삭제, CSV 가져오기, 지역 다시 찾기).
+
+### 7.16 역할별 정리판 반영 (2026-11-11)
+
+기준: `docs/prototypes/proto-2026-11-11-역할별정리판.html`, `docs/specs/2026-11-11-역할별-기능목록.md`. 화면별 대조표는 `docs/specs/2026-11-11-프로토타입-대조.md`.
+
+**용어**: 공고 종류 이름이 바뀌었다 — OFFER = "도움 가능"(예전 봉사 가능), NEED = "봉사 요청"(예전 도움 요청). API 값(OFFER/NEED)은 그대로.
+
+**헤더 모드(프론트)**: 사용자 헤더 칩이 "도움 받기 / 봉사하기"를 보여 주고, 누르면 "지금 할 일" 시트에서 바꾼다. 전역 상태(`ModeProvider`, localStorage `ts-mode` = recv|give, 예전 `ts-home-mode` 이어받음)이고 `body[data-mode]`로 색(받기 #EE9A7E / 하기 #6DB3A0)을 건다. 홈·공고(기본 종류)·내 활동(받는 쪽/하는 쪽 목록)·플래너·요청 상세(제목·머리 배너)가 따라 바뀐다. 서버는 모드를 모른다.
+
+**새 API**
+
+| 메서드·경로 | 권한 | 내용 |
+|---|---|---|
+| `GET /api/me/planner?month=YYYY-MM` | USER | 캘린더: `items[]`(kind give\|recv\|event\|plan, date, startHour, hours, category, title, who, amount, requestId\|eventId\|postId) — 확정 이후 요청(CONFIRMED~DONE), 신청한 기관 소식, 내 계획. `goal{target, confirmed, planned, left, fromLifePlan}`(target = 생애 플랜의 한 달 시간, 없으면 4). `recommends[]` = 추천 봉사: 열린 NEED 공고 중 오늘~30일, 내 것·이미 요청한 것·계획에 넣은 것 제외, **내 일정과 시간이 겹치지 않는 것만**, 순위 = 같은 동 3 + 잘하는 카테고리 2 + 가능 시간대 2(코드), 각 카드에 `why`. `plans[]`, `text`(안내문: LLM, 없으면 규칙), `source` |
+| `POST /api/me/planner/picks` `{postIds[]}` | USER | 추천 봉사를 내 계획에 넣는다(열린 NEED 공고만, 내 공고 불가). 제안은 보내지 않는다 — 결정은 사람이 공고에서 버튼으로 |
+| `DELETE /api/me/planner/picks/{postId}` | USER | 계획에서 뺀다 |
+| `GET /api/me/life-plan` | USER | 저장된 조건(없으면 기본: 나이 = 나이대 가운데, 시작 72세, 한 달 4시간, 동행 2·장보기 2·말동무 1)으로 계산한 생애 플랜 |
+| `POST /api/me/life-plan` `{age, startAge, monthlyHours, needs{카테고리: 한 달 시간}, save}` | USER | 계산(`save=true`면 조건 저장). 400: 나이 15~90, 시작 나이 > 나이·95 이하, 한 달 0~60 |
+| `POST /api/category-suggestions` `{name, reason}` | USER·ORG | 카테고리 추가 건의. 400: 이름 2~20자, 이유 5~300자, 개인정보(`PII_NOT_ALLOWED`), 이미 있는 6종(`CATEGORY_EXISTS`), 같은 사람이 답변 전 같은 이름(`ALREADY_SUGGESTED`). ADMIN 403 |
+| `GET /api/category-suggestions/mine` | USER·ORG | 내 건의와 상태·답변 |
+| `GET /api/admin/category-suggestions` | ADMIN | `groups[]`(같은 이름 `key`로 묶음: name, count, waiting, status, items[]) 건수 많은 순, `total`, `waiting`, `note` |
+| `POST /api/admin/category-suggestions/{id}/answer` `{status, answer}` | ADMIN | status RECEIVED\|REVIEWING\|ADOPTED\|HELD. 같은 이름 묶음 전체에 적용하고 건의자 모두에게 알림(type `CATEGORY_SUGGESTION`). ADOPTED·HELD 는 답변 필수. **카테고리 6종 자체는 바꾸지 않는다**(가중치·금지 규칙이 걸려 있어 운영자 결정 사항) |
+| `GET /api/verify-items` | 로그인 | 봉사 인증 항목 5개(phone·id·edu·crime·orientation)의 on·required·locked |
+| `PUT /api/admin/verify-items` `{items[{key,on,required}]}` | ADMIN | 저장(`app_settings`의 `verify.items`). 휴대폰 본인인증은 항상 켜짐·필수. **지금은 설정 저장·표시만** 하고 실제 봉사 조건(신분증 승인·첫 활동 교육)은 기존 규칙 그대로다 |
+
+**바뀐 API**
+
+- `POST /api/ai/recommend`: 응답에 `regularPosts[]`(단골 추천)·`nearbyPosts[]`(가까운 사람 추천)·`help`가 더해졌다(`posts`는 호환용으로 남김). 받는 쪽 질문이면 단골 = 내 단골 봉사자(자동 3회·수동)가 올린 도움 가능 공고, 돕는 쪽이면 내가 3번 이상 도운 이웃(기관 대상 포함)의 봉사 요청 공고. 두 섹션 모두 순위 = 같은 동 → 가능 시간대(`users.time_slots`) → 거리(코드). 카드마다 `fit{regular, area, time, score}`·`fitText`. 매주 반복 공고는 가장 가까운 날짜 하나만. `help{categories[{category, level, levelLabel, weight}], level, blocked, reason, publicServices[], note}` = 받을 수 있는 도움(금지 요청이면 `blocked=true`와 대신 쓸 공공 서비스).
+- `GET /api/events?area=`: 카드에 `area`(기관 이름 → 주소 → 장소에서 처음 나오는 "○○동"), `near`, `distanceKm`. `area`를 주면 그 동만, 안 주면 내 동네 → 가까운 동 → 날짜 순.
+- `POST /api/posts`, `PUT /api/posts/{id}`: `elderIssue`(관리 대상 이슈, 300자) — 담당자 대리 공고(`elderId` 있음)에만. 연락처·상세 주소는 400 `PII_NOT_ALLOWED`, 병명은 규칙 문장으로 바꿔 저장. 공고 카드의 `elderCaution`은 이슈가 있으면 이슈, 없으면 대상 등록 때의 주의사항. `elderIssue`는 원문 칸. 그 공고로 생긴 요청 상세의 `elder.caution`도 이슈로 바뀌고 원래 값은 `elder.baseCaution`.
+- `GET /api/admin/insights`: `categorySuggestions[{key, name, count, waiting}]`(사용자 건의 묶음 건수)가 더해졌다.
+
+**생애 플랜 계산(코드, `PlannerService.lifeCompute`)**: 모은 시간 = 지금 쓸 수 있는 시간 + 한 달 시간 × 12 × (시작 나이 − 지금 나이). 한 달 사용 = Σ 받고 싶은 도움 시간 × 가중치(기본 1.0 / 수고 1.2 / 책임 1.5). 끝 나이 = 시작 나이 + 모은 시간 ÷ (한 달 사용 × 12), 95세까지만. `okTo90`, `need90`(90세까지 모자란 시간), `need90Monthly`(90세까지 가려면 한 달 시간, 0.5 올림), `points[{age, hours}]`(나이별 통장 그래프). **상속은 없다**(`inherit=false`, 가족에게 선물만). 조언 문장만 LLM(없으면 규칙).
+
+**새 테이블**: `category_suggestions`, `life_plans`, `planner_picks`, `app_settings`, 칸 `posts.issue_note` — `db/README.md`.
+
+**데모 데이터**: 카테고리 건의 5건(반려동물 돌봄 3건 묶음 등) — `Proto1111Seeder`.
+

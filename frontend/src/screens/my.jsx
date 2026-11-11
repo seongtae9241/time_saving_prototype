@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
+import { MySuggestions } from '../ui/suggest.jsx';
 import { Ic, Spk, Mod, Mi, Loading, Empty, RuleNote, ChipsPick, Upload, useLoad, useBusy, Avatar } from '../ui/bits.jsx';
 import { useAuth, useUi, getBig, applyBig } from '../ui/ctx.jsx';
 import { api, post, put, del } from '../api.js';
@@ -82,13 +83,15 @@ export function My() {
         ))} />
         <Mi t="봉사 확인서 발급" s="활동 기록을 PDF로 받아요" i="file" onClick={() => nav('/my/cert')} />
         <Mi t="AI 분석" s="내 활동·평가 습관 분석 · 봉사 플랜" i="chart" onClick={() => nav('/my/insight')} />
-        <Mi t="내가 받은 도움 리포트" s="최근 활동 일지·전달 메모 모아 보기" i="file" onClick={() => nav('/my/report')} />
+        <Mi t="시간 플래너" s="캘린더 · 추천 봉사 · 생애 플랜" i="cal" onClick={() => nav('/planner')} />
+        <Mi t="첫 활동 교육" s={me.eduDone ? '수료함 · 수료증 보기' : '봉사 전에 한 번 · 약 25분'} i="cap" onClick={() => nav(me.eduDone ? '/edu/cert' : '/edu')} />
       </div>
       <div className="sec-t">가족</div>
       <div className="ml">
+        <Mi t="내가 받은 도움 기록" s="건별 메모 · 병원에서 들은 말" i="list" onClick={() => nav('/my/report')} />
         <Mi t="가족 연결" s={fam0 ? `${fam0.relation || ''} ${fam0.user.name} · 연결됨${linked.length > 1 ? ` 외 ${linked.length - 1}명` : ''}` : '연결된 가족이 없어요'} i="users" onClick={() => nav('/my/family')} />
-        {fam0 && <Mi t="가족 대신 도움 요청" s={`${fam0.user.name} 님 이름으로 봉사 요청`} i="chat" onClick={() => nav(`/write/need?family=${encodeURIComponent(fam0.user.name)}`)} />}
-        {fam0 && <Mi t="가족 리포트" s={`${fam0.user.name} 님 최근 활동·메모 (공유 동의한 경우)`} i="chart" onClick={() => nav(`/my/family/${fam0.user.id}/report`)} />}
+        {fam0 && <Mi t="가족 대신 봉사 요청" s={`${fam0.user.name} 님 이름으로 봉사 요청`} i="chat" onClick={() => nav(`/write/need?family=${encodeURIComponent(fam0.user.name)}`)} />}
+        {fam0 && <Mi t="가족 최근 기록" s={`${fam0.user.name} 님 최근 활동·메모 (공유 동의한 경우)`} i="chart" onClick={() => nav(`/my/family/${fam0.user.id}/report`)} />}
         <Mi t="내 리포트 공유 동의" s="가족 연결 화면에서 가족마다 켜고 꺼요" i="heart" onClick={() => nav('/my/family')} />
       </div>
       <div className="sec-t">알림·도움</div>
@@ -99,6 +102,8 @@ export function My() {
         <Mi t="1:1 문의 · 신고 내역" s="문의·신고 처리 상태" i="msg" onClick={() => nav('/qna')} />
         <Mi t="공지사항" i="file" onClick={() => nav('/notice')} />
         <Mi t="공공 서비스 안내" s="AI가 맞는 서비스를 찾아줘요" i="building" onClick={() => nav('/public')} />
+        <Mi t="동네 기관 소식" s="근처 기관이 여는 교실·모임·행사" i="cal" onClick={() => nav('/news')} />
+        <Mi t="카테고리 건의" s="6가지 종류에 없는 도움을 운영자에게 건의" i="flag" onClick={() => nav('/my/suggest')} />
       </div>
       <div className="sec-t">계정</div>
       <div className="ml">
@@ -397,3 +402,8 @@ export function Withdraw() {
   );
 }
 export const _d = dshort;
+
+/* ---------- 카테고리 건의 (2026-11-11) — 사용자·담당자 공용 ---------- */
+export function Suggest() {
+  return <Screen title="카테고리 건의" noTabs><MySuggestions /></Screen>;
+}

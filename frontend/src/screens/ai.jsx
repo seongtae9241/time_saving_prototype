@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
 import { Ic, Spk, Mod, CatIc, Avatar, Stars, AiLoading, RuleNote, useLoad } from '../ui/bits.jsx';
+import { DIc, Pav } from '../ui/proto.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { post } from '../api.js';
 import { hh, dlabel, lvName, lvWeight, LV, W, fmt } from '../lib/format.js';
@@ -78,6 +79,28 @@ function AskBox({ title, sub, placeholder, quick, onAsk, q, setQ, mic }) {
 
 const CAT_DESC = { '동행': '병원·약국까지 함께 가요 · 책임 1.5 · 보통 2~3시간', '장보기·심부름': '대신 장을 보거나 같이 가요 · 수고 1.2 · 1~2시간', '디지털 도움': '폰 설정·영상통화·키오스크 · 기본 1.0 · 1시간', '생활 정리': '옷장·서랍 정리 · 기본 1.0 · 2시간', '가벼운 집안일': '집안일 거들기 · 수고 1.2', '말동무·정서': '안부 방문·이야기 나누기 · 기본 1.0 · 1시간' };
 
+/** 추천 한 섹션(단골 / 가까운 사람). 왜 맞는지(fitText)는 서버가 계산한 값 그대로. */
+function RecSection({ title, sub, icon, list, empty, action }) {
+  const nav = useNavigate();
+  return (
+    <div className="ai" style={{ marginTop: 8 }}>
+      <div className="ah"><Spk />{title}<Mod n={4} /></div>
+      <div className="row" style={{ gap: 10 }}><DIc k={icon} size={36} /><div className="mute2 grow">{sub}</div></div>
+      {list.length ? list.map((p) => {
+        const name = p.elderDisplayName || p.ownerName;
+        return (
+          <div key={p.id} className="pc2 click" style={{ marginTop: 10, boxShadow: 'none' }} role="button" tabIndex={0} onClick={() => nav(`/post/${p.id}`)} onKeyDown={(e) => { if (e.key === 'Enter') nav(`/post/${p.id}`); }}>
+            <div className="top"><Pav name={name} s={40} /><div className="grow"><div className="who">{name}{p.fit && p.fit.regular && <span className="badge">★ 단골</span>}</div><div className="sub">{dlabel(p.date)} {hh(p.startHour)}~{hh(p.endHour)}{p.distanceKm != null ? ` · ${p.distanceKm}km` : ''}{p.owner ? <> · <Stars r={p.owner.ratingAvg} /></> : null}</div></div>›</div>
+            <div className="small" style={{ marginTop: 8 }}>{p.type === 'OFFER' ? (p.note || p.title) : p.title}</div>
+            {p.fitText && <div className="rec-why" style={{ marginTop: 6 }}><Spk /> {p.fitText}</div>}
+          </div>
+        );
+      }) : <div className="small muted" style={{ marginTop: 10 }}>{empty}</div>}
+      {action}
+    </div>
+  );
+}
+
 /* ---------- AI 도움 추천 ---------- */
 export function Recommend() {
   const nav = useNavigate();
@@ -103,17 +126,22 @@ export function Recommend() {
                 {(res.categories || []).map((k) => <div key={k} className="row" style={{ gap: 12, marginTop: 10 }}><CatIc k={k} size={40} /><div className="grow"><div className="b">{k}</div><div className="mute2">{CAT_DESC[k] || `${LV(k)} ${W(k).toFixed(1)}`}</div></div></div>)}
                 <RuleNote source={res.source} />
               </div>
-              <div className="ai" style={{ marginTop: 8 }}>
-                <div className="ah"><Spk />이런 분께 받을 수 있어요<Mod n={4} /></div>
-                {(res.posts || []).length ? res.posts.map((p) => (
-                  <div key={p.id} className="pc2 click" style={{ marginTop: 10, boxShadow: 'none' }} role="button" tabIndex={0} onClick={() => nav(`/post/${p.id}`)}>
-                    <div className="top"><Avatar name={p.ownerName} s={40} /><div className="grow"><div className="who">{p.ownerName}</div><div className="sub">{dlabel(p.date)} {hh(p.startHour)}~{hh(p.endHour)}{p.distanceKm != null ? ` · ${p.distanceKm}km` : ''} · <Stars r={p.owner && p.owner.ratingAvg} /></div></div>›</div>
-                    {p.note && <div className="small muted" style={{ marginTop: 8 }}>{p.note}</div>}
-                  </div>
-                )) : <div className="small muted">지금 열린 공고가 없어요. 도움 요청 공고를 올려 보세요.</div>}
-                <button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav('/write/need')}>봉사 요청 쓰기</button>
-              </div>
-              <div className="card item click" style={{ marginTop: 8 }} role="button" tabIndex={0} onClick={() => nav(`/public?q=${encodeURIComponent(asked)}`)}><div className="ic"><Ic n="building" s={20} /></div><div className="grow"><div className="b">공공 서비스도 찾아볼까요?</div><div className="mute2">공공 서비스 DB에서 맞는 서비스를 찾아요</div></div>›</div>
+              {res.help && res.help.blocked && (
+                <div className="ai warn" style={{ marginTop: 8 }}>
+                  <div className="ah"><Spk />이 도움은 이웃에게 받을 수 없어요<Mod n={2} /></div>
+                  <div className="small">{res.help.reason}</div>
+                  {(res.help.publicServices || []).length > 0 && <PubCards list={res.help.publicServices} />}
+                </div>
+              )}
+              {res.help && !res.help.blocked && <div className="mute2" style={{ margin: '8px 2px 0' }}>{res.help.note}</div>}
+              {/* 2026-11-11: 단골 추천 / 가까운 사람 추천 두 섹션 (순위는 서버 코드: 같은 동 → 가능 시간 → 거리) */}
+              <RecSection title={res.helper ? '단골 추천 · 내가 자주 도운 이웃' : '단골 추천'} sub={res.helper ? '3번 이상 도운 이웃이 올린 봉사 요청' : '내 단골이 올린, 시간·지역이 맞는 도움 가능 공고'} icon="regular" list={res.regularPosts || []}
+                empty={res.helper ? '자주 도운 이웃이 올린 공고가 지금은 없어요' : '단골이 올린 공고가 지금은 없어요. 단골에게 바로 요청할 수도 있어요.'}
+                action={!res.helper && <button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav('/regular')}>단골에게 바로 요청하기</button>} />
+              <RecSection title="가까운 사람 추천" sub="단골이 아니어도 시간·지역이 잘 맞는 공고" icon="search" list={res.nearbyPosts || []}
+                empty={`지금 열린 공고가 없어요. ${res.helper ? '도움 가능' : '봉사 요청'} 공고를 올려 보세요.`}
+                action={<button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav(res.helper ? '/write/offer' : '/write/need')}>{res.helper ? '도움 가능 공고 올리기' : '봉사 요청 쓰기'}</button>} />
+              <div className="card item click" style={{ marginTop: 8 }} role="button" tabIndex={0} onClick={() => nav(`/public?q=${encodeURIComponent(asked)}`)}><div className="ic"><Ic n="building" s={20} /></div><div className="grow"><div className="b">공공 서비스도 찾아볼까요?</div><div className="mute2">근처에서 받을 수 있는 공공 서비스를 찾아요</div></div>›</div>
             </>
           )}
         </div>

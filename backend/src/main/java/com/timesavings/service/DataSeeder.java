@@ -20,6 +20,7 @@ import java.util.*;
  * 채택 프로토타입의 기준일(11/8)을 오늘로 옮겨 상대 날짜로 넣는다.
  */
 @Component
+@org.springframework.core.annotation.Order(1) // Proto1111Seeder(100)보다 먼저
 public class DataSeeder implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
     private static final LocalDate PROTO_TODAY = LocalDate.of(2026, 11, 8);

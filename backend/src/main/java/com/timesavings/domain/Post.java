@@ -37,4 +37,6 @@ public class Post {
     /** LLM 추가 A(7.12): 안 맞춰지는 공고 고치기 제안 JSON {tips, evidence, source}, 한 번 확인한 시각(공고당 1회) */
     @Column(name = "fix_tips_json", length = 3000) public String fixTipsJson;
     @Column(name = "fix_checked_at") public LocalDateTime fixCheckedAt;
+    /** 담당자 대리 공고의 "관리 대상 이슈"(이 공고에서 봉사자에게 보일 주의사항). 비어 있으면 대상 등록 때의 주의사항을 보여 준다. */
+    @Column(name = "issue_note", length = 300) public String issueNote;
 }

@@ -1,6 +1,6 @@
 # 시간 적금 — 프론트엔드
 
-React 18 + Vite 5 + react-router-dom 6 (JavaScript). UI 라이브러리 없이 채택 프로토타입(`docs/prototypes/adopted-황수빈-첫활동교육-동네클래스.html`)의 CSS를 `src/styles/proto.css`로 그대로 옮겼고, 프로토타입에 없는 것만 `src/styles/app.css`에 더했다.
+React 18 + Vite 5 + react-router-dom 6 (JavaScript). UI 라이브러리 없이 기준 프로토타입(2026-11-11부터 `docs/prototypes/proto-2026-11-11-역할별정리판.html`)의 CSS를 `src/styles/proto.css`로 그대로 옮겼다. 프로토타입에 없지만 남긴 화면(첫 활동 교육·QR 등)의 규칙과 접근성 보정(보조 글씨 대비·포커스·움직임 줄이기)은 `src/styles/kept.css`, 그 밖에 더한 것은 `src/styles/app.css`에 있다. 화면별 대조는 `docs/specs/2026-11-11-프로토타입-대조.md`.
 
 ## 빌드 환경변수
 
@@ -29,6 +29,8 @@ npm run build      # 결과물 frontend/dist
 | `src/ui/ctx.jsx` | 토스트·바텀시트·확인 시트(`useUi`), 로그인 사용자·역할(`useAuth`), 큰 글씨 |
 | `src/ui/Frame.jsx` | 화면 틀(헤더·뒤로·알림 벨·역할 칩·역할별 아래 탭), 데모 계정 시트 |
 | `src/ui/bits.jsx` | 프로토타입 도우미를 컴포넌트로: 카테고리 아이콘·칩, 시간 막대, 상태 태그, 진행 단계, 공고 카드, 요청 줄, AI 로딩(aiRun), 규칙 모드 표시, QR(`qrcode` 패키지) |
+| `src/ui/proto.jsx` · `src/ui/duoIcons.js` | 2026-11-11 역할별 정리판 공용 조각: 듀오톤 아이콘 `DIc`(프로토타입 `dIc`/`DI`/`DC` 그대로), 파스텔 아바타 `Pav`, 시간 표기 `hmTxt`·`HmBig`, 고리 `Ring`, **도움 받기 / 봉사하기 전역 모드** `ModeProvider`·`useMode`(localStorage `ts-mode`, `body[data-mode]`) |
+| `src/ui/suggest.jsx` | 카테고리 추가 건의 시트·링크·내 건의 목록 |
 | `src/ui/icons.js` | 프로토타입 아이콘 `I`, `ic()`, 로고 그대로 |
 | `src/lib/format.js` | 카테고리·가중치·시간 표시(`hh`, `ap`, `fmt`), 날짜 표시, 상태 이름 |
 | `src/ui/VoiceInput.jsx` | 공용 음성 입력: 브라우저 받아쓰기 → (없거나 설정에서 고르면) 녹음 → `POST /api/stt` → (둘 다 안 되면) 직접 입력 안내. `useSpeechInput`, `MicButton`, `VoiceField`, `SttServerToggle` |
@@ -55,7 +57,7 @@ npm run build      # 결과물 frontend/dist
 | qna (문의·신고 내역) | `/qna` | `GET /inquiries/mine`, `GET /reports/mine` | B-37, B-47, B-49 |
 | qnaNew | `/qna/new` | `POST /inquiries` | B-48 |
 | 신고 시트 | (시트) | `POST /reports` | B-36 |
-| u_home | `/u/home` | `GET /me`, `/bank`, `/requests?box=all`, `/posts?type=OFFER`, `/events`, `/edu` | A-06, B-46 |
+| u_home | `/u/home` | `GET /me`, `/requests?box=all`, `/posts?type=OFFER\|NEED`(헤더 모드), `/events`, `/edu` — 큰 통장 카드 · 내 일정 · 아이콘 메뉴 5개 · 나를 기다리는 요청(폴더 탭) · 이웃 · 동네 기관 소식 | A-06, B-46, 2026-11-11 |
 | **voice_req (추가 요구(사용자 요청): 음성 요청서)** | `/voice`, `/voice?elder=` | `POST /ai/post-chat` {type:'NEED', inputMode:'voice'}, `POST /posts`, `GET /org/elders/{id}` | B-02, B-03, B-05, B-09, B-42, C-04, P-01 |
 | board | `/board?type=OFFER\|NEED`, `/board?elder=` | `GET /posts?type&area&date&cat&sort` | B-20, C-05 |
 | post | `/post/:id` | `GET /posts/{id}`, `DELETE /posts/{id}`, `POST /posts`(다시 올리기), `GET /users/{id}/profile` | B-11, B-12, B-13, B-20 |
@@ -65,11 +67,13 @@ npm run build      # 결과물 frontend/dist
 | r_detail · q_detail | `/req/:id` (사용자), `/o/reqs/:id` (담당자) | `GET /requests/{id}`, `accept/reject/decline/cancel/noshow/check-in/check-out/confirm/adjust/adjust/answer/rate/appeal/messages` | A-05, A-08, B-12, B-17~19, B-22, B-23, B-25, B-28, B-35, B-38, C-07~C-10 |
 | log_write | `/req/:id/log` | `POST /ai/log-tidy`, `POST /files`, `POST /requests/{id}/log` | B-24 |
 | rate | `/req/:id/rate` | `POST /requests/{id}/rate` | B-38, B-39 |
-| write | `/write` | `GET /posts/mine` | B-03 |
+| write | `/write` | `GET /posts/mine` — 도움 가능 / 봉사 요청(AI) 큰 버튼 + 직접 적기(수동)·말로 요청하기 | B-03 |
+| (수동) 봉사 요청 직접 적기 | `/write/need/manual`, `?elder=`(담당자 대리 — 관리 대상 이슈 칸) | `POST /ai/filter`, `POST /posts`(`elderIssue`) | 2026-11-11 |
 | write_offer | `/write/offer` | `POST /posts` (반복 `repeat`) | B-04, B-06 |
 | write_need | `/write/need`, `?elder=`, `?family=` | `POST /ai/post-chat`, `POST /posts` | B-02, B-03, B-05, B-09, C-04 |
-| act | `/act?seg=` | `GET /requests?box=all`, `GET /posts/mine` | B-45 |
-| bank | `/bank` | `GET /bank` | A-06, B-30, B-33 |
+| act | `/act?seg=` | `GET /requests?box=all`, `GET /posts/mine` — 도움받기 / 봉사하기 버튼(헤더 모드와 같은 값) | B-45, 2026-11-11 |
+| bank | `/bank` | `GET /bank` — 통장 카드(가족에게 선물·플래너·이용 규칙) · 전체 적립/사용 · 월별 결산 · 월 내역 | A-06, B-30, B-33 |
+| planner | `/planner?seg=cal\|rec\|life` | `GET /me/planner?month=`, `POST /me/planner/picks`, `DELETE /me/planner/picks/{postId}`, `GET/POST /me/life-plan` — 캘린더 / 추천 봉사 / 생애 플랜 | 2026-11-11 |
 | gift | `/gift` | `GET /family`, `POST /bank/gift` | B-32, B-34 |
 | my | `/my` | `GET /me`, `/bank`, `/family`, `/posts/mine`, `/interest-alerts` | B-43~47 |
 | profileEdit | `/my/profile` | `POST /files`, `PUT /me` | B-43 |
@@ -81,27 +85,31 @@ npm run build      # 결과물 frontend/dist
 | cert | `/my/cert` | `GET /certificate` | — |
 | (참고안) 내 정보 수정·비밀번호 | `/my/info` | `PUT /me`, `PUT /me/password` | A-09 |
 | (참고안) 회원 탈퇴 | `/my/withdraw` | `GET /me/withdraw-check`, `POST /me/withdraw` | A-04 |
-| recommend | `/recommend` | `POST /ai/recommend` | — |
+| recommend | `/recommend` | `POST /ai/recommend` — 받을 수 있는 도움 · 단골 추천 · 가까운 사람 추천 | 2026-11-11 |
 | public | `/public?q=` | `POST /ai/public-services` | P-01 |
 | edu | `/edu` | `GET /edu`, `PUT /edu/diag` | B-01 |
 | edu_card | `/edu/card` | `POST /edu/cards-done` | B-01 |
 | edu_quiz | `/edu/quiz` | `POST /edu/quiz` | B-01 |
 | edu_rp_list · edu_rp · edu_rp_res | `/edu/rp`, `/edu/rp/:id`, `/edu/rp/:id/result` | `POST /ai/roleplay`, `POST /edu/roleplay/{id}/finish`, `POST /edu/complete` | B-01 |
 | edu_cert | `/edu/cert` | `GET /edu` | B-01 |
-| 동네 소식 (기관 소식만) | `/news`, `/news/:id` | `GET /events`, `GET /events/{id}`, `apply`, `cancel`, `close` | 2026-11-09 회의 2장 |
+| 동네 기관 소식 | `/news`(지역 칩 — 탭에서는 빠지고 홈 섹션·마이에서 들어감), `/news/:id` | `GET /events?area=`, `GET /events/{id}`, `apply`, `cancel`, `close` | 2026-11-09 회의 2장, 2026-11-11 |
+| 카테고리 건의 | `/my/suggest` (사용자·담당자), 공고 작성의 "맞는 종류가 없어요 → 운영자에게 건의" 시트 | `POST /category-suggestions`, `GET /category-suggestions/mine` | 2026-11-11 |
 | (동네 클래스 — 2026-11-10 삭제) | `/cls…` → `/news`로 넘김 | — | — |
-| o_home | `/o/home` | `GET /org/home`, `/org/elders`, `/org/requests` | C-02~C-10 |
+| o_home | `/o/home` | `GET /org/home`, `/org/elders`, `/org/requests` — 아이콘 메뉴: 대상 등록 · 봉사 요청 · 도움 찾기 · 기관 소식 | C-02~C-10 |
+| o_write | `/write/need?elder=`(AI 정리 + 관리 대상 이슈 칸), `/write/need/manual?elder=`(수동) | `POST /ai/tidy-post`, `POST /ai/post-chat`, `POST /posts`(`elderIssue`) | C-04, 2026-11-11 |
 | o_elders | `/o/elders` | `GET /org/elders`, `GET /org/transfers`, `POST /org/transfers/{id}/answer` | C-02, C-03 |
 | e_detail | `/o/elders/:id` | `GET /org/elders/{id}`, `memos`, `consent`, `end`, `transfer`, `GET /org/managers` | C-02, C-03, P-05, P-06 |
 | e_new · (수정) | `/o/elders/new`, `/o/elders/:id/edit` | `POST /org/elders`, `PUT /org/elders/{id}` | C-02 |
 | o_reqs | `/o/reqs?seg=` | `GET /org/requests?box=all` | C-05~C-10 |
 | o_report | `/o/report` | `GET /org/reports`, `POST /org/reports/{id}/flag` | P-05 |
 | o_my | `/o/my` | — | A-09 |
-| 동네 소식 운영 (담당자) | `/o/events`, `/o/events/new` (`/o/space` → `/o/events`) | `GET /org/events`, `POST /events`, `POST /link-preview` | 2026-11-09 회의 O3 |
+| o_event · 기관 소식 운영 | `/o/events`, `/o/events/new` (`/o/space` → `/o/events`) | `GET /org/events`, `POST /events`, `POST /link-preview` | 2026-11-09 회의 O3 |
 | a_dash | `/a/dash` | `GET /admin/dashboard`, `POST /admin/reports/generate`, `POST /admin/scheduler/run` | D-04, D-05, P-07 |
 | a_approve | `/a/approve?seg=org\|vol\|diff` | `GET /admin/orgs`, `approve/reject`, `GET /admin/verifications`, `…/{kind}/approve\|reject`, `GET /admin/appeals`, `answer` | D-01, D-03, B-28 |
 | a_safety | `/a/safety` | `GET /admin/reports`, `handle`, `GET /admin/anomalies`, `hold\|release` | D-02, D-06 |
 | a_manage | `/a/manage` | — | — |
+| a_verify | `/a/verify` | `GET /verify-items`, `PUT /admin/verify-items` | 2026-11-11 |
+| 카테고리 건의 처리 | `/a/suggest` | `GET /admin/category-suggestions`, `POST /admin/category-suggestions/{id}/answer` | 2026-11-11 |
 | (참고안) 회원 관리 | `/a/members` | `GET /admin/users`, `GET /admin/users/{id}`, `suspend\|unsuspend` | D-07 |
 | (참고안) 담당자 계정 | `/a/managers` | `GET /admin/managers`, `suspend\|unsuspend`, `POST /admin/elders/{id}/transfer` | D-01, C-03 |
 | (참고안) 문의 관리 | `/a/inquiries` | `GET /admin/inquiries`, `answer` | D-08 |

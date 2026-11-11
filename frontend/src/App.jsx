@@ -5,17 +5,19 @@ import { Notif, Notice, NoticeDetail, Qna, QnaNew } from './screens/common.jsx';
 import { UHome } from './screens/home.jsx';
 import { Board, PostDetail } from './screens/board.jsx';
 import { ReqForm, Regular, RequestDetail, LogWrite, Rate } from './screens/request.jsx';
-import { Write, WriteOffer, WriteNeed, PostEdit } from './screens/write.jsx';
+import { Write, WriteOffer, WriteNeed, WriteNeedManual, PostEdit } from './screens/write.jsx';
 import { Act, Bank, Gift } from './screens/bank.jsx';
-import { My, ProfileEdit, Verify, Family, FamReport, AlertSet, NotiSet, Cert, InfoEdit, Withdraw } from './screens/my.jsx';
+import { My, ProfileEdit, Verify, Family, FamReport, AlertSet, NotiSet, Cert, InfoEdit, Withdraw, Suggest } from './screens/my.jsx';
 import { Recommend, Public } from './screens/ai.jsx';
 import { VoiceReq } from './screens/voice.jsx';
 import { OHome, OElders, EDetail, EForm, OReqs, OReport, OMy } from './screens/org.jsx';
 import { News, EventDetail, OEvents, OEventNew } from './screens/news.jsx';
 import { Edu, EduCard, EduQuiz, EduRpList, EduRp, EduRpRes, EduCert } from './screens/edu.jsx';
-import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANotices, APub, APersona } from './screens/admin.jsx';
+import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANotices, APub, APersona, AVerify, ASuggest } from './screens/admin.jsx';
 import { MyInsight, CarePlan, MyReport, FamRecentReport } from './screens/insight.jsx';
 import { MemoToPosts } from './screens/opsai.jsx';
+import { ModeProvider } from './ui/proto.jsx';
+import { Planner } from './screens/planner.jsx';
 import { Ask } from './screens/assist.jsx'; // LLM 추가 A(7.12) 음성 비서
 import { ClassDetail, APublicClasses } from './screens/publicClass.jsx';
 
@@ -62,6 +64,7 @@ function Shell() {
         <Route path="/write" element={g(<Write />, U)} />
         <Route path="/write/offer" element={g(<WriteOffer />, U)} />
         <Route path="/write/need" element={g(<WriteNeed />, UO)} />
+        <Route path="/write/need/manual" element={g(<WriteNeedManual />, UO)} />
         <Route path="/act" element={g(<Act />, U)} />
         <Route path="/bank" element={g(<Bank />, U)} />
         <Route path="/gift" element={g(<Gift />, U)} />
@@ -74,10 +77,12 @@ function Shell() {
         <Route path="/my/insight" element={g(<MyInsight />, U)} />
         <Route path="/my/report" element={g(<MyReport />, U)} />
         <Route path="/bank/plan" element={g(<CarePlan />, U)} />
+        <Route path="/planner" element={g(<Planner />, U)} />
         <Route path="/my/alerts" element={g(<AlertSet />, U)} />
         <Route path="/my/noti" element={g(<NotiSet />, U)} />
         <Route path="/my/cert" element={g(<Cert />, U)} />
         <Route path="/my/info" element={g(<InfoEdit />)} />
+        <Route path="/my/suggest" element={g(<Suggest />, UO)} />
         <Route path="/my/withdraw" element={g(<Withdraw />, U)} />
         <Route path="/recommend" element={g(<Recommend />, U)} />
         <Route path="/public" element={g(<Public />, UO)} />
@@ -90,7 +95,7 @@ function Shell() {
         <Route path="/edu/rp/:id/result" element={g(<EduRpRes />, U)} />
         <Route path="/edu/cert" element={g(<EduCert />, U)} />
 
-        <Route path="/news" element={g(<News />, U)} />
+        <Route path="/news" element={g(<News />, UO)} />
         <Route path="/news/class/:id" element={g(<ClassDetail />, UO)} />
         <Route path="/news/:id" element={g(<EventDetail />, UO)} />
         <Route path="/o/events" element={g(<OEvents />, O)} />
@@ -119,6 +124,8 @@ function Shell() {
         <Route path="/a/inquiries" element={g(<AInquiries />, A)} />
         <Route path="/a/notices" element={g(<ANotices />, A)} />
         <Route path="/a/pub" element={g(<APub />, A)} />
+        <Route path="/a/verify" element={g(<AVerify />, A)} />
+        <Route path="/a/suggest" element={g(<ASuggest />, A)} />
         <Route path="/a/persona" element={g(<APersona />, A)} />
         <Route path="/a/classes" element={g(<APublicClasses />, A)} />
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -131,7 +138,9 @@ export default function App() {
   return (
     <UiProvider>
       <AuthProvider>
-        <Shell />
+        <ModeProvider>
+          <Shell />
+        </ModeProvider>
       </AuthProvider>
     </UiProvider>
   );

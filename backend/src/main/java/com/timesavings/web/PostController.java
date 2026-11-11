@@ -35,7 +35,7 @@ public class PostController {
     public record Repeat(Boolean weekly, Integer weeks) {}
     public record PostBody(PostType type, LocalDate date, Double startHour, Double endHour, String area, List<String> categories,
                            String title, String detail, String note, Double estHours, Repeat repeat, Long elderId,
-                           Level difficulty, String difficultyReason) {
+                           Level difficulty, String difficultyReason, String elderIssue) {
         PostService.PostCmd cmd() {
             return new PostService.PostCmd(type, date, startHour, endHour, area, categories, title, detail, note, estHours,
                     repeat != null && Boolean.TRUE.equals(repeat.weekly()), repeat == null ? null : repeat.weeks(), elderId, difficulty, difficultyReason);
@@ -88,7 +88,9 @@ public class PostController {
 
     @PostMapping("/posts")
     public Map<String, Object> create(@CurrentUser User u, @RequestBody PostBody b) {
+        String issue = cleanIssue(b);
         List<Post> created = posts.create(u, b.cmd());
+        if (issue != null) for (Post p : created) if (p.elderId != null) { p.issueNote = issue; postRepo.save(p); }
         Map<String, Object> first = views.postCard(created.get(0), u);
         first.put("createdCount", created.size());
         first.put("createdIds", created.stream().map(p -> p.id).toList());
@@ -97,7 +99,21 @@ public class PostController {
 
     @PutMapping("/posts/{id}")
     public Map<String, Object> update(@CurrentUser User u, @PathVariable Long id, @RequestBody PostBody b) {
-        return views.postCard(posts.update(u, id, b.cmd()), u);
+        String issue = cleanIssue(b);
+        Post p = posts.update(u, id, b.cmd());
+        if (b.elderIssue() != null && p.elderId != null) { p.issueNote = issue; postRepo.save(p); }
+        return views.postCard(p, u);
+    }
+
+    /** 담당자 대리 공고의 "관리 대상 이슈": 300자, 연락처·상세 주소·병명은 받지 않는다(대상 등록과 같은 규칙). 빈 값이면 null(대상 기본 주의사항 사용). */
+    private static String cleanIssue(PostBody b) {
+        if (b.elderIssue() == null || b.elderIssue().isBlank()) return null;
+        String t = b.elderIssue().trim();
+        if (b.elderId() == null) throw ApiException.bad("ISSUE_ONLY_FOR_ELDER", "관리 대상 이슈는 담당자가 대신 올리는 공고에만 적을 수 있어요");
+        if (t.length() > 300) throw ApiException.bad("ISSUE_TOO_LONG", "관리 대상 이슈는 300자 안으로 적어 주세요");
+        if (!com.timesavings.ai.VoiceSafety.scrub(t).removed().isEmpty())
+            throw ApiException.bad("PII_NOT_ALLOWED", "연락처·상세 주소 같은 개인정보는 적지 않아요. 방문할 때 알아야 할 주의사항만 적어 주세요");
+        return com.timesavings.ai.VoiceSafety.sanitizeCaution(t); // 병명이 보이면 규칙 문장으로 바꾼다
     }
 
     @DeleteMapping("/posts/{id}")

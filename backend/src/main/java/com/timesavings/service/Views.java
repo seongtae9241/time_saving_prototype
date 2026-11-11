@@ -134,6 +134,14 @@ public class Views {
                 "isRegular", isRegular);
     }
 
+    /** 공고에 적은 "관리 대상 이슈"가 있으면 그 요청에서는 그것을 주의사항으로 보여 준다(대상 기본 주의사항은 baseCaution 으로 남김). */
+    private static Map<String, Object> withIssue(Map<String, Object> brief, String issue) {
+        if (brief == null || issue == null || issue.isBlank()) return brief;
+        brief.put("baseCaution", brief.get("caution"));
+        brief.put("caution", issue);
+        return brief;
+    }
+
     public Map<String, Object> elderBrief(Elder e, boolean manager) {
         if (e == null) return null;
         Map<String, Object> m = map("id", e.id, "displayName", manager ? e.alias + " 님" : Rules.maskAlias(e.alias),
@@ -167,7 +175,8 @@ public class Views {
         Map<String, Object> m = map("id", p.id, "type", p.type, "ownerId", p.ownerId,
                 "ownerName", owner != null ? owner.name : (elder != null ? (manager ? elder.alias + " 님" : Rules.maskAlias(elder.alias)) : null),
                 "elderId", p.elderId, "elderDisplayName", elder == null ? null : (manager ? elder.alias + " 님" : Rules.maskAlias(elder.alias)),
-                "elderCaution", elder == null ? null : elder.caution,
+                "elderCaution", elder == null ? null : (p.issueNote != null && !p.issueNote.isBlank() ? p.issueNote : elder.caution),
+                "elderIssue", elder == null ? null : p.issueNote,
                 "date", p.date.toString(), "startHour", p.startHour, "endHour", p.endHour, "area", p.area,
                 "categories", p.categories, "title", p.title, "detail", p.detail, "note", p.note,
                 "estHours", p.estHours, "difficulty", p.difficulty, "difficultyReason", p.difficultyReason, "weight", w, "estEarn", estEarn,
@@ -270,7 +279,7 @@ public class Views {
                 "rejectReason", r.rejectReason,
                 "volunteer", vc,
                 "recipient", rec == null ? null : userBrief(rec),
-                "elder", elderBrief(elder, manager),
+                "elder", withIssue(elderBrief(elder, manager), elder != null && post != null && post.elderId != null ? post.issueNote : null),
                 "sender", userBrief(sender),
                 "myRole", role,
                 "actions", actions(r, role, rated, viewer.id.equals(r.senderId)),

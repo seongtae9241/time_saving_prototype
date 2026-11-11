@@ -42,7 +42,7 @@ public class NewsController {
     // ---------------- 동네 소식 ----------------
     @GetMapping("/events")
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> list(@CurrentUser User u) { return events.list(u); }
+    public List<Map<String, Object>> list(@CurrentUser User u, @RequestParam(required = false) String area) { return events.list(u, area); }
 
     @GetMapping("/events/{id}")
     @Transactional(readOnly = true)

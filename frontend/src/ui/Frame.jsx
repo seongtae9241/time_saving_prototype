@@ -3,10 +3,11 @@ import { useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { I } from './icons.js';
 import { Ic } from './bits.jsx';
 import { useAuth, useUi } from './ctx.jsx';
+import { DIc, MODE, useMode } from './proto.jsx';
 
 export const ROLES = {
-  USER: { label: '사용자', color: '#3D6DF2', tabs: [['/u/home', '홈', 'home'], ['/board', '공고', 'search'], ['/news', '동네 소식', 'cal'], ['/act', '내 활동', 'list'], ['/bank', '시간 통장', 'wallet'], ['/my', '마이', 'user']] },
-  ORG: { label: '담당자', color: '#6A4FD8', tabs: [['/o/home', '홈', 'home'], ['/o/elders', '도움 대상', 'users'], ['/o/reqs', '요청 관리', 'list'], ['/o/report', '리포트', 'chart'], ['/o/my', '마이', 'user']] },
+  USER: { label: '사용자', color: '#5B8DEF', tabs: [['/u/home', '홈', 'home'], ['/board', '공고', 'search'], ['/act', '내 활동', 'list'], ['/bank', '시간 통장', 'wallet'], ['/my', '마이', 'user']] },
+  ORG: { label: '담당자', color: '#3A6FD8', tabs: [['/o/home', '홈', 'home'], ['/o/elders', '도움 대상', 'users'], ['/o/reqs', '요청 관리', 'list'], ['/o/report', '최근 기록', 'chart'], ['/o/my', '마이', 'user']] },
   ADMIN: { label: '운영자', color: '#1B1D22', tabs: [['/a/dash', '대시보드', 'chart'], ['/a/approve', '승인', 'shield'], ['/a/safety', '신고·점검', 'flag'], ['/a/manage', '관리', 'gear']] },
 };
 
@@ -21,8 +22,19 @@ export function useDemoSheet() {
   const { sheet, closeSheet, toast } = useUi();
   const { login, logout, me } = useAuth();
   const nav = useNavigate();
+  const { mode, setMode } = useMode();
+  const pick = (m) => { closeSheet(); setMode(m); toast(m === 'give' ? '봉사하기 화면이에요' : '도움 받기 화면이에요'); };
   return () => sheet(() => (
     <>
+      {me && me.role === 'USER' && (
+        <div className="msel">
+          <h2>지금 할 일</h2>
+          <div className="msel-r">
+            <button className={'msel-b r ' + (mode !== 'give' ? 'on' : '')} aria-pressed={mode !== 'give'} onClick={() => pick('recv')}><DIc k="recv" size={40} /><div><b>도움 받기</b><span>도움 가능 공고 보기</span></div></button>
+            <button className={'msel-b g ' + (mode === 'give' ? 'on' : '')} aria-pressed={mode === 'give'} onClick={() => pick('give')}><DIc k="offer" size={40} /><div><b>봉사하기</b><span>봉사 요청 보기</span></div></button>
+          </div>
+        </div>
+      )}
       <h2>다른 데모 계정으로 로그인</h2>
       <p className="mute2" style={{ margin: '0 0 10px' }}>비밀번호는 모두 1234예요.</p>
       {DEMO.map(([id, role, desc]) => (
@@ -49,6 +61,7 @@ export default function Screen({ title = '', noHeader, noTabs, noBell, cls = '',
   const loc = useLocation();
   const navType = useNavigationType();
   const demo = useDemoSheet();
+  const { mode } = useMode();
   const role = me && me.role;
   const R = role && ROLES[role];
   const canBack = back !== false && (back === true || (window.history.state && window.history.state.idx > 0));
@@ -68,7 +81,7 @@ export default function Screen({ title = '', noHeader, noTabs, noBell, cls = '',
             {role && role !== 'ADMIN' && !noBell && (
               <button className="bell" aria-label="알림" onClick={() => nav('/notif')}><Ic h={I.bell2} />{unread ? <i>{unread}</i> : null}</button>
             )}
-            {R && <button className="chip-role" onClick={demo}><span className="dot" style={{ background: R.color }} />{R.label}<Ic h={I.down} /></button>}
+            {R && <button className="chip-role" onClick={demo} aria-label={role === 'USER' ? `지금 ${MODE[mode].label} 화면 · 바꾸기` : `${R.label} · 계정 바꾸기`}><span className="dot" style={{ background: role === 'USER' ? MODE[mode].color : R.color }} />{role === 'USER' ? MODE[mode].label : R.label}<Ic h={I.down} /></button>}
           </div>
         </header>
       )}

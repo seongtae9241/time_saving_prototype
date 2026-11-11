@@ -24,11 +24,11 @@ export const CI = {
   '가벼운 집안일': '<path d="M4 11 12 4l8 7v8.5a.5.5 0 0 1-.5.5H15v-5H9v5H4.5a.5.5 0 0 1-.5-.5z"/>',
 };
 export const CC = {
-  '동행': ['#EAF0FF', '#3D6DF2'], '장보기·심부름': ['#FFF1E2', '#EE8424'], '말동무·정서': ['#FFEDF3', '#E2557F'],
+  '동행': ['#EAF0FF', '#5B8DEF'], '장보기·심부름': ['#FFF1E2', '#EE8424'], '말동무·정서': ['#FFEDF3', '#E2557F'],
   '디지털 도움': ['#F0ECFF', '#7656E3'], '생활 정리': ['#FFF6D6', '#C99500'], '가벼운 집안일': ['#E4F5F9', '#178FAD'],
 };
 export const SHORT = { '동행': '동행', '장보기·심부름': '장보기', '말동무·정서': '말동무', '디지털 도움': '디지털', '생활 정리': '생활 정리', '가벼운 집안일': '집안일' };
-export const ccOf = (k) => CC[k] || ['#EEF3FF', '#3D6DF2'];
+export const ccOf = (k) => CC[k] || ['#EEF3FF', '#5B8DEF'];
 
 export const hh = (h) => { h = Number(h) || 0; const H = Math.floor(h), m = Math.round((h - H) * 60); return `${H}:${m ? '30' : '00'}`; };
 export const ap = (h) => { h = Number(h) || 0; return `${h < 12 ? '오전' : '오후'} ${h > 12 ? Math.floor(h - 12) : Math.floor(h)}시${h % 1 ? ' 30분' : ''}`; };
