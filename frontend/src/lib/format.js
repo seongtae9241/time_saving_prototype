@@ -66,6 +66,13 @@ export const todayISO = () => { const d = new Date(); return iso(d); };
 export const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 export const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
 export const arr = (v) => (Array.isArray(v) ? v : v == null || v === '' ? [] : String(v).split(',').map((x) => x.trim()).filter(Boolean));
+/** 받침에 맞는 조사 붙이기: josa('가까운 순 정렬', '을', '를') → '가까운 순 정렬을' */
+export const josa = (word, withFinal, noFinal) => {
+  const w = String(word || '');
+  const c = w.charCodeAt(w.length - 1);
+  const has = c >= 0xac00 && c <= 0xd7a3 ? (c - 0xac00) % 28 !== 0 : false;
+  return w + (has ? withFinal : noFinal);
+};
 export const maskN = (n) => (n ? (n.length <= 1 ? n + '○' : n[0] + '○' + n.slice(-1)) : '');
 
 export const ST = {

@@ -229,7 +229,7 @@ export function Signup() {
           {TERMS.map(([t, , body], i) => (
             <div key={t} className={'su-check ' + (agree[i] ? 'on' : '')} role="checkbox" aria-checked={!!agree[i]} tabIndex={0} onClick={() => setAgree(agree.map((v, k) => (k === i ? (v ? 0 : 1) : v)))} onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setAgree(agree.map((v, k) => (k === i ? (v ? 0 : 1) : v))); } }}>
               <span className="bx" /><div className="grow">{t}</div>
-              <button type="button" className="mute2" style={{ border: 0, background: 'none', font: 'inherit', minHeight: 44, padding: '0 4px', cursor: 'pointer', textDecoration: 'underline' }} aria-label={`${t} 내용 보기`}
+              <button type="button" className="mute2" style={{ border: 0, background: 'none', font: 'inherit', minHeight: 44, padding: '0 4px', cursor: 'pointer', textDecoration: 'underline', whiteSpace: 'nowrap', flexShrink: 0 }} aria-label={`${t} 내용 보기`}
                 onClick={(e) => { e.stopPropagation(); sheet(<><h2>{t.replace(/^\[[^\]]+\]\s*/, '')}</h2><ul className="small muted" style={{ margin: '6px 0 0', paddingLeft: 18 }}>{body.map((x) => <li key={x} style={{ marginTop: 6 }}>{x}</li>)}</ul><button className="btn ghost" style={{ marginTop: 14 }} onClick={closeSheet}>닫기</button></>); }}>보기</button>
             </div>
           ))}

@@ -5,7 +5,7 @@ import { MySuggestions } from '../ui/suggest.jsx';
 import { Ic, Spk, Mod, Mi, Loading, Empty, RuleNote, ChipsPick, Upload, useLoad, useBusy, Avatar } from '../ui/bits.jsx';
 import { useAuth, useUi, getBig, applyBig, saveBigToServer } from '../ui/ctx.jsx';
 import { api, post, put, del } from '../api.js';
-import { CATS, SHORT, AREAS, AGE_GROUPS, TIME_SLOTS, fmt, arr, dshort, dlabel, todayISO, addDays } from '../lib/format.js';
+import { CATS, SHORT, AREAS, AGE_GROUPS, TIME_SLOTS, ST, fmt, arr, dshort, dlabel, todayISO, addDays } from '../lib/format.js';
 import { speak } from './voice.jsx';
 import { SttServerToggle } from '../ui/VoiceInput.jsx';
 
@@ -484,8 +484,9 @@ export function InfoEdit() {
 /* ---------- 회원 탈퇴 (A-04) ---------- */
 export function Withdraw() {
   const nav = useNavigate();
-  const { logout } = useAuth();
+  const { logout, me } = useAuth();
   const { toast, confirm } = useUi();
+  const isUser = !me || me.role === 'USER'; // 시간 통장·가족 선물은 사용자 계정에만 있다
   const [c] = useLoad(() => api('/me/withdraw-check'), []);
   const [pw, setPw] = useState('');
   const [busy, run] = useBusy();
@@ -498,12 +499,12 @@ export function Withdraw() {
           {c && c.message && <p className="su-p">{c.message}</p>}
           <div className="sum" style={{ marginTop: 10 }}>
             <div className="between"><span className="muted">진행 중인 요청·활동</span><b className={active.length ? 'warnc' : ''}>{active.length}건</b></div>
-            <div className="between"><span className="muted">남은 시간</span><b>{fmt(c && c.balance)}시간</b></div>
-            <div className="between"><span className="muted">보류 중</span><b>{fmt(c && c.hold)}시간</b></div>
+            {isUser && <div className="between"><span className="muted">남은 시간</span><b>{fmt(c && c.balance)}시간</b></div>}
+            {isUser && <div className="between"><span className="muted">보류 중</span><b>{fmt(c && c.hold)}시간</b></div>}
           </div>
-          {active.length > 0 && <><div className="sec-t">먼저 정리할 요청</div>{active.map((r) => <div key={r.id} className="card item click" role="button" tabIndex={0} onClick={() => nav(`/req/${r.id}`)}><div className="grow"><div className="b">{r.content || r.postTitle || `요청 #${r.id}`}</div><div className="mute2">{r.date ? dlabel(r.date) : ''} {r.status}</div></div>›</div>)}</>}
-          <div className="notice" style={{ marginTop: 12 }}>탈퇴하면 남은 시간은 사라지고 되돌릴 수 없어요. 가족에게 먼저 선물할 수 있어요. 활동 기록은 법에 따라 정해진 기간만 보관해요.</div>
-          {Number(c && c.balance) > 0 && <button className="btn soft" style={{ marginTop: 10 }} onClick={() => nav('/gift')}>남은 시간 가족에게 선물하기</button>}
+          {active.length > 0 && <><div className="sec-t">먼저 정리할 요청</div>{active.map((r) => <div key={r.id} className="card item click" role="button" tabIndex={0} onClick={() => nav(me && me.role === 'ORG' ? `/o/reqs/${r.id}` : `/req/${r.id}`)}><div className="grow"><div className="b">{r.content || r.postTitle || `요청 #${r.id}`}</div><div className="mute2">{r.date ? dlabel(r.date) : ''} · {(ST[r.status] || [0, r.status])[1]}</div></div>›</div>)}</>}
+          <div className="notice" style={{ marginTop: 12 }}>{isUser ? '탈퇴하면 남은 시간은 사라지고 되돌릴 수 없어요. 가족에게 먼저 선물할 수 있어요. ' : '탈퇴하면 이 계정으로 다시 로그인할 수 없어요. '}활동 기록은 법에 따라 정해진 기간만 보관해요.</div>
+          {isUser && Number(c && c.balance) > 0 && <button className="btn soft" style={{ marginTop: 10 }} onClick={() => nav('/gift')}>남은 시간 가족에게 선물하기</button>}
           <label className="f">비밀번호 확인</label>
           <input className="in" type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" />
           <button className="btn warn big-cta" style={{ marginTop: 14 }} disabled={busy || active.length > 0 || (c && c.canWithdraw === false)} onClick={async () => {

@@ -107,7 +107,7 @@ export function Board() {
       </div>
       {sort === 'near' && pos && <div className="mute2" style={{ margin: '-2px 0 8px' }}><Ic n="pin" s={13} /> 지금 계신 곳에서 가까운 순이에요. 위치는 이번 정렬에만 쓰고 저장하지 않아요.</div>}
       <div className="chips">{['전체', ...catOrder].map((k) => <button key={k} className={'chip ' + (k === cat ? 'on' : '')} onClick={() => setCat(k)}>{type === 'OFFER' && favSet.has(k) && <span className="fav-mark" aria-label="자주 받는 도움">★</span>}{k === '전체' ? '전체' : SHORT[k]}</button>)}</div>
-      {!elderId && <div className="tip" style={{ marginTop: 12, padding: '12px 16px' }}><div className="grow small"><Ic n="bell" s={16} /> 조건에 맞는 공고가 올라오면 알려드려요</div><button className="btn soft sm" style={{ width: 'auto', padding: '0 12px', minHeight: 36 }} onClick={() => nav('/my/alerts')}>관심 조건</button></div>}
+      {!elderId && me && me.role === 'USER' && <div className="tip" style={{ marginTop: 12, padding: '12px 16px' }}><div className="grow small"><Ic n="bell" s={16} /> 조건에 맞는 공고가 올라오면 알려드려요</div><button className="btn soft sm" style={{ width: 'auto', padding: '0 12px', minHeight: 36 }} onClick={() => nav('/my/alerts')}>관심 조건</button></div>}
       <div className="sec-t"><span>공고 <span style={{ color: 'var(--brand)' }}>{shown.length}</span>개</span></div>
       {list === undefined ? <Loading /> : shown.length ? shown.map((p) => <PostCard key={p.id} p={p} to={elderId ? `/post/${p.id}?elder=${elderId}` : undefined} />) : <Empty>조건에 맞는 공고가 없어요</Empty>}
       {!elderId && me && me.role === 'USER' && (

@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useUi } from './ctx.jsx';
+import { josa } from '../lib/format.js';
 
 /* ---------- 위치 도우미 (B-59) ----------
    위치가 필요한 기능(공고 가까운 순 정렬 B-20, 공공 서비스 안내 B-67)을 쓰는 그 순간에만 브라우저에 위치를 묻는다.
@@ -36,7 +37,7 @@ function LocationGuide({ feature, onRetry, onClose }) {
   return (
     <>
       <h2>위치 정보가 필요한 기능이에요</h2>
-      <p className="muted" style={{ marginTop: 6 }}><b>{feature}</b>은(는) 지금 계신 곳을 알아야 쓸 수 있어요. 앞에서 위치 이용을 허용하지 않으셔서 지금은 쓸 수 없어요.</p>
+      <p className="muted" style={{ marginTop: 6 }}><b>{feature}</b>{josa(feature, '은', '는').slice(String(feature).length)} 지금 계신 곳을 알아야 쓸 수 있어요. 앞에서 위치 이용을 허용하지 않으셔서 지금은 쓸 수 없어요.</p>
       <div className="notice" style={{ marginTop: 12 }}>
         <b>허용하는 방법</b>
         <div style={{ marginTop: 6 }}>1. 주소창 왼쪽의 자물쇠(또는 사이트 설정) 표시를 눌러요.</div>
@@ -77,7 +78,7 @@ export function useLocationAsk() {
     }
     const r = await readPosition(); // 처음이면 여기서 브라우저의 위치 권한 요청 창이 뜬다
     if (r.ok) return { lat: r.lat, lng: r.lng };
-    if (!quiet) toast(r.reason === 'denied' ? `위치를 허용하지 않아 ${feature}을(를) 쓸 수 없어요` : '위치를 읽지 못했어요. 잠시 뒤 다시 시도해 주세요');
+    if (!quiet) toast(r.reason === 'denied' ? `위치를 허용하지 않아 ${josa(feature, '을', '를')} 쓸 수 없어요` : '위치를 읽지 못했어요. 잠시 뒤 다시 시도해 주세요');
     return null;
   }, [sheet, closeSheet, toast]);
 }

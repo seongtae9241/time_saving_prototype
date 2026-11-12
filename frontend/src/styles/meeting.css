@@ -60,6 +60,7 @@
 
 /* U9 QR 처음 쓸 때 한 줄 설명 */
 .qr-intro{display:flex;align-items:center;gap:10px;background:var(--pri-soft);color:#28479E;border-radius:14px;padding:10px 12px;font-size:13.5px;line-height:1.45;margin:8px 0 10px}
+.qr-intro svg{flex:0 0 auto}
 .qr-intro button{flex:0 0 auto;border:0;background:#fff;color:var(--brand);font:inherit;font-weight:700;font-size:13px;border-radius:999px;padding:6px 10px;cursor:pointer}
 
 /* O2 AI로 정리하기 */

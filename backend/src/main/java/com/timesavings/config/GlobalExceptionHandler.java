@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -47,6 +48,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Map<String, String>> noRes(Exception e) {
         return body(HttpStatus.NOT_FOUND, "NOT_FOUND", "찾을 수 없는 주소예요");
+    }
+
+    /** 주소는 있지만 그 방식(GET·POST 등)으로는 부를 수 없을 때: 서버 오류(500)가 아니라 405로 답한다 */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Map<String, String>> badMethod(Exception e) {
+        return body(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED", "지원하지 않는 요청 방식이에요");
     }
 
     @ExceptionHandler(Exception.class)

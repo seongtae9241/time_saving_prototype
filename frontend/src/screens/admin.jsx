@@ -10,6 +10,8 @@ import { I } from '../ui/icons.js';
 import { useLogout } from './my.jsx';
 import { JudgeAssist } from '../ui/ActivityAi.jsx'; // 7.13 B-4
 import { INQ_ST } from './common.jsx';
+
+const VERIFY_KO = { NONE: '미제출', PENDING: '확인 중', APPROVED: '승인', REJECTED: '반려' };
 import { useTriage, TriageBox, SevChip, useAnomalyNotes, AnomalyNote, InquiryDraft, PersonaFromCases, PersonaDraftNote } from './opsai.jsx';
 
 function groupBars(rows) {
@@ -389,7 +391,7 @@ function MemberSheet({ id, onDone }) {
         <dt>지역</dt><dd>{u.area} · {u.ageGroup}</dd><dt>연락처</dt><dd>{u.phone}</dd>
         <dt>봉사</dt><dd>{u.volunteerCount ?? u.helpCount ?? '-'}회</dd><dt>도움 받음</dt><dd>{u.recipientCount ?? u.helpedCount ?? '-'}회</dd>
         <dt>잔액</dt><dd>{u.balance != null ? `${fmt(u.balance)}시간` : '-'}</dd><dt>경고·노쇼</dt><dd>경고 {u.warningCount || 0} · 패널티 {u.penaltyCount || 0}</dd>
-        <dt>인증</dt><dd>신분증 {u.idStatus} · 범죄경력 회보서 {u.crimeStatus}</dd>
+        {u.role === 'USER' && <><dt>인증</dt><dd>신분증 {VERIFY_KO[u.idStatus] || u.idStatus} · 범죄경력 회보서 {VERIFY_KO[u.crimeStatus] || u.crimeStatus}</dd></>}
         <dt>가입</dt><dd>{dshort(u.createdAt)}</dd>
       </dl>
       {u.role !== 'ADMIN' && u.status !== 'WITHDRAWN' && <button className={'btn ' + (sus ? '' : 'warn')} style={{ marginTop: 14 }} onClick={async () => { try { await post(`/admin/users/${u.id}/${sus ? 'unsuspend' : 'suspend'}`); await reload(); onDone(); toast(sus ? '정지를 해제했어요' : '정지했어요'); } catch { /* 토스트 */ } }}>{sus ? '정지 해제' : '회원 정지'}</button>}

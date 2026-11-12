@@ -136,12 +136,14 @@ function Shell() {
 
 export default function App() {
   return (
-    <UiProvider>
-      <AuthProvider>
-        <ModeProvider>
+    // 시트(바텀시트)는 UiProvider 안에서 그려진다. 시트 속 화면 조각도 로그인 정보·모드를 읽을 수 있게 UiProvider 를 가장 안쪽에 둔다
+    // (바깥에 두면 프로필 시트처럼 useAuth() 를 쓰는 시트가 흰 화면이 된다).
+    <AuthProvider>
+      <ModeProvider>
+        <UiProvider>
           <Shell />
-        </ModeProvider>
-      </AuthProvider>
-    </UiProvider>
+        </UiProvider>
+      </ModeProvider>
+    </AuthProvider>
   );
 }

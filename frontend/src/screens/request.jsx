@@ -9,7 +9,7 @@ import { CATS, SHORT, W, LV, fmt, hh, dlabel, dshort, KIND_LABEL, lvName, lvWeig
 import { I } from '../ui/icons.js';
 import { useReport } from './common.jsx';
 import { FilterBox } from './ai.jsx';
-import QrScanner, { QrIntro } from '../ui/QrScanner.jsx';
+import QrScanner from '../ui/QrScanner.jsx';
 import { VoiceField, MicButton } from '../ui/VoiceInput.jsx';
 import { RegularButton } from '../ui/extras.jsx'; // U7 수동 단골(2026-11-09)
 import { CareMemo } from './insight.jsx';
@@ -55,7 +55,7 @@ export function ProfileView({ p }) {
           <div><Stars r={p.ratingAvg} /> <span className="mute2">· 활동 {p.ratingCount || 0}회</span></div>
           <div className="tags" style={{ marginTop: 6 }}>
             {p.crime && <span className="badge trust">✓ 범죄경력 확인</span>}
-            {(p.regularBadges || []).map((b, i) => <span key={i} className="badge">★ {typeof b === 'string' ? b : b.label || b.name} 단골</span>)}
+            {(p.regularBadges || []).map((b, i) => { const t = String(typeof b === 'string' ? b : b.label || b.name || ''); return <span key={i} className="badge">★ {/단골$/.test(t) ? t : `${t} 단골`}</span>; })}
           </div>
         </div>
       </div>
@@ -223,8 +223,7 @@ function ScanSheet({ r, mode, onDone, onClose }) {
   return (
     <>
       <h2>{mode === 'in' ? '시작 QR 찍기' : '종료 QR 찍기'}</h2>
-      <p className="muted" style={{ margin: 0 }}>{who}를 화면 네모 안에 맞춰 주세요.</p>
-      <QrIntro />
+      <p className="muted" style={{ margin: 0 }}>{who}{r.elder ? '를' : '을'} 화면 네모 안에 맞춰 주세요.</p>
       <QrScanner kind={r.elder ? 'ELD' : 'REQ'} id={r.elder ? r.elder.id : r.id} submit={submit} onDone={() => { onClose(); onDone(); }}
         codeHint={r.elder ? 'QR이 안 찍히면 카드에 적힌 번호 6자리를 넣어 주세요' : undefined}
         foot={r.elder ? '카드가 안 보이거나 맞지 않으면 담당자에게 메시지로 알려 주세요' : '상대방이 휴대폰 화면 밝기를 높이면 잘 찍혀요'} />
@@ -490,7 +489,7 @@ export function RequestDetail() {
       : k === 0 && late >= NS_LATE ? <>{alertBox('warn', `약속 시간이 ${late}분 지났어요`, `${to}에게 지각 알림이 갔어요. ${NS_MISS}분이 지나도 시작 기록이 없으면 노쇼 의심으로 다시 알려요.`)}{lateBtn}</>
       : k === 0 && late >= -60 ? lateBtn
       : k === 1 && late >= end ? alertBox('warn', `예정 종료 시각(${hh(Number(r.startHour) + Number(r.hours))})이 지났어요`, '끝났다면 종료 QR을 찍어 주세요. 30분이 지나도 기록이 없으면 예정 종료 시각으로 자동 마감돼요.') : null;
-    if (k === 0) action = <><BriefingCard id={r.id} />{warn}<QrStepsBar k={0} /><button className="btn big-cta" style={{ marginTop: 12 }} onClick={() => scan('in')}><Ic n="qr" s={22} /> 시작 QR 찍기</button><div className="mute2 center" style={{ marginTop: 8 }}>도착하면 {r.elder ? `${toName} 댁 현관의 QR 카드` : `${toName} 님 휴대폰의 QR`}를 찍어 주세요</div>{can(r, 'cancel', true) && <><button className="btn ghost sm" style={{ marginTop: 10 }} disabled={busy} onClick={() => reject('cancel', '일정 취소 사유', '취소했어요')}>일정 취소</button><div className="mute2 center" style={{ marginTop: 6 }}>일정 취소는 시작 24시간 전까지 무료예요. 그 뒤엔 경고가 쌓여요</div></>}</>;
+    if (k === 0) action = <><BriefingCard id={r.id} />{warn}<QrStepsBar k={0} /><button className="btn big-cta" style={{ marginTop: 12 }} onClick={() => scan('in')}><Ic n="qr" s={22} /> 시작 QR 찍기</button><div className="mute2 center" style={{ marginTop: 8 }}>도착하면 {r.elder ? `${toName} 댁 현관의 QR 카드` : `${toName} 님 휴대폰의 QR`}{r.elder ? '를' : '을'} 찍어 주세요</div>{can(r, 'cancel', true) && <><button className="btn ghost sm" style={{ marginTop: 10 }} disabled={busy} onClick={() => reject('cancel', '일정 취소 사유', '취소했어요')}>일정 취소</button><div className="mute2 center" style={{ marginTop: 6 }}>일정 취소는 시작 24시간 전까지 무료예요. 그 뒤엔 경고가 쌓여요</div></>}</>;
     else if (k === 1) action = <>{warn}<QrStepsBar k={1} /><div className="chk on"><span className="dotp" /><div className="grow"><b>활동 중</b> · {checkInfo}<div className="mute2">예정 종료 {hh(Number(r.startHour) + Number(r.hours))} · 끝나면 QR을 한 번 더 찍어 주세요</div></div></div><div className="btns" style={{ marginTop: 10 }}><button className="btn warn" onClick={sos}><Ic n="bell" s={18} /> 긴급</button><button className="btn" onClick={() => scan('out')}><Ic n="qr" s={18} /> 종료 QR 찍기</button></div></>;
     else action = <><QrStepsBar k={2} /><div className="chk"><span className="dotp" style={{ background: '#1F9D63', animation: 'none', boxShadow: 'none' }} /><div className="grow"><b>활동 끝</b> · {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))})<div className="mute2">{closedNote || (r.checkMethod === 'manual' ? '번호가 아닌 방법으로 기록돼 받는 분이 시간을 한 번 더 확인해요' : '기록된 시간이 일지에 자동으로 들어가요')}</div></div></div>{gap}<button className="btn big-cta" style={{ marginTop: 10 }} onClick={() => nav(`/req/${r.id}/log`)}>활동 일지 쓰기</button></>;
   } else if (['CONFIRMED', 'IN_PROGRESS', 'CHECKED_OUT'].includes(st) && recv) {
