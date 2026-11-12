@@ -14,19 +14,38 @@ const NT_IC = (t = '') => {
   if (/ACCEPT|CONFIRM|FINAL/.test(t)) return ['check', ''];
   if (/MESSAGE|MSG/.test(t)) return ['msg', 'amber'];
   if (/LOG/.test(t)) return ['file', ''];
-  if (/REMIND|CHECK|NOSHOW|LATE/.test(t)) return ['clock', 'blue'];
+  if (/WELFARE/.test(t)) return ['bell', 'amber'];
+  if (/REMIND|CHECK|NOSHOW|LATE|AUTO_CLOSED|TIME_GAP/.test(t)) return ['clock', 'blue'];
   if (/REPORT/.test(t)) return ['chart', ''];
   if (/EARN|GIFT|BANK/.test(t)) return ['wallet', ''];
   if (/INQUIR|NOTICE/.test(t)) return ['msg', ''];
   return ['bell', ''];
 };
 
+/** 서버가 알림에 적는 링크 → 화면 경로. 위에서부터 처음 맞는 것 하나만 바꾼다. */
+const LINK_MAP = [
+  [/^\/requests\/(\d+)/, '/req/$1'],                 // 요청·제안·메시지·활동 알림
+  [/^\/posts\/(\d+)/, '/post/$1'],                   // 관심 공고
+  [/^\/my\/(inquiries|reports)\b.*/, '/qna'],         // 문의 답변·신고 처리 결과 → 문의·신고 내역
+  [/^\/family\/(\d+)\/report/, '/my/family/$1/monthly'], // 가족 월별 리포트
+  [/^\/org\/elders\/(\d+)/, '/o/elders/$1'],
+  [/^\/org\/transfers\b.*/, '/o/elders'],            // 이관 신청은 도움 대상 목록 위에 보인다
+  [/^\/org\/reports\b.*/, '/o/report'],
+  [/^\/admin\/reports\b.*/, '/a/safety'],
+  [/^\/admin\/inquiries\b.*/, '/a/inquiries'],
+  [/^\/admin\/orgs\b.*/, '/a/approve?seg=org'],
+  [/^\/admin\/verifications\b.*/, '/a/approve?seg=vol'],
+  [/^\/admin\/appeals\b.*/, '/a/approve?seg=diff'],
+];
+
 export function goLink(nav, link, role) {
   if (!link) return;
   let l = String(link);
   if (!l.startsWith('/')) l = '/' + l;
-  // 서버 알림 링크(/requests/1)를 화면 경로로
-  l = l.replace(/^\/requests\/(\d+)/, '/req/$1');
+  // 서버 알림 링크를 화면 경로로 (A-07: 알림을 누르면 해당 요청·메시지·문의·신고 화면으로)
+  for (const [from, to] of LINK_MAP) {
+    if (from.test(l)) { l = l.replace(from, to); break; }
+  }
   // 담당자는 요청 상세를 담당자 화면으로
   if (role === 'ORG') l = l.replace(/^\/req\/(\d+)/, '/o/reqs/$1');
   nav(l);
@@ -113,7 +132,7 @@ export function Qna() {
         return (
           <div className="card" key={r.id}>
             <div className="between"><span className="b">{r.type} · {r.targetLabel || r.targetType}</span><span className={'st ' + s[0]}>{s[1]}</span></div>
-            <div className="mute2">{dshort(r.createdAt).split(' ')[0]}{r.status === 'DONE' ? ` · 결과: ${[RP_ACT[r.action], r.result].filter(Boolean).join(' · ')}` : ''}</div>
+            <div className="mute2">{dshort(r.createdAt).split(' ')[0]}{r.kind === 'WELFARE' ? ' · 제재 없는 접수 기록' : ''}{r.status === 'DONE' ? ` · 결과: ${(r.kind === 'WELFARE' ? [r.result] : [RP_ACT[r.action], r.result]).filter(Boolean).join(' · ')}` : ''}</div>
           </div>
         );
       })}
@@ -140,21 +159,37 @@ export function QnaNew() {
   );
 }
 
-/* ---------- 신고 시트 (B-36) ---------- */
+/* ---------- 신고 시트 (B-36, B-37) ---------- */
 const RP_TYPES = ['노쇼', '부적절한 언행', '신체 접촉·방문 외 연락', '연락처 교환·금전 요구', '허위 공고', '기타'];
+export const WELFARE_TYPE = '이상 징후(안부 확인)';
+/**
+ * target: {targetType, targetId, targetLabel, welfare?, welfareFirst?}
+ * welfare 가 true 면(독거노인 활동의 봉사자·담당자) "이상 징후(안부 확인)" 유형을 함께 보여 준다.
+ * 이상 징후는 제재용 신고가 아니라 담당자에게 알리고 운영자 목록에 기록만 남기는 접수다.
+ */
 function ReportForm({ target, onDone }) {
-  const [type, setType] = useState(RP_TYPES[0]);
+  const { welfare, welfareFirst, ...tg } = target;
+  const types = welfare ? [WELFARE_TYPE, ...RP_TYPES] : RP_TYPES;
+  const [type, setType] = useState(welfare && welfareFirst ? WELFARE_TYPE : RP_TYPES[0]);
   const [content, setContent] = useState('');
   const { toast } = useUi();
+  const wf = type === WELFARE_TYPE;
   return (
     <>
       <h2>신고하기</h2>
-      <p className="mute2" style={{ margin: '0 0 10px' }}>대상: {target.targetLabel}</p>
-      {RP_TYPES.map((t) => <div key={t} className={'opt ' + (type === t ? 'on' : '')} role="button" tabIndex={0} onClick={() => setType(t)}><span className="rd" /><div>{t}</div></div>)}
-      <div style={{ marginTop: 10 }}><VoiceField value={content} onChange={setContent}><textarea className="in" placeholder="내용 (선택)" value={content} onChange={(e) => setContent(e.target.value)} aria-label="신고 내용" /></VoiceField></div>
+      <p className="mute2" style={{ margin: '0 0 10px' }}>대상: {tg.targetLabel}</p>
+      {types.map((t) => <div key={t} className={'opt ' + (type === t ? 'on' : '')} role="button" tabIndex={0} onClick={() => setType(t)}><span className="rd" /><div>{t}{t === WELFARE_TYPE && <div className="mute2">식사 거름, 몸 상태 이상 등 · 담당자에게 알림이 가요</div>}</div></div>)}
+      {wf && <div className="alert bad"><Ic n="phone" s={20} /><div><b>응급 상황이면 먼저 전화해 주세요</b>이 접수는 응급을 처리하지 않아요. <a href="tel:119" style={{ fontWeight: 700 }}>119 전화</a> · <a href="tel:112" style={{ fontWeight: 700 }}>112 전화</a></div></div>}
+      <div style={{ marginTop: 10 }}><VoiceField value={content} onChange={setContent}><textarea className="in" placeholder={wf ? '어떤 점이 걱정됐는지 적어 주세요 (필수) 예) 점심을 거르셨고 기운이 없어 보이셨어요' : '내용 (선택)'} value={content} onChange={(e) => setContent(e.target.value)} aria-label="신고 내용" /></VoiceField></div>
       <button className="btn warn" style={{ marginTop: 12 }} onClick={async () => {
-        try { await post('/reports', { ...target, type, content }); onDone(); toast('신고가 접수됐어요. 처리 결과는 알림으로 알려드려요'); } catch { /* 토스트 */ }
-      }}>신고 접수</button>
+        if (wf && !content.trim()) return toast('어떤 점이 걱정됐는지 적어 주세요');
+        try {
+          await post('/reports', { ...tg, type, content, ...(wf ? { kind: 'WELFARE' } : {}) });
+          onDone();
+          toast(wf ? '접수했어요. 담당자에게 알렸고 운영자 기록에 남아요' : '신고를 접수했어요. 운영자가 확인해요');
+        } catch { /* 토스트 */ }
+      }}>{wf ? '안부 확인 접수' : '신고 접수'}</button>
+      <div className="mute2" style={{ marginTop: 8 }}>{wf ? '이상 징후 접수는 누구도 제재하지 않는 기록이에요.' : '처리 결과는 알림으로 알려드려요.'}</div>
     </>
   );
 }

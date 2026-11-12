@@ -70,8 +70,8 @@ class ActivityAiFlowTest {
     void 방문_전_브리핑은_확정_때_한_번_만들고_지난_전달_메모는_넣지_않는다() {
         // 지난 활동: 같은 대상, 전달 메모에 건강 정보
         Request old = confirmed(mgr, elder.id, "동행");
-        reqs.checkIn(vol, old.id, old.checkCode, "qr");
-        reqs.checkOut(vol, old.id, old.checkCode, "qr");
+        reqs.checkIn(vol, old.id, reqs.codeFor(old), "qr");
+        reqs.checkOut(vol, old.id, reqs.codeFor(old), "qr");
         reqs.submitLog(vol, old.id, "접수 도움", null, null, false, "혈압약 처방 바뀜, 다음 재진 때 꼭 물어보기");
         assertEquals(1, notes.findByKindAndRequestId(ActivityAiService.BRIEFING, old.id).size());
 
@@ -139,8 +139,8 @@ class ActivityAiFlowTest {
     @Test
     void 시간_조정_판단_보조는_신청_때_만들고_표를_코드로_비교한다() {
         Request r = confirmed(rec, null, "말동무·정서");
-        reqs.checkIn(vol, r.id, r.checkCode, "qr");
-        reqs.checkOut(vol, r.id, r.checkCode, "qr");
+        reqs.checkIn(vol, r.id, reqs.codeFor(r), "qr");
+        reqs.checkOut(vol, r.id, reqs.codeFor(r), "qr");
         reqs.submitLog(vol, r.id, "이야기 나누고 산책, 병원 대기가 길었음", null, null, false);
         reqs.adjust(vol, r.id, 3.0, "대기가 길어 1시간 더 걸렸어요");
         assertEquals(1, notes.findByKindAndRequestId(ActivityAiService.ADJUST, r.id).size());

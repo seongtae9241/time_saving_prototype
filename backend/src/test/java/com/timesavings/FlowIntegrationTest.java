@@ -97,9 +97,9 @@ class FlowIntegrationTest {
         assertEquals(6, r.checkCode.length());
 
         assertThrows(ApiException.class, () -> reqs.checkIn(vol, r.id, "000000x", null));
-        reqs.checkIn(vol, r.id, r.checkCode, "qr");
+        reqs.checkIn(vol, r.id, reqs.codeFor(r), "qr");
         assertEquals(ReqStatus.IN_PROGRESS, r.status);
-        reqs.checkOut(vol, r.id, r.checkCode, "qr");
+        reqs.checkOut(vol, r.id, reqs.codeFor(r), "qr");
         assertEquals(ReqStatus.CHECKED_OUT, r.status);
         assertThrows(ApiException.class, () -> reqs.confirm(rec, r.id)); // 일지 없이는 확인 불가
         reqs.submitLog(vol, r.id, "어 정형외과 접수하고 약국 들름", null, null, false);
@@ -138,8 +138,8 @@ class FlowIntegrationTest {
         assertNull(r.recipientId);
         reqs.accept(vol, r.id);
         reqs.accept(mgr, r.id);                       // 담당자 최종 수락 대리 입력
-        reqs.checkIn(vol, r.id, r.checkCode, null);
-        reqs.checkOut(vol, r.id, r.checkCode, null);
+        reqs.checkIn(vol, r.id, reqs.codeFor(r), null);
+        reqs.checkOut(vol, r.id, reqs.codeFor(r), null);
         reqs.submitLog(vol, r.id, "진료 동행", null, null, false);
         reqs.confirm(mgr, r.id);                      // 담당자 대신 확인
         assertEquals(3.0, sum(vol, LedgerType.EARN));
@@ -167,8 +167,8 @@ class FlowIntegrationTest {
         Request r = request(rec, p, 14, 1, "장보기·심부름", null);
         reqs.accept(vol, r.id);
         reqs.accept(rec, r.id);
-        reqs.checkIn(vol, r.id, r.checkCode, null);
-        reqs.checkOut(vol, r.id, r.checkCode, null);
+        reqs.checkIn(vol, r.id, reqs.codeFor(r), null);
+        reqs.checkOut(vol, r.id, reqs.codeFor(r), null);
         assertEquals(0, reqs.autoConfirmDue(LocalDateTime.now().plusDays(3))); // 일지 없음
         reqs.submitLog(vol, r.id, "장보기", "장을 봤어요.", null, false);
         assertEquals(0, reqs.autoConfirmDue(LocalDateTime.now().plusHours(23)));

@@ -99,6 +99,7 @@ public class OrgController {
         return Views.map("id", e.id, "alias", e.alias, "displayName", e.alias + " 님", "maskedName", Rules.maskAlias(e.alias),
                 "dong", e.dong, "ageGroup", e.ageGroup, "needs", e.needs, "caution", e.caution, "status", e.status,
                 "reportConsent", e.reportConsent, "managerId", e.managerId, "createdAt", e.createdAt,
+                "qrIssuedAt", e.qrIssuedAt,
                 "regularCount", views.regularsOf(null, e.id).size(),
                 "activeCount", rs.stream().filter(r -> !r.status.terminal()).count(),
                 "monthDone", rs.stream().filter(r -> r.status == ReqStatus.DONE && YearMonth.from(r.date).equals(now)).count(),
@@ -172,6 +173,29 @@ public class OrgController {
         Elder e = myElder(u, id);
         apply(e, b);
         return elderView(e);
+    }
+
+    // ---------------- 현관 QR 카드 (C-11) ----------------
+    @org.springframework.beans.factory.annotation.Autowired private RequestService requestSvc;
+
+    private Map<String, Object> cardView(Elder e) {
+        return Views.map("elderId", e.id, "displayName", e.alias + " 님", "code", e.qrCode,
+                "qrText", Rules.qrText("ELD", e.id, e.qrCode), "issuedAt", e.qrIssuedAt,
+                "activeCount", requests.findByElderId(e.id).stream().filter(r -> r.status == ReqStatus.CONFIRMED || r.status == ReqStatus.IN_PROGRESS).count());
+    }
+
+    /** 카드 보기(없으면 처음 한 번 만든다). 카드에는 이름·주소가 없고 번호만 담긴다. */
+    @GetMapping("/elders/{id}/qr-card")
+    public Map<String, Object> qrCard(@CurrentUser User u, @PathVariable Long id) {
+        return cardView(requestSvc.ensureCard(myElder(u, id)));
+    }
+
+    /** 다시 발급: 번호가 바뀌어 이전 카드로는 시작·종료를 기록할 수 없다. */
+    @PostMapping("/elders/{id}/qr-card/reissue")
+    public Map<String, Object> qrCardReissue(@CurrentUser User u, @PathVariable Long id) {
+        Elder e = myElder(u, id);
+        if (e.status != ElderStatus.ACTIVE) throw ApiException.bad("ELDER_ENDED", "지원이 종료된 대상이에요");
+        return cardView(requestSvc.reissueCard(e));
     }
 
     @PostMapping("/elders/{id}/memos")

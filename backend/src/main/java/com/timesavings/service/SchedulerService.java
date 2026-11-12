@@ -15,7 +15,7 @@ import java.util.Map;
 
 /**
  * 1분마다 도는 작업: 24시간 만료(B-19), 공고 자동 마감(B-11), 일지 24시간 뒤 자동 확정(C-10),
- * 시작 15분 체크인 없음 알림, 전날 리마인드, 매월 1일 생활 변화 리포트(P-03).
+ * 시작 10분 지각·30분 노쇼 의심 알림(B-52), 예정 종료 30분 뒤 자동 마감(B-53), 전날 리마인드, 매월 1일 생활 변화 리포트(P-03).
  */
 @Service
 public class SchedulerService {
@@ -51,6 +51,7 @@ public class SchedulerService {
         out.put("postsClosed", posts.closePast(today));
         out.put("autoConfirmed", requests.autoConfirmDue(now));
         out.put("lateAlerts", requests.lateCheck(now));
+        out.put("autoClosed", requests.autoCloseDue(now));
         out.put("reminders", requests.remind(today));
         int lr = 0;
         YearMonth prev = YearMonth.from(today).minusMonths(1);
