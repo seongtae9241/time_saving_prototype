@@ -21,6 +21,9 @@ public class BankService {
 
     public BankService(LedgerRepo repo) { this.repo = repo; }
 
+    /** 41판 A-06: 시간 통장 번호. 가입할 때 정해지는 회원 번호로 만든 고유 번호(TS-000123). */
+    public static String accountNo(Long userId) { return userId == null ? null : String.format("TS-%06d", userId); }
+
     public record Summary(double balance, double hold, double available, double earnedSelf, double giftReceived,
                           boolean canUseSelf, double usable) {}
 

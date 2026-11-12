@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 /**
- * 2026-11-09 회의 반영: 수동 단골 등록(U7)과 "내가 자주 받는 도움" 순위(U3).
+ * 단골 등록·해지(2026-11-09 회의 U7, 41판 B-65·B-42)와 "내가 자주 받는 도움" 순위(U3).
  */
 @RestController
 @RequestMapping("/api")
@@ -23,46 +23,87 @@ public class NeighborController {
     private final RequestRepo requests;
     private final PostRepo posts;
     private final UserRepo users;
+    private final Views views;
 
-    public NeighborController(RegularMarkRepo marks, RequestRepo requests, PostRepo posts, UserRepo users) {
-        this.marks = marks; this.requests = requests; this.posts = posts; this.users = users;
+    public NeighborController(RegularMarkRepo marks, RequestRepo requests, PostRepo posts, UserRepo users, Views views) {
+        this.marks = marks; this.requests = requests; this.posts = posts; this.users = users; this.views = views;
     }
 
-    // ---------------- U7 수동 단골 ----------------
+    // ---------------- 단골 등록·해지 (U7 → 41판 B-65, B-42) ----------------
     private long doneWith(Long me, Long volunteerId) {
         return requests.findAll().stream()
                 .filter(r -> r.status == ReqStatus.DONE && r.elderId == null && me.equals(r.recipientId) && volunteerId.equals(r.volunteerId)).count();
     }
 
-    /** 단골 상태: regular(자동이든 수동이든), auto(DONE 3회 이상), manual, canMark(활동을 1~2번 끝낸 상대, 아직 단골 아님), doneCount */
+    /**
+     * 단골 상태: regular(자동이든 직접이든, 해지되지 않음), auto(DONE 3회 이상), manual(직접 등록), removed(해지됨),
+     * removedByThem(등록된 쪽이 해지해 다시 등록할 수 없음), canMark(직접 등록할 수 있음 — 활동이 없어도 됨), doneCount
+     */
     @GetMapping("/regulars/{volunteerId}/status")
     public Map<String, Object> status(@CurrentUser User u, @PathVariable Long volunteerId) {
-        long n = u.id.equals(volunteerId) ? 0 : doneWith(u.id, volunteerId);
-        boolean manual = marks.findByUserIdAndVolunteerId(u.id, volunteerId).isPresent();
-        return Views.map("volunteerId", volunteerId, "doneCount", n, "auto", n >= 3, "manual", manual,
-                "regular", manual || n >= 3, "canMark", u.role == Role.USER && n >= 1 && n < 3 && !manual); // 3회 이상은 이미 자동 단골
+        boolean self = u.id.equals(volunteerId);
+        long n = self ? 0 : doneWith(u.id, volunteerId);
+        RegularMark m = marks.findByUserIdAndVolunteerId(u.id, volunteerId).orElse(null);
+        boolean removed = m != null && m.isRemoved();
+        boolean manual = m != null && !removed;
+        boolean byThem = removed && volunteerId.equals(m.removedBy);
+        boolean regular = !removed && (manual || n >= 3);
+        return Views.map("volunteerId", volunteerId, "doneCount", n, "auto", n >= 3 && !removed, "manual", manual, "removed", removed,
+                "removedByThem", byThem, "regular", regular, "canMark", u.role == Role.USER && !self && !regular && !byThem);
     }
 
+    /** B-65: 프로필·평가 화면에서 즐겨찾기처럼 직접 등록. 한 번도 만나지 않은 사람도 된다. 내가 해지했던 사람은 다시 등록할 수 있다. */
     @PostMapping("/regulars/{volunteerId}")
     public Map<String, Object> mark(@CurrentUser User u, @PathVariable Long volunteerId) {
         if (u.role != Role.USER) throw ApiException.forbidden("사용자 계정만 단골을 등록할 수 있어요");
         if (u.id.equals(volunteerId)) throw ApiException.bad("SELF", "나 자신은 단골로 등록할 수 없어요");
         User v = users.findById(volunteerId).orElseThrow(() -> ApiException.notFound("봉사자를 찾을 수 없어요"));
         if (v.role != Role.USER || v.status != UserStatus.ACTIVE) throw ApiException.bad("INVALID_TARGET", "단골로 등록할 수 없는 계정이에요");
-        if (doneWith(u.id, volunteerId) < 1) throw ApiException.conflict("NO_DONE_ACTIVITY", "도움을 한 번 이상 받아 끝난 분만 단골로 등록할 수 있어요");
-        if (marks.findByUserIdAndVolunteerId(u.id, volunteerId).isEmpty()) {
-            RegularMark m = new RegularMark();
+        RegularMark m = marks.findByUserIdAndVolunteerId(u.id, volunteerId).orElse(null);
+        if (m != null && m.isRemoved() && volunteerId.equals(m.removedBy))
+            throw ApiException.conflict("REMOVED_BY_VOLUNTEER", "상대가 단골을 해지해서 다시 등록할 수 없어요");
+        if (m == null) {
+            m = new RegularMark();
             m.userId = u.id;
             m.volunteerId = volunteerId;
-            marks.save(m);
         }
+        m.removed = false;
+        m.removedBy = null;
+        marks.save(m);
         return status(u, volunteerId);
     }
 
+    private void remove(Long userId, Long volunteerId, Long by) {
+        RegularMark m = marks.findByUserIdAndVolunteerId(userId, volunteerId).orElseGet(() -> {
+            RegularMark x = new RegularMark();
+            x.userId = userId;
+            x.volunteerId = volunteerId;
+            return x;
+        });
+        if (m.isRemoved()) return; // 먼저 해지한 쪽의 기록을 남긴다
+        m.removed = true;
+        m.removedBy = by;
+        marks.save(m);
+    }
+
+    /** B-65: 등록한 쪽(도움 받는 사람)의 해지. 자동(3회) 단골도 해지된다. */
     @DeleteMapping("/regulars/{volunteerId}")
     public Map<String, Object> unmark(@CurrentUser User u, @PathVariable Long volunteerId) {
-        marks.findByUserIdAndVolunteerId(u.id, volunteerId).ifPresent(marks::delete);
+        if (marks.findByUserIdAndVolunteerId(u.id, volunteerId).isPresent() || doneWith(u.id, volunteerId) >= 3) remove(u.id, volunteerId, u.id);
         return status(u, volunteerId);
+    }
+
+    /** B-42: 내가 받은 단골 배지(누구를 몇 회 도왔는지). */
+    @GetMapping("/me/regular-badges")
+    public List<Map<String, Object>> myBadges(@CurrentUser User u) { return views.regularBadgeList(u.id, u.id); }
+
+    /** B-65: 등록된 쪽(봉사하는 사람)의 해지. 그 사람의 단골 목록에서 빠지고 내 배지도 사라진다. */
+    @DeleteMapping("/me/regular-badges/{userId}")
+    public List<Map<String, Object>> dropBadge(@CurrentUser User u, @PathVariable Long userId) {
+        boolean mine = views.regularBadgeList(u.id, u.id).stream().anyMatch(b -> userId.equals(b.get("userId")));
+        if (!mine) throw ApiException.notFound("그분의 단골이 아니에요");
+        remove(userId, u.id, u.id);
+        return views.regularBadgeList(u.id, u.id);
     }
 
     // ---------------- U3 내가 자주 받는 도움 ----------------

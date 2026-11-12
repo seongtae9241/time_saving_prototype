@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-/** 첫 활동 교육(5.8). (동네 클래스 5.9는 2026-11-10 사용자 결정으로 삭제) */
+/** 첫 활동 연습(5.8, 41판 B-54: 선택 연습 — 수료 없음). (동네 클래스 5.9는 2026-11-10 사용자 결정으로 삭제) */
 @RestController
 @RequestMapping("/api")
 @Transactional
@@ -40,6 +40,13 @@ public class EduController {
         return edu.finish(u, personaId, b.log());
     }
 
-    @PostMapping("/edu/complete")
-    public Map<String, Object> complete(@CurrentUser User u) { return edu.complete(u); }
+    // ---------------- 연습 상황 목록 (서버 설정, 41판 B-54) ----------------
+    public record SituationsBody(List<Map<String, Object>> items) {}
+
+    @GetMapping("/edu/situations")
+    public Map<String, Object> situations() { return Views.map("items", edu.situations()); }
+
+    /** /api/admin/** 는 운영자만(AuthInterceptor). */
+    @PutMapping("/admin/edu/situations")
+    public Map<String, Object> putSituations(@RequestBody SituationsBody b) { return Views.map("items", edu.saveSituations(b == null ? null : b.items())); }
 }

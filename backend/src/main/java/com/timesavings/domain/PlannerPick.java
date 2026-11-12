@@ -11,4 +11,9 @@ public class PlannerPick {
     @Column(name = "user_id", nullable = false) public Long userId;
     @Column(name = "post_id", nullable = false) public Long postId;
     public LocalDateTime createdAt = LocalDateTime.now();
+    /** 41판 B-61: 계획 만들기에서 정한 시작 시각·활동 시간(공고 시간 범위 안, 내 다른 일정과 겹치지 않게). 예전 자료는 null → 공고 시작 시각. */
+    @Column(name = "start_hour") public Double startHour;
+    public Double hours;
+    /** 시각을 누가 골랐는지: ai | rule */
+    @Column(name = "plan_source", length = 10) public String planSource;
 }

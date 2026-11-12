@@ -41,12 +41,16 @@ public class AuthController {
 
     public record PhoneBody(String phone, String code, String firebaseIdToken) {}
     public record SignupBody(String loginId, String password, String name, String phone, String verifyToken, String area,
-                             String ageGroup, List<String> categories, List<String> timeSlots, String intro) {}
+                             String ageGroup, List<String> categories, List<String> timeSlots, String intro,
+                             Boolean agreeTerms, Boolean agreePrivacy, Boolean agreeLocation, Boolean agreeInterest) {}
     public record LoginBody(String loginId, String password, Boolean keep) {}
     public record ResetBody(String loginId, String phone, String verifyToken, String newPassword) {}
     public record PwBody(String currentPassword, String newPassword) {}
     public record MeBody(String name, String phone, String area, String ageGroup, String intro, String experience, String personality,
-                         List<String> categories, List<String> timeSlots, String photoUrl, String textSize, Boolean voiceAlert) {}
+                         List<String> categories, List<String> timeSlots, String photoUrl, String textSize, Boolean voiceAlert,
+                         Boolean smsAlert, Boolean locConsent) {}
+    /** 41판 B-58·B-43: 보낸 칸만 바꾼다. */
+    public record NotiBody(Boolean req, Boolean msg, Boolean result, Boolean remind, Boolean interest, Boolean voiceAlert, Boolean smsAlert) {}
     public record FileBody(String fileUrl) {}
     public record WithdrawBody(String password) {}
     public record OrgApplyBody(String name, String orgType, String address, String phone, String managerName, String managerPhone,
@@ -82,6 +86,9 @@ public class AuthController {
         if (b.loginId() == null || !b.loginId().matches("[A-Za-z0-9_]{3,20}")) throw ApiException.bad("INVALID_LOGIN_ID", "아이디는 영문·숫자 3~20자로 정해 주세요");
         checkPassword(b.password());
         if (b.name() == null || b.name().isBlank()) throw ApiException.bad("NAME_REQUIRED", "이름을 적어 주세요");
+        // 41판 A-01: 필수 약관 2개(이용약관·개인정보 수집·이용)에 동의해야 가입된다. 위치 정보·관심 공고 알림은 선택.
+        if (!Boolean.TRUE.equals(b.agreeTerms()) || !Boolean.TRUE.equals(b.agreePrivacy()))
+            throw ApiException.bad("TERMS_REQUIRED", "서비스 이용약관과 개인정보 수집·이용에 동의해 주세요");
         auth.requireVerified(b.verifyToken(), b.phone());
         if (users.findByLoginId(b.loginId()).isPresent()) throw ApiException.conflict("DUPLICATE_LOGIN_ID", "이미 쓰는 아이디예요");
         User u = new User();
@@ -95,6 +102,11 @@ public class AuthController {
         u.categories = clean(b.categories());
         u.timeSlots = b.timeSlots() == null ? new ArrayList<>() : new ArrayList<>(b.timeSlots());
         u.intro = b.intro();
+        u.termsAgreedAt = java.time.LocalDateTime.now();
+        u.privacyAgreedAt = u.termsAgreedAt;
+        u.locConsent = Boolean.TRUE.equals(b.agreeLocation());
+        u.interestConsent = Boolean.TRUE.equals(b.agreeInterest());
+        u.notiInterest = u.interestConsent; // 관심 공고 알림 받기에 동의하지 않으면 그 알림은 꺼진 채로 시작(알림 설정에서 켤 수 있다)
         users.save(u);
         return Views.map("token", auth.issueToken(u, true), "user", me(u));
     }
@@ -136,12 +148,15 @@ public class AuthController {
                 "status", u.status, "area", u.area, "ageGroup", u.ageGroup, "intro", u.intro, "experience", u.experience,
                 "personality", u.personality, "categories", u.categories, "timeSlots", u.timeSlots, "photoUrl", u.photoUrl,
                 "orgId", u.orgId, "orgName", u.orgId == null ? null : orgs.findById(u.orgId).map(o -> o.name).orElse(null),
-                "idStatus", u.idStatus, "crimeStatus", u.crimeStatus, "eduDone", u.eduDone, "voiceAlert", u.voiceAlert,
+                "idStatus", u.idStatus, "crimeStatus", u.crimeStatus, "voiceAlert", u.voiceAlert,
+                "smsAlert", Boolean.TRUE.equals(u.smsAlert), "notiSettings", NotificationService.settings(u),
+                "accountNo", BankService.accountNo(u.id), "locConsent", u.locConsent, "interestConsent", u.interestConsent,
+                "termsAgreedAt", u.termsAgreedAt,
                 "textSize", u.textSize, "penaltyCount", u.penaltyCount, "warningCount", u.warningCount, "createdAt", u.createdAt,
                 "balance", s.balance(), "hold", s.hold(), "available", s.available(), "usable", s.usable(),
                 "earnedSelf", s.earnedSelf(), "canUseSelf", s.canUseSelf(),
                 "regularBadges", views.regularBadges(u.id, u.id), "ratingAvg", r[0], "ratingCount", (int) r[1],
-                "verify", Views.map("idStatus", u.idStatus, "crimeStatus", u.crimeStatus, "eduDone", u.eduDone));
+                "verify", Views.map("idStatus", u.idStatus, "crimeStatus", u.crimeStatus));
         return m;
     }
 
@@ -161,9 +176,30 @@ public class AuthController {
         if (b.categories() != null) u.categories = clean(b.categories());
         if (b.timeSlots() != null) u.timeSlots = new ArrayList<>(b.timeSlots());
         if (b.photoUrl() != null) u.photoUrl = b.photoUrl();
-        if (b.textSize() != null) u.textSize = b.textSize();
+        if (b.textSize() != null) u.textSize = "BIG".equalsIgnoreCase(b.textSize()) ? "BIG" : "NORMAL"; // B-55
         if (b.voiceAlert() != null) u.voiceAlert = b.voiceAlert();
+        if (b.smsAlert() != null) u.smsAlert = b.smsAlert();
+        if (b.locConsent() != null) u.locConsent = b.locConsent();
         return me(u);
+    }
+
+    // ---------------- 알림 설정 (41판 B-58, B-43) — 사용자·담당자 같은 방식 ----------------
+    @GetMapping("/me/noti-settings")
+    public Map<String, Object> notiSettings(@CurrentUser User cu) {
+        return NotificationService.settings(users.findById(cu.id).orElseThrow());
+    }
+
+    @PutMapping("/me/noti-settings")
+    public Map<String, Object> putNotiSettings(@CurrentUser User cu, @RequestBody NotiBody b) {
+        User u = users.findById(cu.id).orElseThrow();
+        if (b.req() != null) u.notiReq = b.req();
+        if (b.msg() != null) u.notiMsg = b.msg();
+        if (b.result() != null) u.notiResult = b.result();
+        if (b.remind() != null) u.notiRemind = b.remind();
+        if (b.interest() != null) u.notiInterest = b.interest();
+        if (b.voiceAlert() != null) u.voiceAlert = b.voiceAlert();
+        if (b.smsAlert() != null) u.smsAlert = b.smsAlert();
+        return NotificationService.settings(u);
     }
 
     @PutMapping("/me/password")
@@ -246,7 +282,7 @@ public class AuthController {
         return Views.map("id", u.id, "name", u.name, "ageGroup", u.ageGroup, "area", u.area, "intro", u.intro, "experience", u.experience,
                 "personality", u.personality, "categories", u.categories, "timeSlots", u.timeSlots, "photoUrl", u.photoUrl,
                 "ratingAvg", r[0], "ratingCount", (int) r[1], "tags", views.topTags(u.id, 5),
-                "crime", u.crimeStatus == VerifyStatus.APPROVED, "idVerified", u.idStatus == VerifyStatus.APPROVED, "eduDone", u.eduDone,
+                "crime", u.crimeStatus == VerifyStatus.APPROVED, "idVerified", u.idStatus == VerifyStatus.APPROVED,
                 "regularBadges", views.regularBadges(u.id, viewer.id), "helpCount", helped);
     }
 

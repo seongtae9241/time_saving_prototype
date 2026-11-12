@@ -200,7 +200,8 @@ class Proto1111Test {
     void 플래너_추천_봉사는_내_일정과_겹치지_않고_고르면_달력에_들어간다() throws Exception {
         LocalDate d = LocalDate.now().plusDays(2);
         Post free = need(nearVol, d, 10.0, 12.0, "말동무·정서");
-        Post clash = need(farVol, d, 14.0, 16.0, "말동무·정서");
+        Post clash = need(farVol, d, 14.0, 15.0, "말동무·정서");
+        Post fit = need(farVol, d, 14.0, 16.0, "동행"); // 14~15시는 막혀 있지만 15~16시에 들어간다
         Post mine = need(me, d, 18.0, 19.0, "말동무·정서");
         // 내가 14~15시에 봉사하기로 한 요청(진행 중) → clash 공고는 추천에서 빠진다
         Post other = need(regularVol, d, 14.0, 15.0, "디지털 도움");
@@ -218,6 +219,20 @@ class Proto1111Test {
                 .andExpect(jsonPath("$.items[?(@.kind=='plan')].postId", hasItem(free.id.intValue())))
                 .andExpect(jsonPath("$.recommends[*].id", not(hasItem(free.id.intValue()))))
                 .andExpect(jsonPath("$.goal.planned").value(1.0));
+        // 41판 B-61 계획 만들기: 공고 범위(14~16시) 안에서 내 일정(14~15시)과 겹치지 않는 15시로 정해진다(키 없음 → 규칙)
+        mvc.perform(post("/api/me/planner/picks").header("Authorization", tok(me)).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"postIds\":[" + fit.id + "," + clash.id + "]}")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.made", hasSize(1))).andExpect(jsonPath("$.made[0].postId").value(fit.id.intValue()))
+                .andExpect(jsonPath("$.made[0].startHour").value(15.0)).andExpect(jsonPath("$.made[0].endHour").value(16.0))
+                .andExpect(jsonPath("$.made[0].source").value("rule")).andExpect(jsonPath("$.madeSource").value("rule"))
+                .andExpect(jsonPath("$.skipped", hasSize(1))).andExpect(jsonPath("$.skipped[0].postId").value(clash.id.intValue()))
+                .andExpect(jsonPath("$.items[?(@.postId==" + fit.id + ")].startHour", hasItem(15.0)));
+        // B-60 홈 추천: 이미 계획에 넣은 것·겹치는 것은 빠진다(AI 호출 없음)
+        mvc.perform(get("/api/me/recommends").header("Authorization", tok(me))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.recommends[*].id", not(hasItem(fit.id.intValue()))))
+                .andExpect(jsonPath("$.recommends[*].id", not(hasItem(clash.id.intValue()))))
+                .andExpect(jsonPath("$.planCount").value(2));
+        mvc.perform(delete("/api/me/planner/picks/" + fit.id).header("Authorization", tok(me))).andExpect(status().isOk());
         // 내 공고·도움 가능 공고는 계획에 못 넣는다
         mvc.perform(post("/api/me/planner/picks").header("Authorization", tok(me)).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"postIds\":[" + mine.id + "]}")).andExpect(status().isBadRequest());

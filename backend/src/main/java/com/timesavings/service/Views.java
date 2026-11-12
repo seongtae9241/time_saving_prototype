@@ -71,27 +71,59 @@ public class Views {
                 .collect(Collectors.groupingBy(r -> r.elderId != null ? "E" + r.elderId : "U" + r.recipientId, Collectors.counting()));
     }
 
-    public boolean isRegular(Long volunteerId, Long recipientUserId, Long elderId) {
-        Long n = regularCounts(volunteerId).get(elderId != null ? "E" + elderId : "U" + recipientUserId);
-        if (n != null && n >= 3) return true;
-        // 수동 단골(U7): 받는 사람이 직접 단골로 등록한 봉사자
-        return elderId == null && recipientUserId != null && marks.findByUserIdAndVolunteerId(recipientUserId, volunteerId).isPresent();
+    /** 직접 등록(해지되지 않은 것) */
+    public boolean manualRegular(Long recipientUserId, Long volunteerId) {
+        return recipientUserId != null && marks.findByUserIdAndVolunteerId(recipientUserId, volunteerId).map(m -> !m.isRemoved()).orElse(false);
     }
 
-    /** 프로필·소개 카드용 단골 배지 문구. viewerIsManagerOf: 담당자에게는 별칭 원문. */
-    public List<String> regularBadges(Long volunteerId, Long viewerId) {
-        List<String> out = new ArrayList<>();
-        for (var e : regularCounts(volunteerId).entrySet()) {
+    /** 41판 B-65: 어느 한쪽이 해지한 사이(자동 3회 단골도 풀린다). 독거노인(별칭)은 해지 기록이 없다. */
+    public boolean regularRemoved(Long recipientUserId, Long volunteerId) {
+        return recipientUserId != null && marks.findByUserIdAndVolunteerId(recipientUserId, volunteerId).map(RegularMark::isRemoved).orElse(false);
+    }
+
+    public boolean isRegular(Long volunteerId, Long recipientUserId, Long elderId) {
+        if (elderId == null && regularRemoved(recipientUserId, volunteerId)) return false;
+        Long n = regularCounts(volunteerId).get(elderId != null ? "E" + elderId : "U" + recipientUserId);
+        if (n != null && n >= 3) return true;
+        // 직접 단골(B-65): 받는 사람이 직접 단골로 등록한 봉사자
+        return elderId == null && manualRegular(recipientUserId, volunteerId);
+    }
+
+    /**
+     * 41판 B-42: 내가 받은 단골 배지 — 누구를 몇 회 도왔는지. 자동(3회 이상)과 상대가 직접 등록한 것을 합치고 해지된 것은 뺀다.
+     * [{key, kind: USER|ELDER, userId|elderId, name, label, count, auto, manual}] 횟수 많은 순.
+     */
+    public List<Map<String, Object>> regularBadgeList(Long volunteerId, Long viewerId) {
+        Map<String, Long> cnt = regularCounts(volunteerId);
+        Map<String, Map<String, Object>> out = new LinkedHashMap<>();
+        for (var e : cnt.entrySet()) {
             if (e.getValue() < 3) continue;
             String k = e.getKey();
             Long id = Long.parseLong(k.substring(1));
             if (k.startsWith("E")) {
-                elders.findById(id).ifPresent(el -> out.add((viewerId != null && viewerId.equals(el.managerId) ? el.alias + " 님" : Rules.maskAlias(el.alias)) + "의 단골"));
-            } else {
-                users.findById(id).ifPresent(u -> out.add(u.name + " 님의 단골"));
+                elders.findById(id).ifPresent(el -> {
+                    String nm = viewerId != null && viewerId.equals(el.managerId) ? el.alias + " 님" : Rules.maskAlias(el.alias);
+                    out.put(k, map("key", k, "kind", "ELDER", "elderId", id, "name", nm, "label", nm + "의 단골", "count", e.getValue(), "auto", true, "manual", false));
+                });
+            } else if (!regularRemoved(id, volunteerId)) {
+                users.findById(id).ifPresent(u -> out.put(k, map("key", k, "kind", "USER", "userId", id, "name", u.name + " 님", "label", u.name + " 님의 단골",
+                        "count", e.getValue(), "auto", true, "manual", manualRegular(id, volunteerId))));
             }
         }
-        return out;
+        for (RegularMark rm : marks.findByVolunteerId(volunteerId)) {
+            String k = "U" + rm.userId;
+            if (rm.isRemoved() || out.containsKey(k)) continue;
+            users.findById(rm.userId).filter(u -> u.status == UserStatus.ACTIVE).ifPresent(u -> out.put(k, map("key", k, "kind", "USER", "userId", rm.userId,
+                    "name", u.name + " 님", "label", u.name + " 님의 단골", "count", cnt.getOrDefault(k, 0L), "auto", false, "manual", true)));
+        }
+        List<Map<String, Object>> list = new ArrayList<>(out.values());
+        list.sort(Comparator.comparingLong((Map<String, Object> m) -> -((Number) m.get("count")).longValue()));
+        return list;
+    }
+
+    /** 프로필·소개 카드용 단골 배지 문구(3회 이상 도운 분만). 담당자에게는 별칭 원문. */
+    public List<String> regularBadges(Long volunteerId, Long viewerId) {
+        return regularBadgeList(volunteerId, viewerId).stream().filter(m -> Boolean.TRUE.equals(m.get("auto"))).map(m -> (String) m.get("label")).toList();
     }
 
     /** 받는 사람(사용자 또는 독거노인)의 단골 봉사자 목록(B-14, C-06). */
@@ -100,12 +132,12 @@ public class Views {
         Map<Long, Long> cnt = requests.findAll().stream()
                 .filter(r -> r.status == ReqStatus.DONE && key.equals(r.elderId != null ? "E" + r.elderId : "U" + r.recipientId))
                 .collect(Collectors.groupingBy(r -> r.volunteerId, Collectors.counting()));
-        Set<Long> manual = new HashSet<>();
+        Set<Long> manual = new HashSet<>(), removed = new HashSet<>();
         if (elderId == null && recipientUserId != null)
-            for (RegularMark rm : marks.findByUserId(recipientUserId)) manual.add(rm.volunteerId);
+            for (RegularMark rm : marks.findByUserId(recipientUserId)) (rm.isRemoved() ? removed : manual).add(rm.volunteerId);
         List<Map<String, Object>> out = new ArrayList<>();
         Set<Long> ids = new LinkedHashSet<>();
-        cnt.forEach((vid, n) -> { if (n >= 3) ids.add(vid); });
+        cnt.forEach((vid, n) -> { if (n >= 3 && !removed.contains(vid)) ids.add(vid); });
         ids.addAll(manual);
         for (Long vid : ids) {
             User v = users.findById(vid).orElse(null);
@@ -130,7 +162,7 @@ public class Views {
         double[] r = rating(v.id);
         return map("id", v.id, "name", v.name, "ageGroup", v.ageGroup, "photoUrl", v.photoUrl,
                 "ratingAvg", r[0], "ratingCount", (int) r[1], "intro", v.intro, "experience", v.experience,
-                "tags", topTags(v.id, 3), "crime", v.crimeStatus == VerifyStatus.APPROVED, "eduDone", v.eduDone,
+                "tags", topTags(v.id, 3), "crime", v.crimeStatus == VerifyStatus.APPROVED,
                 "isRegular", isRegular);
     }
 
@@ -186,7 +218,7 @@ public class Views {
         if (owner != null) {
             double[] r = rating(owner.id);
             m.put("owner", map("id", owner.id, "name", owner.name, "ratingAvg", r[0], "ratingCount", (int) r[1], "ageGroup", owner.ageGroup,
-                    "crime", owner.crimeStatus == VerifyStatus.APPROVED, "eduDone", owner.eduDone, "intro", owner.intro, "photoUrl", owner.photoUrl));
+                    "crime", owner.crimeStatus == VerifyStatus.APPROVED, "intro", owner.intro, "photoUrl", owner.photoUrl));
         } else {
             m.put("owner", null);
         }

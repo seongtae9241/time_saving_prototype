@@ -55,10 +55,19 @@ public class PlannerController {
     @GetMapping("/me/planner")
     public Map<String, Object> planner(@CurrentUser User u, @RequestParam(required = false) String month) { return planner.planner(u, month); }
 
+    /** 41판 B-60: 홈 화면의 추천 봉사(내 활동 지역·가능 시간대·카테고리에 맞고 빈 시간에 들어가는 공고). AI 를 부르지 않는다. */
+    @GetMapping("/me/recommends")
+    public Map<String, Object> recommends(@CurrentUser User u) { return planner.recommends(u); }
+
+    /** 41판 B-61 "계획 만들기": 고른 추천 봉사마다 AI 가 내 빈 시간에 맞춰 시작 시각을 정하고 서버가 겹침·범위를 검사해 계획에 넣는다. */
     @PostMapping("/me/planner/picks")
     public Map<String, Object> addPicks(@CurrentUser User u, @RequestBody PicksBody b) {
-        planner.addPicks(u, b == null ? null : b.postIds());
-        return planner.planner(u, null);
+        Map<String, Object> made = planner.addPicks(u, b == null ? null : b.postIds());
+        Map<String, Object> out = planner.planner(u, null);
+        out.put("made", made.get("made"));
+        out.put("skipped", made.get("skipped"));
+        out.put("madeSource", made.get("source"));
+        return out;
     }
 
     @DeleteMapping("/me/planner/picks/{postId}")

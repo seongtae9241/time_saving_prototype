@@ -70,9 +70,7 @@ public class MatchReasonService {
         parts.put("ratingCount", (int) rt[1]);
         // 배지
         if (v.crimeStatus == VerifyStatus.APPROVED) { score += 1; f.add(new String[]{"5", "범죄경력 확인"}); }
-        if (v.eduDone) { score += 1; f.add(new String[]{"6", "안전 교육 수료"}); }
         parts.put("crime", v.crimeStatus == VerifyStatus.APPROVED);
-        parts.put("eduDone", v.eduDone);
         f.sort(Comparator.comparing(a -> a[0]));
         List<String> facts = f.stream().limit(3).map(a -> a[1]).toList();
         return new Facts(Math.round(score * 10) / 10.0, facts, parts);

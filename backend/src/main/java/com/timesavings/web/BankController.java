@@ -26,6 +26,8 @@ public class BankController {
     private final LifeReportService reportSvc;
     private final NotificationService noti;
     private final Views views;
+    /** 41판 B-56: 확인서 요약 문장(생성자를 바꾸지 않으려고 필드 주입) */
+    @org.springframework.beans.factory.annotation.Autowired private com.timesavings.ai.CertAi certAi;
 
     public BankController(BankService bank, UserRepo users, FamilyLinkRepo family, RequestRepo requests, PostRepo posts,
                           LifeReportRepo reports, LifeReportService reportSvc, NotificationService noti, Views views) {
@@ -48,7 +50,7 @@ public class BankController {
             entries.add(Views.map("id", l.id, "type", l.type, "amount", l.amount, "baseHours", l.baseHours, "weight", l.weight,
                     "label", l.label, "requestId", l.requestId, "createdAt", l.createdAt));
         double[] tot = bank.totals(u.id);
-        return Views.map("totalEarned", tot[0], "totalUsed", tot[1],
+        return Views.map("accountNo", BankService.accountNo(u.id), "totalEarned", tot[0], "totalUsed", tot[1],
                 "balance", s.balance(), "hold", s.hold(), "available", s.available(), "usable", s.usable(),
                 "earnedSelf", s.earnedSelf(), "giftReceived", s.giftReceived(), "canUseSelf", s.canUseSelf(),
                 "selfUseMin", BankService.SELF_USE_MIN, "monthIn", cur.get("in"), "monthOut", cur.get("out"),
@@ -98,28 +100,92 @@ public class BankController {
         return out;
     }
 
+    /**
+     * 41판 B-46: 월별 봉사·도움 받은 횟수 요약(완료된 활동, 최근 months 개월, 오래된 달부터).
+     * [{month, helpCount(봉사), helpHours, receivedCount(도움 받음), receivedHours}]
+     */
+    @GetMapping("/my/activity-summary")
+    public Map<String, Object> activitySummary(@CurrentUser User u, @RequestParam(required = false) Integer months) {
+        int n = months == null ? 6 : Math.max(1, Math.min(24, months));
+        YearMonth now = YearMonth.now();
+        Map<String, double[]> by = new LinkedHashMap<>(); // [봉사 횟수, 봉사 시간, 받은 횟수, 받은 시간]
+        for (int i = n - 1; i >= 0; i--) by.put(now.minusMonths(i).toString(), new double[4]);
+        int help = 0, received = 0;
+        for (Request r : requests.findAll()) {
+            if (r.status != ReqStatus.DONE) continue;
+            boolean gave = u.id.equals(r.volunteerId), got = u.id.equals(r.recipientId);
+            if (!gave && !got) continue;
+            if (gave) help++; else received++;
+            double[] v = by.get(YearMonth.from(r.date).toString());
+            if (v == null) continue;
+            v[gave ? 0 : 2]++;
+            v[gave ? 1 : 3] += r.hours;
+        }
+        List<Map<String, Object>> rows = new ArrayList<>();
+        by.forEach((m, v) -> rows.add(Views.map("month", m, "helpCount", (int) v[0], "helpHours", v[1], "receivedCount", (int) v[2], "receivedHours", v[3])));
+        return Views.map("months", rows, "totalHelpCount", help, "totalReceivedCount", received);
+    }
+
+    private static java.time.LocalDate day(String s, String name) {
+        if (s == null || s.isBlank()) return null;
+        try { return java.time.LocalDate.parse(s.trim()); }
+        catch (Exception e) { throw ApiException.bad("INVALID_DATE", name + " 날짜는 2026-11-01 처럼 적어 주세요"); }
+    }
+
+    /**
+     * 봉사 확인서(41판 B-56). from·to(YYYY-MM-DD, 비우면 전체 기간)에 적립이 확정된(DONE) 활동만.
+     * 횟수·시간·주요 활동·독거노인 대상 횟수는 코드가 세고, 자기소개용 요약 문장만 AI(키 없으면 규칙 문장)가 쓴다.
+     * 시간은 적립 기준 시간(예정 시간, 시간 조정이 승인된 건은 조정된 시간)이다.
+     */
     @GetMapping("/certificate")
-    public Map<String, Object> certificate(@CurrentUser User u) {
+    public Map<String, Object> certificate(@CurrentUser User u, @RequestParam(required = false) String from, @RequestParam(required = false) String to) {
+        java.time.LocalDate f = day(from, "시작"), t = day(to, "끝");
+        if (f != null && t != null && t.isBefore(f)) throw ApiException.bad("INVALID_PERIOD", "끝 날짜가 시작 날짜보다 빨라요");
         List<Request> done = requests.findAll().stream().filter(r -> u.id.equals(r.volunteerId) && r.status == ReqStatus.DONE)
+                .filter(r -> { java.time.LocalDate d = r.doneAt != null ? r.doneAt.toLocalDate() : r.date; return (f == null || !d.isBefore(f)) && (t == null || !d.isAfter(t)); })
                 .sorted(Comparator.comparing((Request r) -> r.date)).toList();
         Map<String, double[]> byCat = new LinkedHashMap<>();
         List<Map<String, Object>> items = new ArrayList<>();
         double total = 0, earned = 0;
+        int elderCount = 0;
         for (Request r : done) {
             double h = "ACCEPTED".equals(r.adjustStatus) && r.adjustHours != null ? r.adjustHours : r.hours;
             total += h;
             earned += r.earned == null ? 0 : r.earned;
+            if (r.elderId != null) elderCount++;
             byCat.computeIfAbsent(r.category, k -> new double[2]);
             byCat.get(r.category)[0]++;
             byCat.get(r.category)[1] += h;
             items.add(Views.map("date", r.date.toString(), "category", r.category, "hours", h, "earned", r.earned,
-                    "recipient", noti.recipientLabel(r, false)));
+                    "recipient", noti.recipientLabel(r, false), "elder", r.elderId != null));
         }
         List<Map<String, Object>> cats = new ArrayList<>();
         byCat.forEach((k, v) -> cats.add(Views.map("category", k, "count", (int) v[0], "hours", v[1])));
-        String period = done.isEmpty() ? null : done.get(0).date + " ~ " + done.get(done.size() - 1).date;
-        return Views.map("name", u.name, "period", period, "totalHours", total, "totalEarned", earned, "count", done.size(),
-                "byCategory", cats, "items", items, "eduDone", u.eduDone, "issuedAt", java.time.LocalDate.now().toString());
+        cats.sort(Comparator.comparingInt((Map<String, Object> c) -> -(int) c.get("count")));
+        String period = f != null || t != null ? (f == null ? "처음" : f.toString()) + " ~ " + (t == null ? java.time.LocalDate.now().toString() : t.toString())
+                : done.isEmpty() ? null : done.get(0).date + " ~ " + done.get(done.size() - 1).date;
+        Map<String, Object> out = Views.map("name", u.name, "accountNo", BankService.accountNo(u.id), "period", period,
+                "from", f == null ? null : f.toString(), "to", t == null ? null : t.toString(),
+                "totalHours", total, "totalEarned", earned, "count", done.size(), "elderCount", elderCount,
+                "byCategory", cats, "items", items, "issuedAt", java.time.LocalDate.now().toString());
+        Map<String, Object> facts = Views.map("period", period, "count", done.size(), "totalHours", total, "elderCount", elderCount, "byCategory", cats);
+        Map<String, Object> s = done.isEmpty() ? Views.map("text", null, "source", "rule") : certAi.summary(facts, certRuleText(period, done.size(), total, elderCount, cats));
+        out.put("summary", s.get("text"));
+        out.put("summarySource", s.get("source"));
+        return out;
+    }
+
+    /** 키가 없을 때 쓰는 자기소개용 요약 문장(숫자는 모두 집계 값 그대로). */
+    static String certRuleText(String period, int count, double total, int elderCount, List<Map<String, Object>> cats) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(period == null ? "" : period.replace(" ~ ", "부터 ") + "까지 ").append("시간 적금에서 이웃 돌봄 봉사에 ").append(count).append("회, 모두 ")
+                .append(Rules.fmtHours(total)).append("시간 참여했습니다.");
+        if (!cats.isEmpty()) {
+            List<String> top = cats.stream().limit(2).map(c -> c.get("category") + " " + c.get("count") + "회").toList();
+            sb.append(" 주로 ").append(String.join(", ", top)).append(" 활동을 했습니다.");
+        }
+        if (elderCount > 0) sb.append(" 이 가운데 혼자 사시는 어르신을 도운 활동이 ").append(elderCount).append("회입니다.");
+        return sb.toString();
     }
 
     // ---------------- 가족 연결 (B-44, P-06) ----------------
