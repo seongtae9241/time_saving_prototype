@@ -4,6 +4,7 @@
 더 필요한 엔드포인트·필드는 추가해도 되지만, 추가한 것은 이 문서 맨 아래 "추가 기록"에 적는다(백엔드가 적고, 프론트는 읽는다).
 
 - 기준 요구사항: `docs/requirements/요구사항명세서.txt` (A-01 ~ D-09, P-01 ~ P-07) — **2026-11-12부터 41판(A-01~A-10, B-01~B-67, C-01~C-16, D-01~D-11, 104개) 기준.** 41판으로 바뀐 약속은 7.17에 모았고, 아래 옛 문장에는 "41판" 표시를 붙였다. 요구사항 ID도 41판에서 번호가 바뀐 것이 있어(예: 단골 배지 B-41 → B-42) 7.16까지의 괄호 속 ID는 그 절을 쓴 때의 판 번호다.
+- **2026-11-12 기능명세서(`docs/requirements/기능명세서.txt`, 73개 기능, ID C-·U-·O-·A-) 적용**: 바뀐 약속은 7.18에 모았다. 기능명세서 ID는 요구사항 명세서 ID와 **다른 체계**라(예: 기능 A-01 운영 대시보드 ≠ 요구사항 A-01 회원가입) 이 문서에서는 늘 "기능 U-09"처럼 "기능"을 붙여 적는다. 41판과 기능명세서가 부딪히는 곳은 **기능명세서(7.18)가 맞다** — 아래 옛 문장에는 "기능명세서에서 바뀜 → 7.18"을 붙였다.
 - 채택 프로토타입(화면·흐름·문구·디자인의 기준): `docs/prototypes/adopted-황수빈-첫활동교육-동네클래스.html`
 - 참고만 하는 프로토타입: `docs/prototypes/ref-*.html` (채택안에 없는 요구사항 화면만 참고)
 - 요구사항과 프로토타입이 부딪히면 **요구사항명세서가 우선**한다(예: 독거노인은 실명 대신 별칭만 저장).
@@ -41,7 +42,7 @@
 | 가벼운 집안일 | 수고(EFFORT) | 1.2 |
 | 동행 | 책임(RESPONSIBLE) | 1.5 |
 
-- 등급 가중치: BASIC 1.0 / EFFORT 1.2 / RESPONSIBLE 1.5 (B-27). AI(또는 규칙)가 요청 문장에서 등급과 근거를 **제안**하고, 가중치 값은 규칙으로 적용.
+- 등급 가중치: BASIC 1.0 / EFFORT 1.2 / RESPONSIBLE 1.5 (B-27). AI(또는 규칙)가 요청 문장에서 등급과 근거를 **제안**하고, 가중치 값은 규칙으로 적용. *(기능명세서에서 바뀜 → 7.18 ⑧: 운영자가 건의를 승인하면 기본 6종 말고 카테고리가 더해진다 — `GET /api/categories`)*
 - 적립 = **예정 시간**(시간 조정이 승인된 건은 조정 시간) × 가중치, 0.5 단위 반올림 (B-26 — 41판 문구: 실제 활동 시간이 아니라 예정 시간 기준). 예: 동행 2시간 → 3.0, 장보기 1.5시간 → 1.8 → 2.0.
 - 복합 요청(B-29): 여러 카테고리가 섞이면 **최고 등급** 기준.
 - 일정(B-10): 30분 단위, 1회 0.5~4시간, 요청·제안 시간은 공고 시간 범위 안. 공고 1개는 수락된 요청 1건만.
@@ -54,6 +55,7 @@ REQUEST·REGULAR: SENT --(봉사자 수락)--> VOL_ACCEPTED --(받는 사람/담
 PROPOSAL:        SENT --(받는 사람/담당자 수락 = 최종)--> CONFIRMED
 CONFIRMED --(시작 체크인: 6자리 코드/QR)--> IN_PROGRESS --(종료 체크아웃)--> CHECKED_OUT
 CHECKED_OUT --(봉사자 활동 일지 제출)--> LOG_SUBMITTED --(받는 사람 확인 / 담당자 대신 확인 / 24시간 뒤 자동 확정)--> DONE
+   (기능명세서에서 바뀜 → 7.18 ③: 장보기·심부름은 영수증 사진, 가벼운 집안일은 전·후 사진이 있어야 일지를 낼 수 있다)
 DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 거절: REJECTED(봉사자 또는 받는 쪽 1차 거절, 사유 필수) / DECLINED(최종 거부) / EXPIRED(24시간 무응답) / CANCELLED(취소) / NOSHOW(봉사자 노쇼)
 ```
@@ -63,7 +65,7 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - 본인 사용 조건(B-33): 받는 쪽 일반 사용자는 "본인이 적립한 누적 시간(선물받은 시간 제외)" 10시간 이상이어야 요청 가능. 단, 선물받은 시간 잔액은 이 조건 없이 사용 가능. 잔액 부족이면 요청 불가.
 - 체크인: 받는 사람 화면에 **30초마다 바뀌는** 6자리 번호+QR을 띄우고(독거노인 건은 도움 대상별 현관 QR 카드), 봉사자가 QR 스캔 또는 번호 입력으로 시작/종료한다. 예정 시작 **10분** 뒤 지각 알림, **30분** 뒤 노쇼 의심 알림을 양쪽(독거노인 건은 담당자)에 보내고, 종료 기록이 없으면 예정 종료 30분 뒤 예정 종료 시각으로 자동 마감한다. *(41판에서 바뀜 — 예전: 확정 때 정한 고정 6자리 코드, 시작 15분 뒤 받는 쪽에만 알림 1번 → 7.17 ①)*
 - 실제 시간이 예정과 다르면 봉사자가 시간 조정 요청(`adjust`) → 받는 쪽 승인 시 반영 (B-22). 기본 적립은 **예정 시간** 기준.
-- 자동 확정(C-10): LOG_SUBMITTED 후 24시간 동안 받는 쪽이 확인하지 않으면 DONE. 일지가 없으면 자동 확정하지 않음.
+- 자동 확정(C-10): LOG_SUBMITTED 후 24시간 동안 받는 쪽이 확인하지 않으면 DONE. 일지가 없으면 자동 확정하지 않음. *(기능명세서에서 바뀜 → 7.18: 봉사 조건에 첫 활동 교육 이수가 더해졌다(기본 필수, 운영자 설정) ⑤ / 단체 봉사는 이 상태 흐름을 쓰지 않는 별도 표 ①)*
 - 취소(B-25): 시작 24시간 전까지 무료 취소. 그 뒤 봉사자가 취소하거나 노쇼면 `penaltyCount+1`, 경고 알림. *(41판: 상대가 응답하기 전(SENT)의 취소는 보낸 쪽만 → 7.17 ①)*
 - 메시지(A-08): 상대가 수락한 뒤(VOL_ACCEPTED 또는 CONFIRMED 이후)부터 DONE 전까지 작성 가능, 끝나면 읽기만. 연락처·계좌 패턴(전화번호, 카톡, 계좌)은 서버가 막지 않되 경고 문구를 붙이고 신고 버튼 제공.
 
@@ -74,16 +76,17 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 
 ### 3.4 독거노인(도움 대상) — 개인정보 최소
 - 저장: `alias`(별칭), `dong`(동 단위), `ageGroup`(예: 80대), `needs`(카테고리), `caution`(방문 주의사항), 담당자 메모. 이름·주소·연락처는 **저장하지 않는다**(C-02). *(41판: 등록 때 서비스 이용 동의 확인이 필수, 현관 QR 카드 번호를 더 저장, `ageGroup`은 담당자에게만 응답 → 7.17 ①·⑥)*
-- 봉사자에게는 별칭을 가린 표시(`displayName`: 첫 글자 + ○ + 끝 글자 + " 님", 예: "이○례 님")·동·도움 내용·시간·주의사항만. 담당자에게는 별칭 원문.
+- 봉사자에게는 별칭을 가린 표시(`displayName`: 첫 글자 + ○ + 끝 글자 + " 님", 예: "이○례 님")·동·도움 내용·시간·주의사항만. 담당자에게는 별칭 원문. *(기능명세서에서 바뀜 → 7.18 ④: **주의사항(방문 주의사항·공고의 관리 대상 이슈)은 일정이 확정된 봉사자와 담당자에게만** 준다. 확정 전 봉사자는 가린 이름·동·도움 내용·시간까지만)*
 - 수락된 활동에 한해 담당자가 메시지로 방문 장소를 안내(C-02, B-13).
 - 독거노인 건의 알림·메시지·최종 수락·확인·평가는 담당자가 대신(C-07~C-10, B-38).
 
 ### 3.5 단골(B-41)
-같은 봉사자가 같은 받는 사람(사용자 또는 독거노인)을 DONE 3회 이상 → 단골. 프로필·소개 카드에 "○○ 님의 단골" 배지, `단골에게 요청하기` 목록에 사용. *(41판: 직접 등록은 활동이 없어도 되고 등록한 쪽·등록된 쪽 모두 해지할 수 있다. 받은 배지는 횟수와 함께 모아 본다 → 7.17 ④)*
+같은 봉사자가 같은 받는 사람(사용자 또는 독거노인)을 DONE 3회 이상 → 단골. 프로필·소개 카드에 "○○ 님의 단골" 배지, `단골에게 요청하기` 목록에 사용. *(41판: 직접 등록은 활동이 없어도 되고 등록한 쪽·등록된 쪽 모두 해지할 수 있다. 받은 배지는 횟수와 함께 모아 본다 → 7.17 ④)* *(기능명세서에서 바뀜 → 7.18 ③: 완료 3회째에 양쪽 모두에게 `REGULAR` 알림, 봉사자 화면에도 단골 표시)*
 
 ## 4. 데이터 모델 (테이블 요약)
 
 > **41판(2026-11-12)**: 더한 칸과 더 쓰지 않는 칸은 7.17 ⑩과 `db/schema.sql` 주석을 본다. 아래 요약의 `users.edu_done`, `posts.repeat_rule`·`series_id`는 41판부터 쓰지 않고, `requests.check_code`는 시작·종료 확인에 쓰지 않는다.
+> **기능명세서(2026-11-12)**: 새 표 `group_posts`·`group_participants`·`recurring_posts`·`manager_applications`·`weather_alerts`, 새 칸 `requests.log_photo_url2`·`edu_progress.practice_json`·`notices.pinned`. 위에서 "쓰지 않는다"고 한 `users.edu_done`, `posts.repeat_rule`·`series_id`와 `org_events.capacity`, `edu_progress.completed_at`은 **다시 쓴다** → 7.18 ⑨.
 
 `users`(id, login_id, password_hash, name, phone, role, status[ACTIVE/SUSPENDED/WITHDRAWN], area, age_group, intro, experience, personality, categories, time_slots, photo_url, org_id, id_status[NONE/PENDING/APPROVED/REJECTED], id_file_url, crime_status[NONE/PENDING/APPROVED/REJECTED], crime_file_url, edu_done, voice_alert, text_size, penalty_count, warning_count, created_at)
 `organizations`(id, name, org_type, address, phone, manager_name, manager_phone, manager_email, status[PENDING/APPROVED/REJECTED], memo, created_at)
@@ -118,18 +121,18 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - `POST /api/auth/login` {loginId, password, keep} → {token, user}
 - `POST /api/auth/logout`
 - `POST /api/auth/password/reset` {loginId, phone, verifyToken, newPassword}
-- `GET /api/me` → user(본인) + `{balance, hold, earnedSelf, regularBadges[], ratingAvg, ratingCount, eduDone, verify:{idStatus, crimeStatus, eduDone}}` *(41판: `eduDone`·`verify.eduDone` 삭제, `accountNo`·`notiSettings`·`locConsent` 등 추가 → 7.17 ②)*
+- `GET /api/me` → user(본인) + `{balance, hold, earnedSelf, regularBadges[], ratingAvg, ratingCount, eduDone, verify:{idStatus, crimeStatus, eduDone}}` *(41판: `eduDone`·`verify.eduDone` 삭제, `accountNo`·`notiSettings`·`locConsent` 등 추가 → 7.17 ②)* *(기능명세서에서 바뀜 → 7.18 ⑤: `eduDone`·`verify.eduDone`이 되살아나고 `canVolunteer`·`volunteerBlock`·`verify.eduRequired`·`verify.eduOn` 추가)*
 - `PUT /api/me` {name, phone, area, ageGroup, intro, experience, personality, categories[], timeSlots[], photoUrl, textSize, voiceAlert}
 - `PUT /api/me/password` {currentPassword, newPassword}
 - `GET /api/me/withdraw-check` → {activeRequests:[…], balance, hold, message} · `POST /api/me/withdraw` {password}
 - `POST /api/me/verify/id` {fileUrl} · `POST /api/me/verify/crime` {fileUrl} — 운영자 승인 대기(PENDING)
-- `POST /api/orgs/apply` {name, orgType, address, phone, managerName, managerPhone, managerEmail, memo} [공개] → {id, status} *(41판: 재직 증빙 파일 필수, multipart 또는 `proofFileUrl` → 7.17 ⑥)*
-- `GET /api/users/{id}/profile` → 공개 프로필(이름, 나이대, 한 줄 소개, 경험, 평균 별점·횟수, 태그 상위, 범죄경력 배지, 교육 수료 배지, 단골 배지 목록) *(41판: 교육 수료 배지 없음 → 7.17 ⑤)*
+- `POST /api/orgs/apply` {name, orgType, address, phone, managerName, managerPhone, managerEmail, memo} [공개] → {id, status} *(41판: 재직 증빙 파일 필수, multipart 또는 `proofFileUrl` → 7.17 ⑥)* *(기능명세서에서 바뀜 → 7.18 ⑥: 승인된 기관의 담당자 계정은 `POST /api/auth/manager-apply`로 신청하면 자동 승인)*
+- `GET /api/users/{id}/profile` → 공개 프로필(이름, 나이대, 한 줄 소개, 경험, 평균 별점·횟수, 태그 상위, 범죄경력 배지, 교육 수료 배지, 단골 배지 목록) *(41판: 교육 수료 배지 없음 → 7.17 ⑤)* *(기능명세서에서 바뀜 → 7.18 ⑤: 프로필에 `eduDone`(안전 교육 이수 표시)이 다시 온다)*
 
 ### 5.2 공고 (B-02~B-11, B-20, B-21, C-04)
-- `GET /api/posts?type=OFFER|NEED&area=&date=&cat=&sort=near|new` → [PostCard] (B-20). PostCard: {id,type,ownerId,ownerName,elderId,elderDisplayName,date,startHour,endHour,area,categories[],title,detail,note,estHours,difficulty,weight,estEarn,repeatRule,status,distanceKm,owner:{ratingAvg,ratingCount,ageGroup,crime,eduDone},mine} *(41판: `owner.eduDone` 삭제, `repeatRule`은 새 공고에서 늘 null, 쿼리 `lat`·`lng`·`dateFrom`·`dateTo` 추가 → 7.17 ③)*
+- `GET /api/posts?type=OFFER|NEED&area=&date=&cat=&sort=near|new` → [PostCard] (B-20). PostCard: {id,type,ownerId,ownerName,elderId,elderDisplayName,date,startHour,endHour,area,categories[],title,detail,note,estHours,difficulty,weight,estEarn,repeatRule,status,distanceKm,owner:{ratingAvg,ratingCount,ageGroup,crime,eduDone},mine} *(41판: `owner.eduDone` 삭제, `repeatRule`은 새 공고에서 늘 null, 쿼리 `lat`·`lng`·`dateFrom`·`dateTo` 추가 → 7.17 ③)* *(기능명세서에서 바뀜 → 7.18 ②·④: `sort=time`(활동 날짜·시작 시각 빠른 순) 추가, `repeatRule`·`seriesId`는 정기 요청 회차 공고면 값이 있다, `elderIssueLocked` 추가)*
 - `GET /api/posts/{id}` → PostCard + `requests`(내가 공고 주인이면 받은 요청·제안 목록)
-- `POST /api/posts` {type, date, startHour, endHour, area, categories[], title, detail, note, repeat:{weekly:true, weeks:4}?, elderId?} → 생성된 Post(반복이면 주마다 1개씩 생성, `seriesId` 공유) (B-03~B-07, C-04). 서버는 저장 전에 금지 필터(B-09)를 돌려 불가면 400 `FORBIDDEN_REQUEST`.  **(41판에서 바뀜: 자동 반복 등록은 없다. `repeat`은 받아도 무시하고 늘 1건만 만든다. 다시 올리기는 `POST /api/posts/{id}/repost` {date}, 가족 대신은 `forUserId` → 7.17 ③)**
+- `POST /api/posts` {type, date, startHour, endHour, area, categories[], title, detail, note, repeat:{weekly:true, weeks:4}?, elderId?} → 생성된 Post(반복이면 주마다 1개씩 생성, `seriesId` 공유) (B-03~B-07, C-04). 서버는 저장 전에 금지 필터(B-09)를 돌려 불가면 400 `FORBIDDEN_REQUEST`.  **(41판에서 바뀜: 자동 반복 등록은 없다. `repeat`은 받아도 무시하고 늘 1건만 만든다. 다시 올리기는 `POST /api/posts/{id}/repost` {date}, 가족 대신은 `forUserId` → 7.17 ③)** **(기능명세서에서 바뀜 → 7.18 ②: 이 주소의 `repeat`은 여전히 1건만 만들지만, 자동 회차 공고는 정기 요청 `POST /api/recurring`으로 다시 생겼다)**
 - `PUT /api/posts/{id}` · `DELETE /api/posts/{id}` — 수락 전만 (B-11)
 - `GET /api/posts/mine` → 내가 올린(담당자는 담당 대상) 공고
 - `GET/POST/PUT/DELETE /api/interest-alerts` (B-21)
@@ -146,27 +149,27 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 
 ### 5.4 요청·제안·활동 (B-12~B-19, B-22~B-25, B-28, C-05~C-10)
 - `POST /api/requests` {kind, postId?, volunteerId?(REGULAR), elderId?(담당자 대리), date, startHour, hours, category, content, memo} → Request (B-14~B-16, C-05, C-06)
-- `GET /api/requests?box=received|sent|active|done|all` → [RequestView]. RequestView: {id,kind,postId,postTitle,status,date,startHour,hours,category,content,memo,difficulty,weight,estEarn,deadlineAt,leftText,volunteer:{id,name,ageGroup,ratingAvg,ratingCount,intro,experience,tags[],crime,eduDone,isRegular},recipient:{id,name}|null,elder:{id,displayName,dong,caution}|null,sender:{id,name},myRole:'VOLUNTEER'|'RECIPIENT'|'MANAGER',actions:[…가능한 버튼 이름],checkCode?(받는 쪽에만),checkInAt,checkOutAt,logText,logPhotoUrl,earned,rated:boolean,adjust:{hours,status}} *(41판: `volunteer.eduDone` 삭제, `checkCode`는 30초 번호 또는 현관 카드 번호, `autoClosed`·`gapMinutes` 추가 → 7.17 ①)*
+- `GET /api/requests?box=received|sent|active|done|all` → [RequestView]. RequestView: {id,kind,postId,postTitle,status,date,startHour,hours,category,content,memo,difficulty,weight,estEarn,deadlineAt,leftText,volunteer:{id,name,ageGroup,ratingAvg,ratingCount,intro,experience,tags[],crime,eduDone,isRegular},recipient:{id,name}|null,elder:{id,displayName,dong,caution}|null,sender:{id,name},myRole:'VOLUNTEER'|'RECIPIENT'|'MANAGER',actions:[…가능한 버튼 이름],checkCode?(받는 쪽에만),checkInAt,checkOutAt,logText,logPhotoUrl,earned,rated:boolean,adjust:{hours,status}} *(41판: `volunteer.eduDone` 삭제, `checkCode`는 30초 번호 또는 현관 카드 번호, `autoClosed`·`gapMinutes` 추가 → 7.17 ①)* *(기능명세서에서 바뀜 → 7.18 ③·④: `photoRule`·`logPhotoUrl2`·`elder.cautionLocked` 추가)*
 - `GET /api/requests/{id}` → RequestView + `messages`
 - `POST /api/requests/{id}/accept` (봉사자 수락 또는 받는 쪽 수락/최종 수락 — 서버가 상태로 판단)
 - `POST /api/requests/{id}/reject` {reason} · `POST /api/requests/{id}/decline` {reason} (최종 거부)
 - `POST /api/requests/{id}/cancel` {reason}
 - `POST /api/requests/{id}/check-in` {code} · `POST /api/requests/{id}/check-out` {code} (코드 대신 `{method:'manual'}`이면 받는 쪽 확인 필요 표시) *(41판: `code`는 지금·직전 30초 구간의 번호 또는 현관 카드 번호. `GET /api/requests/{id}/qr` 추가 → 7.17 ①)*
-- `POST /api/requests/{id}/log` {raw, text, photoUrl, photoConsent} (B-24)
+- `POST /api/requests/{id}/log` {raw, text, photoUrl, photoConsent} (B-24) *(기능명세서에서 바뀜 → 7.18 ③: `photoUrl2` 추가, 장보기·집안일은 사진이 없으면 400 `PHOTO_REQUIRED`)*
 - `POST /api/requests/{id}/confirm` (받는 쪽/담당자 확인 → DONE, 적립·차감) (B-23)
 - `POST /api/requests/{id}/adjust` {hours, reason} · `POST /api/requests/{id}/adjust/answer` {accept:boolean}
-- `POST /api/requests/{id}/rate` {stars, tags[], comment} (B-38, B-39 — 받는 쪽 평가는 is_private)
+- `POST /api/requests/{id}/rate` {stars, tags[], comment} (B-38, B-39 — 받는 쪽 평가는 is_private) *(기능명세서에서 바뀜 → 7.18 ③: 봉사자에게 가는 `RATED` 알림에서 별점을 뺐다)*
 - `POST /api/requests/{id}/appeal` {reason, requestedLevel} (B-28)
 - `GET /api/requests/{id}/messages` · `POST /api/requests/{id}/messages` {text} (A-08, C-09)
 - `GET /api/regulars` → 내 단골 봉사자 목록 (B-14) · `GET /api/regulars?elderId=` (C-06)
 
 ### 5.5 시간 통장 (A-06, B-30~B-34, B-46)
-- `GET /api/bank` → {balance, hold, earnedSelf, giftReceived, canUseSelf, monthIn, monthOut, monthly:[{month, in, out}], entries:[{id,type,amount,baseHours,weight,label,createdAt}]}
+- `GET /api/bank` → {balance, hold, earnedSelf, giftReceived, canUseSelf, monthIn, monthOut, monthly:[{month, in, out}], entries:[{id,type,amount,baseHours,weight,label,createdAt}]} *(기능명세서에서 바뀜 → 7.18 ③: `months`(거래가 있는 모든 달의 번 시간·쓴 시간 합계) 추가. 시간 플랜·월별 리포트 API 추가)*
 - `POST /api/bank/gift` {toUserId, amount, message} — 연결된 가족만
 
 ### 5.6 알림·메시지·공지·문의·신고 (A-07, A-10, B-36, B-37, B-47~B-49)
 - `GET /api/notifications` · `POST /api/notifications/{id}/read` · `POST /api/notifications/read-all` · `GET /api/notifications/unread-count`
-- `GET /api/notices` · `GET /api/notices/{id}`
+- `GET /api/notices` · `GET /api/notices/{id}` *(기능명세서에서 바뀜 → 7.18 ⑧: 고정 공지(`pinned`)가 맨 위)*
 - `GET /api/inquiries/mine` · `POST /api/inquiries` {type,title,content}
 - `POST /api/reports` {targetType,targetId,targetLabel,type,content} · `GET /api/reports/mine` *(41판: `kind:"WELFARE"` 이상 징후(안부 확인) 접수, `targetType:"USER"` 확인 → 7.17 ⑦)*
 
@@ -174,10 +177,11 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - `GET /api/my/activities?seg=all|help|helped|posts` → 활동 내역 (B-45)
 - `GET /api/family` → [{id, user:{id,name}, relation, status, direction:'out'|'in', shareReport}] · `POST /api/family` {loginIdOrPhone, relation} · `POST /api/family/{id}/answer` {accept} · `PUT /api/family/{id}/share` {share} (P-06) · `DELETE /api/family/{id}`
 - `GET /api/family/{userId}/report` → 가족 생활 변화 리포트(공유 동의한 경우만) (P-04)
-- `GET /api/certificate` → 봉사 확인서 데이터 {name, period, totalHours, count, byCategory:[…], items:[…]} *(41판: `from`·`to` 기간, `elderCount`, `summary` 추가 → 7.17 ②)*
+- `GET /api/certificate` → 봉사 확인서 데이터 {name, period, totalHours, count, byCategory:[…], items:[…]} *(41판: `from`·`to` 기간, `elderCount`, `summary` 추가 → 7.17 ②)* *(기능명세서에서 바뀜 → 7.18 ⑤: 화면이 이 값으로 실제 .pdf 파일을 만들어 내려 준다)*
 
 ### 5.8 첫 활동 교육 (B-01 안전 교육, 프로토타입 edu)
 > **41판에서 바뀜**: 안전 교육 이수 조건이 없어지고 골라서 해 보는 "첫 활동 연습"(B-54 — 필수 아님, 수료·배지·활동 제한 없음)이 됐다. 아래의 `completed`·`passed`·`pass`와 `POST /api/edu/complete`는 없어졌다 → 7.17 ⑤.
+> **기능명세서에서 다시 바뀜**: 첫 활동 교육(안전 교육) 이수 기록이 되살아났다. 연습 상황을 모두 안전 규칙에 맞게 답하면 `users.edu_done=true`이고, 운영자 설정이 필수(기본)이면 이수해야 봉사할 수 있다. `POST /api/edu/complete`는 여전히 없다(퀴즈·카드·긴 역할극은 이수 조건이 아니다) → 7.18 ⑤.
 - `GET /api/edu` → {diag, cardsDone, quizScore, roleplay:{personaId:{passed, comm, emp, safe}}, completed, personas:[…], rules:[…], quiz:[…]}
 - `PUT /api/edu/diag` {cats[], who, exp} · `POST /api/edu/cards-done` · `POST /api/edu/quiz` {answers:[번호…]} → {score, results:[…]}
 - `POST /api/edu/roleplay/{personaId}/finish` {log:[…]} → {safe, comm, emp, pass, fixes[]}
@@ -188,7 +192,7 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 
 ### 5.10 담당자 (C-02~C-10, P-05)
 - `GET /api/org/home` → {todo:[…], counts:{elders, pendingFinal, logsToConfirm, active}, alerts:[…]} *(41판: `counts.monthDone` 추가 → 7.17 ⑥)*
-- `GET /api/org/elders` · `POST /api/org/elders` · `GET /api/org/elders/{id}` (+memos, regulars, recent requests) · `PUT /api/org/elders/{id}` · `POST /api/org/elders/{id}/memos` {text} *(41판: 등록에 `consent:true` 필수, 메모에 정리본, 현관 QR 카드·변화 리포트 API 추가 → 7.17 ①·⑥)*
+- `GET /api/org/elders` · `POST /api/org/elders` · `GET /api/org/elders/{id}` (+memos, regulars, recent requests) · `PUT /api/org/elders/{id}` · `POST /api/org/elders/{id}/memos` {text} *(41판: 등록에 `consent:true` 필수, 메모에 정리본, 현관 QR 카드·변화 리포트 API 추가 → 7.17 ①·⑥)* *(기능명세서에서 바뀜 → 7.18 ④: 응답에 `serviceConsent`, 수정에서 `consent:true`로 동의 기록 남기기, 변화 리포트에 신청 내역, 돌봄 편성표 `/api/org/schedule` 추가)*
 - `POST /api/org/elders/{id}/end` (진행 중 요청 있으면 409) · `POST /api/org/elders/{id}/transfer` {toManagerId} · `GET /api/org/transfers` · `POST /api/org/transfers/{id}/answer` {accept}
 - `PUT /api/org/elders/{id}/consent` {reportConsent} (P-06 대리 입력)
 - `GET /api/org/managers` → 같은 기관 담당자 목록(이관 대상)
@@ -196,7 +200,7 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - `GET /api/org/reports?month=` · `POST /api/org/reports/{id}/flag` (P-05)
 
 ### 5.11 운영자 (D-01~D-09, P-02, P-07)
-- `GET /api/admin/dashboard` → {supply, demand, elderUsage, matchRateByArea:[{area,rate,total}], timeBalance:{issued, consumed, elderFree, pool}, monthly:[…], pending:{orgs, ids, crimes, appeals, reports, inquiries}}
+- `GET /api/admin/dashboard` → {supply, demand, elderUsage, matchRateByArea:[{area,rate,total}], timeBalance:{issued, consumed, elderFree, pool}, monthly:[…], pending:{orgs, ids, crimes, appeals, reports, inquiries}} *(기능명세서에서 바뀜 → 7.18 ⑦·⑧: 재정 추계·정책 시뮬레이션·봉사 유형/계절 리포트·모집 문구·특보·신고 관련 기록·담당자 계정 승인 내역 API 추가)*
 - `GET /api/admin/orgs` · `POST /api/admin/orgs/{id}/approve` → {managerLoginId, tempPassword} (담당자 계정 발급) · `POST /api/admin/orgs/{id}/reject`
 - `GET /api/admin/managers` · `POST /api/admin/managers/{id}/suspend|unsuspend` · `POST /api/admin/elders/{id}/transfer` {toManagerId}
 - `GET /api/admin/verifications` → 신원(id)·범죄경력(crime) 대기 목록 · `POST /api/admin/verifications/{userId}/{kind}/approve|reject`
@@ -205,7 +209,7 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - `GET /api/admin/anomalies` → 같은 쌍의 짧은 활동 반복 등 (D-06) · `POST /api/admin/anomalies/{requestId}/hold|release`
 - `GET /api/admin/users?q=&role=` · `GET /api/admin/users/{id}` · `POST /api/admin/users/{id}/suspend|unsuspend` (D-07)
 - `GET /api/admin/inquiries` · `POST /api/admin/inquiries/{id}/answer` {answer} (D-08) *(41판: `PUT /api/admin/inquiries/{id}/status` 추가 → 7.17 ⑧)*
-- `POST/PUT/DELETE /api/admin/notices` (D-09)
+- `POST/PUT/DELETE /api/admin/notices` (D-09) *(기능명세서에서 바뀜 → 7.18 ⑧: `POST /api/admin/notices/{id}/pin` 고정)*
 - `GET/POST/PUT/DELETE /api/admin/public-services` (P-02)
 - `GET/POST/PUT/DELETE /api/admin/personas` (가상 상대 관리)
 - `POST /api/admin/reports/generate` {month?} → 생활 변화 리포트 즉시 생성 (P-07)
@@ -534,6 +538,7 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 기준: `docs/requirements/요구사항명세서.txt` 41판(A-01~A-10, B-01~B-67, C-01~C-16, D-01~D-11, 104개), 프로토타입 `docs/prototypes/proto-2026-11-12-명세41판.html`.
 대조·적용 기록은 `docs/specs/req41/`(대조 3개, 적용 4개, 재대조 `적용-결과.md`). 이 절은 `main`의 컨트롤러·서비스·엔티티 코드를 직접 확인해 적었다.
 이 절과 앞 절(3~7.16)이 다르면 **이 절이 맞다**. 앞 절의 옛 문장에는 "41판" 표시를 붙였다. 앞 절 괄호 속 요구사항 ID는 그 절을 쓴 때의 판 번호라 41판 번호와 다를 수 있다(예: 단골 배지 B-41 → B-42, 평가 B-38·B-39 → B-39·B-40).
+**기능명세서(2026-11-12)로 이 절에서 다시 바뀐 곳**에는 아래에 "기능명세서에서 바뀜 → 7.18"을 붙였다(③ 자동 반복, ⑤ 교육 이수·인증 항목, ⑥ 담당자 계정·대상 주의사항, ⑧ 행사 정원, ⑨ 확인서 PDF, ⑩ 쓰지 않는 칸). 이 절과 7.18이 다르면 **7.18이 맞다**.
 
 **① 활동 진행 — QR 30초 갱신·지각/노쇼·자동 마감·현관 카드 (B-51~B-53, B-22, B-24, B-25, C-08, C-11)**
 
@@ -543,35 +548,35 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - QR 글: 일반 건 `TS1|REQ|<요청 id>|<6자리>`, 독거노인 건 `TS1|ELD|<도움 대상 id>|<6자리>`.
 - `GET /api/requests/{id}/qr` [받는 사람·담당자] → `{status, elderCard, code, qrText, leftSec, stepSec:30}`. 일반 건은 지금 구간 번호와 남은 초, 독거노인 건은 현관 카드 번호(`leftSec` null). CONFIRMED·IN_PROGRESS가 아니면 `code`·`qrText`는 null. 받는 쪽 화면은 이 주소로 번호를 다시 받아 간다.
 - `POST /api/requests/{id}/check-in`·`check-out` `{code, method}`: `method`는 `qr`|`code`. `code`가 틀리면 400 `WRONG_CODE`. **`method:'manual'`(번호 없이 기록)은 없앴다 — 400 `MANUAL_NOT_ALLOWED`**(⑪). 예전 기록의 `checkMethod:"manual"`은 읽기만 한다.
-- RequestView: `checkCode`·`qrText`는 받는 쪽·담당자에게 CONFIRMED·IN_PROGRESS일 때만. 일반 건은 `qrLeftSec`, 독거노인 건은 `elderCard:true`·`qrIssuedAt`이 함께 온다. 모든 역할에 `autoClosed`, `gapMinutes`(기록 − 예정, 분. 시작·종료 기록이 다 있어야 값) 추가. `elder.ageGroup`·`elder.alias`는 담당자에게만(B-13). `volunteer.eduDone` 삭제.
+- RequestView: `checkCode`·`qrText`는 받는 쪽·담당자에게 CONFIRMED·IN_PROGRESS일 때만. 일반 건은 `qrLeftSec`, 독거노인 건은 `elderCard:true`·`qrIssuedAt`이 함께 온다. 모든 역할에 `autoClosed`, `gapMinutes`(기록 − 예정, 분. 시작·종료 기록이 다 있어야 값) 추가. `elder.ageGroup`·`elder.alias`는 담당자에게만(B-13). `volunteer.eduDone` 삭제. *(기능명세서에서 바뀜 → 7.18 ④: `elder.caution`도 담당자와 일정이 확정된 봉사자에게만(`cautionLocked`). `volunteer.eduDone`은 여전히 없다)*
 - 지각·노쇼(스케줄러 `lateCheck`, 1분마다): 예정 시작 10분 뒤 시작 기록이 없으면 `LATE`, 30분 뒤 `NOSHOW_SUSPECT`를 봉사자와 받는 쪽(독거노인 건은 담당자)에 한 번씩 보내고 요청 메시지 창에 시스템 문장을 남긴다. 하루 넘게 지난 일정에는 뒤늦게 보내지 않는다. `POST /api/requests/{id}/noshow`와 `actions`의 `noshow`는 시작 30분 뒤부터(그 전 409 `TOO_EARLY`).
 - 자동 마감(`autoCloseDue`): IN_PROGRESS인데 예정 종료 30분이 지나면 `checkOutAt` = 예정 종료 시각, 상태 CHECKED_OUT, `autoClosed=true`. 봉사자에게 일지 작성 알림 `AUTO_CLOSED`, 받는 쪽에도 같은 종류 알림.
 - 시간 차이 안내: 종료가 기록될 때(QR·번호·자동 마감) 기록된 시간이 예정과 30분 이상 다르면 양쪽에 `TIME_GAP` 알림 1회 + 시스템 문장. **적립·차감은 예정 시간 기준 그대로**이고, 다르면 봉사자가 시간 조정(`adjust`)을 요청한다.
 - `POST /api/requests/{id}/cancel`: 상태가 SENT(상대 응답 전)이면 **보낸 쪽만**(받은 쪽은 403 — 거절로 답한다).
 - 리마인드 `REMIND`: 전날이 아니라 **시작 1시간 전부터 시작 전 사이에 한 번**(`remindAt`).
-- `POST /api/admin/scheduler/run` 결과: `expired, postsClosed, autoConfirmed, lateAlerts, autoClosed, reminders, lifeReports, unmatchedTips, ranAt`.
+- `POST /api/admin/scheduler/run` 결과: `expired, postsClosed, autoConfirmed, lateAlerts, autoClosed, reminders, lifeReports, unmatchedTips, ranAt`. *(기능명세서에서 바뀜 → 7.18 ②: `recurringPosts`(이번에 만든 정기 요청 회차 공고 수) 추가)*
 - 담당자 현관 카드: `GET /api/org/elders/{id}/qr-card` → `{elderId, displayName, code, qrText, issuedAt, activeCount}`(없으면 만든다) · `POST /api/org/elders/{id}/qr-card/reissue` → 같은 모양(번호 바뀜, 종료된 대상 400 `ELDER_ENDED`). `GET /api/org/elders`·`/{id}` 항목에 `qrIssuedAt`.
 
 **② 계정·알림 설정·통장·확인서 (A-01, A-04, A-06, B-43, B-46, B-47, B-55, B-56, B-58)**
 
 - `POST /api/auth/signup`: 본문에 `agreeTerms`·`agreePrivacy`(필수 — 없으면 400 `TERMS_REQUIRED`), `agreeLocation`·`agreeInterest`(선택). 동의 시각·값을 `users`에 저장하고, 관심 공고 알림에 동의하지 않으면 `noti_interest=false`로 시작한다.
-- `GET /api/me`(가입·로그인 응답의 `user` 포함): `eduDone`·`verify.eduDone` 삭제. `accountNo`(`TS-` + 회원 번호 6자리), `smsAlert`, `notiSettings`, `locConsent`, `interestConsent`, `termsAgreedAt` 추가. `PUT /api/me`: `smsAlert`·`locConsent`를 받고 `textSize`는 `BIG` 아니면 `NORMAL`로 저장(B-55 — 화면은 접속할 때 이 값을 적용).
+- `GET /api/me`(가입·로그인 응답의 `user` 포함): `eduDone`·`verify.eduDone` 삭제. `accountNo`(`TS-` + 회원 번호 6자리), `smsAlert`, `notiSettings`, `locConsent`, `interestConsent`, `termsAgreedAt` 추가. *(기능명세서에서 바뀜 → 7.18 ⑤: `eduDone`·`verify.eduDone` 되살아남)* `PUT /api/me`: `smsAlert`·`locConsent`를 받고 `textSize`는 `BIG` 아니면 `NORMAL`로 저장(B-55 — 화면은 접속할 때 이 값을 적용).
 - `GET /api/me/noti-settings` → `{req, msg, result, remind, interest, voiceAlert, smsAlert}` · `PUT /api/me/noti-settings`(보낸 칸만 바꿈) [모든 역할]. 꺼 둔 종류는 알림을 **만들지 않는다**(`NotificationService.wants`). 종류 묶음: `req` = NEW_REQUEST·NEW_PROPOSAL·NEW_REGULAR / `msg` = MESSAGE / `result` = VOL_ACCEPTED·REJECTED·DECLINED·AUTO_REJECTED·MANAGER_REJECTED / `remind` = REMIND / `interest` = INTEREST. 그 밖(일정 확정, 지각·노쇼 의심, 완료 확인, 적립, 신고 결과 등)은 끌 수 없다. 설정 칸이 null이면 켜짐.
 - 음성 전화·문자(B-43)는 모의: `voiceAlert`면 `[VOICE-MOCK]`, `smsAlert`면 `[SMS-MOCK]` 로그만 남긴다(문자 내용은 남기지 않음).
-- `GET /api/bank`: `accountNo`, `totalEarned`, `totalUsed` 포함, `monthly`는 6개월.
+- `GET /api/bank`: `accountNo`, `totalEarned`, `totalUsed` 포함, `monthly`는 6개월. *(기능명세서에서 바뀜 → 7.18 ③: `months` 추가)*
 - `GET /api/my/activity-summary?months=6`(1~24) → `{months:[{month, helpCount, helpHours, receivedCount, receivedHours}], totalHelpCount, totalReceivedCount}` — 완료(DONE)된 활동만.
-- `GET /api/certificate?from=&to=`(YYYY-MM-DD, 비우면 전체. 적립 확정 시각 `doneAt` 기준, 끝<시작 400 `INVALID_PERIOD`) → `{name, accountNo, period, from, to, totalHours, totalEarned, count, elderCount, byCategory[{category,count,hours}](횟수 많은 순), items[{date, category, hours, earned, recipient, elder}], issuedAt, summary, summarySource}`. 시간은 예정 시간(조정 승인 건은 조정 시간). `summary`는 자기소개용 요약 문장(AI, 키 없으면 규칙 문장). `eduDone` 삭제. PDF 파일은 만들지 않는다(⑨).
+- `GET /api/certificate?from=&to=`(YYYY-MM-DD, 비우면 전체. 적립 확정 시각 `doneAt` 기준, 끝<시작 400 `INVALID_PERIOD`) → `{name, accountNo, period, from, to, totalHours, totalEarned, count, elderCount, byCategory[{category,count,hours}](횟수 많은 순), items[{date, category, hours, earned, recipient, elder}], issuedAt, summary, summarySource}`. 시간은 예정 시간(조정 승인 건은 조정 시간). `summary`는 자기소개용 요약 문장(AI, 키 없으면 규칙 문장). `eduDone` 삭제. PDF 파일은 만들지 않는다(⑨). *(기능명세서에서 바뀜 → 7.18 ⑤: 서버는 여전히 파일을 만들지 않지만 화면이 이 응답으로 .pdf 파일을 만들어 내려 준다. 응답의 `eduDone`은 여전히 없다)*
 - 탈퇴(A-04): `GET /api/me/withdraw-check`·`POST /api/me/withdraw`는 모든 역할. 진행 중인 요청에 담당 독거노인 건을 넣고, 담당 중인 도움 대상(ACTIVE)이 남은 담당자와 마지막 운영자는 409 `WITHDRAW_BLOCKED`.
 
 **③ 공고 — 자동 반복 삭제·다시 올리기·가족 대신·위치·관심 조건 (B-02, B-06, B-14, B-20, B-21, B-57, B-59)**
 
-- **자동 반복 등록은 없다.** `POST /api/posts`의 `repeat`은 글자·객체·true 어떤 모양이 와도 받아서 무시하고 늘 1건만 만든다(`createdCount` 1, `createdIds` 1개). 반복을 바랐으면 응답에 `repeatNotice`(안내 문장). `repeatRule`·`seriesId`는 새 공고에서 늘 null.
+- **자동 반복 등록은 없다.** `POST /api/posts`의 `repeat`은 글자·객체·true 어떤 모양이 와도 받아서 무시하고 늘 1건만 만든다(`createdCount` 1, `createdIds` 1개). 반복을 바랐으면 응답에 `repeatNotice`(안내 문장). `repeatRule`·`seriesId`는 새 공고에서 늘 null. *(기능명세서에서 바뀜 → 7.18 ②: **정기 요청이 다시 생겼다.** `POST /api/posts`의 `repeat`은 여전히 1건만 만들지만 `POST /api/recurring`으로 등록하면 회차마다 공고가 자동으로 생기고, 그 회차 공고에는 `repeatRule`·`seriesId`가 들어간다. `repeatNotice` 문장도 정기 요청 안내로 바뀜)*
 - `POST /api/posts/{id}/repost` `{date}` → 새 공고 카드 + `repostOf`. 지난 공고(마감·매칭 포함, 삭제 제외)를 같은 내용으로 날짜만 바꿔 1건 올린다. 쓸 수 있는 사람: 공고 주인, 그 독거노인의 담당자(가족 대신 올린 작성자는 못 한다 — ⑪). 독거노인 공고는 `issueNote`도 복사. 오류: 날짜 없음·지난 날짜 400 `INVALID_DATE`, 남의 공고 403, 삭제된 공고 404, 종료된 대상 400 `ELDER_ENDED`.
 - 가족 대신 공고(B-57): `POST /api/posts`에 `forUserId`(연결 ACCEPTED인 가족의 회원 번호). 공고 `ownerId` = 가족, `createdBy` = 올린 사람, `type`은 NEED만(400 `INVALID_TYPE`). 연결 아님 403, 본인·정지 계정 400 `INVALID_FAMILY`. 봉사 제안의 받는 사람이 가족이라 **알림·최종 수락/거부·시간 보류/차감은 가족 본인**. 올린 사람은 공고 상세의 `requests`를 읽기만 한다(`myRole` null, `actions` 빈 목록). 가족에게 알림 `FAMILY_POST`(링크 `/posts/{id}`). **올린 사람은 읽기만 한다**: 그 공고의 수정·삭제·다시 올리기는 403, 그 공고에 직접 봉사 제안은 400 `OWN_POST`(⑪).
 - PostCard 추가: `proxy`, `proxyByName`, `proxyMine`(목록·내 공고·상세·등록 응답), 목록에는 `distanceBy`(`location`|`profile`). `owner.eduDone` 삭제.
 - `GET /api/posts`: 쿼리 `dateFrom`, `dateTo`, `lat`, `lng`(둘 다 있어야 함, 틀리면 400 `INVALID_LOCATION`). 좌표가 오면 `distanceKm` = 그 좌표에서 공고 동네 중심(`service/Geo.java`의 동별 좌표 표)까지 거리. **좌표는 저장하지 않는다.** 표에 없는 동은 프로필 동네 기준 거리. 화면은 가까운 순을 누르는 순간 브라우저 위치 권한을 묻고, 거절 뒤 다시 누르면 허용 방법을 안내한다(`ui/location.jsx`).
 - `GET /api/posts/mine?elderId=`: 그 대상의 공고만. 내가 가족 대신 올린 공고도 포함.
-- `POST /api/ai/post-chat` 응답 `draft`: `repeat` 삭제, `repeatNotice`(안내 문장 또는 null) 추가. 화면은 대화·말로 요청하기를 시작하기 전에 "새로운 사람 / 자주 만난 사람(단골)"을 먼저 묻는다(서버 계약 없음).
+- `POST /api/ai/post-chat` 응답 `draft`: `repeat` 삭제, `repeatNotice`(안내 문장 또는 null) 추가. *(기능명세서에서 바뀜 → 7.18 ②: "매주"면 `draft.repeat {weekly, weekday, label}`이 다시 온다)* 화면은 대화·말로 요청하기를 시작하기 전에 "새로운 사람 / 자주 만난 사람(단골)"을 먼저 묻는다(서버 계약 없음).
 - 관심 조건: `POST·PUT /api/interest-alerts` 본문·응답에 `dateFrom`, `dateTo`(YYYY-MM-DD, **빈 글자 `""`나 `null`을 보내면 지움**, 칸을 아예 안 보내면 그대로 둠 — ⑪). 끝<시작·모양 오류 400 `INVALID_DATE`. 기간 밖 공고는 알리지 않는다.
 
 **④ 단골 (B-42, B-65)**
@@ -580,26 +585,26 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - `DELETE /api/regulars/{volunteerId}`: 등록한 쪽의 해지. 줄을 지우지 않고 `regular_marks.removed=true`, `removed_by`를 남긴다. 자동(3회) 단골도 해지된다.
 - `GET /api/regulars/{volunteerId}/status` → `{volunteerId, doneCount, auto, manual, removed, removedByThem, regular, canMark}`. `canMark` = 사용자 계정이고 아직 단골이 아니며 상대가 해지하지 않았음.
 - `GET /api/me/regular-badges` → `[{key, kind: USER|ELDER, userId|elderId, name, label, count, auto, manual}]`(내가 받은 단골 배지 — 누구를 몇 회 도왔는지, 횟수 많은 순) · `DELETE /api/me/regular-badges/{userId}`: 등록된 쪽(봉사자)의 해지, 응답은 남은 배지 목록(내 단골이 아니면 404).
-- `GET /api/regulars`·단골 요청(REGULAR) 자격·`regularBadges`(글자 목록): 해지된 사이는 빠진다. 독거노인(별칭)의 단골은 자동(3회)만이고 직접 등록·해지는 없다.
+- `GET /api/regulars`·단골 요청(REGULAR) 자격·`regularBadges`(글자 목록): 해지된 사이는 빠진다. 독거노인(별칭)의 단골은 자동(3회)만이고 직접 등록·해지는 없다. *(기능명세서에서 바뀜 → 7.18 ③: 완료 3회째에 양쪽 `REGULAR` 알림)*
 
 **⑤ 첫 활동 연습·추천 봉사·플래너 (B-01, B-54, B-60~B-62)**
 
-- 안전 교육 이수 조건·수료·수료증·수료 배지·매칭 가점은 없다. 봉사 조건은 신분증 인증(`ID_NOT_VERIFIED`)뿐이다. `POST /api/edu/complete` **삭제**. 프로필·소개 카드·공고 카드·확인서·`/api/me`에서 `eduDone` 삭제.
-- `GET /api/edu` → `{optional:true, diag, cardsDone, quizScore, roleplay, personas, situations[{key,title,line,options[]}], rules, quiz}`(`completed`·`completedAt` 없음). `POST /api/edu/quiz`는 점수만(`passed` 없음). `POST /api/edu/roleplay/{id}/finish`는 `pass` 없이 `note` 추가.
-- `GET /api/edu/situations` → `{items:[{key, title, line, options[]}]}` · `POST /api/edu/practice` `{key, text}` → `{key, quality, flag, ok, praise, feedback:{violation, flag, message, reason, better}|null, reply, source}`. 위반 판정은 코드 규칙이 먼저다.
+- 안전 교육 이수 조건·수료·수료증·수료 배지·매칭 가점은 없다. 봉사 조건은 신분증 인증(`ID_NOT_VERIFIED`)뿐이다. `POST /api/edu/complete` **삭제**. 프로필·소개 카드·공고 카드·확인서·`/api/me`에서 `eduDone` 삭제. *(기능명세서에서 바뀜 → 7.18 ⑤: **교육 이수 기록·표시가 되살아났다.** 봉사 조건 = 신분증 인증 + (운영자 설정이 필수이면, 기본 필수) 첫 활동 교육 이수(`EDU_REQUIRED`). `/api/me`·프로필에 `eduDone`. 소개 카드·공고 카드·확인서에는 여전히 없다. `POST /api/edu/complete`도 여전히 없다)*
+- `GET /api/edu` → `{optional:true, diag, cardsDone, quizScore, roleplay, personas, situations[{key,title,line,options[]}], rules, quiz}`(`completed`·`completedAt` 없음). *(기능명세서에서 바뀜 → 7.18 ⑤: `education{done, completedAt, total, doneCount, doneKeys, required, on}` 추가, `optional`은 교육이 필수가 아닐 때만 true)* `POST /api/edu/quiz`는 점수만(`passed` 없음). `POST /api/edu/roleplay/{id}/finish`는 `pass` 없이 `note` 추가.
+- `GET /api/edu/situations` → `{items:[{key, title, line, options[]}]}` · `POST /api/edu/practice` `{key, text}` → `{key, quality, flag, ok, praise, feedback:{violation, flag, message, reason, better}|null, reply, source}`. 위반 판정은 코드 규칙이 먼저다. *(기능명세서에서 바뀜 → 7.18 ⑤: 로그인 사용자의 답이 안전 규칙에 맞으면 그 상황을 끝낸 것으로 기록하고 응답에 `education` 추가)*
 - 상황 목록은 서버 설정(`app_settings`의 `edu.situations`): `GET /api/admin/edu/situations`, `PUT /api/admin/edu/situations` `{items[]}`(운영자). 운영자 화면은 없다(API만).
 - `POST /api/ai/roleplay`: 응답에 `feedback`, `options[]`, `total` 추가. `next`는 AI가 만든 어르신의 말(키 없으면 대본·상황 목록).
-- `GET /api/me/recommends` → `{recommends:[공고 카드 + why, score], planCount, basis}`(AI 호출 없음, 홈 "추천 봉사").
+- `GET /api/me/recommends` → `{recommends:[공고 카드 + why, score], planCount, basis}`(AI 호출 없음, 홈 "추천 봉사"). *(기능명세서에서 바뀜 → 7.18 ⑤: 끝낸 봉사 기록 기준 `basis`·`basisText`·`whyBasis` 추가)*
 - `POST /api/me/planner/picks` `{postIds[]}`: 고른 공고마다 서버가 빈 시간 후보(공고 범위 안, 내 일정·다른 계획과 안 겹침, 30분 단위)를 만들고 AI가 그 가운데 시작 시각을 고른다(후보에 없는 값이면 규칙). 날짜는 공고 날짜 그대로. 응답 = 플래너 + `made[{postId, title, date, startHour, endHour, hours, source}]`, `skipped[{postId, title, reason}]`, `madeSource`. `GET /api/me/planner`의 계획 줄에 `endHour`, `postStartHour`, `postEndHour`, `planSource`.
-- `GET /api/verify-items`: 봉사 인증 항목은 3개(phone·id·crime).
+- `GET /api/verify-items`: 봉사 인증 항목은 3개(phone·id·crime). *(기능명세서에서 바뀜 → 7.18 ⑤: 4개(phone·id·edu·crime), edu 기본 켜짐·필수)*
 
 **⑥ 담당자 (C-01, C-02, C-03, C-12~C-16)**
 
-- `POST /api/orgs/apply` [공개]: multipart(`name, orgType, address, phone, managerName, managerPhone, managerEmail, memo` + 파일 `proof` 필수) 또는 JSON(같은 칸 + 실제 있는 `proofFileUrl`). 증빙이 없으면 400 `PROOF_REQUIRED`. `organizations.proof_file_url`에 저장하고 `GET /api/admin/orgs` 항목에 `proofFileUrl`.
-- `POST /api/org/elders`: `consent:true`가 없으면 400 `CONSENT_REQUIRED`. 확인 시각·담당자를 `elders.service_consent_at/by`에 기록(수정에는 필요 없음). 응답에 `serviceConsentAt`.
+- `POST /api/orgs/apply` [공개]: multipart(`name, orgType, address, phone, managerName, managerPhone, managerEmail, memo` + 파일 `proof` 필수) 또는 JSON(같은 칸 + 실제 있는 `proofFileUrl`). 증빙이 없으면 400 `PROOF_REQUIRED`. `organizations.proof_file_url`에 저장하고 `GET /api/admin/orgs` 항목에 `proofFileUrl`. *(기능명세서에서 바뀜 → 7.18 ⑥: 승인된 기관의 **추가 담당자 계정**은 운영자 발급이 아니라 `POST /api/auth/manager-apply` 자동 승인으로도 생긴다)*
+- `POST /api/org/elders`: `consent:true`가 없으면 400 `CONSENT_REQUIRED`. 확인 시각·담당자를 `elders.service_consent_at/by`에 기록(수정에는 필요 없음). 응답에 `serviceConsentAt`. *(기능명세서에서 바뀜 → 7.18 ④: `serviceConsent` 추가, 수정(`PUT`)에 `consent:true`를 보내면 동의 기록이 없는 대상에 남긴다)*
 - `POST /api/org/elders/{id}/memos`, `GET /api/org/elders/{id}`의 `memos[]`: `{id, elderId, text(원문), tidy, lines[], source(ai|rule), createdAt}`. 1000자 넘으면 400 `TEXT_TOO_LONG`. 정리본은 저장할 때 만든다(`ManagerMemoAi`).
 - `GET /api/org/home`: `counts.monthDone`(이번 달 완료 활동 건수).
-- `GET /api/org/change-report?range=today|recent` → `{date, range, windowDays, total, source, notice, items[{elderId, alias, displayName, dong, rank, score, level, reasons[], stats{recentCount, prevCount, todayCount, daysSinceLast, lastDate, signalCount, signals[], newSignals[], flagged}, summary, changes[], source, provider}]}`. 최근 30일 일지를 그 앞 30일과 비교. 횟수·점수·순위는 코드, AI는 일지 내용 정리만(진단 금지). `today`는 오늘 일지가 들어온 대상만.
+- `GET /api/org/change-report?range=today|recent` → `{date, range, windowDays, total, source, notice, items[{elderId, alias, displayName, dong, rank, score, level, reasons[], stats{recentCount, prevCount, todayCount, daysSinceLast, lastDate, signalCount, signals[], newSignals[], flagged}, summary, changes[], source, provider}]}`. 최근 30일 일지를 그 앞 30일과 비교. 횟수·점수·순위는 코드, AI는 일지 내용 정리만(진단 금지). `today`는 오늘 일지가 들어온 대상만. *(기능명세서에서 바뀜 → 7.18 ④: 항목에 신청 내역 `apply`·`applyText`·`checkFirst` 추가, 점수에 반영)*
 - 이관 뒤 독거노인 건의 담당자 권한은 **지금 담당자만**(`Views.roleOf`).
 
 **⑦ 신고·안부 확인 (B-36, B-37, D-02, A-07)**
@@ -613,15 +618,15 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 
 - `GET /api/admin/analytics`: `areaShortage[{area, demand, supply, gap, shortTotal, short[], categories[]}]`, `seasonSupplyDemand[{season, demand, supply, gap, categories[{category, demand, supply, gap}]}]`.
 - 문의: `GET /api/admin/inquiries`·`GET /api/inquiries/mine` 항목에 `stage`. `PUT /api/admin/inquiries/{id}/status` `{status: RECEIVED|CHECKING|ANSWERED|CLOSED}`(답변 없이 ANSWERED는 400 `ANSWER_REQUIRED`, 모르는 값 400 `INVALID_STATUS`), 바뀌면 문의한 사람에게 알림. `inquiries.status`(RECEIVED/ANSWERED)는 그대로 두고 글자 칸 `stage`를 따로 쓴다.
-- 기관 소식: 앱 안 신청·정원·신청자 목록이 없다. `POST /api/events/{id}/apply`·`/cancel` **삭제**, `POST /api/events`는 `{title, content, date, startHour, place, url, ogTitle?, ogImage?, ogDesc?}`이고 `url` 필수(`URL_REQUIRED`). 소식 응답에서 `capacity, applied, myApplied, full, applicants` 삭제, `applyType`은 늘 `"LINK"`.
+- 기관 소식: 앱 안 신청·정원·신청자 목록이 없다. `POST /api/events/{id}/apply`·`/cancel` **삭제**, `POST /api/events`는 `{title, content, date, startHour, place, url, ogTitle?, ogImage?, ogDesc?}`이고 `url` 필수(`URL_REQUIRED`). 소식 응답에서 `capacity, applied, myApplied, full, applicants` 삭제, `applyType`은 늘 `"LINK"`. *(기능명세서에서 바뀜 → 7.18 ④: **`capacity`(정원, 표시용)가 되살아났다.** `POST /api/events`가 `capacity`를 받고 소식 응답에 `capacity`가 온다. 앱 안 신청·`applied`·`full`·`applicants`는 여전히 없다. `GET /api/events?nearby=true` 추가)*
 - `GET /api/news?area=` → `{items[{key, kind(ORG|AI|PUBLIC), id, title, orgName, date, startHour, when, place, area, near, url, image, aiFound, notice}], area, searchAvailable, aiNotice}` — 담당자가 올린 소식 + AI가 찾은 소식(서버가 출처 링크를 열어 확인한 것만) + 링크 있는 공공데이터 강좌를 한 목록으로(내 동네 먼저, 날짜 순).
 
 **⑨ 명세와 다르게 둔 것(총괄 결정)**
 
 - B-30 차감: 명세 글자는 "예정 시간만큼"이지만 **예정 시간 × 가중치**(= 봉사자 적립과 같은 값, 7.3 정산)로 보류·차감한다.
 - B-51: QR 스캔 말고 **6자리 번호 입력**(30초마다 바뀜)으로 시작·종료하는 길을 남겼다. 번호 없이 기록하는 `method:'manual'`은 없앴다(⑪).
-- B-56: 확인서 PDF는 서버가 파일을 만들지 않고 브라우저 인쇄(PDF로 저장)로 받는다.
-- B-54: 프로토타입에는 "연습 수료 배지"가 있지만 명세대로 만들지 않았다.
+- B-56: 확인서 PDF는 서버가 파일을 만들지 않고 브라우저 인쇄(PDF로 저장)로 받는다. *(기능명세서에서 바뀜 → 7.18 ⑤: "PDF 파일로 받기"가 실제 .pdf 파일을 내려 준다 — 브라우저가 만든 그림 PDF. 인쇄하기도 남음)*
+- B-54: 프로토타입에는 "연습 수료 배지"가 있지만 명세대로 만들지 않았다. *(기능명세서에서 바뀜 → 7.18 ⑤: 기능 U-34에 따라 "✓ 안전 교육" 표시가 마이·프로필에 생겼다)*
 - 명세에 없는 기존 LLM 기능(7.12~7.15: 쉬운 말, 고치기 제안, 방문 전 브리핑, 메시지 안전 감지, 담당자 브리핑, 신고 정리 등)은 그대로 둔다.
 
 **⑩ DB 변경** — 모두 null 허용 칸 추가(`ddl-auto: update`). 새 표는 ⑪의 `upload_files` 하나. 정의는 `db/schema.sql`.
@@ -640,7 +645,7 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 | `planner_picks` | `start_hour`, `hours`, `plan_source` |
 | `app_settings` | 새 줄 `edu.situations`(표 변경 없음) |
 
-41판부터 쓰지 않는 것(지우지 않음): `users.edu_done`, `edu_progress.completed_at`, `posts.repeat_rule`·`series_id`, `org_events.capacity`·`apply_type`, 표 `event_applications`. `requests.check_code`는 값은 들어가지만 확인에 쓰지 않는다.
+41판부터 쓰지 않는 것(지우지 않음): `users.edu_done`, `edu_progress.completed_at`, `posts.repeat_rule`·`series_id`, `org_events.capacity`·`apply_type`, 표 `event_applications`. `requests.check_code`는 값은 들어가지만 확인에 쓰지 않는다. *(기능명세서에서 바뀜 → 7.18 ⑨: 이 가운데 `users.edu_done`·`edu_progress.completed_at`·`posts.repeat_rule`·`series_id`·`org_events.capacity`는 **다시 쓴다.** 여전히 안 쓰는 것은 `org_events.apply_type`과 표 `event_applications`)*
 
 **⑪ 재대조·화면 확인 뒤 남은 문제 고침 (2026-11-12, 테스트 `Req41FixTest`)**
 
@@ -658,11 +663,160 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - **가족 대신 공고**: 올린 사람은 읽기만(③에 반영). `PostService.canEdit`는 주인·담당자만, `canSeeRequests`는 올린 사람도.
 - **퇴출(D-02)**: 신고 처리 `action:BAN`은 정지와 다르다 — `users.banned=true`(상태 값은 `SUSPENDED` 그대로), 로그인 토큰 폐기, 다시 로그인 403, 그 사용자의 수락 대기·확정·진행 중 요청은 취소(보류 해제, 상대에게 `CANCELLED` 알림), 열린 공고는 마감. 종료 체크·일지 제출까지 간 활동은 상대의 적립이 걸려 있어 그대로 정산된다. `POST /api/admin/users/{id}/unsuspend`·`/managers/{id}/unsuspend`는 409 `BANNED`. `GET /api/admin/users`·`/{id}`·`/managers` 항목에 `banned`. 담당자 계정의 퇴출은 계정만 막는다(담당 대상은 운영자가 이관).
 - **알림 설정**: `PUT /api/me/noti-settings`에서 `voiceAlert`·`smsAlert`를 **켜는 것**은 일반 사용자만(담당자·운영자는 400 `USER_ONLY`, 끄기와 다른 칸은 됨).
-- **운영자 대시보드**: `pending.reports`는 일반 신고만, 안부 확인(이상 징후) 접수는 `pending.welfare`로 따로. `edu.eduDone`, 회원·인증 목록의 `eduDone` 삭제.
+- **운영자 대시보드**: `pending.reports`는 일반 신고만, 안부 확인(이상 징후) 접수는 `pending.welfare`로 따로. `edu.eduDone`, 회원·인증 목록의 `eduDone` 삭제. *(기능명세서에서 바뀜 → 7.18: 운영자 대시보드·회원 목록에는 여전히 `eduDone`이 없다 — ⑩ 남은 것)*
 - **알림 글·링크**: 관심 공고(`INTEREST`)·가족 대신 공고(`FAMILY_POST`) 알림의 날짜는 `11/20(금)` 모양(`Rules.md`), 링크는 `/posts/{id}`. 번호 없는 옛 링크 `/posts`는 화면이 공고 목록으로 보낸다. 조사는 받침에 맞게 붙인다(`Rules.josa`·`Rules.ro`, 화면 `josa`·`ro`).
 - **방문 전 브리핑**: 받는 분이 기관 도움 대상이거나 60대 이상이면 어르신용 문장, 그 밖이거나 나이대를 모르면 중립 문장(`ActivityRules.categoryRules`). `basics.senior`가 함께 온다.
 - **담당자 대상 상세**: `GET /api/org/elders/{id}`의 `requests`는 날짜 최근순(같은 날은 늦은 시각 먼저).
 - **위치 동의**: 가입의 `agreeLocation`과 마이 > 설정 > 위치 정보(`PUT /api/me`의 `locConsent`)는 같은 값(`users.loc_consent`)이다. 사용자 계정에서 이 값이 켜져 있지 않으면 화면은 가까운 순·내 위치로 찾기를 눌러도 브라우저 권한을 묻지 않고 "마이 > 설정 > 위치 정보에서 켤 수 있어요"를 안내한다(서버 계약 없음).
-- **통화 메모 초안**(`POST /api/org/ai/memo-to-posts`)의 `drafts[].repeat` 삭제(`repeatLabel`만 남음). 플래너·홈의 기관 소식 신청 일정(`myApplied`) 삭제.
+- **통화 메모 초안**(`POST /api/org/ai/memo-to-posts`)의 `drafts[].repeat` 삭제(`repeatLabel`만 남음). *(기능명세서 뒤에도 그대로 — 통화 메모 초안은 정기 요청으로 이어지지 않는다)* 플래너·홈의 기관 소식 신청 일정(`myApplied`) 삭제.
 - **시간대**: 애플리케이션 시작 때 JVM 기본 시간대를 `Asia/Seoul`로 정한다(`TimeSavingsApplication.useKoreaTime`).
 - DB: 표 `upload_files(file_id PK, uploader_id, created_at)` 추가, `users.banned` 추가.
+
+### 7.18 기능명세서 적용 (2026-11-12)
+
+기준: `docs/requirements/기능명세서.txt`(73개 기능 — 공통 C-01~C-08, 사용자 U-01~U-35, 기관 담당자 O-01~O-13, 운영자 A-01~A-17). **기능명세서 ID는 요구사항 명세서 41판 ID와 다른 체계**라 이 절에서는 "기능 U-09"처럼 적는다.
+적용 기록은 `docs/specs/func/`(구역별 적용 문서 6개, 재대조 `적용-결과.md`). 이 절은 `main`(커밋 `5e68fdc`)의 컨트롤러·서비스·엔티티를 직접 확인해 적었다.
+이 절과 앞 절(3~7.17)이 다르면 **이 절이 맞다**. 앞 절의 옛 문장에는 "기능명세서에서 바뀜 → 7.18"을 붙였다. AI가 들어가는 곳은 모두 "순서·숫자·판정은 코드, 문장만 AI(키 없으면 규칙 문장, 응답에 `source: ai|rule`)"이다.
+
+**① 단체 봉사 (기능 U-10, U-11, O-07) — 새 표 `group_posts`·`group_participants`, `web/GroupController`·`service/GroupService`**
+
+- 1:1 공고(`posts`)·요청(`requests`)과 섞지 않는 별도 흐름이다. `kind`: `RECRUIT`(단체 모집 — **기관 담당자만**) / `OFFER`(단체 봉사 가능 — 사용자(신분증 인증)·담당자). 인원 `capacity`는 2~50명(2명 미만 400 `INVALID_CAPACITY` "혼자 하는 봉사는 일반 공고로"). 상태 `OPEN`·`DONE`·`CANCELLED`.
+- 받는 쪽은 언제나 기관이라 **차감·보류가 없다.** 가중치는 카테고리와 관계없이 1.0, 활동 시간은 1:1과 같은 30분~4시간(`Rules.checkHours`). 금지 요청 판정(`FORBIDDEN_REQUEST`)과 연락처·상세 주소 거르기(`PII_NOT_ALLOWED`)는 1:1 공고와 같다.
+- `GET /api/group-posts?kind=&area=&cat=` → 열려 있고 날짜가 지나지 않은 단체 공고 카드 목록(날짜·시각 순) [로그인한 모든 역할]
+- `GET /api/group-posts/mine` → 사용자: 올렸거나 참여한 것 / 담당자: 우리 기관이 올렸거나 받기로 한 것(최근 날짜부터)
+- `GET /api/group-posts/schedule?month=YYYY-MM` → 내 단체 일정(플래너 일정과 같은 모양: `kind:"give", group:true, date, startHour, hours, category, title("[단체] …"), who, amount, groupPostId, status(CONFIRMED|DONE)`). 달 모양이 틀리면 400 `INVALID_MONTH`
+- `GET /api/group-posts/{id}` → 카드 + `participants[{userId, name, status, earned, owner}]`(올린 쪽과 참석을 확인하는 기관 담당자에게만. 다른 사람은 인원 수만)
+- `POST /api/group-posts` `{kind, date, startHour, hours, area, place?, category, title?, detail?, capacity, groupName?}` → 상세 [사용자·담당자, 운영자 403]. 제공형은 `groupName` 필수(`GROUP_NAME_REQUIRED`). 사용자가 올린 제공형은 올린 사람도 참여자 1명으로 센다. 오류: `INVALID_KIND, INVALID_CAPACITY, INVALID_DATE, INVALID_TIME, INVALID_HOURS, INVALID_CATEGORY, AREA_REQUIRED, GROUP_NAME_REQUIRED, TOO_LONG, FORBIDDEN_REQUEST, PII_NOT_ALLOWED, ID_NOT_VERIFIED`(400), 모집형을 사용자가 올리면 403
+- `DELETE /api/group-posts/{id}` → 공고 내리기(`CANCELLED`, 참여자에게 알림) [올린 사람, 담당자 공고는 같은 기관 담당자]
+- `POST /api/group-posts/{id}/join` · `/leave` [사용자] → 참여 신청(정원까지 **선착순**, 신분증 인증 필요 `ID_NOT_VERIFIED`, 같은 날 시간이 겹치는 다른 단체 봉사가 있으면 409 `TIME_OVERLAP`, 그 밖에 못 하면 409 `CANNOT_JOIN`) · 취소(올린 사람은 409 `OWNER_CANNOT_LEAVE`)
+- `POST /api/group-posts/{id}/host` · `/unhost` [담당자] → 제공형 단체의 봉사를 우리 기관에서 받기(한 기관만, 409 `ALREADY_HOSTED`) · 받기 취소
+- `POST /api/group-posts/{id}/complete` `{attended:[사용자 id…]}` [담당자 — 모집형은 올린 기관, 제공형은 받은 기관] → 상세 + `result{ok, attended, absent, earnedEach, totalEarned}`. 활동 날부터 가능(그 전 409 `TOO_EARLY`), 받은 기관이 없는 제공형은 409 `NOT_HOSTED`. 참석자마다 통장에 `EARN`(시간 × 1.0, `request_id` 없음, 이름 "단체 봉사 · 제목 · 기관")을 넣고 나머지는 `ABSENT`, 공고는 `DONE`. **참석 확인·완료는 언제나 기관 담당자만 한다**(사용자가 스스로 시간을 만들 수 없다).
+- 카드 칸: `id, kind, kindLabel, title, detail, category, date, startHour, hours, endHour, area, place, groupName, capacity, joined, left, full, status, past, ownerId, ownerName, byOrg, orgName, hosted, hostOrgName, weight(1.0), estEarn, mine, myStatus(JOINED|ATTENDED|ABSENT|null), myEarned, distanceKm, createdAt, canJoin, joinBlock, canLeave, canCancel, canHost, canUnhost, canComplete, confirmSide`
+- `GET /api/me/planner`의 `items`에 그 달의 내 단체 일정이 더해진다(`groupPostId`로 구분).
+- 알림 종류 `GROUP`(끌 수 없음): 참여 신청·취소(올린 사람에게), 받기·받기 취소, 공고 취소, 적립·불참. 링크 `/group/{id}` 또는 `/bank`.
+- 커밋 `5e68fdc` 기준으로 단체 참여·제공형 올리기에는 **첫 활동 교육 검사가 없다**(신분증만 본다). 확인서·월별 횟수·월별 리포트·운영자 통계에도 단체 봉사가 들어가지 않는다 → ⑩.
+
+**② 공고 — 정기 요청·묶음 추천·시간순 (기능 U-02, U-03, U-06, U-08, U-09, U-12)**
+
+- **정기 요청이 다시 생겼다(기능 U-09).** 7.17 ③의 "자동 반복 없음"은 `POST /api/posts`의 `repeat` 칸에만 남았고(여전히 1건만 만들고 `repeatNotice` 안내 문장을 돌려준다), 매주 반복은 따로 등록한다. 새 표 `recurring_posts`.
+- 규칙(`service/RecurringService`): **도움 요청(NEED) 공고만, 매주 한 요일만.** 기간은 회차 수 `weeks`(2~26) 또는 끝 날짜 `endDate`. 한 사람이 진행·일시정지로 둘 수 있는 것은 5개(`TOO_MANY_RECURRING`), 같은 요일·시간 중복은 409 `DUPLICATE_RECURRING`. **회차 공고는 한꺼번에 만들지 않는다** — 등록할 때와 1분마다 도는 스케줄러(`SchedulerService.runAll` → `generateDue`)가 "오늘부터 7일 안" 회차만 `PostService.create`와 같은 길로 만든다(검사·관심 알림·**공고 1개에 요청 1건** 그대로). 만든 공고에는 `seriesId="RC{정기 요청 id}"`, `repeatRule="매주 목요일"`. 수락·거절은 회차마다 사람이 누른다. 올릴 수 없게 되면(가족 연결 끊김·담당 종료·계정 정지) 자동으로 멈추고 `RECURRING_STOPPED` 알림.
+- `GET /api/recurring[?elderId=]` → 내 정기 요청 목록(도움 받는 본인·대신 등록한 사람·그 대상의 담당자). 한 건: `id, weekday(1=월…7=일), repeatLabel, startHour, endHour, estHours, area, categories, title, detail, note, startDate, endDate, status(ACTIVE|PAUSED|ENDED|CANCELLED), stopReason, totalCount, remainingCount, passedCount, nextDate, nextPostId, nextPostAt, posts[{id, date, status, requestCount}](최근 6개), estEarnPerVisit, elderId, elderDisplayName, ownerId, ownerName, proxy, proxyMine, createdByName, createdAt, actions[pause|resume|cancel]`
+- `GET /api/recurring/{id}` → 한 건(권한 없으면 403)
+- `POST /api/recurring` `{weekday?, startDate?, weeks 또는 endDate, startHour, endHour, estHours?, area, categories[], title, detail?, note?, forUserId?(연결된 가족 대신), elderId?(담당자 대리), elderIssue?(관리 대상 이슈, 300자)}` → 한 건 + `createdCount, createdPostIds, firstPost`. 오류: `INVALID_PERIOD, INVALID_DATE, INVALID_WEEKDAY`(400), `DUPLICATE_RECURRING, TOO_MANY_RECURRING`(409), `ISSUE_ONLY_FOR_ELDER, ISSUE_TOO_LONG, PII_NOT_ALLOWED`(400) + 공고 등록과 같은 검사 오류
+- `POST /api/recurring/{id}/pause` · `/resume`(→ `createdPostIds`) · `/cancel`, `DELETE /api/recurring/{id}`(= 해지). 일시정지: 새 회차를 만들지 않음(올라간 공고는 그대로). 해지: 더 만들지 않고, 올라간 앞으로의 회차 공고 가운데 수락되지 않은 것은 함께 내린다(응답 `removedPosts, keptPosts`). 상태가 안 맞으면 409 `INVALID_STATE`.
+- `POST /api/ai/post-chat`: "매주"라고 하면(도움 요청일 때) `draft.repeat {weekly:true, weekday, label}`이 다시 오고 `draft.repeatNotice`가 정기 요청 안내 문장이 된다. 격주·매일·매달은 정기 요청이 안 되어 "한 번만 올리고 다시 올리기" 안내.
+- `POST /api/admin/scheduler/run` 결과에 `recurringPosts` 추가. 새 알림 종류 `RECURRING_POST`(회차 공고가 올라감), `RECURRING_STOPPED`(자동으로 멈춤) — 끌 수 없음.
+- **빈 시간 묶음 추천(기능 U-12, `web/BundleController`·`service/BundleService`)** [사용자]
+  - `POST /api/bundles/recommend` `{date, fromHour, toHour, lat?, lng?}` → `{date, fromHour, toHour, startDong, startBy(profile|location), candidateCount, bundles[{key, count, items[{postId, post(PostCard), startHour, endHour, hours, estEarn, travelKm, travelMin, waitMin}], totalKm, travelMin, idleMin, totalHours, totalEarn, startHour, endHour, reason, facts[], source}], message, source, rule}`. 좌표는 출발 동을 정하는 데만 쓰고 저장하지 않는다. 오류 `INVALID_DATE, INVALID_TIME, RANGE_TOO_SHORT`(1시간 30분 미만)`, INVALID_LOCATION`
+  - 묶음 고르기는 전부 코드: 그 날짜의 열린 도움 요청 공고 가운데 내 공고·이미 제안한 공고·받지 않기 대상의 공고를 빼고, 건 사이 간격 = 걷는 시간(시속 4km, **동 중심 좌표 사이 직선거리** `Geo`, 표에 없는 동은 2.5km) + 10분, 최소 30분. 묶음 2~3건, 최대 3묶음. LLM은 설명 문장만(코드에 없는 숫자가 섞이면 규칙 문장).
+  - `POST /api/bundles/propose` `{items[{postId, startHour, hours}](1~3), memo?}` → `{results[{postId, title, ok, requestId?, startHour?, hours?, deadlineAt?, code?, error?}], okCount, failCount, message}`. 공고마다 보통 봉사 제안(`PROPOSAL`, 24시간 기한)을 시간 순서대로 만든다. 보내기 전 오류(아무것도 안 보냄): `ITEMS_REQUIRED, TOO_MANY, INVALID_ITEM, DUPLICATE, DIFFERENT_DAY, TIME_OVERLAP`. 일부만 실패하면 200에 건별 `ok/code/error`.
+- `GET /api/posts?sort=time`: 활동 날짜·시작 시각이 빠른 순(기능 U-02). `sort`는 `new|near|time`.
+- 가족 대신(`forUserId`)은 직접 적기·정기 요청 등록에서도 쓴다(서버 규칙은 7.17 ③ 그대로).
+
+**③ 진행·일지·평가·단골·시간 통장 (기능 U-14~U-25)**
+
+- **사진 인증(기능 U-16)**: `POST /api/requests/{id}/log` 본문에 `photoUrl2` 추가. 장보기·심부름 = 영수증 1장(`photoUrl`), 가벼운 집안일 = 하기 전(`photoUrl`)·한 뒤(`photoUrl2`) 2장이 **없으면 400 `PHOTO_REQUIRED`**. 이 두 종류의 인증 사진은 촬영 동의 칸(`photoConsent`)과 상관없이 저장한다(그 밖의 카테고리는 전처럼 동의했을 때만 저장). 고쳐서 다시 낼 때 사진을 안 보내면 먼저 올린 사진을 그대로 쓴다. 두 장 모두 직접 올린 파일이어야 한다(400 `FILE_NOT_MINE`). **사진 내용(정말 영수증인지, 얼굴·개인정보가 있는지)은 검사하지 않는다.**
+- 요청 응답(`GET /api/requests/{id}` 등 컨트롤러가 주는 RequestView)에 `photoRule`(`NONE`|`RECEIPT`|`BEFORE_AFTER`), `logPhotoUrl2` 추가. `GET /api/files/{id}` 권한 규칙(7.17 ⑪의 3번)은 두 번째 사진에도 같다.
+- **평가 비공개(기능 U-18)**: 봉사자에게 가는 `RATED` 알림 제목이 "활동 평가가 등록됐어요"로 바뀌고 **별점이 빠졌다.** 개별 평가(누가 몇 점·무슨 말)를 상대에게 주는 API는 없다. 여러 평가를 모은 평균 별점과 자주 받은 칭찬(받는 쪽이 봉사자를 평가한 것만)은 전처럼 프로필·소개 카드에 보인다.
+- **단골 자동 지정(기능 U-19)**: 같은 상대와 완료(DONE) 3회째가 되는 순간 **양쪽 모두**에게 알림 `REGULAR`("○○ 님과 단골이 됐어요 ★", 끌 수 없음). 해지한 사이는 알리지 않는다.
+- `GET /api/bank`: `months[{month, in(번 시간), out(쓴 시간), count}]` 추가 — 거래가 있는 모든 달, 최근 달부터. 보류·보류 해제는 뺀다(기능 U-22). `hold`(묶인 시간)·`totalEarned`·`totalUsed`는 7.17 ② 그대로이고 화면이 늘 보여 준다(기능 U-21).
+- **시간 플랜(기능 U-24)** `GET /api/me/time-plan?age=&startAge=` [사용자] → `{age, startAge, saveYears, balance, earnRate, earnMonths, useMonthly, useYearly, saved, nowYears, years, helpMonths, endAge, targetAge(90), needTotal, shortfall, goalMonthly, goalExtra, onTrack, rows[{category, hoursPerMonth, weight, costPerMonth, totalHours}], pattern{basis: SAME_AGE|SENIOR|DEFAULT, label, peers, minPeers(5), usedDefault, windowMonths(12)}, notice, text, goalText, source}`. `age`·`startAge`는 바꿔 보기용이고 저장하지 않는다(15~90세 밖이면 400 `INVALID_AGE`).
+  - 비슷한 사람들: ① 나와 같은 나이대 → ② 모자라면 60대 이상. 최근 12개월 완료 요청에서 사람마다 "카테고리별 받은 시간 ÷ 쓴 기간(달)"을 구해 평균. **기록이 있는 사람이 5명 미만이면 일반적인 가정값**(`TimePlanService.defaultPattern`)을 쓰고 `notice`에 "아직 기록이 적어 일반적인 가정으로 계산했어요". 본인·독거노인(계정 없음) 기록은 넣지 않고 응답에는 평균과 사람 수만 나간다.
+  - 적립 속도 = 최근 6개월 직접 번 시간의 한 달 평균(선물받은 시간 제외). 한 달 사용량 = Σ 카테고리 시간 × 가중치. 모이는 시간 = 잔액 + 적립 속도 × 12 × (도움 받기 시작 나이 − 지금 나이). 받을 수 있는 기간 = 모이는 시간 ÷ 한 해 사용량(95세까지). 적립 목표 = 90세까지 받는 데 필요한 시간을 남은 기간에 나눈 한 달 시간(0.5 단위 올림).
+- **월별 리포트(기능 U-25)** `GET /api/me/month-report?month=YYYY-MM`(비우면 이번 달) [사용자] → `{month, prevMonth, isCurrent, give{count, hours, earned, byCategory, top, topCount}, receive{count, hours, used, …}, prev{give, receive}, change{giveCount, receiveCount, giveHours, receiveHours}, text, source}`. 활동 날짜 기준, 완료된 활동만.
+- 기존 생애 플랜(`/api/me/life-plan`)·내 봉사 플랜은 그대로 둔다.
+
+**④ 기관 담당자 (기능 C-03, O-01~O-13)**
+
+- **특이사항은 확정된 봉사자에게만(기능 O-04)** — 7.17 ①·3.4의 "봉사자에게 주의사항까지"를 바꿨다. 범위는 공고의 관리 대상 이슈(`posts.issue_note`)와 대상의 방문 주의사항(`elders.caution`) 둘 다. 볼 수 있는 사람: 담당자, 그리고 그 공고·요청의 봉사자 가운데 **요청 상태가 확정·진행 중·종료 기록·일지 제출·완료**인 사람(`Views.issueVisible`). 요청·수락 대기와 거절·취소·만료는 볼 수 없다.
+  - 공고 카드(PostCard): `elderIssueLocked` 추가. 볼 수 없으면 `elderIssue`·`elderCaution`이 null.
+  - 요청 응답(RequestView): `elder.cautionLocked` 추가. 볼 수 없으면 `elder.caution`이 null이고 `baseCaution`이 없다.
+  - 새로 올리는 대리 공고(말로 만들기·AI 대화·통화 메모)는 주의사항을 공개 칸(`note`)이 아니라 `elderIssue`로 보낸다. 예전에 올린 공고의 `note`에 들어간 글은 그대로 남는다. **남은 구멍**: 담당자가 "매주" 도움을 말로 요청하기·AI 대화에서 정기 요청으로 넘길 때는 화면이 아직 주의사항을 `note`("방문 시 주의: …")로 보낸다 — 회차 공고의 공개 칸으로 나간다(`적용-결과.md` 7절 11번, 고쳐야 함).
+- **돌봄 편성표(기능 O-11~O-13, `web/OrgScheduleController`·`service/CareScheduleService`)** [담당자]
+  - `GET /api/org/schedule?week=YYYY-MM-DD&elderId=` → `{weekStart, weekEnd, prevWeek, nextWeek, today, thisWeek, days[{date, dow, label, today, past}], elders[{elderId, alias, displayName, dong, needs, cells[7]}], filter[{elderId, displayName}], counts{fixed, pending, open, gaps, empty}}`. 주는 월~일, 주간만 있다. 칸 `{date, items[], empty, past, selectable, gap}`. 항목 `kind`=`REQUEST`(`state`: CONFIRMED|PROGRESS|PENDING|DONE, `requestId, startHour, hours, category, volunteerName`) 또는 `POST`(`state`=OPEN, `postId, startHour, endHour, category, title, pendingCount`). 거절·취소·만료·노쇼는 일정으로 올리지 않는다. `gap`(빈 일정) = 오늘 이후 빈 칸 가운데 같은 요일의 지난 4번 중 2번 이상 방문이 있었던 칸 `{weeks, category, startHour, hours, reason}`.
+  - `POST /api/org/schedule/suggest` `{elderId, date, startHour?, hours?, category?}` → `{slot, pattern, candidates[], alternatives[{date, dow, label, count, candidates[]}], postDraft{elderId, date, startHour, endHour, category}, message, source, provider?, notice, sent:false}`. 후보(최대 5명) `{volunteerId, name, area, ratingAvg, ratingCount, regular, doneCount, sameDong, timeFit, offerPostId, offerStartHour, offerEndHour, action(REQUEST|REGULAR), facts[], reason, score}`. 후보는 코드가 찾는다: **이 대상의 단골 + 그 날짜·시간을 덮는 열린 봉사 가능 공고(도움 종류 일치)의 주인**(받지 않기 목록·그 시간에 다른 일정이 있는 봉사자·정지·미인증 계정 제외). 점수 = 단골 50 + 이 대상 완료 횟수×3(최대 15) + 같은 동 20 + 그 시간 공고 30 + 평가×2. 후보가 없으면 앞뒤 6일 안에서 후보가 있는 날 최대 3일을 `alternatives`로, 공고 올리기는 `postDraft`로 준다. **아무것도 보내거나 만들지 않는다**(담당자가 눌러야 한다).
+  - `POST /api/org/schedule/bulk-posts` `{items:[{elderId, date, startHour, endHour?, category, detail?}]}`(최대 20칸, 넘으면 400 `TOO_MANY`, 비면 `ITEMS_REQUIRED`) → `{created[{index, elderId, displayName, date, startHour, endHour, category, postId, title}], failed[{index, …, code, reason}], createdCount, failedCount}`. 칸마다 보통 공고 등록과 같은 검사를 거치고, 같은 대상·같은 시간에 일정이나 열린 공고가 있으면 `SLOT_TAKEN`. 한 칸이 실패해도 다른 칸은 올라간다.
+- `GET /api/org/change-report`(기능 O-10): 항목마다 `apply{total, matched, waiting, rejected, expired, cancelled, noshow, unmatchedPosts, failed}`, `applyText`, `checkFirst` 추가. 점수에 신청 내역이 더해진다(맞춰지지 않은 신청 2건 이상 +15, 1건 +5, 노쇼 +10, 봉사자를 못 구하고 마감된 공고 +10). 담당자가 스스로 거둔 취소는 세지 않는다.
+- **행사 정원(기능 O-09)** — 7.17 ⑧의 "정원 없음"을 바꿨다: `POST /api/events`가 `capacity`(정수, 비우면 제한 없음, 0~9999 밖이면 400 `INVALID_CAPACITY`)를 받고 `GET /api/events`·`/{id}`·`/api/org/events`·`/api/news`(ORG 항목) 응답에 `capacity`(없으면 null)가 온다. **표시용 숫자다** — 앱 안 신청·신청자 수·남은 자리는 없고 신청은 전처럼 기관 페이지 링크(`url` 필수)로만 한다.
+- `GET /api/events?nearby=true`(기능 U-31): 내 동네 근처(같은 동 + 동 중심 사이 1.2km 이하의 옆 동, `EventService.nearDong`) 행사만. 파라미터가 없으면 예전과 같다. 좌표 표에 없는 동은 같은 동일 때만 근처.
+- 관리 대상(기능 O-01): 응답에 `serviceConsent`(참/거짓) 추가. `PUT /api/org/elders/{id}`에 `consent:true`를 보내면 동의 기록이 없는 대상에 동의 시각·담당자를 남긴다(이미 있는 기록은 바꾸지 않음). "나이"는 정확한 나이가 아니라 나이대(60대~90대 이상)로 받는다. `GET /api/org/elders`·`/{id}`에 `monthDone`(이번 달 완료 횟수).
+- 기관 서비스 신청(기능 C-03)의 주소 필수는 화면에서만 확인한다. 서버 필수는 기관명·담당자·재직 증빙이다(7.17 ⑥ 그대로).
+- 정기 요청의 관리 대상 대리 등록은 `POST /api/recurring`의 `elderId`·`elderIssue`(②).
+
+**⑤ 계정·인증·플래너·AI 안내·확인서 (기능 C-04, C-08, U-01, U-26~U-28, U-30, U-34, U-35)**
+
+- **첫 활동 교육(안전 교육) 이수가 되살아났다(기능 U-34)** — 7.17 ⑤의 "이수 조건·수료·배지 없음"을 바꿨다.
+  - 이수 조건: 첫 활동 연습의 **상황(운영자 설정 목록 `edu.situations`, 기본 4개)을 모두 안전 규칙에 맞게 답하기**. 어긋난 답은 끝낸 것으로 치지 않는다. 퀴즈·규칙 카드·긴 역할극은 이수 조건이 아니다(선택 연습). `POST /api/edu/complete`는 여전히 없다.
+  - `POST /api/edu/practice`: 로그인 사용자의 답이 `ok`이면 그 상황 key를 `edu_progress.practice_json`에 적고, 모두 끝나면 `users.edu_done=true`·`edu_progress.completed_at`. 응답에 `education{done, completedAt, total, doneCount, doneKeys[], required, on}` 추가. `GET /api/edu`에도 `education`이 오고 `optional`은 교육이 필수가 아닐 때만 true.
+  - 봉사 자격 검사는 한 곳(`service/VolunteerGate`): 신분증 인증(`ID_NOT_VERIFIED`) + 교육이 필수이고 미이수면 400 **`EDU_REQUIRED`**. 걸리는 곳: 봉사 제안 보내기·요청 수락(`RequestService`), 도움 가능 공고 등록(`PostService`), 요청을 받는 봉사자가 미이수일 때 보내는 쪽(문장만 다름).
+  - **기본 필수, 운영자가 바꾼다**: 인증 항목은 4개(순서 `phone, id, edu, crime`). `GET /api/verify-items`·`PUT /api/admin/verify-items`의 `edu` 항목 `on`·`required`. 운영자가 한 번도 바꾸지 않았으면 설정값 `app.verify.edu-required-default`(기본 `true`, 테스트 설정에서는 `false`)를 따른다. 기본이 필수라 **이미 가입해 있던 봉사자도 교육을 마쳐야 봉사할 수 있다**(시연 계정은 시드에서 이수 처리).
+  - 표시: `GET /api/me`(로그인·가입 응답의 `user` 포함)에 `eduDone`, `canVolunteer`, `volunteerBlock{code, message}|null`, `verify.eduDone`·`verify.eduRequired`·`verify.eduOn`. `GET /api/users/{id}/profile`에 `eduDone`. 소개 카드(volunteerCard)·공고 카드·확인서·운영자 목록에는 없다.
+- **담당자 계정 신청 자동 승인(기능 C-04, `web/ManagerApplyController`)** — 새 표 `manager_applications`
+  - `GET /api/auth/manager-apply/orgs` [공개] → 승인된 기관 `[{id, name, orgType, address}]`(이름 순)
+  - `POST /api/auth/manager-apply` [공개, multipart] 칸 `orgId, name, phone, verifyToken, loginId, password, proof(파일)`. 승인된 기관이고 휴대폰 본인인증(`/api/auth/phone/verify`의 `verifyToken`)이 맞으면 **바로 담당자 계정(역할 ORG)을 만들고 로그인시킨다.** 응답 `{id, status:"APPROVED", orgId, orgName, loginId, token, user, message}`. 오류: `ORG_NOT_APPROVED, NAME_REQUIRED, INVALID_LOGIN_ID, WEAK_PASSWORD, PHONE_NOT_VERIFIED, PROOF_REQUIRED`(400), `DUPLICATE_LOGIN_ID, ALREADY_MANAGER`(같은 번호로 그 기관에 이미 담당자 계정)(409), `TOO_MANY_REQUESTS`(429, 같은 IP 10분에 5번). **재직 증빙은 받아서 저장만 하고 내용은 검사하지 않는다**(운영자만 열 수 있다). 운영자와 같은 기관의 기존 담당자에게 알림 `MANAGER_APPLY`.
+  - `GET /api/admin/manager-applications` [운영자] → 최근 순 `[{id, orgId, orgName, orgType, userId, name, loginId, phone, proofFileUrl, status(APPROVED|REVOKED), statusLabel, userStatus, existingManagers, otherManagersNow, revokeReason, revokedAt, createdAt}]` (기능 A-11)
+  - `POST /api/admin/manager-applications/{id}/revoke` `{reason?}` [운영자] → 신청을 `REVOKED`로 바꾸고 그 담당자 계정을 정지·로그아웃. 이미 취소면 409 `INVALID_STATE`.
+  - 기관 신청을 운영자가 승인할 때 첫 담당자 계정을 발급하는 길(5.11 `POST /api/admin/orgs/{id}/approve`)은 그대로다.
+- **플래너(기능 U-01, U-26~U-28)**
+  - `GET /api/me/planner/week?start=YYYY-MM-DD&mode=give|recv` [사용자] → `{start, end, today, mode, days[{date, items[]}], items[]}`. 그 날짜가 든 주(일~토), 모드에 따라 봉사할 일정(+내 계획) 또는 도움 받을 일정만. AI를 부르지 않는다.
+  - `GET /api/me/planner`: `basis{doneCount, topCategory, topCategoryCount, topArea, topAreaCount, topSlot, topSlotCount}`, `basisText` 추가. `recommends[].why`가 끝낸 봉사 기록 기준 이유를 담고 `whyBasis{category, area, slot}` 추가. `GET /api/me/recommends`도 `basis`에 기록 값이 더해지고 `basisText` 추가. 추천 점수 = 같은 동 3·카테고리 2·시간대 2(프로필 또는 기록 기준) + 가장 많이 한 카테고리와 맞으면 1.
+  - 화면: 헤더 모드(봉사하기/도움 받기)에 따라 홈·공고·플래너 달력·활동 내역이 걸러진다(서버 계약 없음, 플래너 주 보기만 `mode`).
+- `POST /api/ai/public-services`, `POST /api/ai/public-services/nearby`(기능 U-30): `volunteer{possible(YES|CAUTION|NO|UNKNOWN), label, message, reason, categories[{category, level, levelLabel, weight}], criteria[], writeLink|null, source}` 추가 — 봉사로 가능한 일인지와 봉사 기준. 금지 요청 필터와 6가지 도움 찾기(코드) 결과이고, 6가지에 들지 않는 말은 `UNKNOWN`.
+- `POST /api/ai/recommend`(기능 U-27)는 7.16의 모양 그대로(`regularPosts`·`nearbyPosts`·`help`). 도움 받기 모드 플래너에 입구가 생겼다(`/recommend?q=`).
+- **봉사 확인서 PDF(기능 U-35)** — 7.17 ⑨의 "인쇄로만"을 바꿨다: `GET /api/certificate` 응답은 그대로이고, 화면(`frontend/src/lib/certPdf.js`)이 그 값을 그림으로 그려 **실제 .pdf 파일(A4, 파일 이름 `봉사활동확인서_이름_발급일.pdf`)을 내려 준다.** 서버는 파일을 만들지 않는다. 글자 선택·검색은 안 되고 직인·진위 확인 코드는 없다. 인쇄하기도 남아 있다.
+
+**⑥ 기관 신청·담당자 승인 흐름 정리 (기능 C-03, C-04, A-10, A-11)**
+
+| 하는 일 | 주소 | 승인 |
+|---|---|---|
+| 기관 서비스 신청 | `POST /api/orgs/apply`(7.17 ⑥) | 운영자가 서류를 보고 승인·반려(`/api/admin/orgs/{id}/approve|reject`). 승인하면 첫 담당자 계정 발급 |
+| 승인된 기관의 담당자 계정 신청 | `POST /api/auth/manager-apply`(⑤) | **자동 승인**(승인된 기관 + 휴대폰 본인인증). 운영자는 내역을 보고 취소만 한다 |
+
+**⑦ 운영자 리포트·추계·특보 (기능 A-02, A-04~A-09, `web/AdminReportController`)** [운영자]
+
+- `GET /api/admin/forecast`(기능 A-05) → `{baseYear, offsets[0,1,3,5,10], areas[{area, risk, rows[{offset, year, supply, demand, gap, ratio, status, members, elders, seniorShare}], reasons[], joinsPerMonth, youngJoinsPerMonth, churnYear}], total[rows], assumptions{bands[{band, users, elders, supplyPer, supplySource(기록|가정), demandPer, demandSource}], joinsPerMonth, joinsSource, churnYear, churnSource, churnSample, notes[]}}`
+  - 모형(`service/FinanceModel`, 코호트): 나이대 8개 × 동네. **가정값**: 1인당 월 공급·수요 시간(`DEFAULT_SUPPLY`·`DEFAULT_DEMAND`, 한 나이대 기록이 3명 미만이면 가정), 이탈률 연 15%(가입 90일 넘은 회원이 5명 미만이면 가정. 기록이 있으면 "탈퇴했거나 최근 90일 활동이 없는 비율"), 월 가입 수(최근 6개월 가입이 3명 미만이면 회원의 2%), 가입자 나이 분포(`JOIN_SHARE`), 한 해에 나이대의 10%가 다음 나이대로. 관리 대상은 수를 그대로 두고 나이만 올린다. 사망·전출·동네 이동은 없다. 응답 `assumptions`가 값마다 "기록"인지 "가정"인지 밝힌다.
+- `POST /api/admin/forecast/summary?refresh=` → 이번 달 요약 `{month, headline, areas[{area, risk, reasons[], text}], total, source, savedAt}`. 저장된 것이 있으면 그대로, 없거나 `refresh=true`면 다시 만들어 `ai_results`(kind `FIN_MONTHLY`, ref_key 연-월)에 저장. `GET /api/admin/forecast/summaries` → 저장된 요약 목록(최근 달 먼저).
+- `POST /api/admin/forecast/simulate`(기능 A-06) `{text}`(300자) 또는 `{adjustments:[{type, ageBand, area, value}]}` → `{adjustments[{…, label}], understood, source(ai|rule|manual), before, after(알아들었을 때만), areas, bands, assumptions}`. `type` = `JOIN_ADD`(월 가입 ±명)·`CHURN_MULT`(이탈률 ×배)·`SUPPLY_ADD`·`DEMAND_ADD`(1인당 월 시간 ±). 값 범위: 가입 ±1000명, 배수 0~5, 시간 ±20. 자연어는 LLM이 조정 값 JSON으로 바꾸고(형식 검사 `ForecastAi.valid`), 키가 없으면 규칙이 가입 수·이탈률(절반·배·%)·봉사/도움 시간 문장만 알아듣는다. 오류 `TEXT_REQUIRED, TEXT_TOO_LONG`.
+- `GET /api/admin/stats/types`(기능 A-02) → `{categories[{category, givers, receivers, giverPct, receiverPct, count, hours}], userTypes[{key, label, count, pct}], members, elders, interpretation{text, source}}`
+- `GET /api/admin/stats/season`(기능 A-04) → `{periodMonths, monthly[12], seasons[4], nextSeason{season, currentSeason, growth, basis, categories[{category, base, expected}], total, …}, interpretation{text, source}}`. 다음 계절 예상 = 지난 12개월 가운데 그 계절의 카테고리별 수요(그 계절 기록이 없으면 12개월 수요 ÷ 4) × 추세(최근 90일 수요 ÷ 그 앞 90일 수요, 0.5~2.0으로 자름) — 코드 계산.
+- `GET /api/admin/recruit-drafts`(기능 A-07) → `{drafts[{area, category, timeSlot, demand, supply, gap, title, body}], source, days(180)}` — 부족이 큰 동네·카테고리 5개, 시간대는 요청이 가장 많은 "평일/주말 × 오전/오후/저녁" 한 칸.
+- **특보(기능 A-08, A-09)** — 새 표 `weather_alerts`
+  - `GET /api/admin/weather/alerts` → `{live, types, levels, knownAreas, alerts[{id, type, level, areas, startDate, endDate, source(MANUAL|SAMPLE|KMA), memo, facts{areas[{area, elders, elders80, activities, managers[]}], totalElders, …}, report{summary, actions[], source}, noticeId, sentAt, sentManagers, createdAt}]}`
+  - `POST /api/admin/weather/alerts` `{type, level, areas[], startDate?, endDate?, memo?}`(직접 입력) · `POST …/alerts/sample`(시연용 표본 — 실제 기상 정보 아님) · `POST /api/admin/weather/fetch`(기상청에서 받아 오기) · `POST …/alerts/{id}/refresh`(리포트 문장 다시) · `DELETE …/alerts/{id}`(전달한 것은 409 `ALREADY_SENT`)
+  - `POST /api/admin/weather/alerts/{id}/send`(기능 A-09) → 공지 게시 + 해당 지역에 담당 대상이 있는 담당자에게 알림(type `WEATHER`, 링크 `/notice/{id}`). 한 번만(두 번째 409 `ALREADY_SENT`). 문자·푸시 같은 바깥 발송은 없다.
+  - **기상청 호출은 모의에 가깝다**: `service/KmaWeatherProvider`는 환경변수 `KMA_API_KEY`가 있을 때만 기상청 API허브 특보 현황 주소(`KMA_API_URL`)를 부르고 응답 줄에서 구역 이름(`KMA_REGION`, 기본 "서울")·특보 종류·수준 낱말을 찾는다. **응답 형식은 짐작이고 실제 호출로 확인하지 못했다.** 키가 없으면 `live:false`이고 직접 입력·표본만 쓴다. 서비스의 동네는 모두 그 구역 하나에 있다고 본다.
+
+**⑧ 운영자 관리 (기능 A-13, A-15, A-16) · 공지 (기능 C-08)**
+
+- `GET /api/admin/report-context/{id}`(기능 A-13) → `{reportId, target{id, name, role, status, banned, warningCount, penaltyCount, createdAt, doneAsVolunteer}|null, pastReports[](최근 10), betweenDone, reporterReportCount, request{id, date, category, status, hours, content, logText, checkInAt, checkOutAt}?, messages[{id, sender, byTarget, text, warn, createdAt, reported}](최근 10)?, post{…}?}`. 이상 징후(안부 확인) 접수는 대상 계정을 싣지 않는다.
+- **카테고리 건의 승인 → 카테고리에 추가(기능 A-15)** — 3.1의 "6종 고정"을 바꿨다.
+  - `GET /api/categories` [로그인한 누구나] → 기본 6종 + 더한 것 `[{name, level, levelLabel, weight, extra}]`. 더한 카테고리는 `app_settings`의 `categories.extra`(JSON `{이름: 등급}`).
+  - `POST /api/admin/category-suggestions/{id}/adopt` `{level?(기본 BASIC), answer?}` → `{ok, updated, status:"ADOPTED", category}`. 같은 이름의 건의를 모두 반영으로 바꾸고 카테고리에 더하고 건의자에게 알림. 기존 `POST …/{id}/answer`도 상태가 `ADOPTED`면 기본 등급으로 더한다.
+  - `DELETE /api/admin/categories/{name}` → 더한 카테고리 빼기(그 종류의 공고·요청이 있으면 409 `CATEGORY_IN_USE`).
+  - 더한 카테고리는 공고·요청·등급(가중치)에 바로 쓰이지만 **운영자 통계의 기본 집계와 AI 난이도·글 검사 낱말 사전에는 들어가지 않는다**(기본 6종 기준).
+- **공지 고정(기능 A-16, C-08)**: `POST /api/admin/notices/{id}/pin` `{pinned?}`(없으면 뒤집기) → Notice. `GET /api/notices`는 고정 공지(`pinned=true`)를 맨 위에, 그 안에서 최근 순으로 준다. 항목에 `pinned`.
+
+**⑨ DB 변경** — `ddl-auto: update`로 생긴다. 정의는 `db/schema.sql`, 설명은 `db/README.md`.
+
+| 표 | 내용 |
+|---|---|
+| `group_posts` (새 표) | 단체 봉사 공고: `id, kind, owner_id, org_id, group_name, date, start_hour, hours, area, place, category, title, detail, capacity, status, host_org_id, host_by, hosted_at, done_by, done_at, created_at` |
+| `group_participants` (새 표) | 단체 봉사 참여자: `id, group_post_id, user_id, status(JOINED/LEFT/ATTENDED/ABSENT), earned, created_at` |
+| `recurring_posts` (새 표) | 정기 요청: `id, owner_id, elder_id, created_by, weekday, start_hour, end_hour, est_hours, area, categories, title, detail, note, issue_note, start_date, end_date, status, stop_reason, last_generated, created_at, updated_at` |
+| `manager_applications` (새 표) | 담당자 계정 신청 내역: `id, org_id, user_id, name, phone, login_id, proof_file_url, status(APPROVED/REVOKED), existing_managers, revoke_reason, revoked_at, created_at` |
+| `weather_alerts` (새 표) | 기상 특보: `id, type, level, areas, start_date, end_date, source, memo, report_json, notice_id, sent_at, sent_managers, created_at` |
+| `requests` | `log_photo_url2` 추가(집안일 "한 뒤" 사진) |
+| `edu_progress` | `practice_json` 추가(끝낸 연습 상황 key 목록) |
+| `notices` | `pinned` 추가 |
+| `ai_results` | 새 kind `FIN_MONTHLY`(표 변경 없음) |
+| `app_settings` | 새 줄 `categories.extra`, `verify.items` 값에 `edu` 항목(표 변경 없음) |
+
+41판에서 "쓰지 않음"이던 것 가운데 **다시 쓰는 것**: `users.edu_done`, `edu_progress.completed_at`(교육 이수), `posts.repeat_rule`·`series_id`(정기 요청 회차 공고), `org_events.capacity`(행사 정원, 표시용). 여전히 쓰지 않는 것: `org_events.apply_type`(늘 LINK), 표 `event_applications`, `requests.check_code`(확인에는 안 씀). 단체 봉사 적립은 기존 `ledger`에 `EARN`(`request_id` null)으로 들어간다.
+
+**⑩ 남은 것·모의 상태** — 자세한 것은 `docs/specs/func/적용-결과.md`.
+
+- 모의·가정값: 휴대폰 본인인증(Firebase 키가 없으면 데모 번호 123456, 통신사 실명 대조 아님 — 담당자 계정 자동 승인도 이 인증을 쓴다), 음성 전화·문자(로그만), 기상청 호출(⑦), 재정 추계의 가정값(⑦), 묶음 추천·근처 판정의 동 좌표(`Geo`의 시범 지역 가상 좌표, 직선거리·걷는 속도), 시간 플랜의 일반 가정값(③), 재직 증빙·인증 사진 내용 미검사.
+- 실제 AI(키 있음)로는 한 번도 확인하지 않았다. ✨ 기능 17개 모두 키 없이 규칙 모드로 돈다.
+- 커밋 `5e68fdc` 기준으로 운영자가 더한 카테고리의 공고·요청이 생기면 `GET /api/admin/analytics`가 오류가 난다(`AnalyticsService.add`). 통합 담당이 고치는 중.
+- 커밋 `5e68fdc` 기준으로 단체 봉사가 빠진 곳: 첫 활동 교육 검사(참여·제공형 올리기), 봉사 확인서, 월별 횟수 요약, 월별 리포트, 플래너 목표·주 보기, 운영자 통계. 통합 담당이 고치는 중이며, 고쳐지면 이 줄과 ①의 마지막 줄을 지운다.
