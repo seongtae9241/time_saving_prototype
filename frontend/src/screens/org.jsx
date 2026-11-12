@@ -123,6 +123,8 @@ export function OHome() {
       <div style={{ marginTop: 14 }}><OrgBriefing /></div>
       <div className="sec-t"><span>기관 소식</span><a role="button" tabIndex={0} onClick={() => nav('/o/events')}>관리 ›</a></div>
       <div className="todo" role="button" tabIndex={0} onClick={() => nav('/o/events/new')}><div className="n" style={{ background: '#FFEDF3', color: '#E2557F' }}><Ic n="cal" s={20} /></div><div className="grow"><div className="t">기관 소식 올리기</div><div className="d">교실·모임·행사를 올리면 근처 사용자 홈에 보여요</div></div><span className="st go">올리기</span></div>
+      <div className="sec-t"><span>단체 봉사</span><a role="button" tabIndex={0} onClick={() => nav('/board?tab=group&kind=mine')}>우리 기관 ›</a></div>
+      <div className="todo" role="button" tabIndex={0} onClick={() => nav('/board?tab=group')}><div className="n" style={{ background: '#E4F5F9', color: '#178FAD' }}><Ic n="users" s={20} /></div><div className="grow"><div className="t">단체 봉사 공고</div><div className="d">기관 봉사거리에 단체를 모집하거나, 봉사 가능한 단체를 받아요</div></div><span className="st go">보기</span></div>
       <div className="sec-t"><span>살펴볼 대상</span><a role="button" tabIndex={0} onClick={() => nav('/o/report', { replace: true })}>변화 리포트 ›</a></div>
       {watch ? (watch.length ? watch.map((x) => <ChangeCard key={x.elderId} x={x} />) : <Empty>먼저 살펴볼 대상이 없어요</Empty>)
         : flagged.length ? flagged.map((e) => <ElderCard key={e.id} e={e} sig={sigs[e.id]} />) : <Empty>변화가 큰 대상이 없어요</Empty>}

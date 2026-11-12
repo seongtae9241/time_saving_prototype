@@ -19,7 +19,7 @@ const valTxt = (x) => (x.kind === 'give' || x.kind === 'plan' ? `+${hmTxt(x.amou
 /** 날짜별 일정 한 줄 (프로토타입 .tl2) */
 export function PlanRow({ x, withDate }) {
   const nav = useNavigate();
-  const go = () => (x.requestId ? nav(`/req/${x.requestId}`) : x.eventId ? nav(`/news/${x.eventId}`) : x.postId ? nav(`/post/${x.postId}`) : null);
+  const go = () => (x.groupPostId ? nav(`/group/${x.groupPostId}`) : x.requestId ? nav(`/req/${x.requestId}`) : x.eventId ? nav(`/news/${x.eventId}`) : x.postId ? nav(`/post/${x.postId}`) : null);
   return (
     <div className="tl2 click" role="button" tabIndex={0} onClick={go} onKeyDown={(e) => { if (e.key === 'Enter') go(); }}>
       <span className="tl2-dot" style={{ borderColor: KC[x.kind] }} />

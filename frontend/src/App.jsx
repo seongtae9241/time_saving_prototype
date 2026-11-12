@@ -20,6 +20,7 @@ import { ModeProvider } from './ui/proto.jsx';
 import { Planner } from './screens/planner.jsx';
 import { Ask } from './screens/assist.jsx'; // LLM 추가 A(7.12) 음성 비서
 import { ClassDetail, APublicClasses } from './screens/publicClass.jsx';
+import { GroupDetail, GroupNew } from './screens/group.jsx'; // 기능 U-10·U-11·O-07 단체 봉사
 
 /** 로그인·역할 확인 */
 function Guard({ roles, children }) {
@@ -56,6 +57,8 @@ function Shell() {
         <Route path="/board" element={g(<Board />, UO)} />
         <Route path="/post/:id" element={g(<PostDetail />)} />
         <Route path="/post/:id/edit" element={g(<PostEdit />, UO)} />
+        <Route path="/group/new" element={g(<GroupNew />, UO)} />
+        <Route path="/group/:id" element={g(<GroupDetail />, UO)} />
         <Route path="/req/new" element={g(<ReqForm />, UO)} />
         <Route path="/req/:id" element={g(<RequestDetail />, UO)} />
         <Route path="/req/:id/log" element={g(<LogWrite />, U)} />

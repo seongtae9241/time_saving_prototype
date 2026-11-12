@@ -53,7 +53,14 @@ public class PlannerController {
 
     // ---------------- 플래너 ----------------
     @GetMapping("/me/planner")
-    public Map<String, Object> planner(@CurrentUser User u, @RequestParam(required = false) String month) { return planner.planner(u, month); }
+    public Map<String, Object> planner(@CurrentUser User u, @RequestParam(required = false) String month) {
+        Map<String, Object> out = planner.planner(u, month);
+        if (groups != null) groups.addToPlanner(u, out); // 기능 U-10: 내가 참여하는 단체 봉사 일정도 달력에
+        return out;
+    }
+
+    /** 단체 봉사(기능 U-10) 일정 — 생성자를 바꾸지 않으려고 필드 주입 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private com.timesavings.service.GroupService groups;
 
     /** 41판 B-60: 홈 화면의 추천 봉사(내 활동 지역·가능 시간대·카테고리에 맞고 빈 시간에 들어가는 공고). AI 를 부르지 않는다. */
     @GetMapping("/me/recommends")
