@@ -4,6 +4,15 @@
 -- 동네 클래스 테이블(classes·class_enrollments·spaces)과 ledger.class_id는 2026-11-10 사용자 결정으로 삭제했다(기존 DB의 남은 칸·행은 쓰지 않음).
 -- 목록형 칸(categories, time_slots, needs, tags, keywords)은 쉼표로 이은 문자열, *_json 칸은 JSON 문자열이다.
 -- 2026-11-11 역할별 정리판: category_suggestions · life_plans · planner_picks · app_settings 추가, posts.issue_note(담당자 대리 공고의 관리 대상 이슈) 추가.
+-- 2026-11-12 요구사항 명세서 41판 적용(계약서 7.17): 아래 칸을 더했다. 새 표는 없다. 실행 때는 ddl-auto=update 가 같은 칸을 만든다.
+--   users: terms_agreed_at · privacy_agreed_at · loc_consent · interest_consent · noti_req · noti_msg · noti_result · noti_remind · noti_interest · sms_alert
+--   requests: qr_secret · noshow_notified · auto_closed · gap_notified / elders: qr_code · qr_issued_at · service_consent_at · service_consent_by
+--   reports: kind · elder_id / inquiries: stage / interest_alerts: date_from · date_to / organizations: proof_file_url
+--   elder_memos: tidy_text · source / regular_marks: removed · removed_by / planner_picks: start_hour · hours · plan_source
+--   app_settings 에 새 줄 edu.situations(첫 활동 연습 상황 목록 JSON, 표 변경 없음).
+-- 41판부터 쓰지 않는 칸·표는 지우지 않고 그 줄에 "41판부터 쓰지 않음" 주석을 달았다(예전 자료를 읽기 위해 남김):
+--   users.edu_done · edu_progress.completed_at · posts.repeat_rule · posts.series_id · org_events.capacity · org_events.apply_type · 표 event_applications
+--   requests.check_code 는 값은 계속 들어가지만 시작·종료 확인에는 쓰지 않는다(qr_secret 없는 예전 자료의 대용 값).
 
 
 create table ai_notes (
@@ -95,7 +104,7 @@ create table difficulty_appeals (
 create table edu_progress (
     cards_done bit not null,
     quiz_score integer,
-    completed_at datetime(6),
+    completed_at datetime(6), -- 41판부터 쓰지 않음(B-54 수료 없음)
     user_id bigint not null,
     diag_json TEXT,
     roleplay_json TEXT,
@@ -114,10 +123,12 @@ create table elder_blocks (
 ) engine=InnoDB;
 
 create table elder_memos (
+    source varchar(5), -- 41판 추가: 정리본 출처 ai/rule
     created_at datetime(6),
     elder_id bigint not null,
     id bigint not null auto_increment,
     text varchar(1000) not null,
+    tidy_text varchar(1000), -- 41판 추가: 메모 정리본(C-13, 원문은 text)
     primary key (id)
 ) engine=InnoDB;
 
@@ -137,6 +148,10 @@ create table elders (
     id bigint not null auto_increment,
     manager_id bigint,
     org_id bigint,
+    qr_issued_at datetime(6), -- 41판 추가: 현관 QR 카드 발급 시각
+    service_consent_at datetime(6), -- 41판 추가: 서비스 이용 설명·동의 확인 시각(C-02)
+    service_consent_by bigint, -- 41판 추가: 동의를 확인한 담당자
+    qr_code varchar(12), -- 41판 추가: 현관 QR 카드 번호(6자리, 다시 발급하면 바뀜, C-11)
     age_group varchar(20),
     alias varchar(30) not null,
     dong varchar(30),
@@ -146,6 +161,7 @@ create table elders (
     primary key (id)
 ) engine=InnoDB;
 
+-- 41판부터 쓰지 않음: 동네 기관 소식의 앱 안 신청을 없앴다(B-64). 예전 신청 기록을 읽기 위해 표만 남긴다.
 create table event_applications (
     created_at datetime(6),
     event_id bigint not null,
@@ -172,6 +188,7 @@ create table inquiries (
     created_at datetime(6),
     id bigint not null auto_increment,
     user_id bigint not null,
+    stage varchar(10), -- 41판 추가: 처리 단계 RECEIVED/CHECKING/ANSWERED/CLOSED(D-08, null이면 status 로 봄)
     type varchar(30),
     title varchar(100) not null,
     answer varchar(2000),
@@ -181,6 +198,8 @@ create table inquiries (
 ) engine=InnoDB;
 
 create table interest_alerts (
+    date_from date, -- 41판 추가: 관심 조건 날짜 시작(B-21, null=상관없음)
+    date_to date, -- 41판 추가: 관심 조건 날짜 끝
     enabled bit not null,
     id bigint not null auto_increment,
     user_id bigint not null,
@@ -261,10 +280,10 @@ create table notifications (
 ) engine=InnoDB;
 
 create table org_events (
-    capacity integer not null,
+    capacity integer not null, -- 41판부터 쓰지 않음(B-64 앱 안 신청 없음, 새 소식은 0)
     event_date date,
     start_hour float(53),
-    apply_type varchar(5) not null,
+    apply_type varchar(5) not null, -- 41판부터 쓰지 않음(B-64 신청은 기관 페이지 링크로만, 새 소식은 항상 LINK)
     created_at datetime(6),
     created_by bigint,
     id bigint not null auto_increment,
@@ -290,16 +309,20 @@ create table organizations (
     manager_email varchar(100),
     name varchar(100) not null,
     address varchar(200),
+    proof_file_url varchar(200), -- 41판 추가: 재직 증빙 파일 주소(C-01)
     memo varchar(500),
     status enum ('APPROVED','PENDING','REJECTED') not null,
     primary key (id)
 ) engine=InnoDB;
 
 create table planner_picks (
+    hours float(53), -- 41판 추가: 계획 시간
+    start_hour float(53), -- 41판 추가: 계획 시작 시각(AI 또는 규칙이 빈 시간에서 정함, B-61)
     created_at datetime(6),
     id bigint not null auto_increment,
     post_id bigint not null,
     user_id bigint not null,
+    plan_source varchar(10), -- 41판 추가: ai/rule
     primary key (id)
 ) engine=InnoDB;
 
@@ -316,8 +339,8 @@ create table posts (
     id bigint not null auto_increment,
     owner_id bigint,
     area varchar(30),
-    series_id varchar(40),
-    repeat_rule varchar(50),
+    series_id varchar(40), -- 41판부터 쓰지 않음(B-06 자동 반복 없음, 새 공고는 null)
+    repeat_rule varchar(50), -- 41판부터 쓰지 않음(B-06 자동 반복 없음, 새 공고는 null)
     title varchar(100),
     categories varchar(200),
     difficulty_reason varchar(300),
@@ -392,8 +415,10 @@ create table ratings (
 ) engine=InnoDB;
 
 create table regular_marks (
+    removed bit, -- 41판 추가: 해지됨(B-65, 자동 3회 단골 해지도 이 줄로 기록)
     created_at datetime(6),
     id bigint not null auto_increment,
+    removed_by bigint, -- 41판 추가: 해지한 사용자 id(봉사자가 해지했으면 다시 등록 불가)
     user_id bigint not null,
     volunteer_id bigint not null,
     primary key (id)
@@ -401,10 +426,12 @@ create table regular_marks (
 
 create table reports (
     created_at datetime(6),
+    elder_id bigint, -- 41판 추가: 이상 징후 접수가 가리키는 도움 대상
     handled_at datetime(6),
     id bigint not null auto_increment,
     reporter_id bigint not null,
     target_id bigint,
+    kind varchar(10), -- 41판 추가: null=일반 신고, WELFARE=이상 징후(안부 확인) 접수(B-36, D-02)
     type varchar(30),
     target_label varchar(100),
     result varchar(500),
@@ -418,16 +445,19 @@ create table reports (
 create table requests (
     adjust_hours float(53),
     anomaly_hold bit not null,
+    auto_closed boolean default false, -- 41판 추가: 예정 종료 시각으로 자동 마감됨(B-53)
     date date not null,
     earned float(53),
     est_earn float(53) not null,
+    gap_notified boolean default false, -- 41판 추가: 기록 시간과 예정 시간 30분 이상 차이 안내 보냄(B-51)
     hours float(53) not null,
     late_notified bit not null,
+    noshow_notified boolean default false, -- 41판 추가: 노쇼 의심(30분) 알림 보냄(B-52)
     photo_consent bit not null,
     reminded bit not null,
     start_hour float(53) not null,
     weight float(53) not null,
-    check_code varchar(6),
+    check_code varchar(6), -- 41판부터 시작·종료 확인에 쓰지 않음(값은 들어감. qr_secret 없는 예전 자료의 대용 값)
     check_in_at datetime(6),
     check_out_at datetime(6),
     confirmed_at datetime(6),
@@ -444,6 +474,7 @@ create table requests (
     adjust_status varchar(10),
     check_method varchar(10),
     category varchar(20),
+    qr_secret varchar(64), -- 41판 추가: 30초마다 바뀌는 QR·번호를 만드는 비밀값(확정 때 생성, B-51)
     log_photo_url varchar(200),
     match_reason varchar(200),
     adjust_reason varchar(300),
@@ -474,13 +505,23 @@ create table roleplay_personas (
 ) engine=InnoDB;
 
 create table users (
-    edu_done bit not null,
+    edu_done bit not null, -- 41판부터 쓰지 않음(B-54 수료 없음. 엔티티 칸은 남아 있고 시드만 값을 넣는다)
+    interest_consent bit, -- 41판 추가: 관심 공고 알림 받기 동의(선택)
+    loc_consent bit, -- 41판 추가: 위치 정보 이용 동의(선택, null=예전 가입자)
+    noti_interest bit, -- 41판 추가: 알림 설정 — 관심 공고
+    noti_msg bit, -- 41판 추가: 알림 설정 — 새 메시지
+    noti_remind bit, -- 41판 추가: 알림 설정 — 시작 전 리마인드(1시간 전)
+    noti_req bit, -- 41판 추가: 알림 설정 — 새 요청·제안(null=켜짐, B-58)
+    noti_result bit, -- 41판 추가: 알림 설정 — 수락·거절 결과
     penalty_count integer not null,
+    sms_alert bit, -- 41판 추가: 문자 병행(B-43, 발송은 모의)
     voice_alert bit not null,
     warning_count integer not null,
     created_at datetime(6),
     id bigint not null auto_increment,
     org_id bigint,
+    privacy_agreed_at datetime(6), -- 41판 추가: 개인정보 수집·이용 동의 시각(A-01 필수)
+    terms_agreed_at datetime(6), -- 41판 추가: 서비스 이용약관 동의 시각(A-01 필수)
     text_size varchar(10),
     age_group varchar(20),
     phone varchar(20),
