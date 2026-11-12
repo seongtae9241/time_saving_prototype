@@ -9,6 +9,7 @@ import { CATS, CC, SHORT, AREAS, fmt, dshort, arr, lvName } from '../lib/format.
 import { I } from '../ui/icons.js';
 import { useLogout } from './my.jsx';
 import { JudgeAssist } from '../ui/ActivityAi.jsx'; // 7.13 B-4
+import { INQ_ST } from './common.jsx';
 import { useTriage, TriageBox, SevChip, useAnomalyNotes, AnomalyNote, InquiryDraft, PersonaFromCases, PersonaDraftNote } from './opsai.jsx';
 
 function groupBars(rows) {
@@ -108,8 +109,39 @@ function InsightCard() {
   );
 }
 
-function AnalyticsCards() {
-  const [a] = useLoad(() => api('/admin/analytics', { quiet: true }), []);
+/** D-04 지역별 부족한 도움: 지역마다 요청 대비 부족 건수(막대) + 가장 부족한 지역의 부족한 도움 종류 */
+function AreaShortCard({ a }) {
+  const rows = ((a && a.areaShortage) || []).filter((r) => r.demand > 0 || r.supply > 0);
+  const top = rows.find((r) => r.shortTotal > 0);
+  return (
+    <div className="card" style={{ marginTop: 12 }}>
+      <div className="b">지역별 부족한 도움 <span className="mute2" style={{ fontWeight: 500 }}>(요청 대비 부족 건수)</span></div>
+      {rows.length ? hbars(rows.map((r) => [r.area, Number(r.shortTotal) || 0]), '#F59E4B') : <Empty>아직 데이터가 없어요</Empty>}
+      {rows.filter((r) => r.shortTotal > 0).slice(0, 4).map((r) => <div key={r.area} className="small" style={{ marginTop: 6 }}><b>{r.area}</b> <span className="mute2">도움 요청 {r.demand} · 봉사 가능 {r.supply}</span> {(r.short || []).map((c) => <span key={c.category} className="tag2" style={{ marginLeft: 6 }}>{SHORT[c.category] || c.category} −{c.gap}</span>)}</div>)}
+      <div className="mute2" style={{ marginTop: 8 }}>{top ? `${top.area}은 ${(top.short || []).slice(0, 2).map((c) => SHORT[c.category] || c.category).join('·')} 봉사가 특히 부족해요` : '지금은 부족한 지역이 없어요'} · 최근 {a.supplyDemandDays}일</div>
+    </div>
+  );
+}
+
+/** D-11 계절별 봉사 요청·봉사 가능량(봉사 유형별) */
+function SeasonCard({ a }) {
+  const seasons = (a && a.seasonSupplyDemand) || [];
+  const firstWith = seasons.find((s) => s.demand > 0 || s.supply > 0);
+  const [sel, setSel] = useState(null);
+  const cur = seasons.find((s) => s.season === (sel || (firstWith && firstWith.season))) || seasons[0];
+  if (!seasons.length) return null;
+  return (
+    <div className="card" style={{ marginTop: 12 }}>
+      <div className="between"><span className="b">계절별 봉사 요청 · 봉사 가능</span><span className="legend"><i style={{ background: '#F59E4B' }} />봉사 요청<i style={{ background: '#5B8DEF', marginLeft: 8 }} />봉사 가능</span></div>
+      <div className="chips" style={{ margin: '8px 0 4px' }}>{seasons.map((s) => <button key={s.season} className={'chip ' + (cur && cur.season === s.season ? 'on' : '')} onClick={() => setSel(s.season)}>{s.season} {s.demand}/{s.supply}</button>)}</div>
+      {cur && (cur.demand > 0 || cur.supply > 0) ? groupBars((cur.categories || []).map((c) => [SHORT[c.category] || c.category, Number(c.demand) || 0, Number(c.supply) || 0])) : <Empty>이 계절에는 아직 데이터가 없어요</Empty>}
+      <div className="small muted" style={{ marginTop: 4 }}>{cur ? ((cur.categories || []).filter((c) => c.gap > 0).map((c) => `${SHORT[c.category] || c.category} ${c.gap}건 부족`).join(' · ') || '부족한 봉사 유형이 없어요') : ''}</div>
+      <div className="mute2" style={{ marginTop: 6 }}>최근 {a.periodMonths || 12}개월 · 공고·요청을 만든 달의 계절로 나눠요 (봄 3~5월 · 여름 6~8월 · 가을 9~11월 · 겨울 12~2월)</div>
+    </div>
+  );
+}
+
+function AnalyticsCards({ a }) {
   if (!a) return a === undefined ? <Loading /> : null;
   const sd = a.supplyDemand || [];
   const cats = Object.keys(((a.monthlyCategory || [])[0] || {}).counts || {});
@@ -128,6 +160,7 @@ function AnalyticsCards() {
         <div className="small muted" style={{ marginTop: 4 }}>{sd.filter((s) => s.gap > 0).map((s) => `${SHORT[s.category] || s.category} ${s.gap}건 부족`).join(' · ') || '부족한 카테고리가 없어요'}</div>
         <div className="mute2" style={{ marginTop: 6 }}>최근 {a.supplyDemandDays}일 · 수요 = 봉사 요청 공고 + 받는 쪽 요청, 공급 = 도움 가능 공고 + 수락된 건</div>
       </div>
+      <SeasonCard a={a} />
       <InsightCard />
     </>
   );
@@ -136,8 +169,9 @@ function AnalyticsCards() {
 /* ---------- 운영 대시보드 (D-04, D-05, P-07) ---------- */
 export function ADash() {
   const nav = useNavigate();
-  const { toast, confirm } = useUi();
+  const { toast } = useUi();
   const [d, reload] = useLoad(() => api('/admin/dashboard'), []);
+  const [an] = useLoad(() => api('/admin/analytics', { quiet: true }).catch(() => null), []);
   const [busy, run] = useBusy();
   if (d === undefined) return <Screen title="운영 대시보드" back={false}><Loading /></Screen>;
   const x = d || {};
@@ -161,7 +195,8 @@ export function ADash() {
       )}
       {monthly.length > 0 && <div className="card" style={{ marginTop: 12 }}><div className="between"><span className="b">수요 vs 공급 (주별 공고)</span><span className="legend"><i style={{ background: '#F59E4B' }} />봉사 요청<i style={{ background: '#5B8DEF', marginLeft: 8 }} />도움 가능</span></div>{groupBars(monthly)}</div>}
       <div className="card" style={{ marginTop: 12 }}><div className="b">지역별 매칭 성공률</div>{(x.matchRateByArea || []).length ? hbars(x.matchRateByArea.map((a) => [a.area, Number(a.rate) || 0]), '#5B8DEF') : <Empty>아직 데이터가 없어요</Empty>}<div className="mute2" style={{ marginTop: 8 }}>요청·제안 중 일정 확정까지 간 비율(%)이에요.</div></div>
-      <AnalyticsCards />
+      <AnalyticsCards a={an} />
+      {an && <AreaShortCard a={an} />}
       <div className="card" style={{ marginTop: 12 }}>
         <div className="b">시간 균형</div>
         <div className="stat2" style={{ marginTop: 10 }}><div><b>{fmt(tb.issued)}시간</b><span>적립(발행)</span></div><div><b>{fmt(tb.consumed)}시간</b><span>사용(소비)</span></div><div><b>{fmt(tb.elderFree)}시간</b><span>기관 대상 무차감</span></div></div>
@@ -169,9 +204,8 @@ export function ADash() {
         <div className="between mute2" style={{ marginTop: 6 }}><span>사용 {used}%</span><span>남은 발행 {100 - Math.min(100, used)}%</span></div>
         <div className="small muted" style={{ marginTop: 8 }}>기관 대상 도움은 받는 쪽 차감이 없어서 쌓이는 시간이 더 많아요. 총량을 계속 지켜봐야 해요.</div>
       </div>
-      <div className="card" style={{ marginTop: 12 }}><div className="between"><span className="b">첫 활동 교육</span><span className="mod m6">교육 AI</span></div>{x.edu && <div className="stat2" style={{ marginTop: 10 }}><div><b>{x.edu.eduDone}명</b><span>교육 수료</span></div><div><b>{x.edu.volunteers}명</b><span>신원 인증 봉사자</span></div></div>}<div className="small muted" style={{ marginTop: 8 }}>역할극 상대와 숨은 시험 상황은 가상 상대 관리에서 고쳐요.</div><button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav('/a/persona')}>가상 상대 관리</button></div>
-      <button className="btn ghost" style={{ marginTop: 14 }} disabled={busy} onClick={async () => { if (await confirm('리포트를 지금 만들까요?', '월 1회 주기를 기다리지 않고 모든 대상의 생활 변화 리포트를 만들어요.', '만들기')) run(async () => { const r = await post('/admin/reports/generate', {}); toast(`${r.month} 리포트 ${r.generated ?? 0}건을 만들었어요 (담당자·가족에게 전달)`); }); }}>생활 변화 리포트 지금 만들기 (시연)</button>
-      <button className="btn ghost" style={{ marginTop: 8 }} disabled={busy} onClick={() => run(async () => { const r = await post('/admin/scheduler/run', {}); toast(r && r.message ? r.message : '만료·자동 확정·노쇼·마감·리마인드를 한 번 실행했어요'); reload(); })}>스케줄러 지금 실행 (시연)</button>
+      <div className="card" style={{ marginTop: 12 }}><div className="between"><span className="b">첫 활동 연습</span><span className="mod m6">교육 AI</span></div><div className="small muted" style={{ marginTop: 8 }}>선택해서 해 보는 AI 역할극이에요. 역할극 상대와 상황은 가상 상대 관리에서 고쳐요.</div><button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav('/a/persona')}>가상 상대 관리</button></div>
+      <button className="btn ghost" style={{ marginTop: 14 }} disabled={busy} onClick={() => run(async () => { const r = await post('/admin/scheduler/run', {}); toast(r && r.message ? r.message : '만료·자동 확정·노쇼·마감·리마인드를 한 번 실행했어요'); reload(); })}>스케줄러 지금 실행 (시연)</button>
     </Screen>
   );
 }
@@ -198,6 +232,7 @@ export function AApprove() {
           <div className="mute2">{o.orgType} · 담당자 {o.managerName} · {o.managerPhone || o.phone}</div>
           {o.address && <div className="small muted">{o.address}</div>}
           {o.memo && <div className="small" style={{ marginTop: 6 }}>{o.memo}</div>}
+          <div className="small" style={{ marginTop: 6 }}><b>재직 증빙</b> {o.proofFileUrl ? <a href={o.proofFileUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand)' }}>재직증명서 열어 보기 ↗</a> : <span className="warnc">제출된 파일이 없어요 (41판 이전 신청)</span>}</div>
           <div className="btns" style={{ marginTop: 12 }}>
             <button className="btn ghost sm" disabled={busy} onClick={() => run(async () => { await post(`/admin/orgs/${o.id}/reject`); reloadO(); toast(`${o.name}: 반려`); })}>반려</button>
             <button className="btn sm" disabled={busy} onClick={() => run(async () => {
@@ -302,14 +337,15 @@ export function AManage() {
       <div className="ml">
         <Mi t="회원 관리" s="회원 목록·상세·정지·해제" i="users" onClick={() => nav('/a/members')} />
         <Mi t="담당자 계정" s="정지·해제 · 대상 대신 이관" i="building" onClick={() => nav('/a/managers')} />
-        <Mi t="1:1 문의" s="답변 등록" i="msg" onClick={() => nav('/a/inquiries')} />
+        <Mi t="1:1 문의" s="답변 등록 · 처리 상태 변경" i="msg" onClick={() => nav('/a/inquiries')} />
         <Mi t="공지사항" s="등록·수정·삭제" i="file" onClick={() => nav('/a/notices')} />
-        <Mi t="봉사 인증 항목 설정" s="신분증 · 안전 교육 · 범죄경력 · 오리엔테이션" i="shield" onClick={() => nav('/a/verify')} />
+        <Mi t="봉사 인증 항목 설정" s="신분증 · 범죄경력(선택)" i="shield" onClick={() => nav('/a/verify')} />
         <Mi t="카테고리 건의" s="사용자·담당자가 건의한 새 종류 · 답변" i="flag" onClick={() => nav('/a/suggest')} />
         <Mi t="공공 서비스 정보" s="AI 안내에 쓰는 DB" i="building" onClick={() => nav('/a/pub')} />
         <Mi t="기관 클래스" s="공공기관 강좌 · CSV 가져오기 · AI 다시 찾기" i="cap" onClick={() => nav('/a/classes')} />
         <Mi t="가상 상대 관리" s="AI 역할극 상대 · 숨은 시험 상황" i="users" onClick={() => nav('/a/persona')} />
         <Mi t="로그아웃" i="logout" onClick={logout} />
+        <Mi t="회원 탈퇴" s="운영자가 한 명뿐이면 탈퇴할 수 없어요" i="flag" onClick={() => nav('/my/withdraw')} />
       </div>
       <div className="notice" style={{ marginTop: 14 }}>운영자 계정은 운영만 해요. 봉사하려면 사용자 계정을 따로 만들어야 해요.</div>
     </Screen>
@@ -331,7 +367,7 @@ function MemberSheet({ id, onDone }) {
         <dt>지역</dt><dd>{u.area} · {u.ageGroup}</dd><dt>연락처</dt><dd>{u.phone}</dd>
         <dt>봉사</dt><dd>{u.volunteerCount ?? u.helpCount ?? '-'}회</dd><dt>도움 받음</dt><dd>{u.recipientCount ?? u.helpedCount ?? '-'}회</dd>
         <dt>잔액</dt><dd>{u.balance != null ? `${fmt(u.balance)}시간` : '-'}</dd><dt>경고·노쇼</dt><dd>경고 {u.warningCount || 0} · 패널티 {u.penaltyCount || 0}</dd>
-        <dt>인증</dt><dd>신분증 {u.idStatus} · 범죄경력 {u.crimeStatus} · 교육 {u.eduDone ? '수료' : '미수료'}</dd>
+        <dt>인증</dt><dd>신분증 {u.idStatus} · 범죄경력 회보서 {u.crimeStatus}</dd>
         <dt>가입</dt><dd>{dshort(u.createdAt)}</dd>
       </dl>
       {u.role !== 'ADMIN' && u.status !== 'WITHDRAWN' && <button className={'btn ' + (sus ? '' : 'warn')} style={{ marginTop: 14 }} onClick={async () => { try { await post(`/admin/users/${u.id}/${sus ? 'unsuspend' : 'suspend'}`); await reload(); onDone(); toast(sus ? '정지를 해제했어요' : '정지했어요'); } catch { /* 토스트 */ } }}>{sus ? '정지 해제' : '회원 정지'}</button>}
@@ -413,15 +449,17 @@ function AnswerSheet({ q, onDone }) {
   );
 }
 export function AInquiries() {
-  const { sheet, closeSheet } = useUi();
+  const { sheet, closeSheet, toast } = useUi();
+  const [busy, run] = useBusy();
   const [list, reload] = useLoad(() => api('/admin/inquiries'), []);
   return (
     <Screen title="1:1 문의" noTabs>
       {list === undefined ? <Loading /> : (list || []).length ? list.map((q) => (
         <div key={q.id} className="card" style={{ marginTop: 8 }}>
-          <div className="between"><span className="b">{q.title}</span><span className={'st ' + (q.status === 'ANSWERED' ? 'ok' : 'wait')}>{q.status === 'ANSWERED' ? '답변 완료' : '접수'}</span></div>
+          <div className="between"><span className="b">{q.title}</span><span className={'st ' + (INQ_ST[q.stage || q.status] || INQ_ST.RECEIVED)[0]}>{(INQ_ST[q.stage || q.status] || INQ_ST.RECEIVED)[1]}</span></div>
           <div className="mute2">{q.user ? q.user.name : ''} · {q.type} · {dshort(q.createdAt).split(' ')[0]}</div>
           {q.answer && <div className="small muted" style={{ marginTop: 6 }}>답변: {q.answer}</div>}
+          <div className="chips" role="group" aria-label="처리 상태" style={{ marginTop: 8, flexWrap: 'wrap' }}>{Object.entries(INQ_ST).map(([k, [, t]]) => <button key={k} className={'chip ' + ((q.stage || q.status) === k ? 'on' : '')} disabled={busy} onClick={() => (q.stage || q.status) !== k && run(async () => { await put(`/admin/inquiries/${q.id}/status`, { status: k }); reload(); toast(`처리 상태를 '${t}'(으)로 바꿨어요`); })}>{t}</button>)}</div>
           <button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => sheet(() => <AnswerSheet q={q} onDone={() => { closeSheet(); reload(); }} />)}>{q.answer ? '답변 고치기' : '답변 쓰기'}</button>
         </div>
       )) : <Empty>문의가 없어요</Empty>}
@@ -551,11 +589,13 @@ export function AVerify() {
   const [d] = useLoad(() => api('/verify-items'), []);
   const [items, setItems] = useState(null);
   const [busy, run] = useBusy();
-  const list = items || (d && d.items) || [];
+  // 41판: 휴대폰 본인인증(필수) · 신분증 인증(필수) · 범죄경력 회보서(선택) 세 줄만. 안전 교육·오리엔테이션은 인증 항목이 아니다
+  const VI = { phone: ['휴대폰 본인인증', '가입할 때 · 필수'], id: ['신분증 인증', '운영자가 확인하고 승인 · 필수'], crime: ['범죄경력 회보서', '내면 신뢰 배지 · 선택'] };
+  const list = (items || (d && d.items) || []).filter((x) => VI[x.key]).map((x) => ({ ...x, title: VI[x.key][0], desc: VI[x.key][1] }));
   const upd = (k, patch) => setItems(list.map((x) => (x.key === k ? { ...x, ...patch } : x)));
   return (
     <Screen title="봉사 인증 항목" noTabs>
-      <p className="su-p" style={{ marginTop: 0 }}>봉사를 시작하기 전에 받을 인증을 정해요. 바꾸면 새로 가입한 사람부터 적용돼요.</p>
+      <p className="su-p" style={{ marginTop: 0 }}>봉사하는 사용자가 받을 인증을 정해요. 바꾸면 새로 가입한 사람부터 적용돼요.</p>
       {d === undefined ? <Loading /> : (
         <div className="ml">
           {list.map((x) => (
@@ -567,8 +607,8 @@ export function AVerify() {
           ))}
         </div>
       )}
-      <div className="notice" style={{ marginTop: 12 }}>기관 대상(혼자 사시는 분) 방문은 범죄경력 회보서를 낸 메이트만 하도록 설정할 수 있어요. 휴대폰 본인인증은 끌 수 없어요.</div>
-      <div className="mute2" style={{ marginTop: 8 }}>지금은 설정을 저장해 가입·인증 안내에 쓰고, 실제 봉사 조건(신분증 승인·첫 활동 교육)은 기존 규칙대로 적용돼요.</div>
+      <div className="notice" style={{ marginTop: 12 }}>기관 대상(혼자 사시는 분) 방문은 범죄경력 회보서를 낸 봉사자만 하도록 설정할 수 있어요. 휴대폰 본인인증은 끌 수 없어요.</div>
+      <div className="mute2" style={{ marginTop: 8 }}>지금은 설정을 저장해 가입·인증 안내에 쓰고, 실제 봉사 조건(신분증 승인)은 기존 규칙대로 적용돼요.</div>
       <button className="btn big-cta" style={{ marginTop: 14 }} disabled={busy || !list.length} onClick={() => run(async () => { const r = await api('/admin/verify-items', { method: 'PUT', body: { items: list.map((x) => ({ key: x.key, on: x.on, required: x.required })) } }); setItems(r.items); toast('저장했어요'); })}>저장</button>
     </Screen>
   );
