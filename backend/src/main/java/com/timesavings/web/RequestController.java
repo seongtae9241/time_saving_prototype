@@ -33,7 +33,7 @@ public class RequestController {
                              String category, String content, String memo) {}
     public record ReasonBody(String reason) {}
     public record CodeBody(String code, String method) {}
-    public record LogBody(String raw, String text, String photoUrl, Boolean photoConsent, String careMemo) {}
+    public record LogBody(String raw, String text, String photoUrl, Boolean photoConsent, String careMemo, String photoUrl2) {}
     public record AdjustBody(Double hours, String reason) {}
     public record AnswerBody(Boolean accept) {}
     public record RateBody(Integer stars, List<String> tags, String comment) {}
@@ -44,6 +44,9 @@ public class RequestController {
         Map<String, Object> v = views.requestView(r, u);
         v.put("messages", views.messagesOf(r.id));
         v.put("canMessage", svc.canMessage(r) && views.roleOf(r, u) != null);
+        // 기능 U-16 사진 인증: 어떤 사진이 필요한지(NONE·RECEIPT·BEFORE_AFTER)와 두 번째 사진
+        v.put("photoRule", RequestService.photoRule(r.category));
+        v.put("logPhotoUrl2", r.logPhotoUrl2);
         return v;
     }
 
@@ -121,9 +124,12 @@ public class RequestController {
 
     @PostMapping("/requests/{id}/log")
     public Map<String, Object> log(@CurrentUser User u, @PathVariable Long id, @RequestBody LogBody b) {
-        if (Boolean.TRUE.equals(b.photoConsent()) && b.photoUrl() != null && !b.photoUrl().isBlank() && !fileAccess.uploadedBy(b.photoUrl(), u))
-            throw ApiException.bad("FILE_NOT_MINE", "직접 올린 사진만 붙일 수 있어요. 사진을 다시 올려 주세요");
-        return view(svc.submitLog(u, id, b.raw(), b.text(), b.photoUrl(), Boolean.TRUE.equals(b.photoConsent()), b.careMemo()), u);
+        // 저장될 사진(동의한 선택 사진, 또는 기능 U-16 인증 사진)은 직접 올린 파일이어야 한다
+        boolean keep = Boolean.TRUE.equals(b.photoConsent()) || !"NONE".equals(RequestService.photoRule(svc.get(id).category));
+        for (String p : new String[]{b.photoUrl(), b.photoUrl2()})
+            if (keep && p != null && !p.isBlank() && !fileAccess.uploadedBy(p, u))
+                throw ApiException.bad("FILE_NOT_MINE", "직접 올린 사진만 붙일 수 있어요. 사진을 다시 올려 주세요");
+        return view(svc.submitLog(u, id, b.raw(), b.text(), b.photoUrl(), Boolean.TRUE.equals(b.photoConsent()), b.careMemo(), b.photoUrl2()), u);
     }
 
     @PostMapping("/requests/{id}/confirm")

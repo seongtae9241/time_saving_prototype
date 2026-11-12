@@ -106,5 +106,23 @@ public class BankService {
         return out;
     }
 
+    /** 기능 U-22: 거래가 있는 모든 달의 합계(최근 달부터). [{month, in(번 시간), out(쓴 시간), count}] 보류·보류 해제는 뺀다. */
+    public List<Map<String, Object>> monthsAll(Long userId) {
+        Map<String, double[]> by = new LinkedHashMap<>();
+        for (Ledger l : repo.findByUserIdOrderByCreatedAtDescIdDesc(userId)) {
+            if (l.type == LedgerType.HOLD || l.type == LedgerType.RELEASE) continue;
+            double[] v = by.computeIfAbsent(YearMonth.from(l.createdAt).toString(), k -> new double[3]);
+            if (l.amount > 0) v[0] += l.amount; else v[1] += -l.amount;
+            v[2]++;
+        }
+        List<Map<String, Object>> out = new ArrayList<>();
+        by.forEach((m, v) -> {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("month", m); row.put("in", r2(v[0])); row.put("out", r2(v[1])); row.put("count", (int) v[2]);
+            out.add(row);
+        });
+        return out;
+    }
+
     public List<Ledger> entries(Long userId) { return repo.findByUserIdOrderByCreatedAtDescIdDesc(userId); }
 }

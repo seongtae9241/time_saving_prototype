@@ -54,7 +54,8 @@ public class BankController {
                 "balance", s.balance(), "hold", s.hold(), "available", s.available(), "usable", s.usable(),
                 "earnedSelf", s.earnedSelf(), "giftReceived", s.giftReceived(), "canUseSelf", s.canUseSelf(),
                 "selfUseMin", BankService.SELF_USE_MIN, "monthIn", cur.get("in"), "monthOut", cur.get("out"),
-                "monthly", monthly, "entries", entries);
+                "monthly", monthly, "entries", entries,
+                "months", bank.monthsAll(u.id)); // 기능 U-22: 월별 합계(거래가 있는 모든 달)
     }
 
     private FamilyLink acceptedLink(Long a, Long b) {
