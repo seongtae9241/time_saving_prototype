@@ -54,6 +54,7 @@ export function ProfileView({ p }) {
           <h2 style={{ margin: 0 }}>{p.name} <span className="mute2" style={{ fontWeight: 500, fontSize: 14 }}>{p.ageGroup}</span></h2>
           <div><Stars r={p.ratingAvg} /> <span className="mute2">· 활동 {p.ratingCount || 0}회</span></div>
           <div className="tags" style={{ marginTop: 6 }}>
+            {p.eduDone && <span className="badge trust">✓ 안전 교육</span>}{/* 기능 U-34 */}
             {p.crime && <span className="badge trust">✓ 범죄경력 확인</span>}
             {(p.regularBadges || []).map((b, i) => { const t = String(typeof b === 'string' ? b : b.label || b.name || ''); return <span key={i} className="badge">★ {/단골$/.test(t) ? t : `${t} 단골`}</span>; })}
           </div>

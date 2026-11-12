@@ -76,7 +76,7 @@ export function FilterBox({ f, diff }) {
   );
 }
 
-function AskBox({ title, sub, placeholder, quick, onAsk, q, setQ, mic }) {
+export function AskBox({ title, sub, placeholder, quick, onAsk, q, setQ, mic }) {
   const sp = useSpeechInput({ onFinal: (t) => { setQ(t); onAsk(t); }, onInterim: setQ });
   return (
     <div className="ask-hero">
@@ -119,13 +119,15 @@ function RecSection({ title, sub, icon, list, empty, action }) {
 /* ---------- AI 도움 추천 ---------- */
 export function Recommend() {
   const nav = useNavigate();
-  const [q, setQ] = useState('');
+  const [sp] = useSearchParams();
+  const [q, setQ] = useState(sp.get('q') || '');
   const [asked, setAsked] = useState(null);
   const [res, setRes] = useState(null);
   const ask = async (t) => {
     setAsked(t); setRes({ loading: true });
     try { setRes(await post('/ai/recommend', { question: t })); } catch { setRes(null); }
   };
+  useLoad(async () => { if (sp.get('q')) ask(sp.get('q')); return null; }, []); // 기능 U-27: 플래너에서 적은 문장으로 바로 찾는다
   return (
     <Screen title="AI 도움 추천" noTabs>
       <AskBox mic title="어떤 일이 힘드세요?" sub="우리 사이트에서 받을 수 있는 도움과 도와줄 수 있는 사람을 찾아드려요" placeholder="예) 무릎이 아파서 장보기가 힘들어요" q={q} setQ={setQ} onAsk={ask}
@@ -153,7 +155,7 @@ export function Recommend() {
               <RecSection title={res.helper ? '단골 추천 · 내가 자주 도운 이웃' : '내 단골 중에서'} sub={res.helper ? '3번 이상 도운 이웃이 올린 봉사 요청' : '내 단골이 올린, 시간·지역이 맞는 도움 가능 공고'} icon="regular" list={res.regularPosts || []}
                 empty={res.helper ? '자주 도운 이웃이 올린 공고가 지금은 없어요' : '이 도움을 올린 단골 공고가 아직 없어요'}
                 action={!res.helper && <button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav('/regular')}>단골에게 바로 요청하기</button>} />
-              <RecSection title={res.helper ? '가까운 사람 추천' : '가까운 사람'} sub="단골이 아니어도 시간·지역이 잘 맞는 공고" icon="search" list={res.nearbyPosts || []}
+              <RecSection title={res.helper ? '가까운 사람 추천' : '가까운 · 시간 맞는 사람'} sub="단골이 아니어도 시간·지역이 잘 맞는 공고" icon="search" list={res.nearbyPosts || []}
                 empty={res.helper ? '지금 열린 공고가 없어요. 도움 가능 공고를 올려 보세요.' : '지금 열린 공고가 없어요'}
                 action={<button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav(res.helper ? '/write/offer' : '/write/need')}>{res.helper ? '도움 가능 공고 올리기' : '봉사 요청 공고 올리기'}</button>} />
               <div className="card item click" style={{ marginTop: 8 }} role="button" tabIndex={0} onClick={() => nav(`/public?q=${encodeURIComponent(asked)}`)}><div className="ic"><Ic n="building" s={20} /></div><div className="grow"><div className="b">공공 서비스도 찾아볼까요?</div><div className="mute2">근처에서 받을 수 있는 공공 서비스를 찾아요</div></div>›</div>
@@ -162,6 +164,28 @@ export function Recommend() {
         </div>
       )}
     </Screen>
+  );
+}
+
+/* ---------- 기능 U-30: 봉사로 가능한 일인지와 봉사 기준 (서버 volunteer 값 그대로) ---------- */
+const VG = { YES: ['', '봉사로 가능'], CAUTION: ['amber', '주의해서 가능'], NO: ['warn', '봉사로 불가'], UNKNOWN: ['', '확인 필요'] };
+export function VolunteerGuide({ v }) {
+  const nav = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [cls, tag] = VG[v.possible] || VG.UNKNOWN;
+  return (
+    <div className={'ai ' + cls} style={{ marginTop: 10 }}>
+      <div className="ah"><Spk />이웃 봉사로 받을 수 있나요? · {tag}<Mod n={2} /></div>
+      <div className="b" style={{ fontSize: 16 }}>{v.label}</div>
+      <div className="small" style={{ marginTop: 4 }}>{v.message}</div>
+      {v.reason && <div className="small muted" style={{ marginTop: 6 }}>{v.reason}</div>}
+      {(v.categories || []).map((c) => <div key={c.category} className="row" style={{ gap: 12, marginTop: 10 }}><CatIc k={c.category} size={40} /><div className="grow"><div className="b">{c.category}</div><div className="mute2">난이도 {c.levelLabel} · 받은 시간 × {Number(c.weight).toFixed(1)}</div></div></div>)}
+      <button type="button" className="btn ghost sm" style={{ marginTop: 10 }} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? '봉사 기준 접기' : '봉사 기준 보기'}</button>
+      {open && <ul className="small muted" style={{ margin: '8px 0 0', paddingLeft: 18 }}>{(v.criteria || []).map((x) => <li key={x} style={{ marginTop: 4 }}>{x}</li>)}</ul>}
+      {v.writeLink && v.possible !== 'UNKNOWN' && <button type="button" className="btn sm" style={{ marginTop: 10 }} onClick={() => nav(v.writeLink)}>이 내용으로 봉사 요청 공고 쓰기</button>}
+      {v.writeLink && v.possible === 'UNKNOWN' && <button type="button" className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav('/recommend')}>받을 수 있는 도움 찾아보기</button>}
+      <RuleNote source={v.source} />
+    </div>
   );
 }
 
@@ -214,7 +238,7 @@ export function Public() {
   useLoad(async () => { if (sp.get('near')) nearFirst(sp.get('q') || ''); else if (sp.get('q')) ask(sp.get('q')); return null; }, []);
   return (
     <Screen title="공공 서비스 안내" noTabs>
-      <AskBox mic title="필요한 걸 말해 주세요" sub="AI가 공공 서비스 DB에서 맞는 서비스를 찾아 쉬운 말로 알려드려요" placeholder="예) 혼자 사는데 쓰러지면 걱정돼요" q={q} setQ={setQ} onAsk={ask}
+      <AskBox mic title="필요한 걸 말해 주세요" sub="근처 공공기관과 신청 방법을 쉬운 말로 알려드리고, 이웃 봉사로 받을 수 있는 일인지도 함께 알려드려요" placeholder="예) 혼자 사는데 쓰러지면 걱정돼요" q={q} setQ={setQ} onAsk={ask}
         quick={['목욕을 도와줄 사람이 필요해요', '혼자 사는데 쓰러지면 걱정돼요', '요즘 깜빡깜빡해요']} />
       <button type="button" className="loc-btn" onClick={findNear}><Ic n="pin" s={20} /> 내 위치로 찾기 <span className="mod m4" style={{ marginLeft: 2 }}>AI</span></button>
       <div className="mute2 center" style={{ marginTop: 6 }}>질문과 위치는 찾을 때 한 번만 쓰고 저장하지 않아요</div>
@@ -232,6 +256,7 @@ export function Public() {
               <RuleNote source={res.source} />
             </div>
           )}
+          {res && !res.loading && res.volunteer && <VolunteerGuide v={res.volunteer} />}
         </div>
       )}
     </Screen>

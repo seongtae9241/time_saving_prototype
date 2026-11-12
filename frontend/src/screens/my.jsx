@@ -8,6 +8,7 @@ import { api, post, put, del } from '../api.js';
 import { CATS, SHORT, AREAS, AGE_GROUPS, TIME_SLOTS, ST, fmt, arr, dshort, dlabel, todayISO, addDays } from '../lib/format.js';
 import { speak } from './voice.jsx';
 import { SttServerToggle } from '../ui/VoiceInput.jsx';
+import { downloadCertPdf } from '../lib/certPdf.js'; // 기능 U-35
 
 /** PUT /api/me 는 전체 값을 보낸다(일부만 보내 지워지지 않게) */
 export async function saveMe(me, changes) {
@@ -134,6 +135,7 @@ export function My() {
           <div className="b" style={{ fontSize: 20 }}>{me.name}</div><div className="mute2">{me.ageGroup} · {me.area}</div>
           <div className="tags" style={{ marginTop: 6 }}>
             {v.idStatus === 'APPROVED' && <span className="badge trust">✓ 신원 인증</span>}
+            {me.eduDone && <span className="badge trust">✓ 안전 교육</span>}
             {v.crimeStatus === 'APPROVED' ? <span className="badge trust">✓ 범죄경력</span> : <span className="badge" style={{ background: '#F1F2F5', color: '#5F6672' }}>{v.crimeStatus === 'PENDING' ? '범죄경력 확인 중' : '범죄경력 미제출'}</span>}
           </div>
         </div>
@@ -142,15 +144,15 @@ export function My() {
       <div className="card item click" style={{ marginTop: 10 }} role="button" tabIndex={0} onClick={() => nav('/bank', { replace: true })}><div className="ic"><Ic n="wallet" s={20} /></div><div className="grow"><div className="b">시간 통장 {fmt(me.balance)}시간{me.accountNo ? <span className="mute2" style={{ fontWeight: 500 }}> · {me.accountNo}</span> : null}</div><div className="mute2">{last ? `최근: ${last.label} ${last.amount > 0 ? '+' : '−'}${fmt(Math.abs(last.amount))}` : '아직 내역이 없어요'}</div></div>›</div>
       <div className="sec-t">활동</div>
       <div className="ml">
-        <Mi t="프로필 관리" s="지역·시간대·가능한 도움·경험" i="user" onClick={() => nav('/my/profile')} />
-        <Mi t="봉사 신원 인증" s="신분증 · 범죄경력 회보서(선택)" i="shield" onClick={() => nav('/my/verify')} />
+        <Mi t="프로필 관리" s="소개·활동 지역·가능한 시간대·잘하는 도움" i="user" onClick={() => nav('/my/profile')} />
+        <Mi t="봉사 인증" s={`신분증 · 첫 활동 교육${me.eduDone ? '(이수)' : v.eduRequired ? '(필수 · 아직 안 했어요)' : ''} · 범죄경력 회보서(선택)`} i="shield" onClick={() => nav('/my/verify')} />
         <Mi t="내 공고" s={`올린 공고 ${(posts || []).length}개`} i="list" onClick={() => nav('/act?seg=posts')} />
         <Mi t="내 활동" s="도움 받은 활동 · 봉사한 활동 · 월별 횟수" i="cal" onClick={() => nav('/act')} />
         <Mi t="단골 관리" s={badges.length ? `받은 단골 배지 ${badges.length}개 · 등록·해지` : '내 단골 · 받은 단골 배지 · 등록·해지'} i="star" onClick={() => sheet(<RegularSheet refresh={refresh} onClose={closeSheet} />)} />
-        <Mi t="봉사 확인서 발급" s="기간을 골라 PDF로 받아요" i="file" onClick={() => nav('/my/cert')} />
+        <Mi t="봉사 확인서 발급" s="기간을 골라 PDF 파일로 받아요" i="file" onClick={() => nav('/my/cert')} />
         <Mi t="AI 분석" s="내 활동·평가 습관 분석 · 봉사 플랜" i="chart" onClick={() => nav('/my/insight')} />
         <Mi t="시간 플래너" s="생애 플랜 · 캘린더 · 추천 봉사" i="cal" onClick={() => nav('/planner', { replace: true })} />
-        <Mi t="첫 활동 연습" s="AI 역할극 · 선택이라 안 해도 봉사할 수 있어요" i="cap" onClick={() => nav('/edu')} />
+        <Mi t="첫 활동 교육 · 연습" s={me.eduDone ? '안전 교육 이수 · AI 역할극으로 다시 연습할 수 있어요' : v.eduRequired ? 'AI 역할극 상황을 모두 마치면 안전 교육 이수 · 봉사 전 필수' : 'AI 역할극 상황을 모두 마치면 안전 교육 이수'} i="cap" onClick={() => nav('/edu')} />
       </div>
       <div className="sec-t">가족</div>
       <div className="ml">
@@ -203,7 +205,7 @@ export function ProfileEdit() {
       <label className="f">활동 지역</label><ChipsPick options={AREAS} value={f.area} onChange={set('area')} />
       <label className="f">나이대</label><ChipsPick options={AGE_GROUPS} value={f.ageGroup} onChange={set('ageGroup')} />
       <label className="f">가능한 시간대</label><ChipsPick multi options={TIME_SLOTS} value={f.timeSlots} onChange={set('timeSlots')} />
-      <label className="f">할 수 있는 도움</label><ChipsPick multi options={CATS.map((c) => c.k)} value={f.categories} onChange={set('categories')} />
+      <label className="f">잘하는 도움</label><ChipsPick multi options={CATS.map((c) => c.k)} value={f.categories} onChange={set('categories')} />
       <label className="f">경험</label><textarea className="in" style={{ minHeight: 80 }} value={f.experience} onChange={set('experience')} placeholder="예) 카페 아르바이트 3년, 부모님 폰 설정 담당" />
       <label className="f">성향</label><ChipsPick options={['차분해요', '말이 많아요', '조용해요', '활발해요']} value={f.personality} onChange={set('personality')} />
       <button className="btn big-cta" style={{ marginTop: 18 }} disabled={busy} onClick={() => run(async () => { await saveMe(me, f); await refresh(); nav(-1); toast('저장했어요'); })}>저장</button>
@@ -211,14 +213,16 @@ export function ProfileEdit() {
   );
 }
 
-/* ---------- 봉사 신원 인증 (B-01) ---------- */
+/* ---------- 봉사 인증 (기능 U-34): 신분증 확인 · 첫 활동 교육(안전 교육) · 범죄경력 회보서(선택, 신뢰 배지) ---------- */
 const VS = { NONE: null, PENDING: ['wait', '확인 중'], APPROVED: ['ok', '완료'], REJECTED: ['no', '반려'] };
 export function Verify() {
   const nav = useNavigate();
   const { me, refresh } = useAuth();
   const { toast } = useUi();
-  if (!me) return <Screen title="봉사 신원 인증" noTabs><Loading /></Screen>;
+  const [edu] = useLoad(() => api('/edu', { quiet: true }).catch(() => null), []);
+  if (!me) return <Screen title="봉사 인증" noTabs><Loading /></Screen>;
   const v = me.verify || { idStatus: me.idStatus, crimeStatus: me.crimeStatus };
+  const ed = (edu && edu.education) || { done: !!me.eduDone, required: !!v.eduRequired, on: v.eduOn !== false, total: 0, doneCount: 0 };
   const row = (status, t, s, action) => {
     const tag = VS[status];
     const ok = status === 'APPROVED';
@@ -231,13 +235,26 @@ export function Verify() {
     );
   };
   const up = (kind) => async (url) => { try { await post(`/me/verify/${kind}`, { fileUrl: url }); await refresh(); toast(kind === 'id' ? '제출했어요. 운영자가 확인해요' : '제출했어요. 운영자 확인 후 신뢰 배지가 붙어요'); } catch { /* 토스트 */ } };
+  const ready = v.idStatus === 'APPROVED' && (ed.done || !ed.required);
   return (
-    <Screen title="봉사 신원 인증" noTabs>
-      <p className="su-p" style={{ marginTop: 0 }}>봉사하려면 신분증 인증이 필요해요. 범죄경력 회보서는 선택이고, 내면 신뢰 배지가 붙어요.</p>
-      {row(v.idStatus, '신분증 인증', v.idStatus === 'REJECTED' ? '반려됐어요. 다시 올려 주세요' : '운영자가 확인해요', <Upload label="신분증 사진 올리기" accept="image/*,application/pdf" style={{ minHeight: 64 }} onUploaded={up('id')} />)}
+    <Screen title="봉사 인증" noTabs>
+      <p className="su-p" style={{ marginTop: 0 }}>봉사하려면 신분증 확인{ed.on && ed.required ? '과 첫 활동 교육(안전 교육)이' : '이'} 필요해요. 범죄경력 회보서는 선택이고, 내면 신뢰 배지가 붙어요.</p>
+      {row(v.idStatus, '신분증 확인', v.idStatus === 'REJECTED' ? '반려됐어요. 다시 올려 주세요' : '운영자가 확인해요', <Upload label="신분증 사진 올리기" accept="image/*,application/pdf" style={{ minHeight: 64 }} onUploaded={up('id')} />)}
+      {ed.on && (
+        <div className="card item">
+          <div className="ic" style={ed.done ? { background: '#E6F7EE', color: '#1F9D63' } : null}><Ic n={ed.done ? 'check' : 'cap'} s={20} /></div>
+          <div className="grow">
+            <div className="b">첫 활동 교육 (안전 교육){ed.required ? '' : ' · 선택'}</div>
+            <div className="mute2">{ed.done ? `이수했어요${ed.completedAt ? ` · ${String(ed.completedAt).slice(0, 10)}` : ''}` : `AI 역할극 상황 ${ed.total || 4}개를 끝까지 하면 이수예요${ed.total ? ` · ${ed.doneCount}/${ed.total}개 마침` : ''}`}</div>
+            {!ed.done && <div style={{ marginTop: 8 }}><button className="btn soft sm" style={{ width: 'auto', padding: '0 14px' }} onClick={() => nav('/edu')}>{ed.doneCount ? '이어서 교육 받기' : '교육 받으러 가기'}</button></div>}
+          </div>
+          <span className={'st ' + (ed.done ? 'ok' : 'wait')}>{ed.done ? '이수' : ed.required ? '필수' : '선택'}</span>
+        </div>
+      )}
       {row(v.crimeStatus, '범죄경력 회보서 (선택)', '제출하면 ✓ 신뢰 배지', <Upload label="회보서 올리기" style={{ minHeight: 64 }} onUploaded={up('crime')} />)}
+      <div className={'notice'} style={{ marginTop: 12 }} role="status">{ready ? '봉사할 준비가 끝났어요. 봉사 제안을 보내거나 도움 가능 공고를 올릴 수 있어요.' : me.volunteerBlock && me.volunteerBlock.message ? String(me.volunteerBlock.message).replace(/\s*\(B-\d+\)/, '') : '인증을 마치면 봉사할 수 있어요.'}</div>
       <div className="card" style={{ marginTop: 14 }}><div className="b">방문 중 안전 규칙</div><ul className="small muted" style={{ margin: '6px 0 0', paddingLeft: 18 }}><li>신체 접촉, 신체 돌봄·의료 행위·돈 관리는 하지 않아요</li><li>방문 외 개인 연락, 연락처 교환은 금지예요</li><li>문제가 생기면 활동 상세에서 바로 신고해요</li></ul></div>
-      <button className="btn ghost" style={{ marginTop: 12 }} onClick={() => nav('/edu')}>첫 활동 연습 해 보기 (선택)</button>
+      {ed.done && <button className="btn ghost" style={{ marginTop: 12 }} onClick={() => nav('/edu')}>첫 활동 연습 다시 해 보기</button>}
     </Screen>
   );
 }
@@ -397,7 +414,7 @@ export function NotiSet() {
   );
 }
 
-/* ---------- 봉사 확인서 (B-56): 기간 선택 · 독거노인 대상 횟수 · AI 자기소개용 요약 · 인쇄(PDF로 저장) ---------- */
+/* ---------- 봉사 확인서 (B-56, 기능 U-35): 기간 선택 · 독거노인 대상 횟수 · AI 자기소개용 요약 · PDF 파일 발급 · 인쇄 ---------- */
 const CERT_RANGES = [['all', '전체 기간'], ['m1', '최근 1개월'], ['m3', '최근 3개월'], ['m6', '최근 6개월'], ['y', '올해'], ['custom', '직접 고르기']];
 function certRange(k) {
   const to = todayISO();
@@ -447,7 +464,8 @@ export function Cert() {
           </div>
           <div className="mute2" style={{ margin: '10px 2px' }}>고른 기간에 적립이 확정된 활동(일지 제출·확인 완료)만 들어가요. 받는 분 이름은 가려서 표시돼요.</div>
           {c.summary && <button className="btn ghost" style={{ marginBottom: 8 }} onClick={async () => { try { await navigator.clipboard.writeText(c.summary); toast('요약 문장을 복사했어요'); } catch { toast('복사하지 못했어요. 문장을 길게 눌러 복사해 주세요'); } }}>요약 문장 복사</button>}
-          <button className="btn big-cta" disabled={!c.count} onClick={() => window.print()}>{c.count ? 'PDF로 받기 (인쇄 › PDF로 저장)' : '이 기간에는 확정된 활동이 없어요'}</button>
+          <button className="btn big-cta" disabled={!c.count} onClick={() => { try { downloadCertPdf({ ...c, name: c.name || (me && me.name) }); toast('확인서 PDF 파일을 내려받았어요'); } catch { toast('PDF를 만들지 못했어요. 인쇄하기로 저장해 주세요'); } }}>{c.count ? 'PDF 파일로 받기' : '이 기간에는 확정된 활동이 없어요'}</button>
+          {c.count > 0 && <button className="btn ghost" style={{ marginTop: 8 }} onClick={() => window.print()}>인쇄하기</button>}
         </>
       )}
     </Screen>

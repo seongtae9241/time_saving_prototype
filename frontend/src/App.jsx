@@ -20,6 +20,7 @@ import { ModeProvider } from './ui/proto.jsx';
 import { Planner } from './screens/planner.jsx';
 import { Ask } from './screens/assist.jsx'; // LLM 추가 A(7.12) 음성 비서
 import { ClassDetail, APublicClasses } from './screens/publicClass.jsx';
+import { ManagerApply } from './screens/managerApply.jsx'; // 기능 C-04 담당자 계정 신청
 
 /** 로그인·역할 확인 */
 function Guard({ roles, children }) {
@@ -43,6 +44,7 @@ function Shell() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/pw-reset" element={<PwReset />} />
         <Route path="/org-apply" element={<OrgApply />} />
+        <Route path="/manager-apply" element={<ManagerApply />} />
 
         <Route path="/notif" element={g(<Notif />)} />
         <Route path="/notice" element={g(<Notice />)} />

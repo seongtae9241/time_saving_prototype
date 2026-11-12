@@ -246,6 +246,50 @@ public class PlannerService {
         return out;
     }
 
+    // ===================== 주 단위 캘린더 (기능 U-26) =====================
+    /**
+     * GET /api/me/planner/week?start=YYYY-MM-DD&mode=give|recv — 그 날짜가 든 주(일~토)의 일정. AI 를 부르지 않는다.
+     * mode 를 주면 그 모드의 일정만(give = 봉사할 일정과 내 계획, recv = 도움 받을 일정). 달이 바뀌는 주도 한 번에 준다.
+     * {start, end, today, mode, days:[{date, items[]}], items[]}
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> week(User u, String start, String mode) {
+        if (u.role != Role.USER) throw ApiException.forbidden("사용자 계정만 볼 수 있어요");
+        LocalDate today = LocalDate.now(), base;
+        try { base = start == null || start.isBlank() ? today : LocalDate.parse(start); }
+        catch (Exception e) { throw ApiException.bad("INVALID_DATE", "날짜는 2026-11-12 처럼 적어 주세요"); }
+        LocalDate from = base.minusDays(base.getDayOfWeek().getValue() % 7), to = from.plusDays(6); // 일요일 시작
+        String m = "give".equals(mode) || "recv".equals(mode) ? mode : null;
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (Request r : requests.findAll()) {
+            boolean give = u.id.equals(r.volunteerId);
+            if (!give && !u.id.equals(r.recipientId)) continue;
+            if (!FIXED.contains(r.status) || r.date.isBefore(from) || r.date.isAfter(to)) continue;
+            if (m != null && give != "give".equals(m)) continue;
+            double earn = r.status == ReqStatus.DONE && r.earned != null ? r.earned : r.estEarn;
+            items.add(Views.map("kind", give ? "give" : "recv", "date", r.date.toString(), "startHour", r.startHour, "hours", r.hours,
+                    "category", r.category, "title", r.content, "who", whoOf(r, u), "amount", give ? earn : r.hours,
+                    "requestId", r.id, "status", r.status));
+        }
+        if (!"recv".equals(m)) for (PlannerPick pk : picks.findByUserId(u.id)) {
+            Post p = posts.findById(pk.postId).orElse(null);
+            if (p == null || p.status != PostStatus.OPEN || p.date.isBefore(today) || p.date.isBefore(from) || p.date.isAfter(to)) continue;
+            Map<String, Object> card = views.postCard(p, u);
+            double ph = pk.hours != null ? pk.hours : planHours(p);
+            double ps = pk.startHour != null ? pk.startHour : p.startHour;
+            items.add(Views.map("kind", "plan", "date", p.date.toString(), "startHour", ps, "endHour", ps + ph, "hours", ph,
+                    "category", p.categories.isEmpty() ? null : p.categories.get(0), "title", p.title, "who", card.get("ownerName"),
+                    "amount", card.get("estEarn") == null ? 0 : ((Number) card.get("estEarn")).doubleValue(), "postId", p.id, "planSource", pk.planSource));
+        }
+        items.sort(Comparator.comparing((Map<String, Object> x) -> (String) x.get("date")).thenComparing(x -> ((Number) (x.get("startHour") == null ? 0 : x.get("startHour"))).doubleValue()));
+        List<Map<String, Object>> days = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            String d = from.plusDays(i).toString();
+            days.add(Views.map("date", d, "items", items.stream().filter(x -> d.equals(x.get("date"))).toList()));
+        }
+        return Views.map("start", from.toString(), "end", to.toString(), "today", today.toString(), "mode", m, "days", days, "items", items);
+    }
+
     // ===================== 추천 봉사 (41판 B-60) =====================
     /**
      * 기능 U-28 추천 봉사의 바탕: 내가 끝낸 봉사(DONE)에서 가장 많이 한 카테고리·지역(동)·시간대와 횟수(코드가 센다).

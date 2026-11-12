@@ -314,6 +314,32 @@ class FuncMeTest {
                 .andExpect(jsonPath("$.basisText", containsString("프로필")));
     }
 
+    // ======================= 기능 U-26 캘린더: 주 단위 · 모드별 =======================
+    Request confirmed(User volunteer, User recipient, LocalDate date, double start) {
+        Request r = done(volunteer, recipient, null, "말동무·정서", date, start);
+        r.status = ReqStatus.CONFIRMED; r.earned = null; r.doneAt = null; r.estEarn = 1.0;
+        return requests.save(r);
+    }
+
+    @Test
+    void 주_단위_캘린더는_그_주의_일정을_모드에_맞게_준다() throws Exception {
+        LocalDate base = LocalDate.now().plusDays(7);
+        LocalDate sun = base.minusDays(base.getDayOfWeek().getValue() % 7);
+        confirmed(vol, rec, sun.plusDays(1), 10);        // 내가 봉사할 일정(월)
+        confirmed(rec, vol, sun.plusDays(6), 15);        // 내가 도움 받을 일정(토) — 달이 바뀌는 주여도 한 번에 온다
+        confirmed(vol, rec, sun.plusDays(8), 10);        // 다음 주(빠져야 함)
+        mvc.perform(get("/api/me/planner/week?start=" + base).header("Authorization", tok(vol))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.start").value(sun.toString())).andExpect(jsonPath("$.end").value(sun.plusDays(6).toString()))
+                .andExpect(jsonPath("$.days", hasSize(7))).andExpect(jsonPath("$.items", hasSize(2)))
+                .andExpect(jsonPath("$.days[1].items[0].kind").value("give")).andExpect(jsonPath("$.days[6].items[0].kind").value("recv"));
+        mvc.perform(get("/api/me/planner/week?start=" + base + "&mode=give").header("Authorization", tok(vol))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.items", hasSize(1))).andExpect(jsonPath("$.items[0].kind").value("give"));
+        mvc.perform(get("/api/me/planner/week?start=" + base + "&mode=recv").header("Authorization", tok(vol))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.items", hasSize(1))).andExpect(jsonPath("$.items[0].kind").value("recv"))
+                .andExpect(jsonPath("$.items[0].who").value("frec 님"));
+        mvc.perform(get("/api/me/planner/week?start=abc").header("Authorization", tok(vol))).andExpect(status().isBadRequest());
+    }
+
     // ======================= 기능 U-30 공공 서비스 안내: 봉사로 가능한 일인지와 봉사 기준 =======================
     @Test
     void 공공_서비스_안내는_봉사로_가능한지와_봉사_기준을_함께_알려_준다() throws Exception {

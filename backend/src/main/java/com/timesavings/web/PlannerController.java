@@ -55,6 +55,12 @@ public class PlannerController {
     @GetMapping("/me/planner")
     public Map<String, Object> planner(@CurrentUser User u, @RequestParam(required = false) String month) { return planner.planner(u, month); }
 
+    /** 기능 U-26: 주 단위 캘린더. start 가 든 주(일~토)의 일정, mode(give|recv)를 주면 그 모드 일정만. */
+    @GetMapping("/me/planner/week")
+    public Map<String, Object> week(@CurrentUser User u, @RequestParam(required = false) String start, @RequestParam(required = false) String mode) {
+        return planner.week(u, start, mode);
+    }
+
     /** 41판 B-60: 홈 화면의 추천 봉사(내 활동 지역·가능 시간대·카테고리에 맞고 빈 시간에 들어가는 공고). AI 를 부르지 않는다. */
     @GetMapping("/me/recommends")
     public Map<String, Object> recommends(@CurrentUser User u) { return planner.recommends(u); }

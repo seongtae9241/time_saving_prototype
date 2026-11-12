@@ -8,12 +8,17 @@ import { useUi } from '../ui/ctx.jsx';
 import { api, post, del } from '../api.js';
 import { CATS, SHORT, hh, fmt, dlabel } from '../lib/format.js';
 import { DIc, Ring, hmTxt, useMode } from '../ui/proto.jsx';
+import { AskBox } from './ai.jsx';
 
 const WD = ['일', '월', '화', '수', '목', '금', '토'];
 const KC = { give: '#6DB3A0', recv: '#EE9A7E', event: '#8DB4F7', plan: '#6DB3A0' };
 const PLAN_RING = { boxShadow: '0 0 0 2px #fff,0 0 0 3.5px #6DB3A0' };
 const pad = (n) => String(n).padStart(2, '0');
 const ymOf = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+const isoOf = (d) => `${ymOf(d)}-${pad(d.getDate())}`;
+const dateOf = (s) => { const [y, m, dd] = String(s).slice(0, 10).split('-').map(Number); return new Date(y, m - 1, dd); };
+const CAL_VIEW_KEY = 'ts-cal-view'; // 기능 U-26: 월·주 보기 기억(기기별 편의)
+const readView = () => { try { return localStorage.getItem(CAL_VIEW_KEY) === 'week' ? 'week' : 'month'; } catch { return 'month'; } };
 const valTxt = (x) => (x.kind === 'give' || x.kind === 'plan' ? `+${hmTxt(x.amount)}` : x.kind === 'recv' ? `−${hmTxt(x.amount)}` : '행사');
 
 /** 날짜별 일정 한 줄 (프로토타입 .tl2) */
@@ -99,16 +104,23 @@ function GoalSheet({ plan, onSave, onClose }) {
 export function Planner() {
   const nav = useNavigate();
   const { toast, sheet, closeSheet } = useUi();
-  const { give } = useMode();
+  const { give, mode } = useMode();
   const [sp, setSp] = useSearchParams();
-  const seg = sp.get('seg') || 'cal';
+  // 기능 U-01·U-27·U-28: 봉사하기 모드는 캘린더 / 추천 봉사, 도움 받기 모드는 캘린더 / AI 도움 추천
+  const seg0 = sp.get('seg') || 'cal';
+  const seg = seg0 === 'cal' ? 'cal' : give ? 'rec' : 'help';
+  const [view, setViewRaw] = useState(readView);
+  const setView = (v) => { setViewRaw(v); try { localStorage.setItem(CAL_VIEW_KEY, v); } catch { /* 저장이 막혀도 화면은 바뀐다 */ } };
+  const [helpQ, setHelpQ] = useState('');
   const [month, setMonth] = useState(sp.get('month') || '');
   const [d, reload] = useLoad(() => api(`/me/planner${month ? `?month=${month}` : ''}`), [month]);
   const [life, reloadLife] = useLoad(() => api('/me/life-plan', { quiet: true }).catch(() => null), []);
   const [sel, setSel] = useState(sp.get('day') || '');
+  // 기능 U-26 주 보기: 고른 날이 든 주(일~토)의 일정을 모드에 맞게 서버에서 받는다(달이 바뀌는 주도 한 번에)
+  const [wk] = useLoad(() => (view === 'week' ? api(`/me/planner/week?mode=${mode}${sel ? `&start=${sel}` : ''}`, { quiet: true }).catch(() => null) : Promise.resolve(null)), [view, sel, mode]);
   const [picked, setPicked] = useState([]);
   const [busy, run] = useBusy();
-  const segs = [['cal', '캘린더'], ['rec', '추천 봉사']];
+  const segs = give ? [['cal', '캘린더'], ['rec', '추천 봉사']] : [['cal', '캘린더'], ['help', 'AI 도움 추천']];
   const head = (
     <div className="chips" role="tablist" aria-label="시간 플래너" style={{ marginBottom: 12 }}>
       {segs.map(([k, t]) => <button key={k} role="tab" aria-selected={seg === k} className={'chip ' + (seg === k ? 'on' : '')} onClick={() => setSp({ seg: k }, { replace: true })}>{t}</button>)}
@@ -120,7 +132,21 @@ export function Planner() {
   const [Y, M] = d.month.split('-').map(Number);
   const first = new Date(Y, M - 1, 1), days = new Date(Y, M, 0).getDate();
   const byDay = {};
-  (d.items || []).forEach((x) => { (byDay[x.date] = byDay[x.date] || []).push(x); });
+  // 기능 U-01·U-26: 헤더 모드에 맞는 일정만 — 봉사하기는 봉사할 일정(+내 계획), 도움 받기는 도움 받을 일정
+  const inMode = (x) => (give ? x.kind !== 'recv' : x.kind === 'recv');
+  const shownItems = (d.items || []).filter(inMode);
+  shownItems.forEach((x) => { (byDay[x.date] = byDay[x.date] || []).push(x); });
+  const recvHours = shownItems.reduce((a, x) => a + (Number(x.hours) || 0), 0);
+  // 주 보기
+  const wdays = (wk && wk.days) || [];
+  const wSel = wk ? (sel && sel >= wk.start && sel <= wk.end ? sel : (wk.today >= wk.start && wk.today <= wk.end ? wk.today : wk.start)) : '';
+  const moveWeek = (n) => { const t = dateOf(wSel || d.today); t.setDate(t.getDate() + n); setSel(isoOf(t)); if (ymOf(t) !== d.month) setMonth(ymOf(t)); };
+  const wkTitle = wk ? (() => { const a = dateOf(wk.start), b = dateOf(wk.end); return `${a.getMonth() + 1}월 ${a.getDate()}일 ~ ${a.getMonth() === b.getMonth() ? '' : `${b.getMonth() + 1}월 `}${b.getDate()}일`; })() : '';
+  const legend = (
+    <div className="cal-lg">{give
+      ? <><span><i style={{ background: '#6DB3A0' }} />봉사할 일정</span><span><i style={{ background: '#6DB3A0', ...PLAN_RING }} />AI 계획</span></>
+      : <span><i style={{ background: '#EE9A7E' }} />도움 받을 일정</span>}</div>
+  );
   const iso = (n) => `${d.month}-${pad(n)}`;
   const curSel = sel && sel.startsWith(d.month) ? sel : (d.today.startsWith(d.month) ? d.today : iso(1));
   const items = byDay[curSel] || [];
@@ -176,31 +202,89 @@ export function Planner() {
       {head}
       {seg === 'cal' && (
         <>
-          <div className="calc">
-            <div className="between"><button className="cal-nav" aria-label="이전 달" onClick={() => move(-1)}>‹</button><div className="cal-m">{Y}년 {M}월</div><button className="cal-nav" aria-label="다음 달" onClick={() => move(1)}>›</button></div>
-            <div className="cal-g">
-              {WD.map((x, i) => <span key={x} className={'cw ' + (i === 0 ? 'sun' : '')}>{x}</span>)}
-              {Array.from({ length: first.getDay() }, (_, i) => <span key={'b' + i} aria-hidden="true" />)}
-              {Array.from({ length: days }, (_, i) => {
-                const n = i + 1, k = iso(n), it = byDay[k] || [];
-                return (
-                  <button key={k} className={`cd ${k === curSel ? 'sel' : ''} ${k === d.today ? 'today' : ''} ${k < d.today ? 'past' : ''} ${it.some((x) => x.kind === 'plan') ? 'new' : ''}`} aria-pressed={k === curSel} aria-label={`${M}월 ${n}일, 일정 ${it.length}개`} onClick={() => setSel(k)}>
-                    <b>{n}</b><div className="cd-dots">{it.slice(0, 3).map((x, j) => <i key={j} style={{ background: KC[x.kind], ...(x.kind === 'plan' ? PLAN_RING : {}) }} />)}</div>
-                  </button>
-                );
-              })}
+          <div className="seg" role="tablist" aria-label="달력 보기" style={{ marginBottom: 10 }}>
+            <button role="tab" aria-selected={view === 'month'} className={view === 'month' ? 'on' : ''} onClick={() => setView('month')}>월</button>
+            <button role="tab" aria-selected={view === 'week'} className={view === 'week' ? 'on' : ''} onClick={() => setView('week')}>주</button>
+          </div>
+          {view === 'month' && (
+            <div className="calc">
+              <div className="between"><button className="cal-nav" aria-label="이전 달" onClick={() => move(-1)}>‹</button><div className="cal-m">{Y}년 {M}월</div><button className="cal-nav" aria-label="다음 달" onClick={() => move(1)}>›</button></div>
+              <div className="cal-g">
+                {WD.map((x, i) => <span key={x} className={'cw ' + (i === 0 ? 'sun' : '')}>{x}</span>)}
+                {Array.from({ length: first.getDay() }, (_, i) => <span key={'b' + i} aria-hidden="true" />)}
+                {Array.from({ length: days }, (_, i) => {
+                  const n = i + 1, k = iso(n), it = byDay[k] || [];
+                  return (
+                    <button key={k} className={`cd ${k === curSel ? 'sel' : ''} ${k === d.today ? 'today' : ''} ${k < d.today ? 'past' : ''} ${it.some((x) => x.kind === 'plan') ? 'new' : ''}`} aria-pressed={k === curSel} aria-label={`${M}월 ${n}일, 일정 ${it.length}개`} onClick={() => setSel(k)}>
+                      <b>{n}</b><div className="cd-dots">{it.slice(0, 3).map((x, j) => <i key={j} style={{ background: KC[x.kind], ...(x.kind === 'plan' ? PLAN_RING : {}) }} />)}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              {legend}
             </div>
-            <div className="cal-lg"><span><i style={{ background: '#6DB3A0' }} />봉사</span><span><i style={{ background: '#EE9A7E' }} />도움 받기</span><span><i style={{ background: '#5B8DEF' }} />기관 소식</span><span><i style={{ background: '#6DB3A0', ...PLAN_RING }} />AI 계획</span></div>
-          </div>
-          <div className="goal2">
-            <div><Ring v={tot} max={g.target || 1} /></div>
-            <div className="grow"><div className="mute2">이번 달 봉사 목표</div><div className="b" style={{ fontSize: 20 }}>{hmTxt(tot)} <span className="mute2" style={{ fontSize: 14 }}>/ {fmt(g.target)}시간</span></div>
-              <div className="mute2">{g.planned ? `계획 포함 · 확정 ${fmt(g.confirmed)}시간` : g.fromLifePlan ? '생애 플랜의 한 달 목표예요' : '추천 봉사를 넣으면 함께 계산돼요'}</div></div>
-          </div>
-          <div className="sec-t"><span>{M}월 {Number(curSel.slice(8))}일 ({WD[selDate.getDay()]})</span><span className="mute2" style={{ fontWeight: 500 }}>{items.length}개 일정</span></div>
-          {items.length ? <div className="tline">{items.map((x, i) => <PlanRow key={i} x={x} />)}</div>
-            : <div className="empty">비어 있는 날이에요{give ? ' · 추천 봉사를 넣어 보세요' : ''}</div>}
-          <button className="ai-fill" onClick={() => setSp({ seg: 'rec' }, { replace: true })}><DIc k="ai" size={40} bare /><div className="grow" style={{ textAlign: 'left' }}><b>추천 봉사로 빈 날 채우기</b><span>내 빈 시간·지역·잘하는 도움에 맞는 봉사 요청 {recs.length}개</span></div>›</button>
+          )}
+          {view === 'week' && (
+            <div className="calc">
+              <div className="between"><button className="cal-nav" aria-label="이전 주" onClick={() => moveWeek(-7)}>‹</button><div className="cal-m">{wkTitle || '이번 주'}</div><button className="cal-nav" aria-label="다음 주" onClick={() => moveWeek(7)}>›</button></div>
+              <div className="cal-g">
+                {WD.map((x, i) => <span key={x} className={'cw ' + (i === 0 ? 'sun' : '')}>{x}</span>)}
+                {wdays.map((day) => {
+                  const k = day.date, dt = dateOf(k), it = day.items || [];
+                  return (
+                    <button key={k} className={`cd ${k === wSel ? 'sel' : ''} ${k === wk.today ? 'today' : ''} ${k < wk.today ? 'past' : ''}`} aria-pressed={k === wSel} aria-label={`${dt.getMonth() + 1}월 ${dt.getDate()}일, 일정 ${it.length}개`} onClick={() => setSel(k)}>
+                      <b>{dt.getDate()}</b><div className="cd-dots">{it.slice(0, 3).map((x, j) => <i key={j} style={{ background: KC[x.kind], ...(x.kind === 'plan' ? PLAN_RING : {}) }} />)}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              {legend}
+            </div>
+          )}
+          {give ? (
+            <div className="goal2">
+              <div><Ring v={tot} max={g.target || 1} /></div>
+              <div className="grow"><div className="mute2">이번 달 봉사 목표</div><div className="b" style={{ fontSize: 20 }}>{hmTxt(tot)} <span className="mute2" style={{ fontSize: 14 }}>/ {fmt(g.target)}시간</span></div>
+                <div className="mute2">{g.planned ? `계획 포함 · 확정 ${fmt(g.confirmed)}시간` : g.fromLifePlan ? '생애 플랜의 한 달 목표예요' : '추천 봉사를 넣으면 함께 계산돼요'}</div></div>
+            </div>
+          ) : (
+            <div className="sum" style={{ marginTop: 12 }}><div className="between"><span className="muted">{M}월 도움 받을 일정</span><b>{shownItems.length}건 · {hmTxt(recvHours)}</b></div></div>
+          )}
+          {view === 'month' && (
+            <>
+              <div className="sec-t"><span>{M}월 {Number(curSel.slice(8))}일 ({WD[selDate.getDay()]})</span><span className="mute2" style={{ fontWeight: 500 }}>{items.length}개 일정</span></div>
+              {items.length ? <div className="tline">{items.map((x, i) => <PlanRow key={i} x={x} />)}</div>
+                : <div className="empty">비어 있는 날이에요{give ? ' · 추천 봉사를 넣어 보세요' : ' · 도움이 필요하면 AI 도움 추천을 받아 보세요'}</div>}
+            </>
+          )}
+          {view === 'week' && (wk === undefined ? <Loading /> : !wk ? <Empty>주간 일정을 불러오지 못했어요</Empty> : (
+            <>
+              <div className="sec-t"><span>이번 주 {give ? '봉사할' : '도움 받을'} 일정</span><span className="mute2" style={{ fontWeight: 500 }}>{(wk.items || []).length}개 일정</span></div>
+              {(wk.items || []).length ? wdays.filter((day) => (day.items || []).length || day.date === wSel).map((day) => {
+                const dt = dateOf(day.date);
+                return (
+                  <div key={day.date} style={{ marginTop: 6 }}>
+                    <div className="mute2" style={{ fontWeight: day.date === wSel ? 800 : 600, margin: '8px 2px 2px', color: day.date === wSel ? 'var(--ink)' : undefined }}>{dt.getMonth() + 1}월 {dt.getDate()}일 ({WD[dt.getDay()]}){day.date === wk.today ? ' · 오늘' : ''}</div>
+                    {(day.items || []).length ? <div className="tline">{day.items.map((x, i) => <PlanRow key={i} x={x} />)}</div> : <div className="mute2" style={{ margin: '2px 2px 0' }}>일정이 없어요</div>}
+                  </div>
+                );
+              }) : <div className="empty">이번 주에는 {give ? '봉사할' : '도움 받을'} 일정이 없어요</div>}
+            </>
+          ))}
+          {give
+            ? <button className="ai-fill" onClick={() => setSp({ seg: 'rec' }, { replace: true })}><DIc k="ai" size={40} bare /><div className="grow" style={{ textAlign: 'left' }}><b>추천 봉사로 빈 날 채우기</b><span>많이 하신 도움·지역·시간대에 맞는 봉사 요청 {recs.length}개</span></div>›</button>
+            : <button className="ai-fill" onClick={() => setSp({ seg: 'help' }, { replace: true })}><DIc k="ai" size={40} bare /><div className="grow" style={{ textAlign: 'left' }}><b>AI 도움 추천 받기</b><span>필요한 도움을 적으면 받을 수 있는 도움과 봉사자를 찾아 드려요</span></div>›</button>}
+        </>
+      )}
+      {seg === 'help' && (
+        <>
+          {/* 기능 U-27 AI 도움 추천(도움 받기 모드): 필요한 도움을 적으면 받을 수 있는 도움 종류와 봉사자(단골 / 가까운·시간 맞는 사람)를 따로 추천 */}
+          <AskBox mic title="어떤 도움이 필요하세요?" sub="받을 수 있는 도움 종류와, 단골 · 가까운·시간 맞는 봉사자를 나눠서 추천해 드려요" placeholder="예) 무릎이 아파서 장보기가 힘들어요" q={helpQ} setQ={setHelpQ}
+            onAsk={(t) => nav(`/recommend?q=${encodeURIComponent(t)}`)}
+            quick={['무릎이 아파서 병원 가기랑 장보기가 힘들어요', '폰으로 손주랑 영상통화 하고 싶어요', '이사하고 짐 정리가 안 끝나요']} />
+          <div className="mute2" style={{ margin: '10px 2px 0' }}>추천 순위(같은 동 → 가능 시간 → 가까운 거리)는 시스템이 정하고, AI는 어떤 도움인지 읽고 안내 문장만 써요. 수락은 상대가 직접 눌러요.</div>
+          <button className="btn ghost" style={{ marginTop: 12 }} onClick={() => nav('/public')}>공공 서비스 안내 받기</button>
+          <button className="btn ghost" style={{ marginTop: 8 }} onClick={() => nav('/board?type=OFFER')}>도움 가능 공고 전체 보기</button>
         </>
       )}
       {seg === 'rec' && (
@@ -228,6 +312,7 @@ export function Planner() {
             <RuleNote source={d.source} />
           </div>
           <div className="sec-t"><span>추천 봉사 <span className="mute2" style={{ fontWeight: 500 }}>빈 시간에 맞는 것만</span></span><span className="mute2" style={{ fontWeight: 600 }}>{picked.length}개 선택</span></div>
+          {d.basisText && <div className="mute2" style={{ margin: '-4px 2px 6px' }}>{d.basisText}</div>}
           {recs.length ? (
             <div className="recs">
               {recs.map((r) => {

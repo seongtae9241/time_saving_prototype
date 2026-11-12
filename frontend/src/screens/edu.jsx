@@ -8,7 +8,8 @@ import { CATS, SHORT, arr } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { speak, useSpeechInput } from './voice.jsx';
 
-// 첫 활동 연습 (41판 B-54, 프로토타입 2026-11-12): 골라서 해 보는 연습. 필수가 아니고 수료·배지·활동 제한이 없다.
+// 첫 활동 교육·연습 (기능 U-34, 프로토타입 2026-11-12): AI 역할극 상황을 모두 안전 규칙에 맞게 마치면 첫 활동 교육(안전 교육) 이수로 기록된다.
+// 이수가 봉사의 필수 조건인지는 운영자의 봉사 인증 항목 설정(edu)에 따른다(서버가 edu.education.required 로 알려 준다).
 /* 서버가 규칙을 안 주면 프로토타입 카드를 쓴다 */
 const RULES = [
   { ic: 'clock', c: ['#EAF0FF', '#3D6DF2'], t: '도운 시간만큼\n통장에 쌓여요', p: '1시간을 도우면 1시간이 쌓여요. 동행처럼 책임이 큰 일은 1.5배, 장보기처럼 수고가 드는 일은 1.2배예요.', ex: '예) 병원 동행 2시간 → +3.0시간' },
@@ -40,7 +41,7 @@ function rulesFor(edu) {
 const rpRes = (edu, id) => (edu && edu.roleplay && (edu.roleplay[id] || edu.roleplay[String(id)])) || null;
 
 /* 상황 하나 연습 시트 (프로토타입 rpStart / rpSay): 어르신(AI)이 상황을 던지고, 답하면 칭찬 또는 "이렇게 바꿔 말해 보세요" */
-function PracticeSheet({ sit, onOther, onClose }) {
+function PracticeSheet({ sit, onOther, onClose, onResult }) {
   const { toast } = useUi();
   const [said, setSaid] = useState(null);
   const [res, setRes] = useState(null);
@@ -50,7 +51,7 @@ function PracticeSheet({ sit, onOther, onClose }) {
     t = String(t || '').trim();
     if (!t || busy) return;
     setBusy(true); setSaid(t); setText('');
-    try { setRes(await post('/edu/practice', { key: sit.key, text: t })); } catch { setSaid(null); }
+    try { const r = await post('/edu/practice', { key: sit.key, text: t }); setRes(r); if (onResult) onResult(r); } catch { setSaid(null); }
     setBusy(false);
   };
   const spch = useSpeechInput({ onFinal: (t) => say(t), onInterim: setText });
@@ -62,7 +63,7 @@ function PracticeSheet({ sit, onOther, onClose }) {
       {said && <div className="rp-msg rp-me">{said}</div>}
       {busy && <div className="rp-msg mute2">AI가 답을 살펴보는 중…</div>}
       {res && res.reply && <div className="rp-msg"><Spk /> {res.reply}</div>}
-      {res && res.ok && <div className="rp-msg rp-ok" role="status">{res.praise || '잘했어요! 안전 규칙을 지키면서 따뜻하게 말했어요.'}</div>}
+      {res && res.ok && <div className="rp-msg rp-ok" role="status">{res.praise || '잘했어요! 안전 규칙을 지키면서 따뜻하게 말했어요.'}{res.education ? (res.education.done ? ' 상황을 모두 마쳐서 첫 활동 교육을 이수했어요.' : ` 이 상황을 마쳤어요 (${res.education.doneCount}/${res.education.total}).`) : ''}</div>}
       {res && !res.ok && fb && <div className="rp-msg rp-fb" role="status"><b>이렇게 바꿔 말해 보세요</b><br />{fb.reason || fb.message}<br />“{fb.better}”</div>}
       {res && <RuleNote source={res.source} />}
       {!said && (
@@ -87,25 +88,40 @@ function PracticeSheet({ sit, onOther, onClose }) {
   );
 }
 
-/* ---------- 첫 활동 연습 (AI 역할극 · 선택) ---------- */
+/* ---------- 첫 활동 교육·연습 (AI 역할극) ---------- */
 export function Edu() {
   const nav = useNavigate();
   const { sheet, closeSheet, toast } = useUi();
-  const [edu] = useLoad(() => api('/edu'), []);
-  if (edu === undefined) return <Screen title="첫 활동 연습" noTabs><Loading /></Screen>;
-  if (!edu) return <Screen title="첫 활동 연습" noTabs><Empty>연습을 불러오지 못했어요</Empty></Screen>;
+  const { refresh } = useAuth();
+  const [edu, reload] = useLoad(() => api('/edu'), []);
+  if (edu === undefined) return <Screen title="첫 활동 교육" noTabs><Loading /></Screen>;
+  if (!edu) return <Screen title="첫 활동 교육" noTabs><Empty>교육을 불러오지 못했어요</Empty></Screen>;
   const sits = edu.situations || [];
   const ps = edu.personas || [];
-  const open = (i) => sheet(<PracticeSheet key={sits[i].key + Date.now()} sit={sits[i]} onOther={() => open((i + 1) % sits.length)} onClose={() => { closeSheet(); toast('연습을 마쳤어요. 언제든 다시 해 볼 수 있어요'); }} />);
+  const ed = edu.education || { done: false, total: sits.length, doneCount: 0, doneKeys: [], required: false, on: true };
+  const doneKeys = ed.doneKeys || [];
+  // 답을 보낼 때마다 서버가 진행 상태를 알려 준다. 이수가 되면 내 정보(봉사 자격)를 다시 읽는다
+  const onResult = (r) => { reload(); if (r && r.education && r.education.done && !ed.done) { refresh(); toast('첫 활동 교육(안전 교육)을 이수했어요'); } };
+  const open = (i) => sheet(<PracticeSheet key={sits[i].key + Date.now()} sit={sits[i]} onResult={onResult} onOther={() => open((i + 1) % sits.length)} onClose={() => { closeSheet(); reload(); }} />);
+  const nextIdx = sits.findIndex((r) => !doneKeys.includes(r.key));
   return (
-    <Screen title="첫 활동 연습" noTabs>
-      <h2 style={{ margin: 0, fontSize: 20 }}>첫 활동 연습 <span className="mod m1">AI 역할극</span></h2>
-      <p className="mute2" style={{ margin: '6px 0 10px' }}>AI가 도움 받는 어르신이 되어 이런저런 상황을 던져요. 선택이라 안 해도 봉사할 수 있어요.</p>
-      {sits.length ? sits.map((r, i) => (
-        <div key={r.key} className="card item click" style={{ marginTop: 8 }} role="button" tabIndex={0} onClick={() => open(i)} onKeyDown={(e) => { if (e.key === 'Enter') open(i); }}>
-          <div className="ic"><Ic n="chat" s={20} /></div><div className="grow"><div className="b">{r.title}</div><div className="mute2">상황 {i + 1}</div></div>›
-        </div>
-      )) : <Empty>준비된 상황이 없어요</Empty>}
+    <Screen title="첫 활동 교육" noTabs>
+      <h2 style={{ margin: 0, fontSize: 20 }}>첫 활동 교육 <span className="mod m1">AI 역할극</span></h2>
+      <p className="mute2" style={{ margin: '6px 0 10px' }}>AI가 도움 받는 어르신이 되어 상황을 던져요. 상황 {sits.length}개를 모두 안전 규칙에 맞게 답하면 안전 교육 이수예요.{ed.required ? ' 봉사를 시작하기 전에 꼭 마쳐야 해요.' : ''}</p>
+      <div className={'card item'} role="status" style={ed.done ? { background: '#E6F7EE' } : null}>
+        <div className="ic" style={ed.done ? { background: '#fff', color: '#1F9D63' } : null}><Ic n={ed.done ? 'check' : 'shield'} s={20} /></div>
+        <div className="grow"><div className="b">{ed.done ? '안전 교육을 이수했어요' : `안전 교육 ${ed.doneCount}/${ed.total || sits.length}개 마침`}</div><div className="mute2">{ed.done ? `${ed.completedAt ? `${String(ed.completedAt).slice(0, 10)} 이수 · ` : ''}봉사 인증과 프로필에 표시돼요` : ed.required ? '모두 마쳐야 봉사 제안·도움 가능 공고를 올릴 수 있어요' : '모두 마치면 봉사 인증과 프로필에 이수 표시가 붙어요'}</div></div>
+        <span className={'st ' + (ed.done ? 'ok' : 'wait')}>{ed.done ? '이수' : ed.required ? '필수' : '선택'}</span>
+      </div>
+      {!ed.done && nextIdx >= 0 && <button className="btn" style={{ marginTop: 10 }} onClick={() => open(nextIdx)}>{ed.doneCount ? '이어서 하기' : '교육 시작하기'} · {sits[nextIdx].title}</button>}
+      {sits.length ? sits.map((r, i) => {
+        const ok = ed.done || doneKeys.includes(r.key);
+        return (
+          <div key={r.key} className="card item click" style={{ marginTop: 8 }} role="button" tabIndex={0} onClick={() => open(i)} onKeyDown={(e) => { if (e.key === 'Enter') open(i); }}>
+            <div className="ic" style={ok ? { background: '#E6F7EE', color: '#1F9D63' } : null}><Ic n={ok ? 'check' : 'chat'} s={20} /></div><div className="grow"><div className="b">{r.title}</div><div className="mute2">상황 {i + 1}{ok ? ' · 마쳤어요' : ''}</div></div>›
+          </div>
+        );
+      }) : <Empty>준비된 상황이 없어요</Empty>}
       {ps.length > 0 && (
         <>
           <div className="sec-t"><span>AI 어르신과 길게 대화해 보기</span><Mod n={6} /></div>
@@ -127,7 +143,7 @@ export function Edu() {
         <div role="button" tabIndex={0} onClick={() => nav('/edu/card')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/edu/card'); }}><Ic n="file" s={20} /><div className="grow">규칙 카드<span>활동할 때 지키는 규칙 {rulesFor(edu).length}장</span></div>›</div>
         <div role="button" tabIndex={0} onClick={() => nav('/edu/quiz')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/edu/quiz'); }}><Ic n="check" s={20} /><div className="grow">상황 퀴즈<span>{(edu.quiz || []).length || 5}문제 · 점수는 참고용이에요</span></div>›</div>
       </div>
-      <div className="notice" style={{ marginTop: 12 }}>연습은 필수가 아니에요. 수료나 배지가 없고, 하지 않아도 신분증 인증만 되면 봉사할 수 있어요.</div>
+      <div className="notice" style={{ marginTop: 12 }}>{ed.required ? '위 상황을 모두 마치면 안전 교육 이수예요. 길게 대화해 보기·규칙 카드·퀴즈는 더 연습하고 싶을 때 하는 선택이에요.' : '지금은 교육이 필수가 아니에요. 하지 않아도 신분증 확인만 되면 봉사할 수 있고, 마치면 이수 표시가 붙어요.'}</div>
     </Screen>
   );
 }
