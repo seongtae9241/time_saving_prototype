@@ -139,27 +139,38 @@ class MeetingChangesTest {
         mvc.perform(get("/api/regulars").header("Authorization", t)).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
     }
 
+    /** B-64·C-15(41판): 소식은 기관 페이지 링크로만. 앱 안 신청·정원·신청자 목록은 없다. */
     @Test
-    void 동네_소식_신청과_주소_검사() throws Exception {
-        assertThrows(ApiException.class, () -> events.create(s1, new EventService.EventCmd("행사", null, d, 14.0, "주민센터", 2, "APP", null, null, null, null)));
-        assertEquals("URL_REQUIRED", assertThrows(ApiException.class, () -> events.create(mgr, new EventService.EventCmd("건강 강좌", null, d, 10.0, "보건소", 0, "LINK", null, null, null, null))).code);
-        assertEquals("URL_NOT_ALLOWED", assertThrows(ApiException.class, () -> events.create(mgr, new EventService.EventCmd("건강 강좌", null, d, 10.0, "보건소", 0, "LINK", "http://127.0.0.1/a", null, null, null))).code);
+    void 기관_소식은_링크가_있어야_하고_앱_신청은_없다() throws Exception {
+        assertThrows(ApiException.class, () -> events.create(s1, new EventService.EventCmd("행사", null, d, 14.0, "주민센터", "https://example.org/a", null, null, null)));
+        assertEquals("URL_REQUIRED", assertThrows(ApiException.class, () -> events.create(mgr, new EventService.EventCmd("건강 강좌", null, d, 10.0, "보건소", null, null, null, null))).code);
+        assertEquals("URL_NOT_ALLOWED", assertThrows(ApiException.class, () -> events.create(mgr, new EventService.EventCmd("건강 강좌", null, d, 10.0, "보건소", "http://127.0.0.1/a", null, null, null))).code);
         // 미리보기를 화면에서 받아 온 경우 그대로 저장(서버가 다시 가져오지 않음)
-        OrgEvent link = events.create(mgr, new EventService.EventCmd("건강 강좌", "보건소 안내", d, 10.0, "보건소", 0, "LINK", "https://example.org/health", "건강 강좌 안내", "https://example.org/a.png", null));
+        OrgEvent link = events.create(mgr, new EventService.EventCmd("건강 강좌", "보건소 안내", d, 10.0, "보건소", "https://example.org/health", "건강 강좌 안내", "https://example.org/a.png", null));
         assertEquals("건강 강좌 안내", link.ogTitle);
-        assertEquals("EXTERNAL_APPLY", assertThrows(ApiException.class, () -> events.apply(s1, link.id)).code);
+        assertEquals("LINK", link.applyType);
+        assertEquals(0, link.capacity);
 
-        OrgEvent e = events.create(mgr, new EventService.EventCmd("사진 정리 교실", "휴대폰만 가져오세요", d, 14.0, "주민센터", 2, "APP", null, null, null, null));
-        mvc.perform(post("/api/events/" + e.id + "/apply").header("Authorization", token(s1))).andExpect(status().isOk())
-                .andExpect(jsonPath("$.myApplied").value(true)).andExpect(jsonPath("$.applied").value(1));
-        events.apply(s2, e.id);
-        assertEquals("EVENT_FULL", assertThrows(ApiException.class, () -> events.apply(s3, e.id)).code);
-        assertEquals("DUPLICATE", assertThrows(ApiException.class, () -> events.apply(s1, e.id)).code);
+        // 화면에서 올리기: 링크 없이는 400, 있으면 제목·일시·장소·링크가 그대로 나온다
+        mvc.perform(post("/api/events").header("Authorization", token(mgr)).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"사진 정리 교실\",\"date\":\"" + d + "\",\"startHour\":14,\"place\":\"주민센터\"}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("URL_REQUIRED"));
+        mvc.perform(post("/api/events").header("Authorization", token(mgr)).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"사진 정리 교실\",\"date\":\"" + d + "\",\"startHour\":14,\"place\":\"주민센터\",\"url\":\"https://example.org/photo\",\"ogTitle\":\"사진 교실\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.title").value("사진 정리 교실")).andExpect(jsonPath("$.date").value(d.toString()))
+                .andExpect(jsonPath("$.place").value("주민센터")).andExpect(jsonPath("$.url").value("https://example.org/photo"))
+                .andExpect(jsonPath("$.applyType").value("LINK"))
+                .andExpect(jsonPath("$.applied").doesNotExist()).andExpect(jsonPath("$.capacity").doesNotExist())
+                .andExpect(jsonPath("$.myApplied").doesNotExist()).andExpect(jsonPath("$.applicants").doesNotExist());
+        // 앱 안 신청·취소 주소는 없어졌다
+        mvc.perform(post("/api/events/" + link.id + "/apply").header("Authorization", token(s1))).andExpect(status().is4xxClientError());
+        mvc.perform(post("/api/events/" + link.id + "/cancel").header("Authorization", token(s1))).andExpect(status().is4xxClientError());
         mvc.perform(get("/api/events").header("Authorization", token(s3))).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(2));
         mvc.perform(get("/api/org/events").header("Authorization", token(mgr))).andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].applicants.length()").value(2));
-        events.cancel(s1, e.id);
-        events.apply(s3, e.id);
+                .andExpect(jsonPath("$.length()").value(2)).andExpect(jsonPath("$[0].applicants").doesNotExist());
+        // 담당자가 내리면 사용자 목록에서 빠진다
+        mvc.perform(post("/api/events/" + link.id + "/close").header("Authorization", token(mgr))).andExpect(status().isOk());
+        mvc.perform(get("/api/events").header("Authorization", token(s3))).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test

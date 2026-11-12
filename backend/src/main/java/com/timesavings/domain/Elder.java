@@ -21,5 +21,8 @@ public class Elder {
     @Column(length = 500) public String caution;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 10) public ElderStatus status = ElderStatus.ACTIVE;
     public boolean reportConsent;
+    /** C-02 등록할 때 "대상에게 서비스 이용을 설명하고 동의를 받았음"을 확인한 시각·확인한 담당자. 41판 이전 등록분은 null */
+    @Column(name = "service_consent_at") public LocalDateTime serviceConsentAt;
+    @Column(name = "service_consent_by") public Long serviceConsentBy;
     public LocalDateTime createdAt = LocalDateTime.now();
 }

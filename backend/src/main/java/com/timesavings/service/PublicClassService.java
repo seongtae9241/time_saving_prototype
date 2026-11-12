@@ -111,6 +111,29 @@ public class PublicClassService {
                 "orgEventId", c.orgEventId, "sample", c.orgName != null && c.orgName.contains("(예시)"));
     }
 
+    /**
+     * B-64 동네 기관 소식 목록에 함께 넣을 항목: AI가 찾은 소식(AI_SEARCH)과 공공데이터 강좌(PUBLIC_DATA) 가운데
+     * 지금 보여도 되고(visible — AI 항목은 서버가 출처 링크를 열어 확인한 것만) 기관 페이지 링크가 있는 것.
+     * 담당자가 올린 소식(ORG)은 EventService 목록이 주므로 여기서는 뺀다. area 를 주면 지역·장소·기관 이름에 그 동이 들어간 것만.
+     */
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<Map<String, Object>> newsItems(String area, String viewerArea) {
+        LocalDate today = LocalDate.now();
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (PublicClass c : repo.findAll()) {
+            if ("ORG".equals(c.source) || !visible(c, today) || c.applyUrl == null || c.applyUrl.isBlank()) continue;
+            String text = String.join(" ", Objects.toString(c.region, ""), Objects.toString(c.place, ""), Objects.toString(c.orgName, ""));
+            if (area != null && !text.contains(area)) continue;
+            boolean ai = "AI_SEARCH".equals(c.source);
+            out.add(Views.map("key", "PC-" + c.id, "kind", ai ? "AI" : "PUBLIC", "id", c.id, "title", c.title, "orgName", c.orgName,
+                    "date", c.startDate == null ? null : c.startDate.toString(), "startHour", null,
+                    "when", whenLabel(c.startDate, c.endDate, today) + (c.scheduleText == null ? "" : " · " + c.scheduleText),
+                    "place", c.place, "area", c.region, "near", viewerArea != null && !viewerArea.isBlank() && text.contains(viewerArea),
+                    "url", c.applyUrl, "image", c.imageUrl, "aiFound", ai, "notice", ai ? AI_NOTICE : null));
+        }
+        return out;
+    }
+
     // ===================================================== ③ 기관 행사 옮겨 두기 =====================================================
     /** 동네 소식 기관 행사를 public_classes(source ORG)에 맞춘다. 바뀐 게 있으면 version 을 올린다. */
     public synchronized void syncOrgEvents() {
@@ -129,8 +152,8 @@ public class PublicClassService {
             if (region == null && name != null) region = PublicClassCsv.region("x " + name.split("\\s+")[0]);
             boolean hide = !"OPEN".equals(e.status);
             String sched = e.startHour == null ? null : hourLabel(e.startHour) + " 시작";
-            String cap = e.capacity > 0 ? e.capacity + "명" : null;
-            String how = "LINK".equals(e.applyType) ? "기관 안내 링크에서 신청" : "앱 동네 소식에서 신청";
+            String cap = null; // B-64: 앱 안 신청·정원은 없앴다(신청은 기관 페이지 링크로만)
+            String how = "기관 안내 링크에서 신청";
             String cat = classify(e.title + " " + (e.content == null ? "" : e.content));
             if (fresh || !Objects.equals(c.title, e.title) || !Objects.equals(c.startDate, e.eventDate) || c.hidden != hide
                     || !Objects.equals(c.place, e.place) || !Objects.equals(c.applyUrl, e.url) || !Objects.equals(c.orgName, name)) {

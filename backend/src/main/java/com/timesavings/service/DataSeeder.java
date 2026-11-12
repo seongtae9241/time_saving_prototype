@@ -619,19 +619,15 @@ public class DataSeeder implements ApplicationRunner {
         return orgEvents.save(e);
     }
 
+    /** B-64: 기관 소식은 기관 페이지 링크로만 신청한다(앱 안 신청·정원 없음). */
     private void seedEvents(Organization o1, User org1) {
-        OrgEvent a = event(o1, org1, "스마트폰 사진 정리 교실", "휴대폰에 쌓인 사진을 앨범으로 정리하고, 가족에게 보내는 법까지 같이 해 봐요. 휴대폰만 가져오세요.",
-                p(11, 18), 14.0, "행복동 주민센터 1층 다목적실", 12, "APP", null, null);
+        event(o1, org1, "스마트폰 사진 정리 교실", "휴대폰에 쌓인 사진을 앨범으로 정리하고, 가족에게 보내는 법까지 같이 해 봐요. 휴대폰만 가져오세요.",
+                p(11, 18), 14.0, "행복동 주민센터 1층 다목적실", 0, "LINK", "https://example.org/photo-class", "스마트폰 사진 정리 교실 안내");
         event(o1, org1, "가을 경로당 노래자랑", "경로당 어르신과 이웃이 함께하는 노래자랑이에요. 구경만 오셔도 좋아요. 떡과 차를 준비해요.",
-                p(11, 22), 13.0, "행복동 경로당", 30, "APP", null, null);
+                p(11, 22), 13.0, "행복동 경로당", 0, "LINK", "https://example.org/song-festival", null);
         event(o1, org1, "치매 예방 건강 강좌", "보건소 선생님이 기억력 지키는 생활 습관을 알려 드려요. 신청은 아래 링크에서 받아요.",
-                p(11, 25), 10.0, "행복구 보건소 3층 강당", 40, "LINK", "https://example.org/health-class", "치매 예방 건강 강좌 안내");
+                p(11, 25), 10.0, "행복구 보건소 3층 강당", 0, "LINK", "https://example.org/health-class", "치매 예방 건강 강좌 안내");
         event(o1, org1, "행복동 김장 나눔 행사", "동네가 같이 김장해서 혼자 사는 어르신 댁에 나눠요. 자원봉사 신청은 링크에서 받아요.",
                 p(11, 29), 9.0, "행복동 주민센터 앞마당", 0, "LINK", "https://example.org/kimjang", null);
-        for (String k : List.of("bok", "mom")) {
-            EventApplication ap = new EventApplication();
-            ap.eventId = a.id; ap.userId = U.get(k).id; ap.createdAt = today.minusDays(1).atTime(9, 0);
-            eventApps.save(ap);
-        }
     }
 }

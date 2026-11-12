@@ -32,6 +32,8 @@ public class AuthController {
     private final FileService files;
     private final NotificationService noti;
     private final FirebasePhoneVerifier firebase;
+    /** A-04 담당자 탈퇴 조건 확인용(생성자 인자를 늘리지 않으려고 필드 주입) */
+    @org.springframework.beans.factory.annotation.Autowired private ElderRepo elders;
 
     public AuthController(AuthService auth, UserRepo users, OrganizationRepo orgs, RequestRepo requests, BankService bank, Views views,
                           FileService files, NotificationService noti, FirebasePhoneVerifier firebase) {
@@ -50,7 +52,7 @@ public class AuthController {
     public record FileBody(String fileUrl) {}
     public record WithdrawBody(String password) {}
     public record OrgApplyBody(String name, String orgType, String address, String phone, String managerName, String managerPhone,
-                               String managerEmail, String memo) {}
+                               String managerEmail, String memo, String proofFileUrl) {}
 
     @PostMapping("/auth/phone/send")
     public Map<String, Object> send(@RequestBody PhoneBody b) {
@@ -179,7 +181,9 @@ public class AuthController {
         List<Map<String, Object>> out = new ArrayList<>();
         for (Request r : requests.findAll()) {
             if (r.status.terminal()) continue;
-            if (u.id.equals(r.volunteerId) || u.id.equals(r.recipientId) || u.id.equals(r.senderId))
+            boolean mine = u.id.equals(r.volunteerId) || u.id.equals(r.recipientId)
+                    || (r.elderId == null ? u.id.equals(r.senderId) : views.isManagerOf(u, r.elderId));
+            if (mine)
                 out.add(Views.map("id", r.id, "status", r.status, "date", r.date.toString(), "category", r.category, "content", r.content));
         }
         return out;
@@ -189,10 +193,23 @@ public class AuthController {
     public Map<String, Object> withdrawCheck(@CurrentUser User u) {
         BankService.Summary s = bank.summary(u.id);
         List<Map<String, Object>> active = activeOf(u);
+        String block = withdrawBlock(u);
         String msg = !active.isEmpty() ? "진행 중인 요청·활동 " + active.size() + "건을 먼저 끝내거나 취소해야 탈퇴할 수 있어요."
+                : block != null ? block
                 : s.balance() > 0 ? "남은 시간 " + s.balance() + "시간은 탈퇴하면 사라지고 되돌릴 수 없어요. 가족에게 먼저 선물할 수 있어요."
                 : "탈퇴하면 활동 기록은 통계용으로만 남고 다시 로그인할 수 없어요.";
-        return Views.map("activeRequests", active, "balance", s.balance(), "hold", s.hold(), "canWithdraw", active.isEmpty(), "message", msg);
+        return Views.map("activeRequests", active, "balance", s.balance(), "hold", s.hold(), "canWithdraw", active.isEmpty() && block == null, "message", msg);
+    }
+
+    /** A-04 담당자·운영자 탈퇴 조건: 담당 중인 도움 대상이 남아 있거나 마지막 운영자면 탈퇴할 수 없다. 없으면 null. */
+    private String withdrawBlock(User u) {
+        if (u.role == Role.ORG) {
+            long n = elders.findByManagerId(u.id).stream().filter(e -> e.status == ElderStatus.ACTIVE).count();
+            if (n > 0) return "담당 중인 도움 대상 " + n + "명을 먼저 다른 담당자에게 이관하거나 지원 종료해 주세요. 이관할 담당자가 없으면 운영자에게 문의해 주세요.";
+        }
+        if (u.role == Role.ADMIN && users.findByRole(Role.ADMIN).stream().filter(a -> a.status == UserStatus.ACTIVE).count() <= 1)
+            return "운영자가 한 명뿐이라 탈퇴할 수 없어요. 다른 운영자 계정을 먼저 만들어 주세요.";
+        return null;
     }
 
     @PostMapping("/me/withdraw")
@@ -200,6 +217,8 @@ public class AuthController {
         User u = users.findById(cu.id).orElseThrow();
         if (!auth.matches(b.password(), u.passwordHash)) throw ApiException.bad("WRONG_PASSWORD", "비밀번호가 맞지 않아요");
         if (!activeOf(u).isEmpty()) throw ApiException.conflict("ACTIVE_REQUESTS", "진행 중인 요청·활동을 먼저 정리해 주세요");
+        String block = withdrawBlock(u);
+        if (block != null) throw ApiException.conflict("WITHDRAW_BLOCKED", block);
         u.status = UserStatus.WITHDRAWN;
         u.phone = null;
         auth.revokeAll(u.id);
@@ -226,13 +245,42 @@ public class AuthController {
         return Views.map("crimeStatus", u.crimeStatus);
     }
 
-    @PostMapping("/orgs/apply")
+    /**
+     * C-01 기관 서비스 신청(로그인 전). 재직 증빙(재직증명서) 파일이 있어야 신청된다.
+     * 화면은 multipart 로 신청 내용과 파일(proof)을 한 번에 보낸다. JSON 으로 보낼 때는 이미 올린 파일 주소(proofFileUrl)가 있어야 한다.
+     */
+    @PostMapping(value = "/orgs/apply", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Map<String, Object> orgApplyForm(@RequestParam(required = false) String name, @RequestParam(required = false) String orgType,
+                                            @RequestParam(required = false) String address, @RequestParam(required = false) String phone,
+                                            @RequestParam(required = false) String managerName, @RequestParam(required = false) String managerPhone,
+                                            @RequestParam(required = false) String managerEmail, @RequestParam(required = false) String memo,
+                                            @RequestParam(value = "proof", required = false) MultipartFile proof) {
+        checkOrgApply(name, managerName);
+        if (proof == null || proof.isEmpty()) throw ApiException.bad("PROOF_REQUIRED", "재직 증빙(재직증명서) 파일을 올려 주세요");
+        String url = "/api/files/" + files.save(proof);
+        return saveOrgApply(new OrgApplyBody(name, orgType, address, phone, managerName, managerPhone, managerEmail, memo, url));
+    }
+
+    @PostMapping(value = "/orgs/apply", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> orgApply(@RequestBody OrgApplyBody b) {
-        if (b.name() == null || b.name().isBlank() || b.managerName() == null || b.managerName().isBlank())
+        checkOrgApply(b.name(), b.managerName());
+        String url = b.proofFileUrl() == null ? "" : b.proofFileUrl().trim();
+        if (!url.startsWith("/api/files/")) throw ApiException.bad("PROOF_REQUIRED", "재직 증빙(재직증명서) 파일을 올려 주세요");
+        try { files.path(url.substring("/api/files/".length())); }
+        catch (ApiException e) { throw ApiException.bad("PROOF_REQUIRED", "재직 증빙(재직증명서) 파일을 다시 올려 주세요"); }
+        return saveOrgApply(b);
+    }
+
+    private static void checkOrgApply(String name, String managerName) {
+        if (name == null || name.isBlank() || managerName == null || managerName.isBlank())
             throw ApiException.bad("INVALID_INPUT", "기관 이름과 담당자 이름을 적어 주세요");
+    }
+
+    private Map<String, Object> saveOrgApply(OrgApplyBody b) {
         Organization o = new Organization();
         o.name = b.name().trim(); o.orgType = b.orgType(); o.address = b.address(); o.phone = b.phone();
         o.managerName = b.managerName(); o.managerPhone = b.managerPhone(); o.managerEmail = b.managerEmail(); o.memo = b.memo();
+        o.proofFileUrl = b.proofFileUrl().trim();
         orgs.save(o);
         users.findByRole(Role.ADMIN).forEach(a -> noti.send(a.id, "ORG_APPLY", "기관 서비스 신청이 들어왔어요", o.name, "/admin/orgs"));
         return Views.map("id", o.id, "status", o.status);
