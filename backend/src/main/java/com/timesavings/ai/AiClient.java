@@ -230,12 +230,12 @@ public class AiClient {
                     intent: NEW_REQUEST(새 요청) / REGULAR_REQUEST(지난번 그 사람 등 단골에게) / CHANGE_CANCEL(기존 약속 변경·취소) / CONFIRM(활동 끝 확인) / QUESTION(제도·이용 질문) / CHAT(그냥 이야기) / EMERGENCY(위급).
                     confidence: date·time·area·category 칸마다 high|medium|low. 오전·오후를 말하지 않은 시각은 medium.
                     caution: 방문에 필요한 배려만 짧은 문장으로(예: "천천히 걸어 주세요"). 병명·진단명은 쓰지 않는다.
-                    repeat: "매주 목요일" 같은 반복 규칙이 있으면 적고 없으면 null.
+                    자동 반복 등록은 없다. 사용자가 "매주"·"화요일마다"처럼 말해도 가장 가까운 한 번만 초안으로 만들고, 반복해서 올려 준다고 말하지 않는다.
                     전화번호·계좌번호·상세 주소(아파트 동·호수, 번지)는 draft 어디에도 쓰지 않는다.
                     %s
                     출력: {"reply":"","done":false,"intent":"NEW_REQUEST","missing":["date|startHour|endHour|estHours|area|content"],
                      "confidence":{"date":"low","time":"low","area":"low","category":"low"},
-                     "draft":{"date":null,"startHour":null,"endHour":null,"area":null,"categories":[],"title":"","detail":"","note":"","estHours":null,"caution":null,"repeat":null,"summarySpeech":null}}
+                     "draft":{"date":null,"startHour":null,"endHour":null,"area":null,"categories":[],"title":"","detail":"","note":"","estHours":null,"caution":null,"summarySpeech":null}}
                     """.formatted(today(today), type, defaultArea == null ? "" : defaultArea, voiceRule),
                     conv.toString(), 700);
             if (ai.isPresent()) {
@@ -254,9 +254,8 @@ public class AiClient {
                     x.note = dj.path("note").asText(null);
                     x.summarySpeech = dj.path("summarySpeech").asText(null);
                     x.caution = VoiceSafety.sanitizeCaution(dj.path("caution").asText(null));
-                    x.repeat = dj.hasNonNull("repeat") ? dj.path("repeat").asText(null) : null;
+                    x.repeatNotice = d.repeatNotice; // 반복을 바랐는지는 규칙이 본다(B-06)
                     if (x.caution == null) x.caution = d.caution;
-                    if (x.repeat == null) x.repeat = d.repeat;
                     String in = j.path("intent").asText("");
                     if (VoiceSafety.INTENTS.contains(in)) intent = in;
                     Map<String, String> conf2 = new LinkedHashMap<>();
@@ -310,12 +309,12 @@ public class AiClient {
         draft.put("note", d.note);
         draft.put("estHours", d.estHours);
         draft.put("caution", d.caution);
-        draft.put("repeat", d.repeat);
-        draft.put("summarySpeech", done ? PostChatRule.withRepeat(d.summarySpeech, d.repeat) : null);
+        draft.put("repeatNotice", d.repeatNotice);
+        draft.put("summarySpeech", done ? PostChatRule.withRepeatNotice(d.summarySpeech, d.repeatNotice) : null);
 
         Map<String, Object> out = new LinkedHashMap<>();
-        // 다 채워진 요약을 그대로 답으로 쓸 때(음성)는 답에도 반복 안내를 붙인다
-        out.put("reply", done && reply != null && reply.equals(d.summarySpeech) ? PostChatRule.withRepeat(reply, d.repeat) : reply);
+        // 다 채워진 요약을 그대로 답으로 쓸 때(음성)는 답에도 "한 번만 올린다"는 안내를 붙인다
+        out.put("reply", done && reply != null && reply.equals(d.summarySpeech) ? PostChatRule.withRepeatNotice(reply, d.repeatNotice) : reply);
         out.put("done", done);
         out.put("intent", intent);
         out.put("draft", draft);

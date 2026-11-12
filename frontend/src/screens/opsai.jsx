@@ -104,7 +104,7 @@ function DraftCard({ d, i, onChange }) {
         <div><label className="f">가능 시작{low.time !== 'high' && <span className="mute2"> · 확인</span>}</label><select className="in" value={d.startHour} onChange={(e) => set('startHour')(Number(e.target.value))} disabled={d.done}>{HOURS.map((h) => <option key={h} value={h}>{ap(h)}</option>)}</select></div>
         <div><label className="f">가능 끝</label><select className="in" value={d.endHour} onChange={(e) => set('endHour')(Number(e.target.value))} disabled={d.done}>{HOURS.map((h) => <option key={h} value={h}>{ap(h)}</option>)}</select></div>
       </div>
-      <div className={'su-check ' + (d.repeat && d.repeat.weekly ? 'on' : '')} role="checkbox" aria-checked={!!(d.repeat && d.repeat.weekly)} tabIndex={0} style={{ marginTop: 8 }} onClick={() => !d.done && onChange({ ...d, repeat: { weekly: !(d.repeat && d.repeat.weekly), weeks: 4 } })}><span className="bx" /><div className="small">매주 반복 (4주 공고)</div></div>
+      {(d.repeatLabel || (d.repeat && d.repeat.weekly)) && <div className="mute2" style={{ marginTop: 8 }}>자동으로 반복되지 않아요. 이번 한 번만 올리고, 다음에는 지난 요청 다시 올리기에서 날짜만 바꿔요.</div>}
       <label className="f">할 일</label><textarea className="in" style={{ minHeight: 60 }} value={d.detail || ''} onChange={set('detail')} disabled={d.done} />
       <label className="f">주의사항 <span className="mute2">(병명 없이)</span></label><input className="in" value={d.note || ''} onChange={set('note')} disabled={d.done} />
     </div>
@@ -140,7 +140,7 @@ export function MemoToPosts() {
       if (!d.date) { next[i] = { ...d, error: '날짜를 골라 주세요' }; continue; }
       if (!(d.categories || []).length) { next[i] = { ...d, error: '카테고리를 골라 주세요' }; continue; }
       try {
-        const r = await post('/posts', { type: 'NEED', date: d.date, startHour: d.startHour, endHour: d.endHour, area: d.area, categories: d.categories, title: d.title, detail: d.detail, note: d.note || null, estHours: d.estHours, repeat: d.repeat, elderId: Number(sel) }, { quiet: true });
+        const r = await post('/posts', { type: 'NEED', date: d.date, startHour: d.startHour, endHour: d.endHour, area: d.area, categories: d.categories, title: d.title, detail: d.detail, note: d.note || null, estHours: d.estHours, elderId: Number(sel) }, { quiet: true });
         next[i] = { ...d, done: true, checked: false, error: null, createdCount: r.createdCount };
         ok += 1;
       } catch (e) { next[i] = { ...d, error: e.message }; }
