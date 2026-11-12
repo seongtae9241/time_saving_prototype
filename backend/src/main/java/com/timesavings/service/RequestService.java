@@ -254,7 +254,9 @@ public class RequestService {
         r.status = ReqStatus.CONFIRMED;
         r.confirmedAt = LocalDateTime.now();
         r.deadlineAt = null;
-        r.checkCode = auth.sixDigits();
+        r.checkCode = auth.sixDigits(); // 예전 자료용으로 남긴다. 확인은 아래 비밀값으로 만든 30초 코드로 한다(B-51)
+        r.qrSecret = auth.randomHex(16);
+        if (r.elderId != null) elders.findById(r.elderId).ifPresent(this::ensureCard); // 독거노인 건은 현관 QR 카드(C-11)
         sys(r, "일정이 확정됐어요. " + when(r) + " · " + Rules.fmtHours(r.hours) + "시간");
         if (activityAi != null) activityAi.onConfirmed(r); // 7.13 방문 전 브리핑
         noti.toVolunteer(r, "CONFIRMED", "일정이 확정됐어요", noti.recipientLabel(r, false) + " · " + when(r) + " · " + r.category);
@@ -307,6 +309,10 @@ public class RequestService {
         Request r = get(id);
         String role = requireRole(r, me);
         requireStatus(r, ReqStatus.SENT, ReqStatus.VOL_ACCEPTED, ReqStatus.CONFIRMED);
+        // B-25: 상대가 응답하기 전에는 보낸 사람만 취소한다(받은 쪽은 거절로 답한다)
+        boolean senderSide = me.id.equals(r.senderId) || (r.kind == Kind.PROPOSAL ? "VOLUNTEER".equals(role) : role != null && !"VOLUNTEER".equals(role));
+        if (r.status == ReqStatus.SENT && !senderSide && me.role != Role.ADMIN)
+            throw ApiException.forbidden("보낸 쪽만 취소할 수 있어요. 받은 요청은 거절로 답해 주세요");
         boolean wasConfirmed = r.status == ReqStatus.CONFIRMED;
         boolean late = wasConfirmed && LocalDateTime.now().isAfter(r.startAt().minusHours(24));
         r.status = ReqStatus.CANCELLED;
@@ -331,8 +337,8 @@ public class RequestService {
         String role = requireRole(r, me);
         requireRecipientSide(role);
         requireStatus(r, ReqStatus.CONFIRMED);
-        if (LocalDateTime.now().isBefore(r.startAt().plusMinutes(15)))
-            throw ApiException.conflict("TOO_EARLY", "시작 15분이 지나야 노쇼로 처리할 수 있어요");
+        if (LocalDateTime.now().isBefore(r.startAt().plusMinutes(Rules.NOSHOW_MIN)))
+            throw ApiException.conflict("TOO_EARLY", "시작 " + Rules.NOSHOW_MIN + "분이 지나야 노쇼로 처리할 수 있어요");
         r.status = ReqStatus.NOSHOW;
         releaseHold(r);
         closeMatchedPost(r);
@@ -352,7 +358,7 @@ public class RequestService {
         r.checkMethod = verifyCode(r, code, method);
         r.status = ReqStatus.IN_PROGRESS;
         r.checkInAt = LocalDateTime.now();
-        sys(r, "활동 시작 · " + hhmm(r.checkInAt.getHour() + (r.checkInAt.getMinute() >= 30 ? 0.5 : 0)) + " (" + methodKo(r.checkMethod) + ")");
+        sys(r, "활동 시작 · " + clock(r.checkInAt) + " (" + methodKo(r.checkMethod) + ")");
         noti.toRecipientSide(r, "CHECK_IN", noti.name(r.volunteerId) + " 님이 도착해 활동을 시작했어요", when(r));
         return r;
     }
@@ -365,8 +371,28 @@ public class RequestService {
         if (!"manual".equals(r.checkMethod)) r.checkMethod = m;
         r.status = ReqStatus.CHECKED_OUT;
         r.checkOutAt = LocalDateTime.now();
-        sys(r, "활동 종료 (" + methodKo(m) + "). 봉사자가 활동 일지를 올리면 확인해 주세요.");
+        sys(r, "활동 종료 · " + clock(r.checkOutAt) + " (" + methodKo(m) + "). 봉사자가 활동 일지를 올리면 확인해 주세요.");
+        gapNotice(r);
         return r;
+    }
+
+    private static String clock(LocalDateTime t) { return String.format("%d:%02d", t.getHour(), t.getMinute()); }
+
+    /** B-51: 기록된 활동 시간이 예정과 30분 이상 다르면 양쪽(독거노인 건은 담당자)에 한 번 안내. 적립은 예정 시간 기준 그대로다. */
+    private void gapNotice(Request r) {
+        Long gap = gapMinutes(r);
+        if (r.gapNotified || gap == null || Math.abs(gap) < Rules.GAP_MIN) return;
+        r.gapNotified = true;
+        String diff = "기록된 시간이 예정(" + Rules.fmtHours(r.hours) + "시간)보다 " + Math.abs(gap) + "분 " + (gap > 0 ? "길어요" : "짧아요");
+        sys(r, diff + ". 적립은 예정 시간 기준이에요. 실제와 다르면 봉사자가 시간 조정을 요청할 수 있어요.");
+        noti.toVolunteer(r, "TIME_GAP", "기록된 시간이 예정과 달라요", diff + " · 적립은 예정 시간 기준이에요. 필요하면 시간 조정을 요청해 주세요");
+        noti.toRecipientSide(r, "TIME_GAP", "기록된 시간이 예정과 달라요", diff + " · 봉사자가 시간 조정을 요청하면 확인해 주세요");
+    }
+
+    /** 기록된 활동 시간 − 예정 시간(분). 시작·종료 기록이 다 있어야 값이 있다. */
+    public static Long gapMinutes(Request r) {
+        if (r.checkInAt == null || r.checkOutAt == null) return null;
+        return java.time.Duration.between(r.checkInAt, r.checkOutAt).toMinutes() - Math.round(r.hours * 60);
     }
 
     private static String methodKo(String m) {
@@ -375,8 +401,54 @@ public class RequestService {
 
     private String verifyCode(Request r, String code, String method) {
         if ("manual".equals(method)) return "manual";
-        if (code == null || !code.trim().equals(r.checkCode)) throw ApiException.bad("WRONG_CODE", "번호가 맞지 않아요. 받는 분 화면의 6자리 번호를 확인해 주세요");
+        String c = code == null ? "" : code.trim();
+        if (r.elderId != null) {
+            // 독거노인 건: 도움 대상별 현관 QR 카드(C-11). 다시 발급하면 이전 카드 번호는 여기서 걸린다.
+            Elder e = elders.findById(r.elderId).orElse(null);
+            String card = e == null ? null : ensureCard(e).qrCode;
+            if (card == null || !card.equals(c))
+                throw ApiException.bad("WRONG_CODE", "현관 QR 카드가 맞지 않아요. 카드가 다시 발급됐다면 새 카드를 찍어 주세요");
+        } else {
+            // 일반 건: 받는 분 화면의 30초 코드. 찍는 사이 바뀔 수 있어 직전 구간까지 받는다.
+            long w = Rules.qrWindow(System.currentTimeMillis());
+            if (!c.equals(Rules.rotatingCode(r.qrKey(), w)) && !c.equals(Rules.rotatingCode(r.qrKey(), w - 1)))
+                throw ApiException.bad("WRONG_CODE", "번호가 맞지 않아요. 받는 분 화면의 QR·번호는 30초마다 바뀌니 지금 보이는 것으로 확인해 주세요");
+        }
         return "qr".equals(method) ? "qr" : "code";
+    }
+
+    /** 지금 이 요청의 시작·종료에 맞는 번호: 일반 건은 30초 코드, 독거노인 건은 현관 카드 번호. */
+    public String codeFor(Request r) {
+        if (r.elderId != null) return elders.findById(r.elderId).map(e -> ensureCard(e).qrCode).orElse(null);
+        return Rules.rotatingCode(r.qrKey(), Rules.qrWindow(System.currentTimeMillis()));
+    }
+
+    /** 받는 쪽 화면이 30초마다 다시 받아 가는 QR 정보. 독거노인 건은 바뀌지 않는 현관 카드라 남은 시간이 없다. */
+    public Map<String, Object> qrInfo(User me, Long id) {
+        Request r = get(id);
+        requireRecipientSide(requireRole(r, me));
+        boolean show = r.status == ReqStatus.CONFIRMED || r.status == ReqStatus.IN_PROGRESS;
+        String code = show ? codeFor(r) : null;
+        boolean elder = r.elderId != null;
+        return Views.map("status", r.status, "elderCard", elder, "code", code,
+                "qrText", code == null ? null : Rules.qrText(elder ? "ELD" : "REQ", elder ? r.elderId : r.id, code),
+                "leftSec", elder || !show ? null : Rules.qrLeftSec(System.currentTimeMillis()), "stepSec", Rules.QR_STEP_SEC);
+    }
+
+    // ======================= 도움 대상 현관 QR 카드 (C-11) =======================
+    /** 카드가 아직 없으면 만든다. */
+    public Elder ensureCard(Elder e) {
+        if (e.qrCode == null || e.qrCode.isBlank()) { e.qrCode = auth.sixDigits(); e.qrIssuedAt = LocalDateTime.now(); elders.save(e); }
+        return e;
+    }
+
+    /** 다시 발급: 번호가 바뀌어 이전 카드는 쓸 수 없다. */
+    public Elder reissueCard(Elder e) {
+        String old = e.qrCode, next;
+        do { next = auth.sixDigits(); } while (next.equals(old));
+        e.qrCode = next;
+        e.qrIssuedAt = LocalDateTime.now();
+        return elders.save(e);
     }
 
     // ======================= 활동 일지 (B-24) =======================
@@ -575,16 +647,57 @@ public class RequestService {
         return n;
     }
 
+    /**
+     * B-52 지각·노쇼 감지: 예정 시작 10분이 지나도 시작 기록이 없으면 지각 알림, 30분이 지나면 노쇼 의심 알림을
+     * 양쪽에 보낸다(독거노인 건은 담당자가 받는다). 요청마다 단계별로 한 번씩만.
+     */
     public int lateCheck(LocalDateTime now) {
         int n = 0;
         for (Request r : repo.findByStatusIn(List.of(ReqStatus.CONFIRMED))) {
-            if (r.lateNotified || r.checkInAt != null || now.isBefore(r.startAt().plusMinutes(15))) continue;
-            r.lateNotified = true;
+            if (r.checkInAt != null) continue;
+            LocalDateTime start = r.startAt();
             String v = noti.name(r.volunteerId);
-            sys(r, "약속 15분이 지나도 시작 체크인이 없어 " + (r.elderId != null ? "담당자" : "받는 분") + "에게 알렸어요.");
-            noti.toRecipientSide(r, "LATE", v + " 님이 아직 도착하지 않았어요",
-                    "약속 15분 경과 · 시작 체크인 없음. " + (r.elderId != null ? "봉사자에게 연락해 주세요" : "메시지를 보내거나 노쇼로 신고할 수 있어요"));
-            noti.toVolunteer(r, "LATE", "약속 시간이 15분 지났어요", "도착했다면 시작 체크인을 해 주세요. 늦으면 메시지로 알려 주세요");
+            String side = r.elderId != null ? "담당자" : "받는 분";
+            if (!r.noshowNotified && !now.isBefore(start.plusMinutes(Rules.NOSHOW_MIN))) {
+                r.noshowNotified = true;
+                r.lateNotified = true;
+                if (now.isAfter(start.plusDays(1))) continue; // 하루 넘게 지난 예전 일정에는 뒤늦게 알리지 않는다
+                sys(r, "약속 " + Rules.NOSHOW_MIN + "분이 지나도 시작 기록이 없어요(노쇼 의심). 봉사자와 " + side + "에게 알렸어요.");
+                noti.toRecipientSide(r, "NOSHOW_SUSPECT", v + " 님이 오지 않은 것 같아요 (노쇼 의심)",
+                        "약속 " + Rules.NOSHOW_MIN + "분 경과 · 시작 기록 없음. 더 기다리거나 노쇼로 신고하고 취소할 수 있어요");
+                noti.toVolunteer(r, "NOSHOW_SUSPECT", "약속 시간이 " + Rules.NOSHOW_MIN + "분 지났어요 (노쇼 의심)",
+                        "도착했다면 지금 시작 QR을 찍어 주세요. " + side + "이 노쇼로 신고하면 패널티가 기록돼요");
+                n++;
+            } else if (!r.lateNotified && !now.isBefore(start.plusMinutes(Rules.LATE_MIN))) {
+                r.lateNotified = true;
+                sys(r, "약속 " + Rules.LATE_MIN + "분이 지나도 시작 기록이 없어 봉사자와 " + side + "에게 알렸어요.");
+                noti.toRecipientSide(r, "LATE", v + " 님이 아직 도착하지 않았어요",
+                        "약속 " + Rules.LATE_MIN + "분 경과 · 시작 기록 없음. " + Rules.NOSHOW_MIN + "분이 지나면 다시 알려 드려요");
+                noti.toVolunteer(r, "LATE", "약속 시간이 " + Rules.LATE_MIN + "분 지났어요", "도착했다면 시작 QR을 찍어 주세요. 늦으면 \"늦는다고 알리기\"로 알려 주세요");
+                n++;
+            }
+        }
+        return n;
+    }
+
+    /**
+     * B-53 활동 종료 자동 마감: 종료 QR 기록이 없으면 예정 종료 30분 뒤에 예정 종료 시각으로 마감하고,
+     * 봉사자에게 일지 작성 알림을 보낸다.
+     */
+    public int autoCloseDue(LocalDateTime now) {
+        int n = 0;
+        for (Request r : repo.findByStatusIn(List.of(ReqStatus.IN_PROGRESS))) {
+            LocalDateTime end = r.endAt();
+            if (now.isBefore(end.plusMinutes(Rules.AUTO_CLOSE_MIN))) continue;
+            r.status = ReqStatus.CHECKED_OUT;
+            r.checkOutAt = r.checkInAt != null && r.checkInAt.isAfter(end) ? r.checkInAt : end; // 시작이 예정 종료보다 늦었으면 0분으로
+            r.autoClosed = true;
+            sys(r, "종료 QR 기록이 없어 예정 종료 시각(" + clock(end) + ")으로 자동 마감됐어요. 봉사자가 활동 일지를 올리면 확인해 주세요.");
+            noti.toVolunteer(r, "AUTO_CLOSED", "활동이 자동으로 마감됐어요. 일지를 써 주세요",
+                    "종료 QR 기록이 없어 예정 종료 시각 " + clock(end) + "으로 기록했어요. 실제와 다르면 시간 조정을 요청할 수 있어요");
+            noti.toRecipientSide(r, "AUTO_CLOSED", "활동이 예정 종료 시각으로 마감됐어요",
+                    noti.name(r.volunteerId) + " 님 · 종료 QR 기록이 없어 " + clock(end) + "으로 기록했어요");
+            gapNotice(r);
             n++;
         }
         return n;

@@ -78,8 +78,8 @@ class MeetingFeaturesTest {
     /** 확정 → 시작 → 종료 → 일지(전달 메모)까지 */
     Request runToLog(User v, Request r, User recipientSide, String memo) {
         if (r.status == ReqStatus.SENT) reqs.accept(recipientSide, r.id);
-        reqs.checkIn(v, r.id, r.checkCode, null);
-        reqs.checkOut(v, r.id, r.checkCode, null);
+        reqs.checkIn(v, r.id, reqs.codeFor(r), null);
+        reqs.checkOut(v, r.id, reqs.codeFor(r), null);
         return reqs.submitLog(v, r.id, "이야기 나눔", "이야기를 나눴어요.", null, false, memo);
     }
 
@@ -129,7 +129,7 @@ class MeetingFeaturesTest {
                 .content("{\"reason\":\"대상이 원하지 않아요\"}")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("REJECTED"));
         Request r2 = propose(vol2, p); // 차단 안 했으니 다른 봉사자·같은 봉사자 모두 가능
         reqs.accept(mgr, r2.id);
-        reqs.checkIn(vol2, r2.id, r2.checkCode, null);
+        reqs.checkIn(vol2, r2.id, reqs.codeFor(r2), null);
         mvc.perform(post("/api/org/requests/" + r2.id + "/reject-volunteer").header("Authorization", tok(mgr)).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"reason\":\"x\"}")).andExpect(status().isConflict());
     }
@@ -171,8 +171,8 @@ class MeetingFeaturesTest {
         // 500자 넘는 메모는 막는다
         Request r3 = propose(vol2, elderNeed());
         reqs.accept(mgr, r3.id);
-        reqs.checkIn(vol2, r3.id, r3.checkCode, null);
-        reqs.checkOut(vol2, r3.id, r3.checkCode, null);
+        reqs.checkIn(vol2, r3.id, reqs.codeFor(r3), null);
+        reqs.checkOut(vol2, r3.id, reqs.codeFor(r3), null);
         assertEquals("MEMO_TOO_LONG", assertThrows(ApiException.class, () -> reqs.submitLog(vol2, r3.id, "x", null, null, false, "가".repeat(501))).code);
     }
 

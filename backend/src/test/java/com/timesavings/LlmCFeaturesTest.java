@@ -77,8 +77,8 @@ class LlmCFeaturesTest {
                 "말벗", "이야기 나눠요", null, 1.0, false, null, elder.id, null, null)).get(0);
         Request r = reqs.create(vol, new RequestService.CreateCmd(Kind.PROPOSAL, p.id, null, null, day, 11.0, 1.0, null, "말벗 해 드릴게요", null));
         reqs.accept(mgr, r.id);
-        reqs.checkIn(vol, r.id, r.checkCode, null);
-        reqs.checkOut(vol, r.id, r.checkCode, null);
+        reqs.checkIn(vol, r.id, reqs.codeFor(r), null);
+        reqs.checkOut(vol, r.id, reqs.codeFor(r), null);
         return reqs.submitLog(vol, r.id, "이야기 나눔", "이야기를 나눴어요.", null, false, memo);
     }
 

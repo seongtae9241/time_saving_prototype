@@ -49,9 +49,23 @@ public class Request {
     public boolean anomalyHold;
     public boolean reminded;
     public boolean lateNotified;
+    /** B-51: 30초마다 바뀌는 QR·번호를 만드는 비밀값(일정 확정 때 생성). 화면에는 나가지 않는다. */
+    @Column(name = "qr_secret", length = 64) public String qrSecret;
+    /** B-52: 시작 30분 경과 "노쇼 의심" 알림을 보냈는지. */
+    @Column(name = "noshow_notified", columnDefinition = "boolean default false") public boolean noshowNotified;
+    /** B-53: 종료 QR 없이 예정 종료 시각으로 자동 마감됐는지. */
+    @Column(name = "auto_closed", columnDefinition = "boolean default false") public boolean autoClosed;
+    /** B-51: 기록된 시간이 예정과 30분 이상 달라 양쪽에 안내했는지. */
+    @Column(name = "gap_notified", columnDefinition = "boolean default false") public boolean gapNotified;
     public LocalDateTime confirmedAt;
     public LocalDateTime doneAt;
     public LocalDateTime createdAt = LocalDateTime.now();
+
+    /** 예정 종료 시각. */
+    public LocalDateTime endAt() { return startAt().plusMinutes(Math.round(hours * 60)); }
+
+    /** 30초 코드의 비밀값. 예전 자료(qr_secret 없음)는 요청 번호와 예전 6자리로 대신한다. */
+    public String qrKey() { return qrSecret != null && !qrSecret.isBlank() ? qrSecret : "L" + id + ":" + checkCode; }
 
     public LocalDateTime startAt() {
         int h = (int) Math.floor(startHour);

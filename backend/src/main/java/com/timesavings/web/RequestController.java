@@ -104,6 +104,10 @@ public class RequestController {
     @PostMapping("/requests/{id}/noshow")
     public Map<String, Object> noshow(@CurrentUser User u, @PathVariable Long id) { return view(svc.noshow(u, id), u); }
 
+    /** B-51: 받는 쪽 화면이 30초마다 받아 가는 QR·번호(독거노인 건은 현관 카드). */
+    @GetMapping("/requests/{id}/qr")
+    public Map<String, Object> qr(@CurrentUser User u, @PathVariable Long id) { return svc.qrInfo(u, id); }
+
     @PostMapping("/requests/{id}/check-in")
     public Map<String, Object> checkIn(@CurrentUser User u, @PathVariable Long id, @RequestBody CodeBody b) {
         return view(svc.checkIn(u, id, b.code(), b.method()), u);

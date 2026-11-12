@@ -21,5 +21,8 @@ public class Elder {
     @Column(length = 500) public String caution;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 10) public ElderStatus status = ElderStatus.ACTIVE;
     public boolean reportConsent;
+    /** C-11 현관 QR 카드 번호(6자리). 다시 발급하면 값이 바뀌어 이전 카드는 쓸 수 없다. */
+    @Column(name = "qr_code", length = 12) public String qrCode;
+    @Column(name = "qr_issued_at") public LocalDateTime qrIssuedAt;
     public LocalDateTime createdAt = LocalDateTime.now();
 }

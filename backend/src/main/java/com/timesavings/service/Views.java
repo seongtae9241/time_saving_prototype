@@ -144,9 +144,10 @@ public class Views {
 
     public Map<String, Object> elderBrief(Elder e, boolean manager) {
         if (e == null) return null;
+        // B-13: 봉사자에게는 별칭(가림)·동·주의사항까지만. 나이대와 별칭 원문은 담당자에게만.
         Map<String, Object> m = map("id", e.id, "displayName", manager ? e.alias + " 님" : Rules.maskAlias(e.alias),
-                "dong", e.dong, "caution", e.caution, "ageGroup", e.ageGroup);
-        if (manager) m.put("alias", e.alias);
+                "dong", e.dong, "caution", e.caution);
+        if (manager) { m.put("alias", e.alias); m.put("ageGroup", e.ageGroup); }
         return m;
     }
 
@@ -234,7 +235,7 @@ public class Views {
             case CONFIRMED -> {
                 if (vol) a.add("checkIn"); else a.add("showCode");
                 a.add("cancel"); a.add("message");
-                if (rec && LocalDateTime.now().isAfter(r.startAt().plusMinutes(15))) a.add("noshow");
+                if (rec && !LocalDateTime.now().isBefore(r.startAt().plusMinutes(Rules.NOSHOW_MIN))) a.add("noshow");
             }
             case IN_PROGRESS -> {
                 if (vol) { a.add("checkOut"); a.add("adjust"); } else a.add("showCode");
@@ -291,9 +292,24 @@ public class Views {
         // 전달 메모: 이 건의 당사자(봉사자 본인·받은 사람·담당자)만. 운영자 조회(role 없음)에는 넣지 않는다.
         if (role != null) m.put("careMemo", r.careMemo);
         m.put("canRejectVolunteer", "MANAGER".equals(role) && (r.status.pending() || r.status == ReqStatus.CONFIRMED)); // O1
-        if (role != null && !role.equals("VOLUNTEER") && r.status.active()) {
-            m.put("checkCode", r.checkCode);
-            m.put("qrText", Rules.qrText("REQ", r.id, r.checkCode));
+        // B-51: 시작·종료 기록과 예정의 차이(분), 자동 마감 여부(B-53)
+        m.put("autoClosed", r.autoClosed);
+        m.put("gapMinutes", RequestService.gapMinutes(r));
+        if (role != null && !role.equals("VOLUNTEER") && (r.status == ReqStatus.CONFIRMED || r.status == ReqStatus.IN_PROGRESS)) {
+            if (elder != null) {
+                // 독거노인 건: 도움 대상별 현관 QR 카드(C-11). 담당자에게만 간다.
+                m.put("elderCard", true);
+                m.put("checkCode", elder.qrCode);
+                m.put("qrText", elder.qrCode == null ? null : Rules.qrText("ELD", elder.id, elder.qrCode));
+                m.put("qrIssuedAt", elder.qrIssuedAt);
+            } else {
+                // 일반 건: 30초마다 바뀌는 코드. 화면은 GET /api/requests/{id}/qr 로 다시 받아 간다.
+                long now = System.currentTimeMillis();
+                String code = Rules.rotatingCode(r.qrKey(), Rules.qrWindow(now));
+                m.put("checkCode", code);
+                m.put("qrText", Rules.qrText("REQ", r.id, code));
+                m.put("qrLeftSec", Rules.qrLeftSec(now));
+            }
         }
         return m;
     }

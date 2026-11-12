@@ -77,7 +77,39 @@ public final class Rules {
         return h == Math.floor(h) ? String.valueOf((long) h) + ".0" : String.valueOf(h);
     }
 
-    /** QR에 담는 글: TS1|종류(REQ 요청 체크)|대상 id|6자리 코드 */
+    /** QR에 담는 글: TS1|종류(REQ 요청 체크 · ELD 도움 대상 현관 카드)|대상 id|6자리 코드 */
     public static String qrText(String kind, Long id, String code) { return "TS1|" + kind + "|" + id + "|" + code; }
+
+    // ---------------- 활동 진행 시간 기준 (B-51~B-53) ----------------
+    /** 받는 분 화면 QR·번호가 바뀌는 간격(초). */
+    public static final int QR_STEP_SEC = 30;
+    /** 예정 시작 뒤 이 분이 지나도 시작 기록이 없으면 지각 알림. */
+    public static final int LATE_MIN = 10;
+    /** 예정 시작 뒤 이 분이 지나도 시작 기록이 없으면 노쇼 의심 알림 · 이때부터 노쇼 신고 가능. */
+    public static final int NOSHOW_MIN = 30;
+    /** 예정 종료 뒤 이 분이 지나도 종료 기록이 없으면 예정 종료 시각으로 자동 마감. */
+    public static final int AUTO_CLOSE_MIN = 30;
+    /** 기록된 활동 시간이 예정과 이 분 이상 다르면 양쪽에 안내. */
+    public static final int GAP_MIN = 30;
+
+    /** 지금이 몇 번째 30초 구간인지. */
+    public static long qrWindow(long epochMillis) { return Math.floorDiv(epochMillis / 1000, (long) QR_STEP_SEC); }
+
+    /** 이 구간이 끝날 때까지 남은 초(1~30). */
+    public static int qrLeftSec(long epochMillis) { return QR_STEP_SEC - (int) Math.floorMod(epochMillis / 1000, (long) QR_STEP_SEC); }
+
+    /** 시각 기반 6자리 코드: 요청마다 다른 비밀값과 30초 구간 번호로 만든다(HMAC-SHA256). 같은 구간에서는 늘 같은 값. */
+    public static String rotatingCode(String secret, long window) {
+        try {
+            javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
+            mac.init(new javax.crypto.spec.SecretKeySpec(String.valueOf(secret).getBytes(java.nio.charset.StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] h = mac.doFinal(Long.toString(window).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            int off = h[h.length - 1] & 0x0f;
+            int bin = ((h[off] & 0x7f) << 24) | ((h[off + 1] & 0xff) << 16) | ((h[off + 2] & 0xff) << 8) | (h[off + 3] & 0xff);
+            return String.format("%06d", bin % 1_000_000);
+        } catch (java.security.GeneralSecurityException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
 }

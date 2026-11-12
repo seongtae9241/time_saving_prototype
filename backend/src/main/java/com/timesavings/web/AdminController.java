@@ -287,6 +287,16 @@ public class AdminController {
                     "type", r.type, "content", r.content, "status", r.status, "action", r.action, "result", r.result,
                     "createdAt", r.createdAt, "handledAt", r.handledAt);
             if (r.targetType == ReportTarget.MESSAGE && r.targetId != null) messages.findById(r.targetId).ifPresent(x -> m.put("messageText", x.text));
+            // D-02: 독거노인 이상 징후(안부 확인)는 제재 없는 접수 기록으로 구분해 보여 준다
+            m.put("kind", r.kind);
+            m.put("welfare", r.welfare());
+            if (r.welfare()) {
+                m.put("targetUser", null); // 제재 대상이 없다
+                if (r.elderId != null) elders.findById(r.elderId).ifPresent(e -> {
+                    m.put("elder", Views.map("id", e.id, "displayName", Rules.maskAlias(e.alias), "dong", e.dong));
+                    m.put("manager", e.managerId == null ? null : views.userBrief(users.findById(e.managerId).orElse(null)));
+                });
+            }
             return m;
         }).toList();
     }
@@ -297,6 +307,16 @@ public class AdminController {
         if (b.action() == null) {
             r.status = ReportStatus.REVIEWING;
             return Views.map("id", r.id, "status", r.status);
+        }
+        if (r.welfare()) {
+            // D-02: 이상 징후 접수는 제재하지 않는다. 확인했다는 기록만 남기고 접수한 사람에게 알린다.
+            if (b.action() != ReportAction.NONE) throw ApiException.bad("NO_SANCTION", "이상 징후(안부 확인) 접수는 제재 없이 확인만 해요");
+            r.action = ReportAction.NONE;
+            r.result = b.result() == null || b.result().isBlank() ? "접수 기록 확인" : b.result();
+            r.status = ReportStatus.DONE;
+            r.handledAt = LocalDateTime.now();
+            noti.send(r.reporterId, "REPORT_RESULT", "안부 확인 접수를 운영자가 확인했어요", r.result, "/my/reports");
+            return Views.map("id", r.id, "status", r.status, "action", r.action, "result", r.result);
         }
         r.action = b.action();
         r.result = b.result() == null || b.result().isBlank() ? switch (b.action()) {
