@@ -87,7 +87,7 @@ export function Notice() {
   return (
     <Screen title="공지사항" noTabs>
       {list === undefined ? <Loading /> : !list || !list.length ? <Empty>공지가 없어요</Empty> : (
-        <div className="ml">{list.map((n) => <div key={n.id} role="button" tabIndex={0} onClick={() => nav(`/notice/${n.id}`)}><div className="grow">{n.title}<span>{dshort(n.createdAt).split(' ')[0]}</span></div>›</div>)}</div>
+        <div className="ml">{list.map((n) => <div key={n.id} role="button" tabIndex={0} onClick={() => nav(`/notice/${n.id}`)}><div className="grow">{n.pinned && <em className="badge" style={{ fontStyle: 'normal', marginRight: 6 }}>고정</em>}{n.title}<span>{dshort(n.createdAt).split(' ')[0]}</span></div>›</div>)}</div>
       )}
     </Screen>
   );

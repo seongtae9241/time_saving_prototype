@@ -20,6 +20,7 @@ import { ModeProvider } from './ui/proto.jsx';
 import { Planner } from './screens/planner.jsx';
 import { Ask } from './screens/assist.jsx'; // LLM 추가 A(7.12) 음성 비서
 import { ClassDetail, APublicClasses } from './screens/publicClass.jsx';
+import { AForecast, ASim, AStats, ARecruit, AWeather, AMgrApps } from './screens/adminReports.jsx'; // 기능명세서 운영자 리포트
 
 /** 로그인·역할 확인 */
 function Guard({ roles, children }) {
@@ -128,6 +129,12 @@ function Shell() {
         <Route path="/a/suggest" element={g(<ASuggest />, A)} />
         <Route path="/a/persona" element={g(<APersona />, A)} />
         <Route path="/a/classes" element={g(<APublicClasses />, A)} />
+        <Route path="/a/forecast" element={g(<AForecast />, A)} />
+        <Route path="/a/sim" element={g(<ASim />, A)} />
+        <Route path="/a/stats" element={g(<AStats />, A)} />
+        <Route path="/a/recruit" element={g(<ARecruit />, A)} />
+        <Route path="/a/weather" element={g(<AWeather />, A)} />
+        <Route path="/a/mgr-apps" element={g(<AMgrApps />, A)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
