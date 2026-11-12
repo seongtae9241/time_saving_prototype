@@ -198,14 +198,15 @@ class FlowIntegrationTest {
         assertEquals("FORBIDDEN_REQUEST", e.code);
     }
 
+    /** 41판 B-06: 자동 반복 등록은 하지 않는다. 예전 반복 칸(weekly, weeks)이 와도 한 건만 만든다. */
     @Test
-    void 반복_공고는_주마다_하나씩() {
+    void 반복_칸이_와도_공고는_한_건만() {
         List<Post> list = postSvc.create(vol, new PostService.PostCmd(PostType.OFFER, day, 10.0, 13.0, "행복동", List.of("말동무·정서"),
                 null, null, null, null, true, 4, null, null, null));
-        assertEquals(4, list.size());
-        assertEquals(day.plusWeeks(3), list.get(3).date);
-        assertNotNull(list.get(0).seriesId);
-        assertEquals(list.get(0).seriesId, list.get(3).seriesId);
+        assertEquals(1, list.size());
+        assertEquals(day, list.get(0).date);
+        assertNull(list.get(0).seriesId);
+        assertNull(list.get(0).repeatRule);
     }
 
     @Test

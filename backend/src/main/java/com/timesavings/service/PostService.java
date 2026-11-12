@@ -22,11 +22,16 @@ public class PostService {
     private final InterestAlertRepo alerts;
     private final NotificationService noti;
     private final Views views;
+    private final UserRepo users;
+    private final FamilyLinkRepo family;
 
-    public PostService(PostRepo posts, RequestRepo requests, ElderRepo elders, InterestAlertRepo alerts, NotificationService noti, Views views) {
+    public PostService(PostRepo posts, RequestRepo requests, ElderRepo elders, InterestAlertRepo alerts, NotificationService noti, Views views,
+                       UserRepo users, FamilyLinkRepo family) {
         this.posts = posts; this.requests = requests; this.elders = elders; this.alerts = alerts; this.noti = noti; this.views = views;
+        this.users = users; this.family = family;
     }
 
+    /** weekly·weeks 는 예전 자동 반복 등록의 칸이다. 41판 B-06 에서 자동 반복을 없애 더는 쓰지 않는다(값이 와도 한 건만 만든다). */
     public record PostCmd(PostType type, LocalDate date, Double startHour, Double endHour, String area, List<String> categories,
                           String title, String detail, String note, Double estHours, Boolean weekly, Integer weeks,
                           Long elderId, Level difficulty, String difficultyReason) {
@@ -42,7 +47,39 @@ public class PostService {
 
     public boolean canEdit(Post p, User u) {
         if (u.id.equals(p.ownerId)) return true;
+        if (isProxyAuthor(p, u)) return true; // B-57: 대신 올린 사람도 수락 전까지는 자기가 쓴 공고를 고치거나 지울 수 있다
         return p.elderId != null && views.isManagerOf(u, p.elderId);
+    }
+
+    /** B-57: 가족 대신 올린 공고의 작성자인가(공고 주인은 가족). 요청의 수락·거부 권한은 없다. */
+    public boolean isProxyAuthor(Post p, User u) {
+        return p.ownerId != null && p.elderId == null && p.createdBy != null && u.id.equals(p.createdBy) && !u.id.equals(p.ownerId);
+    }
+
+    /** 받은 요청·제안 목록을 볼 수 있는 사람: 공고 주인, 담당자, 대신 올린 사람(읽기만). */
+    public boolean canSeeRequests(Post p, User u) { return canEdit(p, u); }
+
+    /** 공고 카드에 "대신 올림" 정보를 붙인다(B-57). */
+    public Map<String, Object> decorate(Map<String, Object> card, Post p, User viewer) {
+        boolean proxy = p.ownerId != null && p.elderId == null && p.createdBy != null && !p.createdBy.equals(p.ownerId);
+        card.put("proxy", proxy);
+        if (proxy) {
+            card.put("proxyByName", users.findById(p.createdBy).map(x -> x.name).orElse(null));
+            card.put("proxyMine", viewer != null && viewer.id.equals(p.createdBy));
+        }
+        return card;
+    }
+
+    /** B-57: 연결(수락)된 가족인지 확인하고 그 가족을 돌려준다. */
+    private User linkedFamily(User me, Long forUserId) {
+        if (me.role != Role.USER) throw ApiException.forbidden("가족 대신 공고는 사용자 계정만 올릴 수 있어요");
+        if (forUserId.equals(me.id)) throw ApiException.bad("INVALID_FAMILY", "내 공고는 대신 올리기가 아니라 그냥 올려 주세요");
+        boolean linked = family.findAll().stream().anyMatch(f -> f.status == LinkStatus.ACCEPTED
+                && ((f.requesterId.equals(me.id) && f.targetId.equals(forUserId)) || (f.requesterId.equals(forUserId) && f.targetId.equals(me.id))));
+        if (!linked) throw ApiException.forbidden("연결된 가족만 대신 올릴 수 있어요. 마이페이지에서 가족 연결을 먼저 해 주세요 (B-57)");
+        User fam = users.findById(forUserId).orElseThrow(() -> ApiException.notFound("가족을 찾을 수 없어요"));
+        if (fam.role != Role.USER || fam.status != UserStatus.ACTIVE) throw ApiException.bad("INVALID_FAMILY", "지금 도움을 요청할 수 없는 계정이에요");
+        return fam;
     }
 
     private void validate(PostCmd c, User me, Elder elder) {
@@ -85,42 +122,64 @@ public class PostService {
         p.weight = Rules.weight(lv);
     }
 
-    public List<Post> create(User me, PostCmd c) {
+    public List<Post> create(User me, PostCmd c) { return create(me, c, null); }
+
+    /**
+     * 공고 등록. 항상 한 건만 만든다(B-06: 자동 반복 등록 없음 — 돌려주는 목록의 크기는 늘 1).
+     * forUserId 가 있으면 연결된 가족 대신 올리는 도움 요청 공고(B-57): 공고 주인=가족, 작성자=나.
+     */
+    public List<Post> create(User me, PostCmd c, Long forUserId) {
         Elder elder = null;
         if (c.elderId() != null) {
             elder = elders.findById(c.elderId()).orElseThrow(() -> ApiException.notFound("도움 대상을 찾을 수 없어요"));
             if (!views.isManagerOf(me, elder.id)) throw ApiException.forbidden("내가 담당하는 대상만 대신 올릴 수 있어요");
             if (elder.status != ElderStatus.ACTIVE) throw ApiException.bad("ELDER_ENDED", "지원이 종료된 대상이에요");
         }
+        User fam = null;
+        if (forUserId != null) {
+            if (elder != null) throw ApiException.bad("INVALID_FAMILY", "도움 대상 공고와 가족 대신 공고를 함께 고를 수 없어요");
+            fam = linkedFamily(me, forUserId);
+            if (c.type() != PostType.NEED) throw ApiException.bad("INVALID_TYPE", "가족 대신으로는 도움 요청 공고만 올릴 수 있어요 (B-57)");
+        }
         c = c.withDefaultHours();
         validate(c, me, elder);
-        int weeks = Boolean.TRUE.equals(c.weekly()) ? Math.max(1, Math.min(12, c.weeks() == null ? 4 : c.weeks())) : 1;
-        String series = weeks > 1 ? UUID.randomUUID().toString() : null;
-        String[] dayKo = {"월", "화", "수", "목", "금", "토", "일"};
-        List<Post> out = new ArrayList<>();
-        for (int i = 0; i < weeks; i++) {
-            Post p = new Post();
-            p.type = c.type();
-            p.ownerId = elder == null ? me.id : null;
-            p.elderId = elder == null ? null : elder.id;
-            p.createdBy = me.id;
-            p.date = c.date().plusWeeks(i);
-            p.startHour = c.startHour();
-            p.endHour = c.endHour();
-            p.area = c.area().trim();
-            p.categories = new ArrayList<>(new LinkedHashSet<>(c.categories()));
-            p.title = blankTo(c.title(), defaultTitle(c));
-            p.detail = c.detail();
-            p.note = c.note();
-            p.estHours = c.type() == PostType.NEED ? c.estHours() : null;
-            p.seriesId = series;
-            p.repeatRule = series == null ? null : "매주 " + dayKo[c.date().getDayOfWeek().getValue() - 1] + "요일";
-            applyDifficulty(p, c);
-            posts.save(p);
-            out.add(p);
-        }
-        notifyInterest(out.get(0), me);
-        return out;
+        Post p = new Post();
+        p.type = c.type();
+        p.ownerId = elder != null ? null : fam != null ? fam.id : me.id;
+        p.elderId = elder == null ? null : elder.id;
+        p.createdBy = me.id;
+        p.date = c.date();
+        p.startHour = c.startHour();
+        p.endHour = c.endHour();
+        p.area = c.area().trim();
+        p.categories = new ArrayList<>(new LinkedHashSet<>(c.categories()));
+        p.title = blankTo(c.title(), defaultTitle(c));
+        p.detail = c.detail();
+        p.note = c.note();
+        p.estHours = c.type() == PostType.NEED ? c.estHours() : null;
+        applyDifficulty(p, c);
+        posts.save(p);
+        if (fam != null)
+            noti.send(fam.id, "FAMILY_POST", me.name + " 님이 대신 도움 요청 공고를 올렸어요",
+                    p.title + " · " + p.date + " · 봉사 제안이 오면 최종 수락·거부는 직접 해 주세요", "/posts/" + p.id);
+        notifyInterest(p, me);
+        return new ArrayList<>(List.of(p));
+    }
+
+    /**
+     * B-06 다시 올리기: 지난 공고를 같은 내용으로 불러와 날짜만 바꿔 새 공고 1건을 만든다.
+     * 내 공고, 내가 담당하는 독거노인의 공고(담당자), 내가 가족 대신 올린 공고에 쓸 수 있다. 원래 공고는 그대로 둔다.
+     */
+    public Post repost(User me, Long id, LocalDate date) {
+        Post src = get(id);
+        if (src.status == PostStatus.DELETED) throw ApiException.notFound("삭제된 공고예요");
+        if (!canEdit(src, me)) throw ApiException.forbidden("내가 올린 공고만 다시 올릴 수 있어요");
+        if (date == null) throw ApiException.bad("INVALID_DATE", "다시 올릴 날짜를 골라 주세요");
+        PostCmd c = new PostCmd(src.type, date, src.startHour, src.endHour, src.area, new ArrayList<>(src.categories), src.title, src.detail, src.note,
+                src.estHours, false, 1, src.elderId, src.difficulty, src.difficultyReason);
+        Post p = create(me, c, isProxyAuthor(src, me) ? src.ownerId : null).get(0);
+        if (src.elderId != null) p.issueNote = src.issueNote; // 관리 대상 이슈도 같이 가져온다
+        return p;
     }
 
     private static String blankTo(String s, String d) { return s == null || s.isBlank() ? d : s.trim(); }
@@ -135,11 +194,13 @@ public class PostService {
         boolean weekend = p.date.getDayOfWeek() == DayOfWeek.SATURDAY || p.date.getDayOfWeek() == DayOfWeek.SUNDAY;
         Set<Long> sent = new HashSet<>();
         for (InterestAlert a : alerts.findByEnabledTrue()) {
-            if (a.userId.equals(author.id) || sent.contains(a.userId)) continue;
+            if (a.userId.equals(author.id) || a.userId.equals(p.ownerId) || sent.contains(a.userId)) continue;
             if (a.area != null && !a.area.isBlank() && !a.area.equals(p.area)) continue;
             if (!a.categories.isEmpty() && a.categories.stream().noneMatch(p.categories::contains)) continue;
             if ("주말".equals(a.dayType) && !weekend) continue;
             if ("평일".equals(a.dayType) && weekend) continue;
+            if (a.dateFrom != null && p.date.isBefore(a.dateFrom)) continue; // B-21 날짜 조건(기간, 하루면 시작=끝)
+            if (a.dateTo != null && p.date.isAfter(a.dateTo)) continue;
             noti.send(a.userId, "INTEREST", "관심 조건에 맞는 새 공고가 올라왔어요",
                     p.area + " · " + String.join("·", p.categories) + " · " + p.date, "/posts/" + p.id);
             sent.add(a.userId);
@@ -199,14 +260,30 @@ public class PostService {
     }
 
     public List<Map<String, Object>> list(User viewer, PostType type, String area, LocalDate date, String cat, String sort) {
+        return list(viewer, type, area, date, cat, sort, null, null, null, null);
+    }
+
+    /**
+     * 공고 목록(B-20). dateFrom~dateTo 는 날짜 범위 필터. lat·lng 가 오면 그 좌표에서 공고 동네까지의 거리로 바꿔 계산한다(B-59).
+     * 좌표는 이 계산에만 쓰고 저장하지 않는다. 좌표가 없으면 예전처럼 프로필 동네 기준 거리.
+     */
+    public List<Map<String, Object>> list(User viewer, PostType type, String area, LocalDate date, String cat, String sort,
+                                          LocalDate dateFrom, LocalDate dateTo, Double lat, Double lng) {
+        boolean geo = Geo.valid(lat, lng);
         List<Map<String, Object>> out = new ArrayList<>();
         for (Post p : posts.findByStatus(PostStatus.OPEN)) {
             if (type != null && p.type != type) continue;
             if (area != null && !area.isBlank() && !area.equals(p.area)) continue;
             if (date != null && !date.equals(p.date)) continue;
             if (cat != null && !cat.isBlank() && !p.categories.contains(cat)) continue;
+            if (dateFrom != null && p.date.isBefore(dateFrom)) continue;
+            if (dateTo != null && p.date.isAfter(dateTo)) continue;
             if (p.date.isBefore(LocalDate.now())) continue;
-            out.add(views.postCard(p, viewer));
+            Map<String, Object> card = decorate(views.postCard(p, viewer), p, viewer);
+            Double km = geo ? Geo.kmToDong(lat, lng, p.area) : null;
+            if (km != null) card.put("distanceKm", km);
+            card.put("distanceBy", km != null ? "location" : "profile");
+            out.add(card);
         }
         Comparator<Map<String, Object>> rating = Comparator.comparingDouble(m -> {
             @SuppressWarnings("unchecked") Map<String, Object> o = (Map<String, Object>) m.get("owner");

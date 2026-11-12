@@ -25,7 +25,8 @@ public final class PostChatRule {
         public Double estHours;
         public String summarySpeech;
         public String caution;
-        public String repeat;
+        /** "매주…"처럼 반복을 바란 말이 있었을 때의 안내(B-06: 자동 반복 등록은 없다). 없으면 null */
+        public String repeatNotice;
         public boolean hoursTooLong;
     }
 
@@ -76,7 +77,7 @@ public final class PostChatRule {
         if (d.area == null && defaultArea != null && !defaultArea.isBlank()) d.area = defaultArea;
         String all = allText.toString();
         d.caution = VoiceSafety.caution(all);
-        d.repeat = VoiceSafety.repeat(all);
+        d.repeatNotice = VoiceSafety.repeat(all) == null ? null : REPEAT_NOTICE;
         // 핵심 카테고리를 앞에: 정리 요청에 "냉장고"가 있으면 생활 정리 우선 등은 순서 유지
         String main = d.categories.isEmpty() ? null : d.categories.get(0);
         if (!details.isEmpty()) {
@@ -123,20 +124,21 @@ public final class PostChatRule {
         if (missing.isEmpty()) {
             if (!offer && d.startHour != null && d.estHours != null) d.endHour = Math.max(d.endHour == null ? 0 : d.endHour, d.startHour + d.estHours);
             d.summarySpeech = summary(d, offer);
-            reply = voice ? d.summarySpeech : "정리했어요. 아래 요약을 확인하고 괜찮으면 올려 주세요.";
+            reply = voice ? d.summarySpeech : "정리했어요. 아래 요약을 확인하고 괜찮으면 올려 주세요."
+                    + (d.repeatNotice == null ? "" : " " + d.repeatNotice);
         } else {
             reply = ask(missing.get(0), offer, voice, d);
         }
         return new Result(reply, missing.isEmpty(), d, missing, intent, conf, false, new ArrayList<>(pii));
     }
 
-    /** 소리로 읽어 줄 요약에 반복 여부를 덧붙인다(올리기 전에 몇 건이 올라가는지 알 수 있게). */
-    public static String withRepeat(String summary, String repeat) {
-        if (summary == null || repeat == null || repeat.isBlank() || summary.contains("반복")) return summary;
-        String tail = repeat.replace(" ", "").startsWith("매주")
-                ? "매주 반복으로 4주치를 올릴까요?"
-                : repeat + " 반복은 아직 안 돼서 이번 한 번만 올려요. 올릴까요?";
-        return summary.contains("올릴까요?") ? summary.replace("올릴까요?", tail) : summary + " " + tail;
+    /** B-06: 자동 반복 등록은 하지 않는다. 말에 "매주"가 있어도 한 번만 올리고 다시 올리기를 안내한다. */
+    public static final String REPEAT_NOTICE = "매주 자동으로 올리는 기능은 없어서 이번 한 번만 올려요. 다음에는 '다시 올리기'에서 날짜만 고르면 돼요.";
+
+    /** 소리로 읽어 줄 요약에 "한 번만 올린다"는 안내를 덧붙인다(반복을 바란 말이 있었을 때만). */
+    public static String withRepeatNotice(String summary, String notice) {
+        if (summary == null || notice == null || notice.isBlank() || summary.contains("한 번만")) return summary;
+        return summary.contains("올릴까요?") ? summary.replace("올릴까요?", notice + " 올릴까요?") : summary + " " + notice;
     }
 
     static String ask(String field, boolean offer, boolean voice, Draft d) {
