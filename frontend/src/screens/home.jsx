@@ -243,15 +243,23 @@ export function UHome() {
   const near = (give ? shown : sortByTop(shown, top)).slice(0, 10);
   const evs = (events || []).slice(0, 5);
   const qa = give
-    ? [['/write/offer', '도움 가능', 'offer'], ['/regular', '단골 관리', 'regular'], ['/edu', '첫 활동 연습', 'edu'], ['/my/cert', '봉사 확인서', 'cert'], ['/planner', '플래너', 'cal']]
+    ? null // 봉사하기 홈: 빠른 메뉴 대신 '도움 가능 · 봉사 확인서' 한 섹션(대표 지시 2026-11-12). 단골 관리·첫 활동 교육은 마이, 플래너는 아래 탭
     : [['/write/need', '봉사 요청', 'req'], ['/regular', '단골 요청', 'regular'], ['/public', '공공 서비스', 'public'], ['/recommend', 'AI 추천', 'ai'], ['/planner', '플래너', 'cal']];
   return (
     <Screen title={<span className="hlogo"><i><Ic h={I.logo} /></i>시간 적금</span>} back={false}>
       <BankCard me={me} />
       <PlanCard list={list} give={give} />
-      <div className="qa" style={{ marginTop: 18 }}>
-        {qa.map(([g, t, i, sub]) => <button key={t} onClick={() => nav(g)} aria-label={sub ? `${t} ${sub}` : t}><DIc k={i} size={56} />{t}{sub && <small className="qm-sub">{sub}</small>}</button>)}
-      </div>
+      {qa ? (
+        <div className="qa" style={{ marginTop: 18 }}>
+          {qa.map(([g, t, i, sub]) => <button key={t} onClick={() => nav(g)} aria-label={sub ? `${t} ${sub}` : t}><DIc k={i} size={56} />{t}{sub && <small className="qm-sub">{sub}</small>}</button>)}
+        </div>
+      ) : (
+        <>
+          <div className="sec-t"><span>봉사하기</span></div>
+          <div className="todo" role="button" tabIndex={0} onClick={() => nav('/write/offer')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/write/offer'); }}><DIc k="offer" size={44} /><div className="grow"><div className="t">도움 가능 공고 올리기</div><div className="d">도울 수 있는 날짜·시간·도움 종류를 올려요</div></div><span className="st go">올리기</span></div>
+          <div className="todo" role="button" tabIndex={0} onClick={() => nav('/my/cert')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/my/cert'); }}><DIc k="cert" size={44} /><div className="grow"><div className="t">봉사 확인서</div><div className="d">기간을 골라 봉사 활동 확인서를 받아요</div></div><span className="st go">발급</span></div>
+        </>
+      )}
       {reqs === undefined ? null : <WaitBox need={need} give={give} />}
       {give && <RecBox />}
       {give && <BundleLink />}
