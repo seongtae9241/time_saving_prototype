@@ -56,27 +56,26 @@ export function sortByTop(list, top) {
   return list.map((p, i) => [p, i]).sort((a, b) => (r(a[0]) - r(b[0])) || (a[1] - b[1])).map((x) => x[0]);
 }
 
-/** U7: 단골로 등록 / 해제 버튼. 활동을 한 번 이상 끝낸 상대에게만 보인다. */
-export function RegularButton({ volunteerId, style, compact }) {
+/** B-65: 단골로 등록 / 해지 버튼. 프로필·평가 화면에서 즐겨찾기처럼 직접 등록한다(활동이 없어도 됨). 자동(3회) 단골도 해지할 수 있다. */
+export function RegularButton({ volunteerId, style, compact, onChange }) {
   const { toast } = useUi();
   const [st, reload] = useLoad(() => (volunteerId ? api(`/regulars/${volunteerId}/status`, { quiet: true }).catch(() => null) : Promise.resolve(null)), [volunteerId]);
   const [busy, setBusy] = useState(false);
-  if (!st || (!st.canMark && !st.manual)) {
-    return st && st.auto ? <span className="badge" style={style}>★ 단골 · {st.doneCount}회</span> : null;
-  }
+  if (!st || (!st.canMark && !st.regular)) return null;
   const run = async () => {
     if (busy) return;
     setBusy(true);
     try {
-      if (st.manual) { await del(`/regulars/${volunteerId}`); toast('단골에서 뺐어요'); }
+      if (st.regular) { await del(`/regulars/${volunteerId}`); toast('단골을 해지했어요'); }
       else { await post(`/regulars/${volunteerId}`); toast('단골로 등록했어요. 공고 없이 바로 요청할 수 있어요'); }
       await reload();
+      if (onChange) onChange();
     } catch { /* 토스트 */ }
     setBusy(false);
   };
   return (
-    <button type="button" className={'btn ' + (st.manual ? 'ghost' : 'soft') + (compact ? ' sm' : '')} style={{ ...(compact ? { width: 'auto', padding: '0 12px' } : {}), ...style }} disabled={busy} onClick={run}>
-      {st.manual ? '★ 단골 해제' : '☆ 단골로 등록'}
+    <button type="button" className={'btn ' + (st.regular ? 'ghost' : 'soft') + (compact ? ' sm' : '')} style={{ ...(compact ? { width: 'auto', padding: '0 12px' } : {}), ...style }} disabled={busy} onClick={run}>
+      {st.regular ? `★ 단골 해지${st.auto ? ` (자동 · ${st.doneCount}회)` : ''}` : '☆ 단골로 등록'}
     </button>
   );
 }

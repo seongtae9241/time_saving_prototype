@@ -79,6 +79,7 @@ export function AuthProvider({ children }) {
     if (!getToken()) { setMe(null); setReady(true); return null; }
     try {
       const m = await api('/me', { quiet: true });
+      if (m && m.textSize) applyBig(String(m.textSize).toUpperCase() === 'BIG'); // B-55: 서버에 저장한 큰 글씨 설정을 접속할 때마다 적용
       setMe(m); return m;
     } catch (e) {
       if (e.status === 401) setMe(null);
@@ -118,7 +119,7 @@ export function AuthProvider({ children }) {
   return <AuthCtx.Provider value={{ me, ready, role: me && me.role, refresh, login, loginWithToken, logout, unread, refreshUnread }}>{children}</AuthCtx.Provider>;
 }
 
-/* ---------- 큰 글씨 (프로토타입 textSizeRow) ---------- */
+/* ---------- 큰 글씨 (B-55): 화면에는 바로 적용하고, 서버(users.text_size)에 저장해 다음 접속·다른 기기에서도 유지 ---------- */
 export function getBig() { try { return localStorage.getItem('tb-big') === '1'; } catch { return false; } }
 export function applyBig(v) {
   document.documentElement.classList.toggle('big', v);

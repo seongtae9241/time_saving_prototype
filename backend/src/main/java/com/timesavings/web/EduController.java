@@ -42,6 +42,11 @@ public class EduController {
 
     // ---------------- 연습 상황 목록 (서버 설정, 41판 B-54) ----------------
     public record SituationsBody(List<Map<String, Object>> items) {}
+    public record PracticeBody(String key, String text) {}
+
+    /** 상황 하나 연습: 답을 보내면 위반 알림·바꿔 말하기 또는 칭찬이 온다. */
+    @PostMapping("/edu/practice")
+    public Map<String, Object> practice(@RequestBody PracticeBody b) { return edu.practice(b.key(), b.text()); }
 
     @GetMapping("/edu/situations")
     public Map<String, Object> situations() { return Views.map("items", edu.situations()); }

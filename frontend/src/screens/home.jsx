@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
 import { Ic, Spk, CatIc, Stars, TBar, Cats, Avatar, StTag, Empty, useLoad, postCats } from '../ui/bits.jsx';
-import { useAuth } from '../ui/ctx.jsx';
-import { api } from '../api.js';
+import { useAuth, useUi } from '../ui/ctx.jsx';
+import { api, post } from '../api.js';
 import { fmt, hh, ap, dlabel, todayISO, SHORT } from '../lib/format.js';
 import { useTopCats, sortByTop } from '../ui/extras.jsx';
 import { DIc, Pav, HmBig, hmTxt, useMode } from '../ui/proto.jsx';
@@ -26,16 +26,6 @@ export function todoTxt(r) {
   if (r.status === 'CHECKED_OUT') return '활동 일지 쓰기';
   if (r.adjust && r.adjust.status === 'PENDING') return '시간 조정 확인';
   return r.kind === 'PROPOSAL' ? '제안 수락/거절' : '요청 수락/거절';
-}
-
-export function EduBanner({ me }) {
-  const nav = useNavigate();
-  const [edu] = useLoad(() => (me && !me.eduDone ? api('/edu', { quiet: true }) : Promise.resolve(null)), [me && me.eduDone]);
-  if (me && me.eduDone) {
-    return <div className="edu-ban done" role="button" tabIndex={0} onClick={() => nav('/edu/cert')}><div className="eo"><Ic n="check" s={26} /></div><div className="grow"><div className="ah2" style={{ color: '#1F9D63' }}><Spk />첫 활동 교육</div><div className="b" style={{ fontSize: 16, marginTop: 2 }}>교육을 마쳤어요 · 봉사할 수 있어요</div><div className="mute2">수료증 보기 ›</div></div></div>;
-  }
-  const st = edu ? (edu.quizScore >= 4 ? 3 : edu.cardsDone ? 2 : edu.diag ? 1 : 0) : 0;
-  return <div className="edu-ban" role="button" tabIndex={0} onClick={() => nav('/edu')}><div className="eo"><Ic n="cap" s={28} /></div><div className="grow"><div className="ah2" style={{ color: '#A66F00' }}><Spk />첫 활동 교육 · 필수<span className="new-badge">NEW</span></div><div className="b" style={{ fontSize: 16.5, marginTop: 4 }}>도움을 주기 전에<br />AI 상대와 미리 연습해요</div><div className="mute2" style={{ marginTop: 4 }}>약 25분 · {st ? `${st}/4단계 진행 중` : '아직 시작 안 함'}</div></div>›</div>;
 }
 
 export function VoiceCard() {
@@ -62,7 +52,7 @@ function BankCard({ me }) {
   const bal = me ? me.available ?? me.balance : 0;
   return (
     <div className="pb pbh">
-      <div className="pb-top"><b>시간 적금 통장</b><span className="pb-no">{me ? `TS-${String(me.id).padStart(6, '0')}` : ''}</span><span className="pb-who">예금주 <b>{me ? me.name : ''}</b></span></div>
+      <div className="pb-top"><b>시간 적금 통장</b><span className="pb-no">{me ? me.accountNo || `TS-${String(me.id).padStart(6, '0')}` : ''}</span><span className="pb-who">예금주 <b>{me ? me.name : ''}</b></span></div>
       <div className="pb-l">쓸 수 있는 시간</div><div className="pb-n"><HmBig v={bal} /></div>
       <div className="pb-btns"><button onClick={() => nav('/bank', { replace: true })}>내역 보기</button><button onClick={() => nav('/gift')}>선물하기</button></div>
     </div>
@@ -195,6 +185,51 @@ function EvSlider({ events }) {
   );
 }
 
+/** 추천 봉사 (B-60, 프로토타입 2026-11-12): 내 지역·시간대·가능한 도움에 맞는 봉사 3건. 골라서 "계획 만들기" → 플래너(B-61) */
+function RecBox() {
+  const nav = useNavigate();
+  const { toast } = useUi();
+  const [d, reload] = useLoad(() => api('/me/recommends', { quiet: true }).catch(() => null), []);
+  const [picked, setPicked] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const recs = ((d && d.recommends) || []).slice(0, 3);
+  const build = async () => {
+    if (!picked.length || busy) return;
+    setBusy(true);
+    try {
+      const r = await post('/me/planner/picks', { postIds: picked });
+      const made = r.made || [], skipped = r.skipped || [];
+      setPicked([]);
+      toast(made.length ? `${made.map((m) => `${dlabel(m.date)} ${hh(m.startHour)}`).join(', ')}에 계획을 넣었어요${skipped.length ? ` · ${skipped.length}건은 빈 시간이 없어요` : ''}` : '빈 시간이 없어서 계획에 넣지 못했어요');
+      if (made.length) nav('/planner?seg=cal', { replace: true }); else reload();
+    } catch { /* 토스트 */ }
+    setBusy(false);
+  };
+  return (
+    <>
+      <div className="sec-t"><span>추천 봉사</span><span className="sec-r"><a role="button" tabIndex={0} onClick={() => nav('/planner', { replace: true })} onKeyDown={(e) => { if (e.key === 'Enter') nav('/planner', { replace: true }); }}>플래너 ›</a></span></div>
+      <div className="mute2" style={{ margin: '-4px 0 6px' }}>내 지역·시간대·가능한 도움에 맞는 봉사예요. 골라서 플래너에 넣어요</div>
+      {d === undefined ? null : recs.length ? (
+        <>
+          <div className="recs">
+            {recs.map((r) => {
+              const on = picked.includes(r.id);
+              return (
+                <button key={r.id} className={'rec ' + (on ? 'on' : '')} aria-pressed={on} onClick={() => setPicked(on ? picked.filter((x) => x !== r.id) : [...picked, r.id])}>
+                  <DIc k={(r.categories || [])[0]} size={46} />
+                  <div className="grow" style={{ minWidth: 0 }}><div className="b">{r.title}</div><div className="mute2">{r.ownerName} · {r.distanceKm}km · {dlabel(r.date)} {hh(r.startHour)}~{hh(r.endHour)}</div></div>
+                  <div className="rec-r"><span className="pill">+{fmt(r.estEarn)}</span><span className="rec-ck">{on ? '✓' : ''}</span></div>
+                </button>
+              );
+            })}
+          </div>
+          <button className="ai-fill" disabled={!picked.length || busy} style={picked.length ? undefined : { opacity: 0.5 }} onClick={build}><DIc k="ai" size={40} bare /><div className="grow" style={{ textAlign: 'left' }}><b>{busy ? '계획을 만드는 중…' : picked.length ? `선택한 ${picked.length}개로 계획 만들기` : '추천 봉사를 골라 주세요'}</b><span>AI가 내 빈 시간에 맞춰 날짜·시간을 정해 플래너에 넣어요</span></div>›</button>
+        </>
+      ) : <div className="empty" style={{ padding: '14px 0' }}>지금은 내 조건에 맞는 추천 봉사가 없어요{d && d.planCount ? ` · 플래너에 계획 ${d.planCount}개` : ''}</div>}
+    </>
+  );
+}
+
 export function UHome() {
   const nav = useNavigate();
   const { me } = useAuth();
@@ -203,16 +238,13 @@ export function UHome() {
   const [reqs] = useLoad(() => api('/requests?box=all'), []);
   const [posts] = useLoad(() => api(`/posts?type=${give ? 'NEED' : 'OFFER'}&sort=near`), [give]);
   const [events] = useLoad(() => api('/events', { quiet: true }).catch(() => []), []);
-  const [edu] = useLoad(() => (me && !me.eduDone ? api('/edu', { quiet: true }).catch(() => null) : Promise.resolve(null)), [me && me.eduDone]);
   const list = reqs || [];
   const need = list.filter(needsMe).filter((r) => (r.myRole === 'VOLUNTEER') === give);
   const shown = (posts || []).filter((p) => !p.mine && p.status === 'OPEN');
   const near = (give ? shown : sortByTop(shown, top)).slice(0, 10);
   const evs = (events || []).slice(0, 5);
-  const eduDone = !!(me && me.eduDone);
-  const eduSt = edu ? (edu.quizScore >= 4 ? 3 : edu.cardsDone ? 2 : edu.diag ? 1 : 0) : 0;
   const qa = give
-    ? [['/write/offer', '도움 가능', 'offer'], ['/regular', '단골 관리', 'regular'], [eduDone ? '/edu/cert' : '/edu', '활동 교육', 'edu', eduDone ? null : `${eduSt}/4단계`], ['/my/cert', '봉사 확인서', 'cert'], ['/planner', '플래너', 'cal']]
+    ? [['/write/offer', '도움 가능', 'offer'], ['/regular', '단골 관리', 'regular'], ['/edu', '첫 활동 연습', 'edu'], ['/my/cert', '봉사 확인서', 'cert'], ['/planner', '플래너', 'cal']]
     : [['/write/need', '봉사 요청', 'req'], ['/regular', '단골 요청', 'regular'], ['/public', '공공 서비스', 'public'], ['/recommend', 'AI 추천', 'ai'], ['/planner', '플래너', 'cal']];
   return (
     <Screen title={<span className="hlogo"><i><Ic h={I.logo} /></i>시간 적금</span>} back={false}>
@@ -222,9 +254,10 @@ export function UHome() {
         {qa.map(([g, t, i, sub]) => <button key={t} onClick={() => nav(g)} aria-label={sub ? `${t} ${sub}` : t}><DIc k={i} size={56} />{t}{sub && <small className="qm-sub">{sub}</small>}</button>)}
       </div>
       {reqs === undefined ? null : <WaitBox need={need} give={give} />}
+      {give && <RecBox />}
       <div className="sec-t"><span>{give ? '도움이 필요한 이웃' : '도와줄 수 있는 이웃'}</span><span className="sec-r"><a role="button" tabIndex={0} onClick={() => nav(`/board?type=${give ? 'NEED' : 'OFFER'}`, { replace: true })} onKeyDown={(e) => { if (e.key === 'Enter') nav(`/board?type=${give ? 'NEED' : 'OFFER'}`, { replace: true }); }}>전체 ›</a></span></div>
       <div className="npanel"><div className="hs hs2">{near.map((p) => <NCard key={p.id} p={p} />)}{posts && !near.length && <Empty>근처에 열린 공고가 없어요</Empty>}</div></div>
-      {!give && evs.length > 0 && (
+      {evs.length > 0 && (
         <>
           <div className="sec-t"><span>동네 기관 소식</span><span className="sec-r"><a role="button" tabIndex={0} onClick={() => nav('/news')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/news'); }}>전체 ›</a></span></div>
           <EvSlider events={evs} />

@@ -1,4 +1,4 @@
-// 2026-11-11 역할별 정리판: 시간 플래너 — 캘린더 / 추천 봉사 / 생애 플랜 (프로토타입 SCREENS.planner v3)
+// 시간 플래너 (41판 B-60~B-62, 프로토타입 2026-11-12): 맨 앞에 생애 플랜, 그 아래 "시간 플래너 · n월" 캘린더 / 추천 봉사
 // 일정·목표·추천 순위·생애 숫자는 모두 서버 코드가 계산한다(GET /api/me/planner, /api/me/life-plan). AI 는 설명 문장만.
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -26,10 +26,10 @@ export function PlanRow({ x, withDate }) {
       <div className="tl2-card">
         <DIc k={x.kind === 'event' ? 'news' : x.category} size={44} />
         <div className="grow" style={{ minWidth: 0 }}>
-          <div className="b">{x.title}{x.kind === 'plan' && <> <span className="mod m1">AI 계획</span></>}</div>
+          <div className="b">{x.title}{x.kind === 'plan' && <> <span className="mod m1">{x.planSource === 'rule' ? '계획' : 'AI 계획'}</span></>}</div>
           <div className="mute2">{x.who}{withDate ? ` · ${dlabel(x.date)}` : ''}</div>
         </div>
-        <div className="tl2-r"><b>{x.startHour != null ? hh(x.startHour) : ''}</b><span style={{ color: KC[x.kind] }}>{valTxt(x)}</span></div>
+        <div className="tl2-r"><b>{x.startHour != null ? hh(x.startHour) : ''}{x.kind === 'plan' && x.endHour != null ? `~${hh(x.endHour)}` : ''}</b><span style={{ color: KC[x.kind] }}>{valTxt(x)}</span></div>
       </div>
     </div>
   );
@@ -108,14 +108,14 @@ export function Planner() {
   const [sel, setSel] = useState(sp.get('day') || '');
   const [picked, setPicked] = useState([]);
   const [busy, run] = useBusy();
-  const segs = [['cal', '캘린더'], ['rec', '추천 봉사'], ['life', '생애 플랜']];
+  const segs = [['cal', '캘린더'], ['rec', '추천 봉사']];
   const head = (
-    <div className="chips" role="tablist" aria-label="플래너" style={{ marginBottom: 12 }}>
+    <div className="chips" role="tablist" aria-label="시간 플래너" style={{ marginBottom: 12 }}>
       {segs.map(([k, t]) => <button key={k} role="tab" aria-selected={seg === k} className={'chip ' + (seg === k ? 'on' : '')} onClick={() => setSp({ seg: k }, { replace: true })}>{t}</button>)}
     </div>
   );
-  if (d === undefined) return <Screen title="시간 플래너" noTabs>{head}<Loading /></Screen>;
-  if (!d) return <Screen title="시간 플래너" noTabs>{head}<Empty>플래너를 불러오지 못했어요</Empty></Screen>;
+  if (d === undefined) return <Screen title="시간 플래너" back={false} tab="/planner"><Loading /></Screen>;
+  if (!d) return <Screen title="시간 플래너" back={false} tab="/planner"><Empty>플래너를 불러오지 못했어요</Empty></Screen>;
 
   const [Y, M] = d.month.split('-').map(Number);
   const first = new Date(Y, M - 1, 1), days = new Date(Y, M, 0).getDate();
@@ -134,10 +134,11 @@ export function Planner() {
 
   const build = () => run(async () => {
     if (!picked.length) return;
-    await post('/me/planner/picks', { postIds: picked });
+    const r = await post('/me/planner/picks', { postIds: picked });
+    const made = r.made || [], skipped = r.skipped || [];
     setPicked([]);
     await reload();
-    toast('고른 봉사를 달력에 넣었어요. 제안은 직접 보내 주세요');
+    toast(made.length ? `${made.map((m) => `${dlabel(m.date)} ${hh(m.startHour)}`).join(', ')}에 넣었어요${skipped.length ? ` · ${skipped.length}건은 빈 시간이 없어요` : ''}. 제안은 직접 보내 주세요` : '빈 시간이 없어서 계획에 넣지 못했어요');
   });
   const drop = (id) => run(async () => { await del(`/me/planner/picks/${id}`); await reload(); toast('계획에서 뺐어요'); });
   const openGoal = () => p && sheet(() => (
@@ -147,7 +148,31 @@ export function Planner() {
   ));
 
   return (
-    <Screen title="시간 플래너" noTabs>
+    <Screen title="시간 플래너" back={false} tab="/planner">
+      {!p ? (life === undefined ? <Loading /> : null) : (
+        <>
+          <div className="sec-t" style={{ marginTop: 4 }}><span>생애 플랜</span><a role="button" tabIndex={0} onClick={openGoal} onKeyDown={(e) => { if (e.key === 'Enter') openGoal(); }}>목표 바꾸기</a></div>
+          <div className="life">
+            <div className="life-bar"><span className="lb1" style={{ flex: p.startAge - p.age }} /><span className="lb2" style={{ flex: Math.max(1, p.endAge - p.startAge) }} /></div>
+            <div className="life-l"><span>지금 {p.age}세</span><span>{p.startAge}세</span><span>{p.endAge}세{p.endAge >= p.maxAge ? '+' : ''}</span></div>
+            <div className="life-s"><div><i style={{ background: '#6DB3A0' }} />모으기 <b>{Math.round(p.saved)}시간</b></div><div><i style={{ background: '#EE9A7E' }} />쓰기 <b>약 {Math.round(p.lastYears)}년</b></div></div>
+            <div className="ptext" style={{ marginTop: 12, boxShadow: 'none', background: '#F4F6FA' }}><div className="mute2" style={{ marginBottom: 6 }}><span className="mod m1">플랜 설명 AI</span> 숫자는 시스템이 계산하고, 설명 문장만 AI가 써요</div><p style={{ margin: 0 }}><Spk /> {life.text}</p><RuleNote source={life.source} /></div>
+          </div>
+          <div className="card" style={{ marginTop: 12 }}><div className="between"><span className="b">나이별 시간 통장 예상</span><span className="mute2">{p.age}세 → {p.maxAge}세</span></div><LifeChart p={p} /></div>
+          <div className="sum" style={{ marginTop: 12 }}>
+            <div className="between"><span className="muted">지금 통장</span><b>{hmTxt(p.balance)}</b></div>
+            <div className="between"><span className="muted">한 달에 모을 시간</span><b>{fmt(p.monthlyHours)}시간 × {p.saveYears}년</b></div>
+            <div className="between"><span className="muted">받고 싶은 도움</span><b>{(p.needs || []).length ? p.needs.map((n) => `${SHORT[n.category]} 월 ${fmt(n.hours)}`).join(' · ') : '아직 안 골랐어요'}</b></div>
+            <div className="between"><span className="muted">한 달에 빠지는 시간 (가중치 포함)</span><b>{fmt(p.useMonthly)}시간</b></div>
+            {!p.okTo90 && p.useMonthly > 0 && <div className="between"><span className="muted">90세까지 쓰려면</span><b>한 달 {fmt(p.need90Monthly)}시간</b></div>}
+          </div>
+          {!p.okTo90 && p.useMonthly > 0 && <button className="btn soft sm" style={{ marginTop: 10 }} disabled={busy} onClick={() => run(async () => { await post('/me/life-plan', { age: p.age, startAge: p.startAge, monthlyHours: p.need90Monthly, needs: Object.fromEntries(p.needs.map((n) => [n.category, n.hours])), save: true }); await reloadLife(); await reload(); toast(`한 달 ${fmt(p.need90Monthly)}시간으로 바꿨어요`); })}>90세까지 쓰도록 한 달 목표 올리기</button>}
+          <div className="notice" style={{ marginTop: 12 }}>시간은 가족에게 선물할 수 있지만 상속은 안 돼요. 제도·가중치가 바뀌면 숫자가 달라질 수 있어요.</div>
+          {!life.saved && <button className="btn" style={{ marginTop: 12 }} onClick={openGoal}>내 조건으로 계획 세우기</button>}
+          <button className="btn ghost" style={{ marginTop: 10 }} onClick={() => nav('/bank/plan')}>남은 시간으로 받을 수 있는 도움 계산하기</button>
+        </>
+      )}
+      <div className="sec-t" style={{ marginTop: 22 }}><span>시간 플래너</span><span className="mute2" style={{ fontWeight: 500 }}>{M}월</span></div>
       {head}
       {seg === 'cal' && (
         <>
@@ -188,7 +213,7 @@ export function Planner() {
                 {plans.map((r) => (
                   <div className="pt-i" key={r.postId}>
                     <span className="pt-d"><b>{Number(r.date.slice(8))}</b>{WD[new Date(r.date).getDay()]}</span>
-                    <div className="grow" style={{ minWidth: 0 }}><div className="b">{hh(r.startHour)} {r.title}</div><div className="mute2">{r.who}</div>
+                    <div className="grow" style={{ minWidth: 0 }}><div className="b">{hh(r.startHour)}{r.endHour != null ? `~${hh(r.endHour)}` : ''} {r.title}</div><div className="mute2">{r.who}</div>
                       <div className="row" style={{ gap: 6, marginTop: 6 }}>
                         <button className="btn sm" style={{ width: 'auto', padding: '0 12px', minHeight: 44 }} onClick={() => nav(`/post/${r.postId}`)}>공고 보고 제안하기</button>
                         <button className="btn ghost sm" style={{ width: 'auto', padding: '0 12px', minHeight: 44 }} disabled={busy} onClick={() => drop(r.postId)}>빼기</button>
@@ -217,33 +242,10 @@ export function Planner() {
               })}
             </div>
           ) : <Empty>지금은 빈 시간에 맞는 봉사 요청이 없어요</Empty>}
-          <button className="ai-fill" disabled={!picked.length || busy} style={picked.length ? undefined : { opacity: 0.5 }} onClick={build}><DIc k="ai" size={40} bare /><div className="grow" style={{ textAlign: 'left' }}><b>{picked.length ? `선택한 ${picked.length}개로 계획 세우기` : '추천 봉사를 골라 주세요'}</b><span>고른 봉사를 내 달력의 그 날짜에 넣어요</span></div>›</button>
+          <button className="ai-fill" disabled={!picked.length || busy} style={picked.length ? undefined : { opacity: 0.5 }} onClick={build}><DIc k="ai" size={40} bare /><div className="grow" style={{ textAlign: 'left' }}><b>{picked.length ? `선택한 ${picked.length}개로 계획 만들기` : '추천 봉사를 골라 주세요'}</b><span>AI가 내 빈 시간에 맞춰 날짜·시간을 정해 달력에 넣어요</span></div>›</button>
           <button className="btn ghost" style={{ marginTop: 10 }} onClick={() => nav('/board?type=NEED')}>봉사 요청 공고 전체 보기</button>
         </>
       )}
-      {seg === 'life' && (!p ? <Loading /> : (
-        <>
-          <div className="sec-t" style={{ marginTop: 4 }}><span>생애 플랜</span><a role="button" tabIndex={0} onClick={openGoal} onKeyDown={(e) => { if (e.key === 'Enter') openGoal(); }}>목표 바꾸기</a></div>
-          <div className="life">
-            <div className="life-bar"><span className="lb1" style={{ flex: p.startAge - p.age }} /><span className="lb2" style={{ flex: Math.max(1, p.endAge - p.startAge) }} /></div>
-            <div className="life-l"><span>지금 {p.age}세</span><span>{p.startAge}세</span><span>{p.endAge}세{p.endAge >= p.maxAge ? '+' : ''}</span></div>
-            <div className="life-s"><div><i style={{ background: '#6DB3A0' }} />모으기 <b>{Math.round(p.saved)}시간</b></div><div><i style={{ background: '#EE9A7E' }} />쓰기 <b>약 {Math.round(p.lastYears)}년</b></div></div>
-            <div className="ptext" style={{ marginTop: 12, boxShadow: 'none', background: '#F4F6FA' }}><p style={{ margin: 0 }}><Spk /> {life.text}</p><RuleNote source={life.source} /></div>
-          </div>
-          <div className="card" style={{ marginTop: 12 }}><div className="between"><span className="b">나이별 시간 통장 예상</span><span className="mute2">{p.age}세 → {p.maxAge}세</span></div><LifeChart p={p} /></div>
-          <div className="sum" style={{ marginTop: 12 }}>
-            <div className="between"><span className="muted">지금 통장</span><b>{hmTxt(p.balance)}</b></div>
-            <div className="between"><span className="muted">한 달에 모을 시간</span><b>{fmt(p.monthlyHours)}시간 × {p.saveYears}년</b></div>
-            <div className="between"><span className="muted">받고 싶은 도움</span><b>{(p.needs || []).length ? p.needs.map((n) => `${SHORT[n.category]} 월 ${fmt(n.hours)}`).join(' · ') : '아직 안 골랐어요'}</b></div>
-            <div className="between"><span className="muted">한 달에 빠지는 시간 (가중치 포함)</span><b>{fmt(p.useMonthly)}시간</b></div>
-            {!p.okTo90 && p.useMonthly > 0 && <div className="between"><span className="muted">90세까지 쓰려면</span><b>한 달 {fmt(p.need90Monthly)}시간</b></div>}
-          </div>
-          {!p.okTo90 && p.useMonthly > 0 && <button className="btn soft sm" style={{ marginTop: 10 }} disabled={busy} onClick={() => run(async () => { await post('/me/life-plan', { age: p.age, startAge: p.startAge, monthlyHours: p.need90Monthly, needs: Object.fromEntries(p.needs.map((n) => [n.category, n.hours])), save: true }); await reloadLife(); await reload(); toast(`한 달 ${fmt(p.need90Monthly)}시간으로 바꿨어요`); })}>90세까지 쓰도록 한 달 목표 올리기</button>}
-          <div className="notice" style={{ marginTop: 12 }}>시간은 가족에게 선물할 수 있지만 상속은 안 돼요. 제도·가중치가 바뀌면 숫자가 달라질 수 있어요.</div>
-          {!life.saved && <button className="btn" style={{ marginTop: 12 }} onClick={openGoal}>내 조건으로 계획 세우기</button>}
-          <button className="btn ghost" style={{ marginTop: 10 }} onClick={() => nav('/bank/plan')}>남은 시간으로 받을 수 있는 도움 계산하기</button>
-        </>
-      ))}
     </Screen>
   );
 }

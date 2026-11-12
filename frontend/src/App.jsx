@@ -12,7 +12,7 @@ import { Recommend, Public } from './screens/ai.jsx';
 import { VoiceReq } from './screens/voice.jsx';
 import { OHome, OElders, EDetail, EForm, OReqs, OReport, OMy } from './screens/org.jsx';
 import { News, EventDetail, OEvents, OEventNew } from './screens/news.jsx';
-import { Edu, EduCard, EduQuiz, EduRpList, EduRp, EduRpRes, EduCert } from './screens/edu.jsx';
+import { Edu, EduCard, EduQuiz, EduRp, EduRpRes } from './screens/edu.jsx';
 import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANotices, APub, APersona, AVerify, ASuggest } from './screens/admin.jsx';
 import { MyInsight, CarePlan, MyReport, FamRecentReport } from './screens/insight.jsx';
 import { MemoToPosts } from './screens/opsai.jsx';
@@ -79,7 +79,7 @@ function Shell() {
         <Route path="/bank/plan" element={g(<CarePlan />, U)} />
         <Route path="/planner" element={g(<Planner />, U)} />
         <Route path="/my/alerts" element={g(<AlertSet />, U)} />
-        <Route path="/my/noti" element={g(<NotiSet />, U)} />
+        <Route path="/my/noti" element={g(<NotiSet />, UO)} />{/* B-58: 담당자도 같은 알림 설정 */}
         <Route path="/my/cert" element={g(<Cert />, U)} />
         <Route path="/my/info" element={g(<InfoEdit />)} />
         <Route path="/my/suggest" element={g(<Suggest />, UO)} />
@@ -90,10 +90,10 @@ function Shell() {
         <Route path="/edu" element={g(<Edu />, U)} />
         <Route path="/edu/card" element={g(<EduCard />, U)} />
         <Route path="/edu/quiz" element={g(<EduQuiz />, U)} />
-        <Route path="/edu/rp" element={g(<EduRpList />, U)} />
+        <Route path="/edu/rp" element={<Navigate to="/edu" replace />} />
         <Route path="/edu/rp/:id" element={g(<EduRp />, U)} />
         <Route path="/edu/rp/:id/result" element={g(<EduRpRes />, U)} />
-        <Route path="/edu/cert" element={g(<EduCert />, U)} />
+        <Route path="/edu/cert" element={<Navigate to="/edu" replace />} />{/* B-54: 수료증 없음 */}
 
         <Route path="/news" element={g(<News />, UO)} />
         <Route path="/news/class/:id" element={g(<ClassDetail />, UO)} />

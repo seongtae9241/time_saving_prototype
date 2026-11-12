@@ -94,3 +94,16 @@ a.btn{text-decoration:none}
 .pl-needs .pl-n{cursor:default}
 .ai-fill[disabled]{cursor:default}
 .bbtn + .chips{margin-top:12px}
+
+/* 2026-11-12 프로토타입(명세 41판): 홈 통장 카드 조금 작게, 첫 활동 연습 말풍선 */
+.pbh{padding:12px 14px 11px 26px !important}
+.pbh .pb-top{font-size:12.5px !important}
+.pbh .pb-l{margin-top:8px !important;font-size:12px !important}
+.pbh .pb-n{font-size:28px !important}
+.pbh .pb-n small{font-size:14px !important}
+.pbh .pb-btns{margin:9px 0 0 !important;gap:6px !important}
+.pbh .pb-btns button{min-height:34px !important;font-size:13px !important}
+.rp-msg{padding:10px 12px;border-radius:14px;background:#F4F6FA;margin-top:8px;font-size:14px}
+.rp-me{background:#E8F0FF;margin-left:24px}
+.rp-fb{background:#FFF6E9;color:#7A5212}
+.rp-ok{background:#E6F7EE;color:#14663F}

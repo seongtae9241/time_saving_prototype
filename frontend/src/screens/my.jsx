@@ -3,9 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
 import { MySuggestions } from '../ui/suggest.jsx';
 import { Ic, Spk, Mod, Mi, Loading, Empty, RuleNote, ChipsPick, Upload, useLoad, useBusy, Avatar } from '../ui/bits.jsx';
-import { useAuth, useUi, getBig, applyBig } from '../ui/ctx.jsx';
+import { useAuth, useUi, getBig, applyBig, saveBigToServer } from '../ui/ctx.jsx';
 import { api, post, put, del } from '../api.js';
-import { CATS, SHORT, AREAS, AGE_GROUPS, TIME_SLOTS, fmt, arr, dshort, dlabel } from '../lib/format.js';
+import { CATS, SHORT, AREAS, AGE_GROUPS, TIME_SLOTS, fmt, arr, dshort, dlabel, todayISO, addDays } from '../lib/format.js';
 import { speak } from './voice.jsx';
 import { SttServerToggle } from '../ui/VoiceInput.jsx';
 
@@ -18,14 +18,85 @@ export async function saveMe(me, changes) {
   return put('/me', body);
 }
 
-/* 큰 글씨 (프로토타입 textSizeRow) */
+/* 큰 글씨 모드 (B-55): 화면 전체가 커지고, 서버에 저장해 다음 접속 때도 유지한다. 사용자·담당자 공용 */
 export function TextSizeRow() {
   const { toast } = useUi();
+  const { refresh } = useAuth();
   const [big, setBig] = useState(getBig());
+  const tg = async () => { const v = !big; setBig(v); applyBig(v); toast(v ? '큰 글씨 모드를 켰어요' : '큰 글씨 모드를 껐어요'); await saveBigToServer(v); refresh(); };
   return (
-    <div role="switch" aria-checked={big} tabIndex={0} onClick={() => { const v = !big; setBig(v); applyBig(v); toast(v ? '글씨를 크게 바꿨어요' : '글씨를 보통 크기로 바꿨어요'); }}>
-      <Ic n="text" s={20} /><div className="grow">큰 글씨로 보기<span>{big ? '켜짐 · 글씨와 버튼이 크게 보여요' : '꺼짐 · 어르신께 추천해요'}</span></div><span className={'toggle ' + (big ? 'on' : '')} aria-hidden="true" />
+    <div role="switch" aria-checked={big} tabIndex={0} onClick={tg} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tg(); } }}>
+      <Ic n="gear" s={20} /><div className="grow">큰 글씨 모드<span>{big ? '켜짐 · 글자를 크게 봐요' : '꺼짐'}</span></div><span className={'toggle ' + (big ? 'on' : '')} aria-hidden="true" />
     </div>
+  );
+}
+
+/* 위치 정보 (선택) 시트 — 가입 때 선택한 동의를 여기서 바꾼다 (A-01, B-59 / 프로토타입 locSheet) */
+function LocSheet({ me, refresh, onClose }) { // 시트는 로그인 정보(AuthProvider) 밖에서 그려지므로 me·refresh 를 받아 쓴다
+  const { toast } = useUi();
+  const [on, setOn] = useState(!!(me && me.locConsent));
+  const tg = async () => {
+    const v = !on; setOn(v);
+    try { await put('/me', { locConsent: v }, { quiet: true }); await refresh(); toast(v ? '위치 정보 사용에 동의했어요' : '위치 정보 사용 동의를 껐어요'); } catch { setOn(!v); toast('저장하지 못했어요'); }
+  };
+  return (
+    <>
+      <h2>위치 정보 (선택)</h2>
+      <p className="mute2" style={{ margin: '0 0 10px' }}>켜면 공고와 도움을 가까운 순으로 안내해요. 가입할 때 선택한 동의를 여기서 바꿀 수 있어요.</p>
+      <div className="ml"><div role="switch" aria-checked={on} tabIndex={0} onClick={tg} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tg(); } }}><div className="grow">위치 정보 사용<span>{on ? '동의함' : '동의 안 함'}</span></div><span className={'toggle ' + (on ? 'on' : '')} aria-hidden="true" /></div></div>
+      <div className="notice" style={{ marginTop: 12 }}>켜면 브라우저가 위치 권한을 물어봐요. <b>'허용'</b>을 눌러야 가까운 순으로 보여요. 허용하지 않아도 사는 동네 기준으로 쓸 수 있어요.</div>
+      <button className="btn ghost" style={{ marginTop: 12 }} onClick={onClose}>닫기</button>
+    </>
+  );
+}
+
+/* 단골 관리 시트 (B-42, B-65 / 프로토타입 regMgr): 내가 등록한 단골 · 나를 단골로 등록한 사람(누구를 몇 회) · 양쪽 해지 · 직접 등록 */
+function RegularSheet({ refresh, onClose }) {
+  const { toast } = useUi();
+  const [mine, reloadMine] = useLoad(() => api('/regulars', { quiet: true }).catch(() => []), []);
+  const [badges, reloadBadges] = useLoad(() => api('/me/regular-badges', { quiet: true }).catch(() => []), []);
+  const [done] = useLoad(() => api('/requests?box=done', { quiet: true }).catch(() => []), []);
+  const [pick, setPick] = useState(false);
+  const [busy, run] = useBusy();
+  const regIds = (mine || []).map((v) => v.id);
+  // 함께한 분: 나를 도와준 적 있는 봉사자 가운데 아직 단골이 아닌 분
+  const cand = [];
+  (done || []).forEach((r) => { const v = r.volunteer; if (r.myRole === 'RECIPIENT' && !r.elder && v && !regIds.includes(v.id) && !cand.some((c) => c.id === v.id)) cand.push(v); });
+  if (pick) {
+    return (
+      <>
+        <h2>단골로 등록</h2>
+        <p className="mute2" style={{ margin: '0 0 10px' }}>함께한 분을 즐겨찾기처럼 단골로 등록해요</p>
+        {cand.length ? cand.slice(0, 8).map((v) => (
+          <div key={v.id} className="card item click" style={{ marginTop: 8 }} role="button" tabIndex={0} onClick={() => run(async () => { await post(`/regulars/${v.id}`); toast(`${v.name} 님을 단골로 등록했어요`); await reloadMine(); setPick(false); })}>
+            <Avatar name={v.name} s={40} /><div className="grow"><div className="b">{v.name}</div><div className="mute2">{v.experience || v.intro || '함께 활동한 분'}</div></div><span className="st go">등록</span>
+          </div>
+        )) : <Empty>함께한 분 가운데 등록할 분이 없어요. 공고나 프로필에서도 ☆ 단골로 등록을 누를 수 있어요</Empty>}
+        <button className="btn ghost" style={{ marginTop: 12 }} onClick={() => setPick(false)}>뒤로</button>
+      </>
+    );
+  }
+  return (
+    <>
+      <h2>단골 관리</h2>
+      <p className="mute2" style={{ margin: '0 0 6px' }}>3번 이상 만나면 자동으로 단골이 되고, 직접 등록할 수도 있어요. 해지는 등록한 쪽도, 등록된 쪽도 할 수 있어요.</p>
+      <div className="sec-t" style={{ marginTop: 6 }}>내가 등록한 단골</div>
+      {mine === undefined ? <Loading /> : (mine || []).length ? mine.map((v) => (
+        <div key={v.id} className="card item" style={{ marginTop: 8 }}>
+          <Avatar name={v.name} s={40} /><div className="grow"><div className="b">{v.name} <span className="badge">★ 단골</span></div><div className="mute2">{v.auto ? `자동 · ${v.doneCount}회` : '직접 등록'}</div></div>
+          <button className="btn ghost sm" style={{ width: 'auto', padding: '0 12px' }} disabled={busy} onClick={() => run(async () => { await del(`/regulars/${v.id}`); toast(`${v.name} 님과 단골을 해지했어요`); await reloadMine(); })}>해지</button>
+        </div>
+      )) : <div className="empty" style={{ padding: '12px 0' }}>아직 없어요</div>}
+      <div className="sec-t">나를 단골로 등록한 사람</div>
+      {badges === undefined ? <Loading /> : (badges || []).length ? badges.map((b) => (
+        <div key={b.key} className="card item" style={{ marginTop: 8 }}>
+          <Avatar name={b.name} s={40} elder={b.kind === 'ELDER'} /><div className="grow"><div className="b">{b.name}</div><div className="mute2">{b.count}회 만남{b.manual && !b.auto ? ' · 직접 등록' : ''}</div></div>
+          {b.kind === 'USER' && <button className="btn ghost sm" style={{ width: 'auto', padding: '0 12px' }} disabled={busy} onClick={() => run(async () => { await del(`/me/regular-badges/${b.userId}`); toast('단골 관계를 해지했어요'); await reloadBadges(); refresh(); })}>해지</button>}
+        </div>
+      )) : <div className="empty" style={{ padding: '12px 0' }}>아직 없어요</div>}
+      <button className="btn soft" style={{ marginTop: 12 }} onClick={() => setPick(true)}>+ 단골 직접 등록</button>
+      <button className="btn ghost" style={{ marginTop: 8 }} onClick={onClose}>닫기</button>
+    </>
   );
 }
 
@@ -39,7 +110,7 @@ export function useLogout() {
 /* ---------- 마이 (B-43~47) ---------- */
 export function My() {
   const nav = useNavigate();
-  const { me } = useAuth();
+  const { me, refresh } = useAuth();
   const logout = useLogout();
   const [bank] = useLoad(() => api('/bank', { quiet: true }), []);
   const [done] = useLoad(() => api('/requests?box=done', { quiet: true }), []);
@@ -48,7 +119,7 @@ export function My() {
   const [alerts] = useLoad(() => api('/interest-alerts', { quiet: true }), []);
   const { sheet, closeSheet } = useUi();
   if (!me) return <Screen title="마이" back={false}><Loading /></Screen>;
-  const v = me.verify || { idStatus: me.idStatus, crimeStatus: me.crimeStatus, eduDone: me.eduDone };
+  const v = me.verify || { idStatus: me.idStatus, crimeStatus: me.crimeStatus };
   const d = (done || []).filter((r) => r.status === 'DONE');
   const linked = (fam || []).filter((f) => f.status === 'ACCEPTED');
   const fam0 = linked[0];
@@ -56,35 +127,30 @@ export function My() {
   const badges = me.regularBadges || [];
   const al = (alerts || [])[0];
   return (
-    <Screen title="마이" back={false}>
+    <Screen title="마이" back={false} tab="/my">
       <div className="row" style={{ gap: 14 }}>
         <div className="avatar lg">{me.name[0]}</div>
         <div className="grow">
           <div className="b" style={{ fontSize: 20 }}>{me.name}</div><div className="mute2">{me.ageGroup} · {me.area}</div>
           <div className="tags" style={{ marginTop: 6 }}>
             {v.idStatus === 'APPROVED' && <span className="badge trust">✓ 신원 인증</span>}
-            {(v.eduDone || me.eduDone) && <span className="badge trust">✓ 교육 수료</span>}
             {v.crimeStatus === 'APPROVED' ? <span className="badge trust">✓ 범죄경력</span> : <span className="badge" style={{ background: '#F1F2F5', color: '#5F6672' }}>{v.crimeStatus === 'PENDING' ? '범죄경력 확인 중' : '범죄경력 미제출'}</span>}
           </div>
         </div>
       </div>
       <div className="kpis" style={{ marginTop: 16 }}><div><b>{d.filter((r) => r.myRole === 'VOLUNTEER').length}회</b><span>봉사</span></div><div><b>{d.filter((r) => r.myRole === 'RECIPIENT').length}회</b><span>도움 받음</span></div><div><b>{me.ratingAvg ? Number(me.ratingAvg).toFixed(1) : '-'}</b><span>받은 평가</span></div></div>
-      <div className="card item click" style={{ marginTop: 10 }} role="button" tabIndex={0} onClick={() => nav('/bank', { replace: true })}><div className="ic"><Ic n="wallet" s={20} /></div><div className="grow"><div className="b">시간 통장 {fmt(me.balance)}시간</div><div className="mute2">{last ? `최근: ${last.label} ${last.amount > 0 ? '+' : '−'}${fmt(Math.abs(last.amount))}` : '아직 내역이 없어요'}</div></div>›</div>
+      <div className="card item click" style={{ marginTop: 10 }} role="button" tabIndex={0} onClick={() => nav('/bank', { replace: true })}><div className="ic"><Ic n="wallet" s={20} /></div><div className="grow"><div className="b">시간 통장 {fmt(me.balance)}시간{me.accountNo ? <span className="mute2" style={{ fontWeight: 500 }}> · {me.accountNo}</span> : null}</div><div className="mute2">{last ? `최근: ${last.label} ${last.amount > 0 ? '+' : '−'}${fmt(Math.abs(last.amount))}` : '아직 내역이 없어요'}</div></div>›</div>
       <div className="sec-t">활동</div>
       <div className="ml">
         <Mi t="프로필 관리" s="지역·시간대·가능한 도움·경험" i="user" onClick={() => nav('/my/profile')} />
-        <Mi t="봉사 신원 인증" s="신분증 · 범죄경력 회보서 · 안전 교육" i="shield" onClick={() => nav('/my/verify')} />
-        <Mi t="내 공고" s={`올린 공고 ${(posts || []).length}개`} i="list" onClick={() => nav('/act?seg=posts', { replace: true })} />
-        <Mi t="내 활동 내역" s="요청·제안·지난 활동" i="cal" onClick={() => nav('/act', { replace: true })} />
-        <Mi t="받은 단골 배지" s={badges.length ? `${badges.length}명의 이웃이 나를 단골로` : '아직 없어요'} i="star" onClick={() => sheet(() => (
-          <><h2>받은 단골 배지</h2><p className="mute2" style={{ margin: '0 0 10px' }}>같은 분을 3번 이상 도우면 그분의 단골이 돼요</p>
-            {badges.length ? badges.map((b, i) => <div key={i} className="card item"><span className="badge">★ 단골</span><div className="grow b">{typeof b === 'string' ? b : b.label || b.name}</div>{b.count && <span className="mute2">{b.count}회</span>}</div>) : <Empty>아직 단골 배지가 없어요</Empty>}
-            <button className="btn ghost" style={{ marginTop: 12 }} onClick={closeSheet}>닫기</button></>
-        ))} />
-        <Mi t="봉사 확인서 발급" s="활동 기록을 PDF로 받아요" i="file" onClick={() => nav('/my/cert')} />
+        <Mi t="봉사 신원 인증" s="신분증 · 범죄경력 회보서(선택)" i="shield" onClick={() => nav('/my/verify')} />
+        <Mi t="내 공고" s={`올린 공고 ${(posts || []).length}개`} i="list" onClick={() => nav('/act?seg=posts')} />
+        <Mi t="내 활동" s="도움 받은 활동 · 봉사한 활동 · 월별 횟수" i="cal" onClick={() => nav('/act')} />
+        <Mi t="단골 관리" s={badges.length ? `받은 단골 배지 ${badges.length}개 · 등록·해지` : '내 단골 · 받은 단골 배지 · 등록·해지'} i="star" onClick={() => sheet(<RegularSheet refresh={refresh} onClose={closeSheet} />)} />
+        <Mi t="봉사 확인서 발급" s="기간을 골라 PDF로 받아요" i="file" onClick={() => nav('/my/cert')} />
         <Mi t="AI 분석" s="내 활동·평가 습관 분석 · 봉사 플랜" i="chart" onClick={() => nav('/my/insight')} />
-        <Mi t="시간 플래너" s="캘린더 · 추천 봉사 · 생애 플랜" i="cal" onClick={() => nav('/planner')} />
-        <Mi t="첫 활동 교육" s={me.eduDone ? '수료함 · 수료증 보기' : '봉사 전에 한 번 · 약 25분'} i="cap" onClick={() => nav(me.eduDone ? '/edu/cert' : '/edu')} />
+        <Mi t="시간 플래너" s="생애 플랜 · 캘린더 · 추천 봉사" i="cal" onClick={() => nav('/planner', { replace: true })} />
+        <Mi t="첫 활동 연습" s="AI 역할극 · 선택이라 안 해도 봉사할 수 있어요" i="cap" onClick={() => nav('/edu')} />
       </div>
       <div className="sec-t">가족</div>
       <div className="ml">
@@ -97,13 +163,17 @@ export function My() {
       <div className="sec-t">알림·도움</div>
       <div className="ml">
         <Mi t="관심 공고 알림" s={al ? `${al.area || '전체'} · ${arr(al.categories).join(', ') || '전체'} · ${al.dayType || '전체'}${al.enabled === false ? ' (꺼짐)' : ''}` : '조건을 저장해 두면 알려드려요'} i="bell" onClick={() => nav('/my/alerts')} />
-        <Mi t="알림 설정" s={me.voiceAlert ? 'AI 음성 안내 켜짐' : '앱 알림'} i="gear" onClick={() => nav('/my/noti')} />
-        <TextSizeRow />
+        <Mi t="알림 설정" s={me.voiceAlert ? '알림 종류 · AI 음성 안내 켜짐' : '알림 종류별 켜고 끄기'} i="gear" onClick={() => nav('/my/noti')} />
         <Mi t="1:1 문의 · 신고 내역" s="문의·신고 처리 상태" i="msg" onClick={() => nav('/qna')} />
         <Mi t="공지사항" i="file" onClick={() => nav('/notice')} />
         <Mi t="공공 서비스 안내" s="AI가 맞는 서비스를 찾아줘요" i="building" onClick={() => nav('/public')} />
         <Mi t="동네 기관 소식" s="근처 기관이 여는 교실·모임·행사" i="cal" onClick={() => nav('/news')} />
         <Mi t="카테고리 건의" s="6가지 종류에 없는 도움을 운영자에게 건의" i="flag" onClick={() => nav('/my/suggest')} />
+      </div>
+      <div className="sec-t">설정</div>
+      <div className="ml">
+        <Mi t="위치 정보" s={`가까운 순 안내 · 선택 동의${me.locConsent ? ' · 동의함' : ''}`} i="pin" onClick={() => sheet(<LocSheet me={me} refresh={refresh} onClose={closeSheet} />)} />
+        <TextSizeRow />
       </div>
       <div className="sec-t">계정</div>
       <div className="ml">
@@ -148,7 +218,7 @@ export function Verify() {
   const { me, refresh } = useAuth();
   const { toast } = useUi();
   if (!me) return <Screen title="봉사 신원 인증" noTabs><Loading /></Screen>;
-  const v = me.verify || { idStatus: me.idStatus, crimeStatus: me.crimeStatus, eduDone: me.eduDone };
+  const v = me.verify || { idStatus: me.idStatus, crimeStatus: me.crimeStatus };
   const row = (status, t, s, action) => {
     const tag = VS[status];
     const ok = status === 'APPROVED';
@@ -163,15 +233,11 @@ export function Verify() {
   const up = (kind) => async (url) => { try { await post(`/me/verify/${kind}`, { fileUrl: url }); await refresh(); toast(kind === 'id' ? '제출했어요. 운영자가 확인해요' : '제출했어요. 운영자 확인 후 신뢰 배지가 붙어요'); } catch { /* 토스트 */ } };
   return (
     <Screen title="봉사 신원 인증" noTabs>
-      <p className="su-p" style={{ marginTop: 0 }}>봉사하려면 신분증 인증과 첫 활동 교육이 필요해요. 범죄경력 회보서는 선택이고, 내면 신뢰 배지가 붙어요.</p>
+      <p className="su-p" style={{ marginTop: 0 }}>봉사하려면 신분증 인증이 필요해요. 범죄경력 회보서는 선택이고, 내면 신뢰 배지가 붙어요.</p>
       {row(v.idStatus, '신분증 인증', v.idStatus === 'REJECTED' ? '반려됐어요. 다시 올려 주세요' : '운영자가 확인해요', <Upload label="신분증 사진 올리기" accept="image/*,application/pdf" style={{ minHeight: 64 }} onUploaded={up('id')} />)}
-      <div className="card item">
-        <div className="ic" style={v.eduDone || me.eduDone ? { background: '#E6F7EE', color: '#1F9D63' } : null}><Ic n={v.eduDone || me.eduDone ? 'check' : 'cap'} s={20} /></div>
-        <div className="grow"><div className="b">첫 활동 교육</div><div className="mute2">규칙 카드 · 퀴즈 · AI 역할극 · 약 25분</div></div>
-        {v.eduDone || me.eduDone ? <span className="st ok">완료</span> : <button className="btn soft sm" style={{ width: 'auto', padding: '0 12px' }} onClick={() => nav('/edu')}>시작</button>}
-      </div>
       {row(v.crimeStatus, '범죄경력 회보서 (선택)', '제출하면 ✓ 신뢰 배지', <Upload label="회보서 올리기" style={{ minHeight: 64 }} onUploaded={up('crime')} />)}
-      <div className="card" style={{ marginTop: 14 }}><div className="b">방문 중 안전 규칙</div><ul className="small muted" style={{ margin: '6px 0 0', paddingLeft: 18 }}><li>신체 돌봄·의료 행위·돈 관리는 하지 않아요</li><li>방문 외 개인 연락, 연락처 교환은 금지예요</li><li>문제가 생기면 활동 상세에서 바로 신고해요</li></ul></div>
+      <div className="card" style={{ marginTop: 14 }}><div className="b">방문 중 안전 규칙</div><ul className="small muted" style={{ margin: '6px 0 0', paddingLeft: 18 }}><li>신체 접촉, 신체 돌봄·의료 행위·돈 관리는 하지 않아요</li><li>방문 외 개인 연락, 연락처 교환은 금지예요</li><li>문제가 생기면 활동 상세에서 바로 신고해요</li></ul></div>
+      <button className="btn ghost" style={{ marginTop: 12 }} onClick={() => nav('/edu')}>첫 활동 연습 해 보기 (선택)</button>
     </Screen>
   );
 }
@@ -253,7 +319,7 @@ export function AlertSet() {
   const [list, reload] = useLoad(() => api('/interest-alerts'), []);
   const [edit, setEdit] = useState(null);
   const [busy, run] = useBusy();
-  const start = (a) => setEdit(a ? { id: a.id, area: a.area || '', categories: arr(a.categories), dayType: a.dayType || '', enabled: a.enabled !== false } : { area: '행복동', categories: ['디지털 도움'], dayType: '주말', enabled: true });
+  const start = (a) => setEdit(a ? { id: a.id, area: a.area || '', categories: arr(a.categories), dayType: a.dayType || '', dateFrom: a.dateFrom || '', dateTo: a.dateTo || '', enabled: a.enabled !== false } : { area: '행복동', categories: ['디지털 도움'], dayType: '주말', dateFrom: '', dateTo: '', enabled: true });
   if (list === undefined) return <Screen title="관심 공고 알림" noTabs><Loading /></Screen>;
   if (!edit) {
     return (
@@ -261,7 +327,7 @@ export function AlertSet() {
         <p className="su-p" style={{ marginTop: 0 }}>조건에 맞는 공고가 올라오면 알림을 보내요.</p>
         {(list || []).map((a) => (
           <div key={a.id} className="card item">
-            <div className="grow" role="button" tabIndex={0} onClick={() => start(a)}><div className="b">{a.area || '모든 지역'} · {a.dayType || '모든 요일'}</div><div className="mute2">{arr(a.categories).join(', ') || '모든 도움'}</div></div>
+            <div className="grow" role="button" tabIndex={0} onClick={() => start(a)}><div className="b">{a.area || '모든 지역'} · {a.dayType || '모든 요일'}{a.dateFrom || a.dateTo ? ` · ${a.dateFrom ? dlabel(a.dateFrom) : '오늘'}~${a.dateTo ? dlabel(a.dateTo) : ''}` : ''}</div><div className="mute2">{arr(a.categories).join(', ') || '모든 도움'}</div></div>
             <button className={'toggle ' + (a.enabled !== false ? 'on' : '')} aria-label="알림 켜기" onClick={() => run(async () => { await put(`/interest-alerts/${a.id}`, { ...a, categories: arr(a.categories), enabled: a.enabled === false }); reload(); })} />
           </div>
         ))}
@@ -272,10 +338,14 @@ export function AlertSet() {
   return (
     <Screen title="관심 공고 알림" noTabs>
       <label className="f">지역</label><ChipsPick options={['', ...AREAS]} value={edit.area} onChange={(v) => setEdit({ ...edit, area: v })} label={(x) => x || '전체'} />
+      <label className="f">날짜 (선택)</label>
+      <div className="row" style={{ gap: 8 }}><input className="in grow" type="date" aria-label="시작 날짜" min={todayISO()} value={edit.dateFrom || ''} onChange={(e) => setEdit({ ...edit, dateFrom: e.target.value })} /><span className="mute2">~</span><input className="in grow" type="date" aria-label="끝 날짜" min={edit.dateFrom || todayISO()} value={edit.dateTo || ''} onChange={(e) => setEdit({ ...edit, dateTo: e.target.value })} /></div>
+      <div className="mute2" style={{ margin: '6px 2px' }}>비워 두면 날짜와 상관없이 알려 드려요.</div>
       <label className="f">요일</label><ChipsPick options={['상관없음', '평일', '주말']} value={edit.dayType || '상관없음'} onChange={(v) => setEdit({ ...edit, dayType: v })} />
       <label className="f">도움 종류</label><ChipsPick multi options={CATS.map((c) => c.k)} value={edit.categories} onChange={(v) => setEdit({ ...edit, categories: v })} />
       <button className="btn big-cta" style={{ marginTop: 18 }} disabled={busy} onClick={() => run(async () => {
-        const body = { area: edit.area, categories: edit.categories, dayType: edit.dayType, enabled: edit.enabled };
+        if (edit.dateFrom && edit.dateTo && edit.dateTo < edit.dateFrom) return toast('끝 날짜가 시작 날짜보다 빨라요');
+        const body = { area: edit.area, categories: edit.categories, dayType: edit.dayType, dateFrom: edit.dateFrom || null, dateTo: edit.dateTo || null, enabled: edit.enabled };
         if (edit.id) await put(`/interest-alerts/${edit.id}`, body); else await post('/interest-alerts', body);
         toast('저장했어요'); setEdit(null); reload();
       })}>저장</button>
@@ -285,54 +355,99 @@ export function AlertSet() {
   );
 }
 
-/* ---------- 알림 설정 · 어르신 대체 알림 (B-42) ---------- */
+/* ---------- 알림 설정 (B-58) · 어르신 대체 알림 (B-43) — 서버에 저장하고 실제 알림에 적용. 담당자도 같은 화면 ---------- */
+const NOTI_KINDS = [['req', '새 요청·제안'], ['msg', '새 메시지'], ['result', '수락·거절 결과'], ['remind', '시작 전 리마인드 (1시간 전)'], ['interest', '관심 공고']];
 export function NotiSet() {
   const { me, refresh } = useAuth();
   const { toast } = useUi();
+  const [st, reload] = useLoad(() => api('/me/noti-settings'), []);
   const [notis] = useLoad(() => api('/notifications', { quiet: true }), []);
-  const [local, setLocal] = useState(() => { try { return JSON.parse(localStorage.getItem('ts-noti') || '{}'); } catch { return {}; } });
-  const tg = (k) => { const n = { ...local, [k]: local[k] === false }; setLocal(n); try { localStorage.setItem('ts-noti', JSON.stringify(n)); } catch { /* 무시 */ } };
-  // LLM 추가 A(7.12, B-42): 서버가 알림마다 만든 "전화로 읽을 문장"(voiceText, 숫자는 한글 읽기)을 미리 듣기에 쓴다
-  const [vp] = useLoad(() => api('/me/voice-preview', { quiet: true }), [notis && notis.length]);
+  const [busy, run] = useBusy();
+  // LLM 추가 A(7.12, B-43): 서버가 알림마다 만든 "전화로 읽을 문장"(voiceText, 숫자는 한글 읽기)을 미리 듣기에 쓴다
+  const [vp] = useLoad(() => api('/me/voice-preview', { quiet: true }).catch(() => null), [notis && notis.length]);
+  if (!me || st === undefined) return <Screen title="알림 설정" noTabs><Loading /></Screen>;
+  if (!st) return <Screen title="알림 설정" noTabs><Empty>알림 설정을 불러오지 못했어요</Empty></Screen>;
+  const org = me.role === 'ORG';
   const sample = (notis || [])[0];
   const text = (vp && vp.text) || (sample ? `안녕하세요, 시간 적금입니다. ${sample.title}. ${sample.body || ''}` : '안녕하세요, 시간 적금입니다. 김하늘 님이 수요일 오후 2시 병원 동행을 수락했어요. 앱에서 최종 수락을 눌러 주세요.');
-  if (!me) return <Screen title="알림 설정" noTabs><Loading /></Screen>;
+  const set = (k, v, msg) => run(async () => { await put('/me/noti-settings', { [k]: v }); await reload(); if (k === 'voiceAlert' || k === 'smsAlert') await refresh(); if (msg) toast(msg); });
+  const sw = (k, t, sub, msg) => (
+    <div key={k} role="switch" aria-checked={!!st[k]} aria-disabled={busy} tabIndex={0} onClick={() => !busy && set(k, !st[k], msg && msg(!st[k]))} onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !busy) { e.preventDefault(); set(k, !st[k], msg && msg(!st[k])); } }}>
+      <div className="grow">{t}{sub ? <span>{sub}</span> : null}</div><span className={'toggle ' + (st[k] ? 'on' : '')} aria-hidden="true" />
+    </div>
+  );
   return (
     <Screen title="알림 설정" noTabs>
-      <div className="ml">{[['req', '새 요청·제안'], ['msg', '새 메시지'], ['res', '수락·거절 결과'], ['remind', '시작 전 리마인드 (1시간 전)'], ['interest', '관심 공고']].map(([k, t]) => <div key={k} role="switch" aria-checked={local[k] !== false} tabIndex={0} onClick={() => tg(k)}><div className="grow">{t}</div><span className={'toggle ' + (local[k] !== false ? 'on' : '')} /></div>)}</div>
-      <div className="mute2" style={{ margin: '6px 2px' }}>위 알림 종류 설정은 이 기기에만 저장돼요.</div>
-      <div className="sec-t">폰이 어려운 분을 위한 알림</div>
-      <div className="ml">
-        <div role="switch" aria-checked={!!me.voiceAlert} tabIndex={0} onClick={async () => { try { await saveMe(me, { voiceAlert: !me.voiceAlert }); await refresh(); toast(!me.voiceAlert ? '중요 알림을 음성으로 읽어 드려요' : '음성 안내를 껐어요'); } catch { /* 토스트 */ } }}><div className="grow">AI 음성 안내<span>중요한 알림을 소리로 읽어 드려요 (전화 연결은 준비 중)</span></div><span className={'toggle ' + (me.voiceAlert ? 'on' : '')} /></div>
-        <div role="switch" aria-checked={local.sms === true} tabIndex={0} onClick={() => { const n = { ...local, sms: !local.sms }; setLocal(n); try { localStorage.setItem('ts-noti', JSON.stringify(n)); } catch { /* 무시 */ } }}><div className="grow">문자로도 받기<span>문자 발송은 준비 중이에요</span></div><span className={'toggle ' + (local.sms ? 'on' : '')} /></div>
-      </div>
-      <SttServerToggle />
-      <button className="btn ghost" style={{ marginTop: 14 }} onClick={async () => { const ok = await speak(text, { force: true }); if (!ok) toast('이 브라우저는 소리로 읽기를 지원하지 않아요'); }}><Ic n="mic" s={20} /> AI 음성 안내 미리 듣기</button>
-      <div className="ai" style={{ marginTop: 10 }}><div className="ah"><Spk />전화로 이렇게 읽어 드려요{vp && vp.title ? ` · 최근 알림 “${vp.title}”` : ''}</div><div className="voice-line">“{text}”</div><div className="mute2" style={{ marginTop: 6, fontSize: 12 }}>숫자는 소리 내 읽기 좋게 바꿔요 · 전화 연결은 아직 모의예요</div></div>
+      <p className="su-p" style={{ marginTop: 0 }}>{org ? '담당 도움 대상과 관련된 알림을 종류별로 켜고 꺼요.' : '알림을 종류별로 켜고 꺼요.'} 꺼 둔 종류는 알림이 오지 않아요.</p>
+      <div className="ml">{NOTI_KINDS.filter(([k]) => !(org && k === 'interest')).map(([k, t]) => sw(k, t))}</div>
+      <div className="mute2" style={{ margin: '6px 2px' }}>설정은 계정에 저장돼서 다른 기기에서도 같아요. 일정 확정·지각·노쇼 의심·완료 확인·적립 알림은 항상 와요.</div>
+      {!org && (
+        <>
+          <div className="sec-t">폰이 어려운 분을 위한 알림</div>
+          <div className="ml">
+            {sw('voiceAlert', 'AI 음성 전화 안내', '중요한 알림을 소리로 읽어 드려요 (전화 연결은 준비 중)', (v) => (v ? '중요 알림을 음성으로 읽어 드려요' : '음성 안내를 껐어요'))}
+            {sw('smsAlert', '문자로도 받기', '알림을 문자로도 함께 보내요 (문자 발송은 준비 중)', (v) => (v ? '문자 병행을 켰어요' : '문자 병행을 껐어요'))}
+          </div>
+          <SttServerToggle />
+          <button className="btn ghost" style={{ marginTop: 14 }} onClick={async () => { const ok = await speak(text, { force: true }); if (!ok) toast('이 브라우저는 소리로 읽기를 지원하지 않아요'); }}><Ic n="mic" s={20} /> AI 음성 안내 미리 듣기</button>
+          <div className="ai" style={{ marginTop: 10 }}><div className="ah"><Spk />전화로 이렇게 읽어 드려요{vp && vp.title ? ` · 최근 알림 “${vp.title}”` : ''}</div><div className="voice-line">“{text}”</div><div className="mute2" style={{ marginTop: 6, fontSize: 12 }}>숫자는 소리 내 읽기 좋게 바꿔요 · 전화 연결은 아직 모의예요</div></div>
+        </>
+      )}
     </Screen>
   );
 }
 
-/* ---------- 봉사 확인서 ---------- */
+/* ---------- 봉사 확인서 (B-56): 기간 선택 · 독거노인 대상 횟수 · AI 자기소개용 요약 · 인쇄(PDF로 저장) ---------- */
+const CERT_RANGES = [['all', '전체 기간'], ['m1', '최근 1개월'], ['m3', '최근 3개월'], ['m6', '최근 6개월'], ['y', '올해'], ['custom', '직접 고르기']];
+function certRange(k) {
+  const to = todayISO();
+  if (k === 'm1') return [addDays(-30), to];
+  if (k === 'm3') return [addDays(-91), to];
+  if (k === 'm6') return [addDays(-182), to];
+  if (k === 'y') return [`${to.slice(0, 4)}-01-01`, to];
+  return ['', ''];
+}
 export function Cert() {
   const { me } = useAuth();
-  const [c] = useLoad(() => api('/certificate'), []);
+  const { toast } = useUi();
+  const [kind, setKind] = useState('all');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const qs = [from && `from=${from}`, to && `to=${to}`].filter(Boolean).join('&');
+  const [c] = useLoad(() => api(`/certificate${qs ? `?${qs}` : ''}`), [qs]);
+  const pick = (k) => { setKind(k); if (k !== 'custom') { const [a, b] = certRange(k); setFrom(a); setTo(b); } };
   return (
     <Screen title="봉사 확인서" noTabs>
+      <label className="f" style={{ marginTop: 0 }}>기간 선택</label>
+      <div className="chips" role="tablist" aria-label="확인서 기간">{CERT_RANGES.map(([k, t]) => <button key={k} role="tab" aria-selected={kind === k} className={'chip ' + (kind === k ? 'on' : '')} onClick={() => pick(k)}>{t}</button>)}</div>
+      {kind === 'custom' && <div className="row" style={{ gap: 8, marginTop: 8 }}><input className="in grow" type="date" aria-label="시작 날짜" value={from} max={to || todayISO()} onChange={(e) => setFrom(e.target.value)} /><span className="mute2">~</span><input className="in grow" type="date" aria-label="끝 날짜" value={to} min={from} max={todayISO()} onChange={(e) => setTo(e.target.value)} /></div>}
       {c === undefined ? <Loading /> : !c ? <Empty>확인서를 불러오지 못했어요</Empty> : (
         <>
-          <div className="cert">
-            <div className="cert-h"><div className="lf-mark" style={{ width: 40, height: 40, padding: 8, margin: 0 }}><Ic n="logo" s={24} /></div><div><b>봉사 활동 확인서</b><div className="mute2">시간 적금 · {c.period}</div></div></div>
+          <div className="cert" style={{ marginTop: 12 }}>
+            <div className="cert-h"><div className="lf-mark" style={{ width: 40, height: 40, padding: 8, margin: 0 }}><Ic n="logo" s={24} /></div><div><b>봉사 활동 확인서</b><div className="mute2">시간 적금 · {c.period || '활동 기록 없음'}</div></div></div>
             <dl className="kv" style={{ marginTop: 12 }}>
               <dt>이름</dt><dd>{c.name || (me && me.name)}</dd>
+              <dt>통장 번호</dt><dd>{c.accountNo || '-'}</dd>
               <dt>활동 횟수</dt><dd>{c.count}회</dd>
-              <dt>활동 시간</dt><dd>{fmt(c.totalHours)}시간 (실제 시간 기준)</dd>
+              <dt>활동 시간</dt><dd>{fmt(c.totalHours)}시간 (예정 시간 기준)</dd>
+              <dt>적립 시간</dt><dd>{fmt(c.totalEarned)}시간 (난이도 가중치 포함)</dd>
               <dt>주요 활동</dt><dd>{(c.byCategory || []).map((b) => `${SHORT[b.category] || b.category} ${b.count}`).join(' · ') || '-'}</dd>
+              <dt>독거노인 대상</dt><dd>{c.elderCount || 0}회</dd>
+              <dt>발급일</dt><dd>{c.issuedAt}</dd>
             </dl>
+            {c.summary && (
+              <div className="ai" style={{ marginTop: 12 }}>
+                <div className="ah"><Spk />자기소개용 활동 요약<Mod n={3} /></div>
+                <div className="small">{c.summary}</div>
+                <div className="mute2" style={{ marginTop: 6 }}>횟수·시간은 시스템이 집계하고, 문장만 AI가 써요.</div>
+                <RuleNote source={c.summarySource} />
+              </div>
+            )}
             {(c.items || []).length > 0 && <div style={{ marginTop: 12 }}>{c.items.map((it, i) => <div key={i} className="between small" style={{ padding: '6px 0', borderTop: '1px dashed var(--line)' }}><span>{dlabel(it.date)} · {it.category} · {it.recipient || it.recipientLabel || ''}</span><b>{it.hours}시간</b></div>)}</div>}
           </div>
-          <div className="mute2" style={{ margin: '10px 2px' }}>확인된 활동(일지 제출·확인 완료)만 들어가요. 받는 분 이름은 가려서 표시돼요.</div>
-          <button className="btn big-cta" onClick={() => window.print()}>PDF로 받기 (인쇄)</button>
+          <div className="mute2" style={{ margin: '10px 2px' }}>고른 기간에 적립이 확정된 활동(일지 제출·확인 완료)만 들어가요. 받는 분 이름은 가려서 표시돼요.</div>
+          {c.summary && <button className="btn ghost" style={{ marginBottom: 8 }} onClick={async () => { try { await navigator.clipboard.writeText(c.summary); toast('요약 문장을 복사했어요'); } catch { toast('복사하지 못했어요. 문장을 길게 눌러 복사해 주세요'); } }}>요약 문장 복사</button>}
+          <button className="btn big-cta" disabled={!c.count} onClick={() => window.print()}>{c.count ? 'PDF로 받기 (인쇄 › PDF로 저장)' : '이 기간에는 확정된 활동이 없어요'}</button>
         </>
       )}
     </Screen>

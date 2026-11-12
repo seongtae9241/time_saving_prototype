@@ -199,7 +199,22 @@ class Req41MeTest {
         RoleplayPersona p = persona("[]"); // 대본 없음 → 서버 설정의 상황 목록으로 진행(키 없음)
         mvc.perform(get("/api/edu").header("Authorization", tok(vol))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.optional").value(true)).andExpect(jsonPath("$.completed").doesNotExist())
-                .andExpect(jsonPath("$.situations", hasSize(4))).andExpect(jsonPath("$.situations[0].title").value("연락처 교환"));
+                .andExpect(jsonPath("$.situations", hasSize(4))).andExpect(jsonPath("$.situations[0].title").value("연락처를 물어볼 때"))
+                .andExpect(jsonPath("$.situations[0].options", hasSize(2))).andExpect(jsonPath("$.situations[0].bad").doesNotExist());
+        // 상황 하나 연습(프로토타입): 부탁을 들어준 답 → 이렇게 바꿔 말해 보세요, 규칙을 지킨 답 → 칭찬
+        mvc.perform(post("/api/edu/practice").header("Authorization", tok(vol)).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"key\":\"money\",\"text\":\"네, 일단 제가 내 드릴게요.\"}")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.ok").value(false)).andExpect(jsonPath("$.flag").value("금전·선물"))
+                .andExpect(jsonPath("$.feedback.reason", containsString("금전 거래는 안 돼요")))
+                .andExpect(jsonPath("$.feedback.better", containsString("장 보는 걸 같이")));
+        mvc.perform(post("/api/edu/practice").header("Authorization", tok(vol)).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"key\":\"privacy\",\"text\":\"네 저는 행복아파트 살아요\"}")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.ok").value(false)).andExpect(jsonPath("$.feedback.violation").value(true));
+        mvc.perform(post("/api/edu/practice").header("Authorization", tok(vol)).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"key\":\"contact\",\"text\":\"번호는 서로 못 주고받게 돼 있어요. 필요하시면 앱에서 공고로 다시 불러 주세요.\"}")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.ok").value(true)).andExpect(jsonPath("$.praise", containsString("잘했어요"))).andExpect(jsonPath("$.feedback").doesNotExist());
+        mvc.perform(post("/api/edu/practice").header("Authorization", tok(vol)).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"key\":\"none\",\"text\":\"네\"}")).andExpect(status().isNotFound());
         // 수료 API 는 없다
         mvc.perform(post("/api/edu/complete").header("Authorization", tok(vol)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(result -> assertNotEquals(200, result.getResponse().getStatus()));

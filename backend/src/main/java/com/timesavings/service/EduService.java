@@ -30,12 +30,26 @@ import java.util.*;
 public class EduService {
     public static final TypeReference<List<Map<String, Object>>> TURNS = new TypeReference<>() {};
     public static final String SITUATIONS_KEY = "edu.situations";
-    /** 상황 목록 기본값(운영자가 PUT /api/admin/edu/situations 로 바꾼다). flag = 그 상황에서 지켜야 할 안전 규칙 */
+    /**
+     * 상황 목록 기본값(2026-11-12 프로토타입 문구, 운영자가 PUT /api/admin/edu/situations 로 바꾼다).
+     * line = 어르신이 던지는 말, bad·good = 고를 수 있는 답 두 가지, reason = 왜 바꿔 말해야 하는지, flag = 그 상황의 안전 규칙
+     */
     public static final List<Map<String, Object>> DEFAULT_SITUATIONS = List.of(
-            Views.map("key", "contact", "title", "연락처 교환", "line", "다음에도 자네가 와 주면 좋겠는데, 전화번호 좀 적어 주고 가.", "flag", "연락처"),
-            Views.map("key", "money", "title", "금전 부탁", "line", "고마워서 그래. 얼마 안 되지만 이거 받아 둬. 차비라도 해.", "flag", "금전·선물"),
-            Views.map("key", "body", "title", "신체 돌봄 요청", "line", "허리가 쑤셔서 그러는데, 여기 파스 좀 붙여 줄 수 있나?", "flag", "신체 돌봄"),
-            Views.map("key", "privacy", "title", "개인 정보 질문", "line", "은행 앱이 안 돼서 그러는데, 비밀번호 불러 줄 테니 대신 좀 눌러 줘.", "flag", "개인정보"));
+            Views.map("key", "contact", "title", "연락처를 물어볼 때", "line", "선생님 덕분에 참 좋네요. 전화번호 좀 알려줘요. 나중에 따로 부탁하고 싶어서요.",
+                    "bad", "네, 제 번호 적어 드릴게요.", "good", "번호는 서로 못 주고받게 돼 있어요. 필요하시면 앱에서 공고로 다시 불러 주세요.",
+                    "reason", "방문 밖 개인 연락은 안전 규칙에 어긋나요. 부드럽게 앱으로 안내해 보세요.", "flag", "연락처"),
+            Views.map("key", "money", "title", "돈을 부탁받을 때", "line", "오늘 장 보는 데 돈이 모자라서… 5만 원만 먼저 내 줄 수 있어요?",
+                    "bad", "네, 일단 제가 내 드릴게요.", "good", "돈 문제는 제가 도와드리기 어려워요. 대신 장 보는 걸 같이 해 드릴게요.",
+                    "reason", "금전 거래는 안 돼요. 거절하되 도울 수 있는 일을 함께 말해 보세요.", "flag", "금전·선물"),
+            Views.map("key", "body", "title", "몸 돌봄을 부탁받을 때", "line", "허리가 아파서 그런데, 목욕 좀 시켜 줄 수 있어요?",
+                    "bad", "네, 제가 씻겨 드릴게요.", "good", "몸 돌봄은 제가 할 수 없는 일이에요. 방문요양 같은 서비스를 같이 알아봐 드릴게요.",
+                    "reason", "신체 돌봄·의료 행위는 하지 않아요. 알맞은 서비스를 안내하는 말이 좋아요.", "flag", "신체 돌봄"),
+            Views.map("key", "privacy", "title", "개인 정보를 물어볼 때", "line", "혹시 어디 사세요? 집 호수도 알려 주면 좋겠어요.",
+                    "bad", "네, 저는 ○○아파트 101동이에요.", "good", "제 개인 정보는 말씀드리기 어려워요. 오늘 필요한 일부터 같이 해 볼까요?",
+                    "reason", "내 개인 정보는 나누지 않아요. 편안한 말투로 화제를 돌려 보세요.", "flag", "개인정보"));
+    public static final String PRAISE = "잘했어요! 안전 규칙을 지키면서 따뜻하게 말했어요.";
+    private static final java.util.regex.Pattern AGREE = java.util.regex.Pattern.compile("^\\s*(네|예|그럼요|그래요|알겠|좋아요)");
+    private static final java.util.regex.Pattern REFUSE = java.util.regex.Pattern.compile("안 돼|안돼|못 |못해|어려워|어렵|할 수 없|없어요|규칙|않아|않기|대신|죄송|마음만");
     private static final Map<String, String> BETTER = Map.of(
             "연락처", "다시 뵙고 싶으면 앱에서 저를 단골로 등록해 주세요. 연락처는 서로 주고받지 않기로 되어 있어요.",
             "금전·선물", "마음만 감사히 받을게요. 대신 도운 시간이 제 통장에 쌓여서 괜찮아요.",
@@ -78,7 +92,13 @@ public class EduService {
             if (line.length() < 5 || line.length() > 150) throw ApiException.bad("INVALID_SITUATIONS", "어르신이 할 말은 5~150자로 적어 주세요");
             if (flag != null && !RoleplayAi.FLAGS.contains(flag)) throw ApiException.bad("INVALID_SITUATIONS", "안전 규칙은 " + String.join(", ", RoleplayAi.FLAGS) + " 중에서 골라 주세요");
             String key = it.get("key") == null || String.valueOf(it.get("key")).isBlank() ? "s" + no : String.valueOf(it.get("key")).trim();
-            out.add(Views.map("key", key.length() > 20 ? key.substring(0, 20) : key, "title", title, "line", line, "flag", flag));
+            Map<String, Object> row = Views.map("key", key.length() > 20 ? key.substring(0, 20) : key, "title", title, "line", line, "flag", flag);
+            for (String k : List.of("bad", "good", "reason")) { // 선택: 고를 답 두 가지와 바꿔 말해야 하는 이유
+                String v = it.get(k) == null ? "" : String.valueOf(it.get(k)).trim();
+                if (v.length() > 150) throw ApiException.bad("INVALID_SITUATIONS", "답과 이유는 150자 안으로 적어 주세요");
+                if (!v.isBlank()) row.put(k, v);
+            }
+            out.add(row);
             no++;
         }
         AppSetting s = settings.findById(SITUATIONS_KEY).orElseGet(() -> { AppSetting x = new AppSetting(); x.key = SITUATIONS_KEY; return x; });
@@ -86,6 +106,50 @@ public class EduService {
         if (s.value.length() > 2000) throw ApiException.bad("INVALID_SITUATIONS", "상황 내용이 너무 길어요. 문장을 줄여 주세요");
         s.updatedAt = LocalDateTime.now();
         settings.save(s);
+        return out;
+    }
+
+    /** 사용자에게 주는 상황: 어느 답이 맞는지는 알려 주지 않고 고를 답만 섞어서 준다. */
+    static Map<String, Object> situationView(Map<String, Object> s) {
+        List<Object> options = new ArrayList<>();
+        if (s.get("bad") != null) options.add(s.get("bad"));
+        if (s.get("good") != null) options.add(s.get("good"));
+        if (options.size() == 2 && Math.floorMod(String.valueOf(s.get("key")).hashCode(), 2) == 1) java.util.Collections.reverse(options);
+        return Views.map("key", s.get("key"), "title", s.get("title"), "line", s.get("line"), "options", options);
+    }
+
+    /**
+     * POST /api/edu/practice — 상황 하나 연습(프로토타입 2026-11-12): 어르신(AI)이 상황을 던지고, 내 답이 안전 규칙에 어긋나면
+     * "이렇게 바꿔 말해 보세요"(이유 + 바꿔 말할 문장)를, 잘했으면 칭찬을 돌려준다. 기록·수료는 남기지 않는다.
+     * {quality, flag, ok, praise|null, feedback:{violation, flag, message, reason, better}|null, reply, source}
+     */
+    public Map<String, Object> practice(String key, String text) {
+        if (text == null || text.isBlank()) throw ApiException.bad("TEXT_REQUIRED", "할 말을 입력해 주세요");
+        Map<String, Object> sit = situations().stream().filter(x -> String.valueOf(x.get("key")).equals(key)).findFirst()
+                .orElseThrow(() -> ApiException.notFound("연습 상황을 찾을 수 없어요"));
+        String t = text.trim();
+        String sitFlag = (String) sit.get("flag");
+        boolean pickedGood = t.equals(sit.get("good")), pickedBad = t.equals(sit.get("bad"));
+        RuleEngine.RpClass rule = RuleEngine.rpClassify(t);
+        boolean ruleBad = "bad".equals(rule.quality()) || (sitFlag != null && AGREE.matcher(t).find() && !REFUSE.matcher(t).find()); // 부탁을 그대로 들어준 답
+        Optional<RoleplayAi.Turn> at = pickedGood || pickedBad ? Optional.empty()
+                : roleplayAi.turn(Views.map("name", "도움 받는 어르신", "trait", "혼자 사시고 정이 많으세요"), List.of(Views.map("title", sit.get("title"), "line", sit.get("line"))),
+                List.of(Views.map("who", "them", "text", sit.get("line"))), t, true);
+        String quality, flag, better = (String) sit.get("good"), source = "rule";
+        if (pickedGood) { quality = "good"; flag = null; }
+        else if (pickedBad || ruleBad) { quality = "bad"; flag = rule.flag() != null ? rule.flag() : sitFlag; }
+        else if (at.isPresent()) {
+            quality = at.get().quality(); flag = "bad".equals(quality) ? (at.get().flag() != null ? at.get().flag() : sitFlag) : null;
+            if (better == null) better = at.get().better();
+            source = "ai";
+        } else { quality = rule.quality(); flag = null; }
+        boolean ok = "good".equals(quality) || "ok".equals(quality);
+        Map<String, Object> fb = feedback(quality, flag, better);
+        if (fb != null) fb.put("reason", sit.get("reason") != null ? sit.get("reason") : fb.get("message"));
+        String reply = at.isPresent() ? at.get().reply() : ok ? "그려요, 알겠어요. 그렇게 말해 주니 고맙네요." : "아이고, 고마워라. 그럼 그렇게 해 줘요.";
+        Map<String, Object> out = Views.map("key", key, "quality", quality, "flag", flag, "ok", ok, "praise", ok ? PRAISE : null, "feedback", fb,
+                "reply", reply, "source", at.isPresent() ? "ai" : source);
+        if (at.isPresent()) out.put("provider", at.get().provider());
         return out;
     }
 
@@ -114,7 +178,7 @@ public class EduService {
         return Views.map("optional", true, "diag", diag, "cardsDone", p.cardsDone, "quizScore", p.quizScore,
                 "roleplay", Views.parse(p.roleplayJson, new TypeReference<Map<String, Object>>() {}, new LinkedHashMap<>()),
                 "personas", personas.findAll().stream().filter(x -> x.active).map(x -> personaView(x, false)).toList(),
-                "situations", situations().stream().map(s -> Views.map("key", s.get("key"), "title", s.get("title"))).toList(),
+                "situations", situations().stream().map(EduService::situationView).toList(),
                 "rules", EduContent.cardsFor(cats), "quiz", quiz);
     }
 

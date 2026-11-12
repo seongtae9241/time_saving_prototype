@@ -669,6 +669,7 @@ export function Rate() {
       <label className="f" htmlFor="rc">한마디 (선택)</label>
       <VoiceField value={comment} onChange={setComment}><textarea id="rc" className="in" style={{ minHeight: 80 }} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="고마운 마음을 적어 주세요 (금전 표현 없이)" /></VoiceField>
       <div className="notice" style={{ marginTop: 14 }}>{iVol ? '봉사받는 분 평가는 상대에게 보이지 않는 비공개 점수예요.' : `같은 분께 3번 이상 도움을 받으면 그분에게 '단골' 배지가 생겨요.${r.volunteer && r.volunteer.isRegular ? ` 지금 ${target.name} 님은 이미 내 단골이에요 ★` : ''}`}</div>
+      {r.myRole === 'RECIPIENT' && !r.elder && target.id && <RegularButton volunteerId={target.id} style={{ marginTop: 10 }} />}{/* B-65: 평가 화면에서 직접 단골 등록 */}
       <button className="btn big-cta" style={{ marginTop: 18 }} disabled={busy} onClick={() => run(async () => {
         await post(`/requests/${r.id}/rate`, { stars: s, tags, comment: comment.trim() });
         toast('평가를 남겼어요');
