@@ -542,7 +542,7 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - 독거노인 건은 도움 대상별 **현관 QR 카드** 번호(`elders.qr_code`, 6자리)로만 시작·종료한다. 카드는 확정 때 없으면 자동으로 만들어지고, 다시 발급하면 번호가 바뀌어 이전 카드는 `WRONG_CODE`.
 - QR 글: 일반 건 `TS1|REQ|<요청 id>|<6자리>`, 독거노인 건 `TS1|ELD|<도움 대상 id>|<6자리>`.
 - `GET /api/requests/{id}/qr` [받는 사람·담당자] → `{status, elderCard, code, qrText, leftSec, stepSec:30}`. 일반 건은 지금 구간 번호와 남은 초, 독거노인 건은 현관 카드 번호(`leftSec` null). CONFIRMED·IN_PROGRESS가 아니면 `code`·`qrText`는 null. 받는 쪽 화면은 이 주소로 번호를 다시 받아 간다.
-- `POST /api/requests/{id}/check-in`·`check-out` `{code, method}`: `method`는 `qr`|`code`|`manual`. `code`가 틀리면 400 `WRONG_CODE`. **`method:'manual'`(번호 없이, "받는 분 확인 필요" 표시)은 남아 있다**(⑨).
+- `POST /api/requests/{id}/check-in`·`check-out` `{code, method}`: `method`는 `qr`|`code`. `code`가 틀리면 400 `WRONG_CODE`. **`method:'manual'`(번호 없이 기록)은 없앴다 — 400 `MANUAL_NOT_ALLOWED`**(⑪). 예전 기록의 `checkMethod:"manual"`은 읽기만 한다.
 - RequestView: `checkCode`·`qrText`는 받는 쪽·담당자에게 CONFIRMED·IN_PROGRESS일 때만. 일반 건은 `qrLeftSec`, 독거노인 건은 `elderCard:true`·`qrIssuedAt`이 함께 온다. 모든 역할에 `autoClosed`, `gapMinutes`(기록 − 예정, 분. 시작·종료 기록이 다 있어야 값) 추가. `elder.ageGroup`·`elder.alias`는 담당자에게만(B-13). `volunteer.eduDone` 삭제.
 - 지각·노쇼(스케줄러 `lateCheck`, 1분마다): 예정 시작 10분 뒤 시작 기록이 없으면 `LATE`, 30분 뒤 `NOSHOW_SUSPECT`를 봉사자와 받는 쪽(독거노인 건은 담당자)에 한 번씩 보내고 요청 메시지 창에 시스템 문장을 남긴다. 하루 넘게 지난 일정에는 뒤늦게 보내지 않는다. `POST /api/requests/{id}/noshow`와 `actions`의 `noshow`는 시작 30분 뒤부터(그 전 409 `TOO_EARLY`).
 - 자동 마감(`autoCloseDue`): IN_PROGRESS인데 예정 종료 30분이 지나면 `checkOutAt` = 예정 종료 시각, 상태 CHECKED_OUT, `autoClosed=true`. 봉사자에게 일지 작성 알림 `AUTO_CLOSED`, 받는 쪽에도 같은 종류 알림.
@@ -566,13 +566,13 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 **③ 공고 — 자동 반복 삭제·다시 올리기·가족 대신·위치·관심 조건 (B-02, B-06, B-14, B-20, B-21, B-57, B-59)**
 
 - **자동 반복 등록은 없다.** `POST /api/posts`의 `repeat`은 글자·객체·true 어떤 모양이 와도 받아서 무시하고 늘 1건만 만든다(`createdCount` 1, `createdIds` 1개). 반복을 바랐으면 응답에 `repeatNotice`(안내 문장). `repeatRule`·`seriesId`는 새 공고에서 늘 null.
-- `POST /api/posts/{id}/repost` `{date}` → 새 공고 카드 + `repostOf`. 지난 공고(마감·매칭 포함, 삭제 제외)를 같은 내용으로 날짜만 바꿔 1건 올린다. 쓸 수 있는 사람: 공고 주인, 그 독거노인의 담당자, 가족 대신 올린 작성자. 독거노인 공고는 `issueNote`도 복사. 오류: 날짜 없음·지난 날짜 400 `INVALID_DATE`, 남의 공고 403, 삭제된 공고 404, 종료된 대상 400 `ELDER_ENDED`.
-- 가족 대신 공고(B-57): `POST /api/posts`에 `forUserId`(연결 ACCEPTED인 가족의 회원 번호). 공고 `ownerId` = 가족, `createdBy` = 올린 사람, `type`은 NEED만(400 `INVALID_TYPE`). 연결 아님 403, 본인·정지 계정 400 `INVALID_FAMILY`. 봉사 제안의 받는 사람이 가족이라 **알림·최종 수락/거부·시간 보류/차감은 가족 본인**. 올린 사람은 공고 상세의 `requests`를 읽기만 한다(`myRole` null, `actions` 빈 목록). 가족에게 알림 `FAMILY_POST`(링크 `/posts/{id}`). 올린 사람도 수락 전에는 그 공고를 수정·삭제·다시 올리기 할 수 있다.
+- `POST /api/posts/{id}/repost` `{date}` → 새 공고 카드 + `repostOf`. 지난 공고(마감·매칭 포함, 삭제 제외)를 같은 내용으로 날짜만 바꿔 1건 올린다. 쓸 수 있는 사람: 공고 주인, 그 독거노인의 담당자(가족 대신 올린 작성자는 못 한다 — ⑪). 독거노인 공고는 `issueNote`도 복사. 오류: 날짜 없음·지난 날짜 400 `INVALID_DATE`, 남의 공고 403, 삭제된 공고 404, 종료된 대상 400 `ELDER_ENDED`.
+- 가족 대신 공고(B-57): `POST /api/posts`에 `forUserId`(연결 ACCEPTED인 가족의 회원 번호). 공고 `ownerId` = 가족, `createdBy` = 올린 사람, `type`은 NEED만(400 `INVALID_TYPE`). 연결 아님 403, 본인·정지 계정 400 `INVALID_FAMILY`. 봉사 제안의 받는 사람이 가족이라 **알림·최종 수락/거부·시간 보류/차감은 가족 본인**. 올린 사람은 공고 상세의 `requests`를 읽기만 한다(`myRole` null, `actions` 빈 목록). 가족에게 알림 `FAMILY_POST`(링크 `/posts/{id}`). **올린 사람은 읽기만 한다**: 그 공고의 수정·삭제·다시 올리기는 403, 그 공고에 직접 봉사 제안은 400 `OWN_POST`(⑪).
 - PostCard 추가: `proxy`, `proxyByName`, `proxyMine`(목록·내 공고·상세·등록 응답), 목록에는 `distanceBy`(`location`|`profile`). `owner.eduDone` 삭제.
 - `GET /api/posts`: 쿼리 `dateFrom`, `dateTo`, `lat`, `lng`(둘 다 있어야 함, 틀리면 400 `INVALID_LOCATION`). 좌표가 오면 `distanceKm` = 그 좌표에서 공고 동네 중심(`service/Geo.java`의 동별 좌표 표)까지 거리. **좌표는 저장하지 않는다.** 표에 없는 동은 프로필 동네 기준 거리. 화면은 가까운 순을 누르는 순간 브라우저 위치 권한을 묻고, 거절 뒤 다시 누르면 허용 방법을 안내한다(`ui/location.jsx`).
 - `GET /api/posts/mine?elderId=`: 그 대상의 공고만. 내가 가족 대신 올린 공고도 포함.
 - `POST /api/ai/post-chat` 응답 `draft`: `repeat` 삭제, `repeatNotice`(안내 문장 또는 null) 추가. 화면은 대화·말로 요청하기를 시작하기 전에 "새로운 사람 / 자주 만난 사람(단골)"을 먼저 묻는다(서버 계약 없음).
-- 관심 조건: `POST·PUT /api/interest-alerts` 본문·응답에 `dateFrom`, `dateTo`(YYYY-MM-DD, **빈 글자 `""`면 지움**, null이면 그대로 둠). 끝<시작·모양 오류 400 `INVALID_DATE`. 기간 밖 공고는 알리지 않는다.
+- 관심 조건: `POST·PUT /api/interest-alerts` 본문·응답에 `dateFrom`, `dateTo`(YYYY-MM-DD, **빈 글자 `""`나 `null`을 보내면 지움**, 칸을 아예 안 보내면 그대로 둠 — ⑪). 끝<시작·모양 오류 400 `INVALID_DATE`. 기간 밖 공고는 알리지 않는다.
 
 **④ 단골 (B-42, B-65)**
 
@@ -619,12 +619,12 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 **⑨ 명세와 다르게 둔 것(총괄 결정)**
 
 - B-30 차감: 명세 글자는 "예정 시간만큼"이지만 **예정 시간 × 가중치**(= 봉사자 적립과 같은 값, 7.3 정산)로 보류·차감한다.
-- B-51: QR 스캔 말고 **6자리 번호 입력**(30초마다 바뀜)으로 시작·종료하는 길을 남겼다. 번호 없이 기록하는 `method:'manual'`도 코드에 남아 있다(없앨지 결정 전).
+- B-51: QR 스캔 말고 **6자리 번호 입력**(30초마다 바뀜)으로 시작·종료하는 길을 남겼다. 번호 없이 기록하는 `method:'manual'`은 없앴다(⑪).
 - B-56: 확인서 PDF는 서버가 파일을 만들지 않고 브라우저 인쇄(PDF로 저장)로 받는다.
 - B-54: 프로토타입에는 "연습 수료 배지"가 있지만 명세대로 만들지 않았다.
 - 명세에 없는 기존 LLM 기능(7.12~7.15: 쉬운 말, 고치기 제안, 방문 전 브리핑, 메시지 안전 감지, 담당자 브리핑, 신고 정리 등)은 그대로 둔다.
 
-**⑩ DB 변경** — 모두 null 허용 칸 추가(`ddl-auto: update`), 새 표 없음. 정의는 `db/schema.sql`.
+**⑩ DB 변경** — 모두 null 허용 칸 추가(`ddl-auto: update`). 새 표는 ⑪의 `upload_files` 하나. 정의는 `db/schema.sql`.
 
 | 표 | 더한 칸 |
 |---|---|
@@ -641,3 +641,28 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 | `app_settings` | 새 줄 `edu.situations`(표 변경 없음) |
 
 41판부터 쓰지 않는 것(지우지 않음): `users.edu_done`, `edu_progress.completed_at`, `posts.repeat_rule`·`series_id`, `org_events.capacity`·`apply_type`, 표 `event_applications`. `requests.check_code`는 값은 들어가지만 확인에 쓰지 않는다.
+
+**⑪ 재대조·화면 확인 뒤 남은 문제 고침 (2026-11-12, 테스트 `Req41FixTest`)**
+
+- **번호 없이 시작·마치기 삭제**: `check-in`·`check-out`에 `method:'manual'`을 보내면 400 `MANUAL_NOT_ALLOWED`. 화면의 "번호 없이 시작/마치기" 버튼도 없앴다. QR 찍기·6자리 번호·독거노인 건의 현관 QR 카드는 그대로.
+- **올린 파일 접근 권한**: `GET /api/files/{id}`는 공개가 아니다(로그인 없으면 401, 권한 없으면 403). 볼 수 있는 사람(`FileAccessService`, 위에서부터 처음 맞는 규칙 하나):
+  1. 신분증·범죄경력 회보서(`users.id_file_url`·`crime_file_url`): 낸 사람 본인, 운영자
+  2. 기관 신청의 재직 증빙(`organizations.proof_file_url`): 운영자
+  3. 활동 일지 사진(`requests.log_photo_url`): 그 요청의 봉사자·받는 사람·보낸 사람, 독거노인 건의 지금 담당자, 운영자
+  4. 프로필 사진(`users.photo_url`): 로그인한 사용자
+  5. 아직 어디에도 붙지 않은 파일: 올린 사람, 운영자
+  `POST /api/files`는 올린 사람을 `upload_files`에 남긴다. 서류·프로필 사진·일지 사진으로는 **직접 올린 파일만** 붙일 수 있다(`POST /api/me/verify/id`·`crime`, `PUT /api/me`의 `photoUrl`, `POST /api/requests/{id}/log`의 `photoUrl` — 아니면 400 `FILE_NOT_MINE`). 화면은 이미지를 `<img src>`로 바로 걸지 않고 인증 머리글을 붙여 받아 온 뒤 blob 주소로 보여 준다(`api.js` `fileBlobUrl`·`openFile`, `ui/bits.jsx` `AuthImg`).
+- **기관 신청 횟수 제한**: `POST /api/orgs/apply`는 같은 IP(`X-Forwarded-For`의 첫 주소, 없으면 연결 주소)에서 10분에 5번까지. 넘으면 429 `TOO_MANY_REQUESTS`. 서버 메모리 기준(다시 띄우면 지워짐)이고, 내용이 모자라 400으로 돌아간 신청은 세지 않는다.
+- **B-36 일지 기반 이상 징후 알림**: 신호 이름에 `쓰러짐`·`넘어짐`을 더했다. `쓰러짐`·`넘어짐`·`식사 거름`은 일지(또는 전달 메모) **한 건에만 있어도** 그 독거노인의 담당자에게 `CARE_SIGNAL` 알림을 보낸다(같은 일지는 한 번만, 링크 `/o/elders/{id}`). 나머지 신호(외출 감소·기운 없음·잠 못 잠·말수·기분 변화)는 전처럼 최근 3건 중 2건일 때. 알림 글은 표현 이름과 "확인해 보세요"까지만 쓰고 진단·건강 판단 문장은 쓰지 않는다. 일반 사용자의 일지는 담당자 알림이 없다.
+- **B-67·B-09 금지 요청 → 근처 공공 서비스**: `POST /api/ai/filter`(및 불가 응답을 싣는 곳)의 BLOCK 결과에 `nearby{label, question, link}`가 붙는다. `link`는 `/public?near=1&q=…` — 공공 서비스 안내 화면이 열리면서 위치 기준 안내(`POST /api/ai/public-services/nearby`)를 먼저 하고, 위치를 못 쓰면 사는 동네 기준 안내로 대신한다. `alternatives`(공공 서비스 목록)는 그대로.
+- **가족 대신 공고**: 올린 사람은 읽기만(③에 반영). `PostService.canEdit`는 주인·담당자만, `canSeeRequests`는 올린 사람도.
+- **퇴출(D-02)**: 신고 처리 `action:BAN`은 정지와 다르다 — `users.banned=true`(상태 값은 `SUSPENDED` 그대로), 로그인 토큰 폐기, 다시 로그인 403, 그 사용자의 수락 대기·확정·진행 중 요청은 취소(보류 해제, 상대에게 `CANCELLED` 알림), 열린 공고는 마감. 종료 체크·일지 제출까지 간 활동은 상대의 적립이 걸려 있어 그대로 정산된다. `POST /api/admin/users/{id}/unsuspend`·`/managers/{id}/unsuspend`는 409 `BANNED`. `GET /api/admin/users`·`/{id}`·`/managers` 항목에 `banned`. 담당자 계정의 퇴출은 계정만 막는다(담당 대상은 운영자가 이관).
+- **알림 설정**: `PUT /api/me/noti-settings`에서 `voiceAlert`·`smsAlert`를 **켜는 것**은 일반 사용자만(담당자·운영자는 400 `USER_ONLY`, 끄기와 다른 칸은 됨).
+- **운영자 대시보드**: `pending.reports`는 일반 신고만, 안부 확인(이상 징후) 접수는 `pending.welfare`로 따로. `edu.eduDone`, 회원·인증 목록의 `eduDone` 삭제.
+- **알림 글·링크**: 관심 공고(`INTEREST`)·가족 대신 공고(`FAMILY_POST`) 알림의 날짜는 `11/20(금)` 모양(`Rules.md`), 링크는 `/posts/{id}`. 번호 없는 옛 링크 `/posts`는 화면이 공고 목록으로 보낸다. 조사는 받침에 맞게 붙인다(`Rules.josa`·`Rules.ro`, 화면 `josa`·`ro`).
+- **방문 전 브리핑**: 받는 분이 기관 도움 대상이거나 60대 이상이면 어르신용 문장, 그 밖이거나 나이대를 모르면 중립 문장(`ActivityRules.categoryRules`). `basics.senior`가 함께 온다.
+- **담당자 대상 상세**: `GET /api/org/elders/{id}`의 `requests`는 날짜 최근순(같은 날은 늦은 시각 먼저).
+- **위치 동의**: 가입의 `agreeLocation`과 마이 > 설정 > 위치 정보(`PUT /api/me`의 `locConsent`)는 같은 값(`users.loc_consent`)이다. 사용자 계정에서 이 값이 켜져 있지 않으면 화면은 가까운 순·내 위치로 찾기를 눌러도 브라우저 권한을 묻지 않고 "마이 > 설정 > 위치 정보에서 켤 수 있어요"를 안내한다(서버 계약 없음).
+- **통화 메모 초안**(`POST /api/org/ai/memo-to-posts`)의 `drafts[].repeat` 삭제(`repeatLabel`만 남음). 플래너·홈의 기관 소식 신청 일정(`myApplied`) 삭제.
+- **시간대**: 애플리케이션 시작 때 JVM 기본 시간대를 `Asia/Seoul`로 정한다(`TimeSavingsApplication.useKoreaTime`).
+- DB: 표 `upload_files(file_id PK, uploader_id, created_at)` 추가, `users.banned` 추가.

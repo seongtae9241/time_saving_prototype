@@ -13,6 +13,8 @@
 -- 41판부터 쓰지 않는 칸·표는 지우지 않고 그 줄에 "41판부터 쓰지 않음" 주석을 달았다(예전 자료를 읽기 위해 남김):
 --   users.edu_done · edu_progress.completed_at · posts.repeat_rule · posts.series_id · org_events.capacity · org_events.apply_type · 표 event_applications
 --   requests.check_code 는 값은 계속 들어가지만 시작·종료 확인에는 쓰지 않는다(qr_secret 없는 예전 자료의 대용 값).
+-- 2026-11-12 남은 문제 고침(계약서 7.17 ⑪): 표 upload_files(올린 파일의 주인) 추가, users.banned(퇴출) 추가.
+--   requests.check_method 의 'manual'(번호 없이 기록)은 더 만들지 않는다(예전 기록에만 남음). 표 event_applications 는 엔티티만 남고 쓰는 코드가 없다.
 
 
 create table ai_notes (
@@ -504,6 +506,15 @@ create table roleplay_personas (
     primary key (id)
 ) engine=InnoDB;
 
+-- 2026-11-12 추가: 올린 파일의 주인 기록. 파일(/api/files/{file_id})은 로그인하고 볼 수 있는 사람만 연다(계약서 7.17 ⑪).
+-- uploader_id 가 null 이면 로그인 없이 올린 파일(기관 신청의 재직 증빙)로 운영자만 연다.
+create table upload_files (
+    created_at datetime(6),
+    uploader_id bigint,
+    file_id varchar(40) not null,
+    primary key (file_id)
+) engine=InnoDB;
+
 create table users (
     edu_done bit not null, -- 41판부터 쓰지 않음(B-54 수료 없음. 엔티티 칸은 남아 있고 시드만 값을 넣는다)
     interest_consent bit, -- 41판 추가: 관심 공고 알림 받기 동의(선택)
@@ -513,6 +524,7 @@ create table users (
     noti_remind bit, -- 41판 추가: 알림 설정 — 시작 전 리마인드(1시간 전)
     noti_req bit, -- 41판 추가: 알림 설정 — 새 요청·제안(null=켜짐, B-58)
     noti_result bit, -- 41판 추가: 알림 설정 — 수락·거절 결과
+    banned bit, -- 2026-11-12 추가: 퇴출(D-02). true 면 다시 로그인할 수 없고 정지 해제로 풀 수 없다(status 는 SUSPENDED)
     penalty_count integer not null,
     sms_alert bit, -- 41판 추가: 문자 병행(B-43, 발송은 모의)
     voice_alert bit not null,
