@@ -122,12 +122,10 @@ class MeetingChangesTest {
     @Test
     void 수동_단골_등록과_해제() throws Exception {
         String t = token(s1);
-        // 함께 끝낸 활동이 없으면 등록 불가
-        mvc.perform(post("/api/regulars/" + teacher.id).header("Authorization", t)).andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("NO_DONE_ACTIVITY"));
-        done(s1, teacher, "디지털 도움");
+        // 41판 B-65: 함께 끝낸 활동이 없어도 즐겨찾기처럼 직접 등록할 수 있다
         mvc.perform(get("/api/regulars/" + teacher.id + "/status").header("Authorization", t)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.canMark").value(true)).andExpect(jsonPath("$.regular").value(false));
+                .andExpect(jsonPath("$.canMark").value(true)).andExpect(jsonPath("$.regular").value(false)).andExpect(jsonPath("$.doneCount").value(0));
+        done(s1, teacher, "디지털 도움");
         mvc.perform(post("/api/regulars/" + teacher.id).header("Authorization", t)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.manual").value(true)).andExpect(jsonPath("$.regular").value(true)).andExpect(jsonPath("$.auto").value(false));
         // 목록에 자동(3회)+수동이 합쳐지고 manual 표시
@@ -135,8 +133,39 @@ class MeetingChangesTest {
                 .andExpect(jsonPath("$[0].id").value(teacher.id)).andExpect(jsonPath("$[0].manual").value(true)).andExpect(jsonPath("$[0].auto").value(false));
         mvc.perform(post("/api/regulars/" + s1.id).header("Authorization", t)).andExpect(status().isBadRequest()); // 나 자신
         mvc.perform(delete("/api/regulars/" + teacher.id).header("Authorization", t)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.manual").value(false));
+                .andExpect(jsonPath("$.manual").value(false)).andExpect(jsonPath("$.removed").value(true)).andExpect(jsonPath("$.canMark").value(true));
         mvc.perform(get("/api/regulars").header("Authorization", t)).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        // 내가 해지한 사람은 다시 등록할 수 있다
+        mvc.perform(post("/api/regulars/" + teacher.id).header("Authorization", t)).andExpect(status().isOk()).andExpect(jsonPath("$.regular").value(true));
+    }
+
+    @Test
+    void 단골_배지_모아_보기와_양쪽_해지() throws Exception {
+        // s1 을 3번 도움 → 자동 단골, s2 는 한 번도 안 만났지만 직접 등록
+        done(s1, teacher, "디지털 도움"); done(s1, teacher, "동행"); done(s1, teacher, "동행");
+        mvc.perform(post("/api/regulars/" + teacher.id).header("Authorization", token(s2))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.manual").value(true)).andExpect(jsonPath("$.doneCount").value(0));
+        // B-42: 받은 단골 배지 — 누구를 몇 회 도왔는지
+        mvc.perform(get("/api/me/regular-badges").header("Authorization", token(teacher))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].userId").value(s1.id)).andExpect(jsonPath("$[0].count").value(3)).andExpect(jsonPath("$[0].auto").value(true))
+                .andExpect(jsonPath("$[1].userId").value(s2.id)).andExpect(jsonPath("$[1].count").value(0)).andExpect(jsonPath("$[1].manual").value(true));
+        // 프로필 배지(3회 이상만)
+        mvc.perform(get("/api/users/" + teacher.id + "/profile").header("Authorization", token(s3))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.regularBadges.length()").value(1)).andExpect(jsonPath("$.eduDone").doesNotExist());
+        // B-65: 등록된 쪽(봉사자)이 자동 단골을 해지 → 양쪽 목록에서 빠지고, 상대는 다시 등록할 수 없다
+        mvc.perform(delete("/api/me/regular-badges/" + s1.id).header("Authorization", token(teacher))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1)).andExpect(jsonPath("$[0].userId").value(s2.id));
+        mvc.perform(get("/api/regulars").header("Authorization", token(s1))).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(get("/api/regulars/" + teacher.id + "/status").header("Authorization", token(s1))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.regular").value(false)).andExpect(jsonPath("$.removedByThem").value(true)).andExpect(jsonPath("$.canMark").value(false));
+        mvc.perform(post("/api/regulars/" + teacher.id).header("Authorization", token(s1))).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("REMOVED_BY_VOLUNTEER"));
+        // 등록한 쪽(s2)의 해지 → 봉사자 배지에서도 빠진다
+        mvc.perform(delete("/api/regulars/" + teacher.id).header("Authorization", token(s2))).andExpect(status().isOk());
+        mvc.perform(get("/api/me/regular-badges").header("Authorization", token(teacher))).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        // 남의 단골이 아닌데 해지하려 하면 404
+        mvc.perform(delete("/api/me/regular-badges/" + s3.id).header("Authorization", token(teacher))).andExpect(status().isNotFound());
     }
 
     /** B-64·C-15(41판): 소식은 기관 페이지 링크로만. 앱 안 신청·정원·신청자 목록은 없다. */

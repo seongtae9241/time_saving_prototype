@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-/** 첫 활동 교육(5.8). (동네 클래스 5.9는 2026-11-10 사용자 결정으로 삭제) */
+/** 첫 활동 연습(5.8, 41판 B-54: 선택 연습 — 수료 없음). (동네 클래스 5.9는 2026-11-10 사용자 결정으로 삭제) */
 @RestController
 @RequestMapping("/api")
 @Transactional
@@ -40,6 +40,23 @@ public class EduController {
         return edu.finish(u, personaId, b.log());
     }
 
-    @PostMapping("/edu/complete")
-    public Map<String, Object> complete(@CurrentUser User u) { return edu.complete(u); }
+    // ---------------- 연습 상황 목록 (서버 설정, 41판 B-54) ----------------
+    public record SituationsBody(List<Map<String, Object>> items) {}
+    public record PracticeBody(String key, String text) {}
+
+    /** 상황 하나 연습: 답을 보내면 위반 알림·바꿔 말하기 또는 칭찬이 온다. */
+    @PostMapping("/edu/practice")
+    public Map<String, Object> practice(@RequestBody PracticeBody b) { return edu.practice(b.key(), b.text()); }
+
+    /** 사용자용: 어느 답이 맞는지는 빼고 준다. */
+    @GetMapping("/edu/situations")
+    public Map<String, Object> situations() { return Views.map("items", edu.situationViews()); }
+
+    /** 운영자용: 고를 답·이유·안전 규칙까지 모두. */
+    @GetMapping("/admin/edu/situations")
+    public Map<String, Object> adminSituations() { return Views.map("items", edu.situations()); }
+
+    /** /api/admin/** 는 운영자만(AuthInterceptor). */
+    @PutMapping("/admin/edu/situations")
+    public Map<String, Object> putSituations(@RequestBody SituationsBody b) { return Views.map("items", edu.saveSituations(b == null ? null : b.items())); }
 }

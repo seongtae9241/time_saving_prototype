@@ -8,7 +8,7 @@ import { CATS, SHORT, arr } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { speak, useSpeechInput } from './voice.jsx';
 
-const EDU_STEPS = [['규칙 카드', '꼭 알아야 할 규칙 · 5분'], ['상황 퀴즈', '5문제 · 5분'], ['AI 역할극', '가상 상대와 대화 · 15분'], ['수료', '프로필에 교육 수료 배지']];
+// 첫 활동 연습 (41판 B-54, 프로토타입 2026-11-12): 골라서 해 보는 연습. 필수가 아니고 수료·배지·활동 제한이 없다.
 /* 서버가 규칙을 안 주면 프로토타입 카드를 쓴다 */
 const RULES = [
   { ic: 'clock', c: ['#EAF0FF', '#3D6DF2'], t: '도운 시간만큼\n통장에 쌓여요', p: '1시간을 도우면 1시간이 쌓여요. 동행처럼 책임이 큰 일은 1.5배, 장보기처럼 수고가 드는 일은 1.2배예요.', ex: '예) 병원 동행 2시간 → +3.0시간' },
@@ -37,82 +37,97 @@ function rulesFor(edu) {
   const fit = d ? arr(d.cats).filter((c) => RULE_FIT[c]).slice(0, 2).map((c) => RULE_FIT[c]) : [];
   return [...base, ...fit];
 }
-function eduStep(edu, me) {
-  if (!edu) return 0;
-  if (edu.completed || (me && me.eduDone)) return 5;
-  if (edu.quizScore != null && edu.quizScore >= 4) return 3;
-  if (edu.cardsDone) return 2;
-  if (diagOf(edu)) return 1;
-  return 0;
-}
 const rpRes = (edu, id) => (edu && edu.roleplay && (edu.roleplay[id] || edu.roleplay[String(id)])) || null;
 
-function EduPlan({ edu, diag }) {
-  const ps = (edu && edu.personas) || [];
-  const order = ps.slice().sort((x, y) => (arr(diag.cats).includes(y.fitCategory) ? 1 : 0) - (arr(diag.cats).includes(x.fitCategory) ? 1 : 0));
-  const fit = arr(diag.cats).filter((c) => RULE_FIT[c]).slice(0, 2);
+/* 상황 하나 연습 시트 (프로토타입 rpStart / rpSay): 어르신(AI)이 상황을 던지고, 답하면 칭찬 또는 "이렇게 바꿔 말해 보세요" */
+function PracticeSheet({ sit, onOther, onClose }) {
+  const { toast } = useUi();
+  const [said, setSaid] = useState(null);
+  const [res, setRes] = useState(null);
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const say = async (t) => {
+    t = String(t || '').trim();
+    if (!t || busy) return;
+    setBusy(true); setSaid(t); setText('');
+    try { setRes(await post('/edu/practice', { key: sit.key, text: t })); } catch { setSaid(null); }
+    setBusy(false);
+  };
+  const spch = useSpeechInput({ onFinal: (t) => say(t), onInterim: setText });
+  const fb = res && res.feedback;
   return (
-    <div className="ai">
-      <div className="ah"><Spk />AI가 짠 내 교육 · 약 25분<Mod n={6} /></div>
-      <div className="small"><b>규칙 카드 {rulesFor(edu).length}장</b>{fit.length ? ` · 맞춤 ${fit.length}장 (${fit.map((c) => SHORT[c]).join(', ')})` : ''}</div>
-      <div className="small" style={{ marginTop: 4 }}><b>상황 퀴즈 {((edu && edu.quiz) || []).length || 5}문제</b> · 4개 이상 맞히면 통과</div>
-      <div className="small" style={{ marginTop: 4 }}><b>AI 역할극 {ps.length}개</b> · 1명 이상 통과하면 수료</div>
-      {order.map((r, i) => <div key={r.id} className="row" style={{ gap: 10, marginTop: 8 }}><span className="avatar" style={{ width: 34, height: 34, fontSize: 13, background: pcol(r, i)[0], color: pcol(r, i)[1] }}>{pinit(r)}</span><div className="grow small"><b>{r.name}</b> <span className="mute2">{r.ageLabel}</span><br /><span className="muted">{r.trait}</span></div></div>)}
-      <div className="hint">{diag.who === '어르신' ? '어르신을 돕고 싶다고 해서 어르신 상황을 먼저 두었어요. ' : diag.who === '청년·1인 가구' ? '청년·1인 가구를 돕고 싶다고 해서 젊은 상대 상황을 먼저 두었어요. ' : '누구든 도울 수 있게 어르신과 청년 상황을 섞었어요. '}{diag.exp === '처음이에요' ? '봉사가 처음이라 카드마다 예시를 더 넣었어요.' : '고른 도움 종류에 맞는 상황을 앞에 두었어요.'}</div>
-    </div>
+    <>
+      <h2>{sit.title}</h2>
+      <div className="rp-msg"><Spk /> {sit.line}</div>
+      {said && <div className="rp-msg rp-me">{said}</div>}
+      {busy && <div className="rp-msg mute2">AI가 답을 살펴보는 중…</div>}
+      {res && res.reply && <div className="rp-msg"><Spk /> {res.reply}</div>}
+      {res && res.ok && <div className="rp-msg rp-ok" role="status">{res.praise || '잘했어요! 안전 규칙을 지키면서 따뜻하게 말했어요.'}</div>}
+      {res && !res.ok && fb && <div className="rp-msg rp-fb" role="status"><b>이렇게 바꿔 말해 보세요</b><br />{fb.reason || fb.message}<br />“{fb.better}”</div>}
+      {res && <RuleNote source={res.source} />}
+      {!said && (
+        <>
+          <div className="mute2" style={{ margin: '10px 0 4px' }}>어떻게 답할까요? 직접 적거나 말해도 돼요</div>
+          <div className="stack">{(sit.options || []).map((o) => <button key={o} className="btn ghost" style={{ height: 'auto', minHeight: 48, padding: '10px 14px', whiteSpace: 'normal', textAlign: 'left' }} onClick={() => say(o)}>{o}</button>)}</div>
+          <form className="composer" style={{ marginTop: 10 }} onSubmit={(e) => { e.preventDefault(); if (!text.trim()) return toast('할 말을 적어 주세요'); say(text); }}>
+            <button type="button" className={'mic' + (spch.listening ? ' on' : '')} aria-label="음성 입력" onClick={spch.toggle}><Ic h={I.mic} /></button>
+            <input className="in" placeholder="내 말로 대답하기" value={text} onChange={(e) => setText(e.target.value)} aria-label="대답" />
+            <button type="submit" aria-label="보내기"><Ic h={I.send} /></button>
+          </form>
+        </>
+      )}
+      {res && (
+        <div className="btns" style={{ marginTop: 14 }}>
+          {!res.ok ? <button className="btn ghost" onClick={() => { setSaid(null); setRes(null); }}>다시 답하기</button> : <button className="btn ghost" onClick={onOther}>다른 상황</button>}
+          {!res.ok ? <button className="btn ghost" onClick={onOther}>다른 상황</button> : null}
+          <button className="btn" onClick={onClose}>연습 마치기</button>
+        </div>
+      )}
+    </>
   );
 }
 
-/* ---------- 첫 활동 교육 개요 ---------- */
+/* ---------- 첫 활동 연습 (AI 역할극 · 선택) ---------- */
 export function Edu() {
   const nav = useNavigate();
-  const { me } = useAuth();
-  const { toast } = useUi();
-  const [edu, reload] = useLoad(() => api('/edu'), []);
-  const [diag, setDiag] = useState(null);
-  const [planning, setPlanning] = useState(false);
-  if (edu === undefined) return <Screen title="첫 활동 교육" noTabs><Loading /></Screen>;
-  const d0 = diagOf(edu);
-  const d = diag || d0 || { cats: arr(me && me.categories).slice(0, 3), who: '상관없어요', exp: '조금 있어요' };
-  const s = eduStep(edu, me);
-  const planned = !!d0;
-  const stepAct = ['/edu/card', '/edu/quiz', '/edu/rp', '/edu/cert'];
-  const chip = (on, f, t) => <button key={t} className={'chip ' + (on ? 'on' : '')} onClick={f}>{t}</button>;
+  const { sheet, closeSheet, toast } = useUi();
+  const [edu] = useLoad(() => api('/edu'), []);
+  if (edu === undefined) return <Screen title="첫 활동 연습" noTabs><Loading /></Screen>;
+  if (!edu) return <Screen title="첫 활동 연습" noTabs><Empty>연습을 불러오지 못했어요</Empty></Screen>;
+  const sits = edu.situations || [];
+  const ps = edu.personas || [];
+  const open = (i) => sheet(<PracticeSheet key={sits[i].key + Date.now()} sit={sits[i]} onOther={() => open((i + 1) % sits.length)} onClose={() => { closeSheet(); toast('연습을 마쳤어요. 언제든 다시 해 볼 수 있어요'); }} />);
   return (
-    <Screen title="첫 활동 교육" noTabs>
-      <div className="b" style={{ fontSize: 22, letterSpacing: '-.6px', lineHeight: 1.35 }}>첫 도움 전에<br />딱 한 번, 25분이면 돼요</div>
-      <p className="su-p" style={{ margin: '8px 0 14px' }}>규칙을 보고, 퀴즈를 풀고, AI가 연기하는 이웃과 실제처럼 대화해 봐요. 나이와 상관없이 도움을 처음 주는 모든 분이 받아요.</p>
-      <div className="card">{EDU_STEPS.map(([t, sub], i) => {
-        const ok = planned && i + 1 < s, on = planned && i + 1 === Math.min(s, 4);
-        return <div key={t} className={'estep ' + (ok ? 'ok' : on ? 'on' : '')}><span className="no">{ok ? <Ic n="check" s={16} /> : i + 1}</span><div className="grow"><div className="b">{t}</div><div className="mute2">{sub}</div></div>{ok ? <span className="st ok">완료</span> : on ? <span className="st go">지금</span> : null}</div>;
-      })}</div>
-      {planned && !planning ? (
+    <Screen title="첫 활동 연습" noTabs>
+      <h2 style={{ margin: 0, fontSize: 20 }}>첫 활동 연습 <span className="mod m1">AI 역할극</span></h2>
+      <p className="mute2" style={{ margin: '6px 0 10px' }}>AI가 도움 받는 어르신이 되어 이런저런 상황을 던져요. 선택이라 안 해도 봉사할 수 있어요.</p>
+      {sits.length ? sits.map((r, i) => (
+        <div key={r.key} className="card item click" style={{ marginTop: 8 }} role="button" tabIndex={0} onClick={() => open(i)} onKeyDown={(e) => { if (e.key === 'Enter') open(i); }}>
+          <div className="ic"><Ic n="chat" s={20} /></div><div className="grow"><div className="b">{r.title}</div><div className="mute2">상황 {i + 1}</div></div>›
+        </div>
+      )) : <Empty>준비된 상황이 없어요</Empty>}
+      {ps.length > 0 && (
         <>
-          <div style={{ marginTop: 14 }}><EduPlan edu={edu} diag={d} /></div>
-          <button className="btn" style={{ marginTop: 14 }} onClick={() => nav(stepAct[Math.min(s, 4) - 1])}>{['규칙 카드 보기', '퀴즈 풀기', '역할극 하기', '수료증 보기'][Math.min(s, 4) - 1]}</button>
-          {s >= 2 && s < 5 && <button className="btn ghost sm" style={{ marginTop: 8 }} onClick={() => nav('/edu/card')}>규칙 카드 다시 보기</button>}
-        </>
-      ) : (
-        <>
-          <div className="sec-t">나에게 맞게 짜기 (3문항)</div>
-          <div className="card">
-            <div className="b">어떤 도움을 주고 싶으세요?</div><div className="mute2">프로필에서 불러왔어요. 여러 개 골라도 돼요</div>
-            <div className="tags" style={{ marginTop: 10 }}>{CATS.map((c) => chip(arr(d.cats).includes(c.k), () => setDiag({ ...d, cats: arr(d.cats).includes(c.k) ? d.cats.filter((x) => x !== c.k) : [...arr(d.cats), c.k] }), SHORT[c.k]))}</div>
-            <div className="b" style={{ marginTop: 18 }}>주로 누구를 돕고 싶으세요?</div>
-            <div className="tags" style={{ marginTop: 10 }}>{['어르신', '청년·1인 가구', '상관없어요'].map((v) => chip(d.who === v, () => setDiag({ ...d, who: v }), v))}</div>
-            <div className="b" style={{ marginTop: 18 }}>봉사해 본 적 있으세요?</div>
-            <div className="tags" style={{ marginTop: 10 }}>{['처음이에요', '조금 있어요', '많아요'].map((v) => chip(d.exp === v, () => setDiag({ ...d, exp: v }), v))}</div>
-          </div>
-          {planning && <div style={{ marginTop: 14 }}><AiLoading label="AI가 내 교육을 짜는 중…" /></div>}
-          <button className="btn" style={{ marginTop: 14 }} disabled={planning} onClick={async () => {
-            if (!arr(d.cats).length) return toast('도움 종류를 하나 이상 골라 주세요');
-            setPlanning(true);
-            try { await put('/edu/diag', { cats: d.cats, who: d.who, exp: d.exp }); await reload(); toast('맞춤 교육이 준비됐어요'); } catch { /* 토스트 */ }
-            setPlanning(false); setDiag(null);
-          }}><Spk /> AI로 내 교육 짜기</button>
-          <div className="notice" style={{ marginTop: 12 }}>글씨가 작으면 마이 › 큰 글씨로 보기를 켜세요. 역할극은 보기를 고르기만 해도 돼요.</div>
+          <div className="sec-t"><span>AI 어르신과 길게 대화해 보기</span><Mod n={6} /></div>
+          <div className="mute2" style={{ margin: '-4px 0 6px' }}>대화 중에 위 상황이 하나씩 나와요. 답이 안전 규칙에 어긋나면 바로 알려 드려요.</div>
+          {ps.map((p, i) => {
+            const r = rpRes(edu, p.id);
+            return (
+              <div key={p.id} className="card click" style={{ marginTop: 10 }} role="button" tabIndex={0} onClick={() => nav(`/edu/rp/${p.id}`)} onKeyDown={(e) => { if (e.key === 'Enter') nav(`/edu/rp/${p.id}`); }}>
+                <div className="persona" style={{ background: 'none', padding: 0 }}><span className="pa" style={{ background: pcol(p, i)[0], color: pcol(p, i)[1] }}>{pinit(p)}</span><div className="grow"><div className="b">{p.name} <span className="mute2" style={{ fontWeight: 500 }}>{p.ageLabel}</span></div><div className="small muted">{p.trait}</div></div>{r ? <span className="st end">해 봤어요</span> : null}</div>
+                {p.goal && <div className="hint" style={{ marginTop: 12, background: 'var(--fill)', color: 'var(--sub)' }}>연습 목표 · {p.goal}</div>}
+                {r && <div className="mute2" style={{ marginTop: 8 }}>지난 연습 · 소통 {r.comm} · 공감 {r.emp} · 안전 규칙 {r.safe ? '지킴' : '어긋남'}</div>}
+              </div>
+            );
+          })}
         </>
       )}
+      <div className="sec-t"><span>읽을거리</span><span className="mute2" style={{ fontWeight: 500 }}>선택</span></div>
+      <div className="ml">
+        <div role="button" tabIndex={0} onClick={() => nav('/edu/card')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/edu/card'); }}><Ic n="file" s={20} /><div className="grow">규칙 카드<span>활동할 때 지키는 규칙 {rulesFor(edu).length}장</span></div>›</div>
+        <div role="button" tabIndex={0} onClick={() => nav('/edu/quiz')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/edu/quiz'); }}><Ic n="check" s={20} /><div className="grow">상황 퀴즈<span>{(edu.quiz || []).length || 5}문제 · 점수는 참고용이에요</span></div>›</div>
+      </div>
+      <div className="notice" style={{ marginTop: 12 }}>연습은 필수가 아니에요. 수료나 배지가 없고, 하지 않아도 신분증 인증만 되면 봉사할 수 있어요.</div>
     </Screen>
   );
 }
@@ -129,7 +144,7 @@ export function EduCard() {
   return (
     <Screen title="규칙 카드" noTabs>
       <div className="steps">{rs.map((_, k) => <span key={k} className={k <= i ? 'on' : ''} />)}</div>
-      <div className="stepl"><span>{i + 1} / {rs.length}</span><span>{r.fit ? '맞춤 카드' : '필수 카드'}</span></div>
+      <div className="stepl"><span>{i + 1} / {rs.length}</span><span>{r.fit ? '맞춤 카드' : '규칙 카드'}</span></div>
       <div className="rcard" style={{ marginTop: 14 }}>
         <div className="big-ic" style={{ background: r.c[0], color: r.c[1] }}><Ic n={r.ic} s={32} /></div>
         <h3>{String(r.t).split('\n').map((x, k) => <span key={k}>{x}{k === 0 && String(r.t).includes('\n') ? <br /> : null}</span>)}</h3>
@@ -139,7 +154,7 @@ export function EduCard() {
       <button className="btn soft sm" style={{ marginTop: 12 }} onClick={() => speak(`${String(r.t).replace('\n', ' ')}. ${r.p}. ${r.ex}`, { force: true })}><Ic n="mic" s={18} /> 소리로 읽어 주기</button>
       <div className="btns" style={{ marginTop: 10 }}>
         <button className="btn ghost" disabled={i === 0} style={i === 0 ? { opacity: 0.4 } : null} onClick={() => setI(i - 1)}>이전</button>
-        <button className="btn" disabled={busy} onClick={() => (i < rs.length - 1 ? setI(i + 1) : run(async () => { if (!edu.cardsDone) await post('/edu/cards-done'); nav('/edu/quiz', { replace: true }); }))}>{i === rs.length - 1 ? '퀴즈 풀러 가기' : '다음'}</button>
+        <button className="btn" disabled={busy} onClick={() => (i < rs.length - 1 ? setI(i + 1) : run(async () => { if (!edu.cardsDone) await post('/edu/cards-done'); nav('/edu', { replace: true }); }))}>{i === rs.length - 1 ? '다 봤어요' : '다음'}</button>
       </div>
     </Screen>
   );
@@ -167,11 +182,7 @@ export function EduQuiz() {
     const score = r.score ?? 0;
     const rs = (r.results || []).filter((x) => !x.correct);
     const Wrong = () => (rs.length ? <div style={{ marginTop: 10 }}>{rs.map((x) => <div key={x.no} className="fix soft"><div className="small b">{QZ[x.no] ? QZ[x.no].q : ''}</div><div className="now">정답: {QZ[x.no] ? (QZ[x.no].options || [])[x.answer] : ''} · {x.explain}</div></div>)}</div> : null);
-    if (score >= 4) {
-      sheet(() => <><h2>{score}/{QZ.length} 맞혔어요</h2><p className="muted">이제 AI가 연기하는 이웃과 대화해 볼 차례예요. 대화 중 숨은 시험 상황이 하나씩 있어요.</p><Wrong /><button className="btn" style={{ marginTop: 16 }} onClick={() => { closeSheet(); nav('/edu/rp', { replace: true }); }}>역할극 하러 가기</button></>);
-    } else {
-      sheet(() => <><h2>{score}/{QZ.length} 맞혔어요</h2><p className="muted">4개 이상 맞혀야 다음으로 갈 수 있어요. 틀린 문제의 카드를 다시 보고 풀어 볼까요?</p><Wrong /><button className="btn" style={{ marginTop: 16 }} onClick={() => { closeSheet(); setI(0); setAnswers([]); setPicked(null); }}>다시 풀기</button><button className="btn ghost" style={{ marginTop: 8 }} onClick={() => { closeSheet(); nav('/edu/card'); }}>규칙 카드 다시 보기</button></>);
-    }
+    sheet(() => <><h2>{score}/{QZ.length} 맞혔어요</h2><p className="muted">점수는 참고용이에요. 통과나 수료는 없어요. AI 어르신과 대화하며 연습해 볼 수 있어요.</p><Wrong /><button className="btn" style={{ marginTop: 16 }} onClick={() => { closeSheet(); nav('/edu', { replace: true }); }}>연습하러 가기</button><button className="btn ghost" style={{ marginTop: 8 }} onClick={() => { closeSheet(); setI(0); setAnswers([]); setPicked(null); }}>다시 풀기</button></>);
   });
   const pick = (k) => {
     if (picked != null) return;
@@ -198,39 +209,6 @@ export function EduQuiz() {
   );
 }
 
-/* ---------- AI 역할극 목록 ---------- */
-export function EduRpList() {
-  const nav = useNavigate();
-  const { refresh } = useAuth();
-  const { toast } = useUi();
-  const [edu] = useLoad(() => api('/edu'), []);
-  const [busy, run] = useBusy();
-  if (edu === undefined) return <Screen title="AI 역할극" noTabs><Loading /></Screen>;
-  const ps = (edu && edu.personas) || [];
-  const passed = ps.filter((p) => { const r = rpRes(edu, p.id); return r && (r.passed || r.pass); }).length;
-  const can = passed >= 1 && edu.cardsDone && (edu.quizScore ?? 0) >= 4;
-  return (
-    <Screen title="AI 역할극" noTabs>
-      <p className="su-p" style={{ marginTop: 0 }}>AI가 실제 이웃처럼 말해요. 대화 중에 <b>숨은 시험 상황</b>이 하나씩 있어요. 끝나면 AI가 말투, 공감, 안전 수칙을 채점해요.</p>
-      {ps.map((p, i) => {
-        const r = rpRes(edu, p.id);
-        const st = r ? ((r.passed || r.pass) ? <span className="st ok">통과</span> : <span className="st no">다시 하기</span>) : <span className="st end">시작 전</span>;
-        return (
-          <div key={p.id} className="card click" style={{ marginTop: 10 }} role="button" tabIndex={0} onClick={() => nav(`/edu/rp/${p.id}`)}>
-            <div className="persona" style={{ background: 'none', padding: 0 }}><span className="pa" style={{ background: pcol(p, i)[0], color: pcol(p, i)[1] }}>{pinit(p)}</span><div className="grow"><div className="b">{p.name} <span className="mute2" style={{ fontWeight: 500 }}>{p.ageLabel}</span></div><div className="small muted">{p.trait}</div></div>{st}</div>
-            {p.goal && <div className="hint" style={{ marginTop: 12, background: 'var(--fill)', color: 'var(--sub)' }}>목표 · {p.goal}</div>}
-            {r && <div className="mute2" style={{ marginTop: 8 }}>소통 {r.comm} · 공감 {r.emp} · 안전 {r.safe ? '통과' : '위반'}</div>}
-          </div>
-        );
-      })}
-      <button className="btn" style={{ marginTop: 16, ...(can ? {} : { opacity: 0.45 }) }} disabled={busy} onClick={() => run(async () => {
-        if (!can) return toast(!edu.cardsDone ? '규칙 카드를 먼저 봐 주세요' : (edu.quizScore ?? 0) < 4 ? '퀴즈를 4개 이상 맞혀 주세요' : '역할극을 1개 이상 통과해 주세요');
-        await post('/edu/complete'); await refresh(); toast('첫 활동 교육을 수료했어요'); nav('/edu/cert', { replace: true });
-      })}>{can ? '수료하기' : '역할극 1개 이상 통과하면 수료할 수 있어요'}</button>
-    </Screen>
-  );
-}
-
 /* ---------- 역할극 대화 ---------- */
 export function EduRp() {
   const { id } = useParams();
@@ -242,6 +220,7 @@ export function EduRp() {
   const [typing, setTyping] = useState(false);
   const [text, setText] = useState('');
   const [src, setSrc] = useState(null);
+  const [opts, setOpts] = useState(null); // 서버가 준 다음 차례 선택지(대본이 있을 때만). null 이면 첫 차례 대본
   const bd = useRef(null);
   const ps = (edu && edu.personas) || [];
   const idx = ps.findIndex((x) => String(x.id) === String(id));
@@ -253,7 +232,7 @@ export function EduRp() {
   if (!R) return <Screen title="역할극" noTabs><Empty>상대를 찾을 수 없어요</Empty></Screen>;
   const col = pcol(R, idx);
   const turns = turnsOf(R);
-  const turn = turns[i];
+  const choices = opts != null ? opts : ((turns[0] && (turns[0].o || turns[0].options)) || []);
   async function say(t) {
     t = String(t || '').trim(); if (!t || done || typing) return;
     setText('');
@@ -264,34 +243,37 @@ export function EduRp() {
       const history = cur.map((l) => ({ who: l.p ? 'them' : 'me', text: l.t }));
       const r = await post('/ai/roleplay', { personaId: R.id, history, text: t });
       setSrc(r.source);
-      withMe[withMe.length - 1] = { ...withMe[withMe.length - 1], q: r.quality, f: r.flag };
+      withMe[withMe.length - 1] = { ...withMe[withMe.length - 1], q: r.quality, f: r.flag, fb: r.feedback || null, b: r.feedback ? r.feedback.better : null };
       const next = [...withMe];
       if (r.next) next.push({ p: 1, t: r.next });
       setLog(next);
       setI(i + 1);
-      if (r.done || i + 1 >= (turns.length || 3)) setDone(true);
+      setOpts(Array.isArray(r.options) ? r.options : []);
+      if (r.done) setDone(true);
     } catch { setLog(cur); }
     setTyping(false);
   }
   return (
     <Screen title={`${R.name}과 연습`} noTabs cls="chatv" bodyRef={bd}>
       <div className="chat-wrap">
-        <div className="chat-day"><span>AI 역할극 · {R.trait}</span></div>
-        <div className="persona" style={{ marginBottom: 14 }}><span className="pa" style={{ background: col[0], color: col[1] }}>{pinit(R)}</span><div className="grow"><div className="b">{R.name} <span className="mute2" style={{ fontWeight: 500 }}>{R.ageLabel}</span></div><div className="small muted">목표 · {R.goal}</div></div></div>
+        <div className="chat-day"><span>첫 활동 연습 · AI가 어르신 역할을 해요</span></div>
+        <div className="persona" style={{ marginBottom: 14 }}><span className="pa" style={{ background: col[0], color: col[1] }}>{pinit(R)}</span><div className="grow"><div className="b">{R.name} <span className="mute2" style={{ fontWeight: 500 }}>{R.ageLabel}</span></div><div className="small muted">{R.trait}{R.goal ? ` · ${R.goal}` : ''}</div></div></div>
         <div className="chat">
           {(log || []).map((l, k) => (l.p
             ? <div className="mrow" key={k}><span className="bot" style={{ background: col[0], color: col[1], fontWeight: 800, fontSize: 14, display: 'grid', placeItems: 'center' }}>{pinit(R)}</span><div className="mcol">{k === 0 && <div className="bot-n">{R.name} · AI 연기</div>}<div className="msg ai-m">{l.t}</div></div></div>
-            : <div className="msg me" key={k}>{l.t}{l.f && <div style={{ fontSize: 12, opacity: 0.85, marginTop: 4 }}>⚠ {l.f}</div>}</div>))}
+            : <div key={k} style={{ display: 'contents' }}><div className="msg me">{l.t}</div>
+              {l.fb ? <div className="rp-msg rp-fb" role="status" style={{ marginLeft: 24 }}><b>{l.fb.violation ? `⚠ ${l.fb.message}` : l.fb.message}</b><br />이렇게 바꿔 말해 보세요 · “{l.fb.better}”</div>
+                : l.q === 'good' ? <div className="rp-msg rp-ok" role="status" style={{ marginLeft: 24 }}>잘했어요! 안전 규칙을 지키면서 따뜻하게 말했어요.</div> : null}</div>))}
           {typing && <div className="mrow"><span className="bot" style={{ background: col[0], color: col[1], fontWeight: 800, fontSize: 14, display: 'grid', placeItems: 'center' }}>{pinit(R)}</span><div className="mcol"><div className="msg ai-m mute2">입력 중…</div></div></div>}
         </div>
         <RuleNote source={src} />
       </div>
       <div className="chat-dock">
         {done ? (
-          <button className="btn" onClick={() => nav(`/edu/rp/${R.id}/result`, { replace: true, state: { log } })}><Spk /> 대화 끝내고 채점받기</button>
+          <button className="btn" onClick={() => nav(`/edu/rp/${R.id}/result`, { replace: true, state: { log } })}><Spk /> 연습 마치고 피드백 보기</button>
         ) : typing ? null : (
           <>
-            {turn && (turn.o || turn.options) && <><div className="mute2" style={{ marginBottom: 8 }}>이렇게 말해 볼까요? 직접 적어도 돼요</div><div className="stack">{(turn.o || turn.options).map((o, k) => <button key={k} className="opt" style={{ width: '100%', textAlign: 'left' }} onClick={() => say(o.t || o.text || o)}><div className="grow">{o.t || o.text || o}</div></button>)}</div></>}
+            {choices.length > 0 && <><div className="mute2" style={{ marginBottom: 8 }}>이렇게 말해 볼까요? 직접 적어도 돼요</div><div className="stack">{choices.map((o, k) => <button key={k} className="opt" style={{ width: '100%', textAlign: 'left' }} onClick={() => say(o.t || o.text || o)}><div className="grow">{o.t || o.text || o}</div></button>)}</div></>}
             <form className="composer" onSubmit={(e) => { e.preventDefault(); say(text); }}>
               <button type="button" className={'mic' + (spch.listening ? ' on' : '')} aria-label="음성 입력" onClick={spch.toggle}><Ic h={I.mic} /></button>
               <input className="in" placeholder="내 말로 대답하기" value={text} onChange={(e) => setText(e.target.value)} aria-label="대답" />
@@ -315,7 +297,7 @@ export function EduRpRes() {
     let on = true;
     (async () => {
       try {
-        const r = await post(`/edu/roleplay/${id}/finish`, { log: (log || []).map((l) => ({ who: l.p ? 'them' : 'me', text: l.t, quality: l.q, flag: l.f })) });
+        const r = await post(`/edu/roleplay/${id}/finish`, { log: (log || []).map((l) => ({ who: l.p ? 'them' : 'me', text: l.t, quality: l.q, flag: l.f, better: l.b })) });
         if (on) setRes(r);
       } catch { if (on) setRes({ error: true }); }
     })();
@@ -324,50 +306,22 @@ export function EduRpRes() {
   const ps = (edu && edu.personas) || [];
   const R = ps.find((x) => String(x.id) === String(id)) || {};
   const bar = (l, v, c) => <div className="sc-row"><span className="l">{l}</span><div className="bar"><i style={{ width: `${v}%`, ...(c ? { background: c } : {}) }} /></div><b>{v}</b></div>;
-  if (!res) return <Screen title="역할극 결과" noTabs><AiLoading label="AI가 대화를 채점하는 중…" /></Screen>;
-  if (res.error) return <Screen title="역할극 결과" noTabs><Empty>채점하지 못했어요</Empty><button className="btn" onClick={() => nav(`/edu/rp/${id}`, { replace: true })}>다시 하기</button></Screen>;
-  const pass = res.pass ?? res.passed;
+  if (!res) return <Screen title="연습 피드백" noTabs><AiLoading label="AI가 대화를 살펴보는 중…" /></Screen>;
+  if (res.error) return <Screen title="연습 피드백" noTabs><Empty>피드백을 만들지 못했어요</Empty><button className="btn" onClick={() => nav(`/edu/rp/${id}`, { replace: true })}>다시 하기</button></Screen>;
   const fixes = res.fixes || [];
   const good = res.good ? { t: res.good.text } : (log || []).find((l) => !l.p && l.q === 'good');
   return (
-    <Screen title="역할극 결과" noTabs>
-      <div className="cert-c" style={{ padding: '22px 18px', ...(pass ? {} : { background: 'linear-gradient(180deg,#FFF3F3 0%,#fff 100%)', borderColor: '#F6D5D5' }) }}><div className="b" style={{ fontSize: 20 }}>{pass ? '통과했어요' : '한 번 더 해 볼까요?'}</div><div className="mute2" style={{ marginTop: 4 }}>{R.name} · {R.trait}</div></div>
+    <Screen title="연습 피드백" noTabs>
+      <div className="card"><div className="b" style={{ fontSize: 20 }}>{res.safe ? '안전 규칙을 잘 지켰어요' : '안전 규칙에 어긋난 말이 있었어요'}</div><div className="mute2" style={{ marginTop: 4 }}>{R.name} · {R.trait}</div></div>
       <div className="ai" style={{ marginTop: 12 }}>
-        <div className="ah"><Spk />AI 채점<Mod n={6} /></div>
-        <div className="sc-row"><span className="l">안전 수칙</span><div className="grow"><span className={'st ' + (res.safe ? 'ok' : 'no')}>{res.safe ? '통과' : '위반'}</span></div></div>
+        <div className="ah"><Spk />소통·공감 피드백<Mod n={6} /></div>
+        <div className="sc-row"><span className="l">안전 규칙</span><div className="grow"><span className={'st ' + (res.safe ? 'ok' : 'no')}>{res.safe ? '지킴' : `어긋남${(res.flags || []).length ? ` · ${res.flags.join(', ')}` : ''}`}</span></div></div>
         {bar('소통', Number(res.comm) || 0)}{bar('공감', Number(res.emp) || 0, '#E2557F')}
-        <div className="mute2" style={{ marginTop: 8 }}>안전 수칙은 점수가 아니라 통과/재시도로만 봐요. 소통·공감은 60점 이상이면 통과예요.</div>
-        <RuleNote source={res.source} />
+        <div className="mute2" style={{ marginTop: 8 }}>{res.note || '연습이라 점수는 참고용이에요. 수료나 통과는 없어요.'}</div>
       </div>
-      {fixes.length > 0 && <><div className="sec-t">바꿔 말해 보세요</div><div className="card">{fixes.map((f, k) => { const bad = f.bad || f.flag || f.type === 'safety'; return <div key={k} className={'fix ' + (bad ? '' : 'soft')}><div className="small b" style={{ color: bad ? '#E5484D' : '#A66F00' }}>{bad ? `안전 수칙 · ${f.flag || ''}` : '이렇게 말하면 더 좋아요'}</div>{(f.was || f.said) && <div className="was">{f.was || f.said}</div>}<div className="now">→ {f.now || f.better || f.text || String(f)}</div></div>; })}</div></>}
+      {fixes.length > 0 && <><div className="sec-t">이렇게 바꿔 말해 보세요</div><div className="card">{fixes.map((f, k) => { const bad = f.violation || f.bad || f.flag || f.type === 'safety'; return <div key={k} className={'fix ' + (bad ? '' : 'soft')}><div className="small b" style={{ color: bad ? '#E5484D' : '#A66F00' }}>{bad ? `안전 규칙에 어긋나요${f.flag ? ` · ${f.flag}` : ''}` : '이렇게 말하면 더 따뜻해요'}</div>{(f.was || f.said) && <div className="was">{f.was || f.said}</div>}<div className="now">→ {f.now || f.better || f.text || String(f)}</div></div>; })}</div></>}
       {good && <><div className="sec-t">잘한 말</div><div className="card"><div className="fix" style={{ borderLeftColor: '#1F9D63' }}><div className="now">“{good.t}”</div></div></div></>}
-      <div className="btns" style={{ marginTop: 16 }}>{pass ? <button className="btn" onClick={() => nav('/edu/rp', { replace: true })}>다음 상황으로</button> : <><button className="btn ghost" onClick={() => nav('/edu/rp', { replace: true })}>목록으로</button><button className="btn" onClick={() => nav(`/edu/rp/${id}`, { replace: true })}>다시 하기</button></>}</div>
-    </Screen>
-  );
-}
-
-/* ---------- 수료증 ---------- */
-export function EduCert() {
-  const nav = useNavigate();
-  const { me } = useAuth();
-  const [edu] = useLoad(() => api('/edu'), []);
-  if (edu === undefined) return <Screen title="교육 수료" noTabs><Loading /></Screen>;
-  const rs = Object.values((edu && edu.roleplay) || {});
-  const avg = (k) => (rs.length ? Math.round(rs.reduce((a, b) => a + (Number(b[k]) || 0), 0) / rs.length) : '-');
-  const done = (edu && edu.completed) || (me && me.eduDone);
-  return (
-    <Screen title="교육 수료" noTabs>
-      {!done && <div className="notice" style={{ marginBottom: 12 }}>아직 수료 전이에요. 남은 단계를 마쳐 주세요. <a role="button" tabIndex={0} style={{ color: 'var(--brand)', fontWeight: 700 }} onClick={() => nav('/edu', { replace: true })}>교육으로 ›</a></div>}
-      <div className="cert-c">
-        <div className="medal"><Ic n="cap" s={40} /></div>
-        <div className="mute2">시간 적금 첫 활동 교육</div>
-        <div className="b" style={{ fontSize: 24, letterSpacing: '-.6px', marginTop: 4 }}>{me && me.name} 님, {done ? '수료를 축하해요' : '거의 다 왔어요'}</div>
-        <div className="tags" style={{ justifyContent: 'center', marginTop: 12 }}>{done && <span className="badge trust">✓ 교육 수료</span>}<span className="badge">역할극 {rs.filter((r) => r.passed || r.pass).length}개 통과</span></div>
-        <div className="kpis" style={{ marginTop: 18, textAlign: 'left' }}><div><b>{edu.quizScore ?? '-'}/{((edu && edu.quiz) || []).length || 5}</b><span>퀴즈</span></div><div><b>{avg('comm')}</b><span>평균 소통</span></div><div><b>{avg('emp')}</b><span>평균 공감</span></div></div>
-      </div>
-      <div className="ai" style={{ marginTop: 12 }}><div className="ah"><Spk />AI 총평<Mod n={6} /></div><div className="small">상대의 말을 받아 주며 대화를 이어 가는 연습을 했어요. 연락처나 선물을 거절할 때는 <b>단골 요청</b>을 대안으로 알려 주세요. 첫 활동에서는 도착하자마자 QR부터 찍는 것만 기억해 주세요.</div></div>
-      <div className="notice" style={{ marginTop: 12 }}>새 도움 종류를 프로필에 추가하면 그 종류의 역할극 1개만 더 하면 돼요. 신고 처리 결과에 따라 운영자가 재교육을 요청할 수 있어요.</div>
-      <button className="btn" style={{ marginTop: 14 }} onClick={() => nav('/board?type=NEED', { replace: true })}>도움 줄 공고 보러 가기</button>
+      <div className="btns" style={{ marginTop: 16 }}><button className="btn ghost" onClick={() => nav(`/edu/rp/${id}`, { replace: true })}>다시 해 보기</button><button className="btn" onClick={() => nav('/edu', { replace: true })}>연습 목록으로</button></div>
     </Screen>
   );
 }

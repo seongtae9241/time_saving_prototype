@@ -34,6 +34,18 @@ public class User {
     public boolean eduDone;
     public boolean voiceAlert;
     @Column(length = 10) public String textSize = "normal";
+    /** 41판 A-01: 가입 약관 동의. 필수 2개는 동의 시각, 선택 2개는 여부(null = 예전 가입자, 묻지 않음). */
+    public LocalDateTime termsAgreedAt;
+    public LocalDateTime privacyAgreedAt;
+    public Boolean locConsent;
+    public Boolean interestConsent;
+    /** 41판 B-58: 알림 종류별 켜고 끄기(null = 켜짐). B-43: 문자 병행. */
+    public Boolean notiReq;
+    public Boolean notiMsg;
+    public Boolean notiResult;
+    public Boolean notiRemind;
+    public Boolean notiInterest;
+    public Boolean smsAlert;
     public int penaltyCount;
     public int warningCount;
     public LocalDateTime createdAt = LocalDateTime.now();

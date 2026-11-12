@@ -6,7 +6,7 @@ import { useAuth, useUi } from './ctx.jsx';
 import { DIc, MODE, useMode } from './proto.jsx';
 
 export const ROLES = {
-  USER: { label: '사용자', color: '#5B8DEF', tabs: [['/u/home', '홈', 'home'], ['/board', '공고', 'search'], ['/act', '내 활동', 'list'], ['/bank', '시간 통장', 'wallet'], ['/my', '마이', 'user']] },
+  USER: { label: '사용자', color: '#5B8DEF', tabs: [['/u/home', '홈', 'home'], ['/board', '공고', 'search'], ['/planner', '플래너', 'cal'], ['/bank', '시간 통장', 'wallet'], ['/my', '마이', 'user']] },
   ORG: { label: '담당자', color: '#3A6FD8', tabs: [['/o/home', '홈', 'home'], ['/o/elders', '도움 대상', 'users'], ['/o/reqs', '요청 관리', 'list'], ['/o/report', '변화 리포트', 'chart'], ['/o/my', '마이', 'user']] },
   ADMIN: { label: '운영자', color: '#1B1D22', tabs: [['/a/dash', '대시보드', 'chart'], ['/a/approve', '승인', 'shield'], ['/a/safety', '신고·점검', 'flag'], ['/a/manage', '관리', 'gear']] },
 };

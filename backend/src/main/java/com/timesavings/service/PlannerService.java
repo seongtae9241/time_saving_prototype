@@ -211,27 +211,92 @@ public class PlannerService {
             pickIds.add(p.id);
             Map<String, Object> card = views.postCard(p, u);
             double earn = card.get("estEarn") == null ? 0 : ((Number) card.get("estEarn")).doubleValue();
-            Map<String, Object> row = Views.map("kind", "plan", "date", p.date.toString(), "startHour", p.startHour, "hours", p.estHours == null ? 0 : p.estHours,
+            double ph = pk.hours != null ? pk.hours : planHours(p);
+            double ps = pk.startHour != null ? pk.startHour : p.startHour;
+            Map<String, Object> row = Views.map("kind", "plan", "date", p.date.toString(), "startHour", ps, "endHour", ps + ph, "hours", ph,
                     "category", p.categories.isEmpty() ? null : p.categories.get(0), "title", p.title, "who", card.get("ownerName"),
-                    "amount", earn, "postId", p.id);
+                    "amount", earn, "postId", p.id, "postStartHour", p.startHour, "postEndHour", p.endHour, "planSource", pk.planSource);
             planRows.add(row);
             if (YearMonth.from(p.date).equals(ym)) { items.add(row); planned += earn; }
         }
         items.sort(Comparator.comparing((Map<String, Object> m) -> (String) m.get("date")).thenComparing(m -> ((Number) (m.get("startHour") == null ? 0 : m.get("startHour"))).doubleValue()));
 
         // 추천 봉사: 열린 봉사 요청 공고 중 내 일정과 겹치지 않는 것(오늘 이후 30일)
-        Set<Long> asked = new HashSet<>();
-        for (Request r : mine) if (r.postId != null && !r.status.terminal()) asked.add(r.postId);
-        List<Request> busy = mine.stream().filter(r -> !r.status.terminal()).toList();
-        String topCat = mine.stream().filter(r -> u.id.equals(r.volunteerId) && r.status == ReqStatus.DONE && r.category != null)
+        String topCat = topCategory(u, mine);
+        List<Map<String, Object>> recs = recommend(u, mine, myPicks, today, topCat);
+
+        LifePlan lp = lifePlans.findById(u.id).orElse(null);
+        double target = lp != null && lp.monthlyHours > 0 ? lp.monthlyHours : 4;
+        confirmed = Math.round(confirmed * 10) / 10.0;
+        planned = Math.round(planned * 10) / 10.0;
+        double left = Math.max(0, Math.round((target - confirmed - planned) * 10) / 10.0);
+        Map<String, Object> goal = Views.map("target", target, "confirmed", confirmed, "planned", planned, "left", left, "fromLifePlan", lp != null);
+        String rule = planRows.isEmpty()
+                ? (left <= 0 ? "이번 달 목표 " + n(target) + "시간을 이미 채웠어요."
+                    : "이번 달은 " + n(left) + "시간이 더 필요해요. " + (recs.isEmpty() ? "지금은 빈 시간에 맞는 봉사 요청이 없어요. 관심 알림을 켜 두면 새 공고를 알려 드려요."
+                    : "추천 봉사 중 마음에 드는 것을 고르고 계획 만들기를 누르면 빈 시간에 맞춰 날짜와 시간을 정해 드릴게요."))
+                : "고른 봉사 " + planRows.size() + "개를 빈 시간에 맞춰 달력에 넣었어요. 모두 하면 이번 달 " + n(confirmed + planned) + "시간으로 목표를 "
+                    + (left <= 0 ? "채워요." : n(left) + "시간 남겨요.") + " 제안을 보내고 상대가 수락해야 확정돼요.";
+        Map<String, Object> note = ai.explain("이번 달 봉사 계획 안내", Views.map("goal", goal, "plannedCount", planRows.size(), "recommendCount", recs.size(), "topCategory", topCat), rule);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("month", ym.toString());
+        out.put("today", today.toString());
+        out.put("items", items);
+        out.put("goal", goal);
+        out.put("plans", planRows);
+        out.put("recommends", recs);
+        out.put("text", note.get("text"));
+        out.put("source", note.get("source"));
+        return out;
+    }
+
+    // ===================== 추천 봉사 (41판 B-60) =====================
+    private static String topCategory(User u, List<Request> mine) {
+        return mine.stream().filter(r -> u.id.equals(r.volunteerId) && r.status == ReqStatus.DONE && r.category != null)
                 .collect(java.util.stream.Collectors.groupingBy(r -> r.category, java.util.stream.Collectors.counting()))
                 .entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
+    }
+
+    /** 계획에 넣을 활동 시간: 공고의 예정 시간(없으면 1시간), 공고 범위보다 길 수 없다. */
+    static double planHours(Post p) {
+        double h = p.estHours == null || p.estHours <= 0 ? 1.0 : p.estHours;
+        return Math.max(0.5, Math.min(h, p.endHour - p.startHour));
+    }
+
+    /** [시작, 끝) 목록: 그 날짜에 이미 잡힌 내 일정(끝나지 않은 요청)과 이미 세운 계획. except = 계산에서 뺄 계획(공고 id). */
+    private List<double[]> busyOn(User u, LocalDate date, List<Request> mine, List<PlannerPick> myPicks, Long except) {
+        List<double[]> out = new ArrayList<>();
+        for (Request r : mine) if (!r.status.terminal() && r.date.equals(date)) out.add(new double[]{r.startHour, r.startHour + r.hours});
+        for (PlannerPick pk : myPicks) {
+            if (pk.postId.equals(except)) continue;
+            Post p = posts.findById(pk.postId).orElse(null);
+            if (p == null || p.status != PostStatus.OPEN || !p.date.equals(date)) continue;
+            double st = pk.startHour != null ? pk.startHour : p.startHour;
+            out.add(new double[]{st, st + (pk.hours != null ? pk.hours : planHours(p))});
+        }
+        return out;
+    }
+
+    /** 공고 시간 범위 안에서 hours 만큼 들어가고 busy 와 겹치지 않는 시작 시각(30분 단위) — 순수 함수, 테스트 대상. */
+    public static List<Double> freeStarts(double postStart, double postEnd, double hours, List<double[]> busy) {
+        List<Double> out = new ArrayList<>();
+        for (double st = Math.ceil(postStart * 2) / 2.0; st + hours <= postEnd + 1e-9; st += 0.5) {
+            final double s0 = st;
+            if (busy.stream().noneMatch(b -> overlaps(s0, s0 + hours, b[0], b[1]))) out.add(st);
+        }
+        return out;
+    }
+
+    private List<Map<String, Object>> recommend(User u, List<Request> mine, List<PlannerPick> myPicks, LocalDate today, String topCat) {
+        Set<Long> asked = new HashSet<>(), pickIds = new HashSet<>();
+        for (Request r : mine) if (r.postId != null && !r.status.terminal()) asked.add(r.postId);
+        for (PlannerPick pk : myPicks) pickIds.add(pk.postId);
         List<Object[]> scored = new ArrayList<>();
         for (Post p : posts.findByStatus(PostStatus.OPEN)) {
             if (p.type != PostType.NEED || p.date.isBefore(today) || p.date.isAfter(today.plusDays(30))) continue;
             if (u.id.equals(p.ownerId) || asked.contains(p.id) || pickIds.contains(p.id)) continue;
-            boolean clash = busy.stream().anyMatch(r -> r.date.equals(p.date) && overlaps(r.startHour, r.startHour + r.hours, p.startHour, p.endHour));
-            if (clash) continue;
+            // 빈 시간 필수: 공고 범위 안에 예정 시간만큼 들어갈 자리가 있어야 한다
+            if (freeStarts(p.startHour, p.endHour, planHours(p), busyOn(u, p.date, mine, myPicks, null)).isEmpty()) continue;
             boolean sameArea = u.area != null && u.area.equals(p.area);
             boolean catMatch = p.categories.stream().anyMatch(c -> c.equals(topCat) || (u.categories != null && u.categories.contains(c)));
             boolean slotMatch = u.timeSlots != null && u.timeSlots.contains(slotOf(p.date, p.startHour));
@@ -253,43 +318,78 @@ public class PlannerService {
             card.put("score", o[1]);
             recs.add(card);
         }
-
-        LifePlan lp = lifePlans.findById(u.id).orElse(null);
-        double target = lp != null && lp.monthlyHours > 0 ? lp.monthlyHours : 4;
-        confirmed = Math.round(confirmed * 10) / 10.0;
-        planned = Math.round(planned * 10) / 10.0;
-        double left = Math.max(0, Math.round((target - confirmed - planned) * 10) / 10.0);
-        Map<String, Object> goal = Views.map("target", target, "confirmed", confirmed, "planned", planned, "left", left, "fromLifePlan", lp != null);
-        String rule = planRows.isEmpty()
-                ? (left <= 0 ? "이번 달 목표 " + n(target) + "시간을 이미 채웠어요."
-                    : "이번 달은 " + n(left) + "시간이 더 필요해요. " + (recs.isEmpty() ? "지금은 빈 시간에 맞는 봉사 요청이 없어요. 관심 알림을 켜 두면 새 공고를 알려 드려요."
-                    : "아래 추천 봉사 중 마음에 드는 것을 고르면 달력의 빈 시간에 넣어 드릴게요."))
-                : "고른 봉사 " + planRows.size() + "개를 달력에 넣었어요. 모두 하면 이번 달 " + n(confirmed + planned) + "시간으로 목표를 "
-                    + (left <= 0 ? "채워요." : n(left) + "시간 남겨요.") + " 제안을 보내고 상대가 수락해야 확정돼요.";
-        Map<String, Object> note = ai.explain("이번 달 봉사 계획 안내", Views.map("goal", goal, "plannedCount", planRows.size(), "recommendCount", recs.size(), "topCategory", topCat), rule);
-        Map<String, Object> out = new LinkedHashMap<>();
-        out.put("month", ym.toString());
-        out.put("today", today.toString());
-        out.put("items", items);
-        out.put("goal", goal);
-        out.put("plans", planRows);
-        out.put("recommends", recs);
-        out.put("text", note.get("text"));
-        out.put("source", note.get("source"));
-        return out;
+        return recs;
     }
 
+    /** GET /api/me/recommends — 홈 화면용(설명 문장 AI 를 부르지 않는다). {recommends[], planCount, basis} */
+    @Transactional(readOnly = true)
+    public Map<String, Object> recommends(User u) {
+        if (u.role != Role.USER) throw ApiException.forbidden("사용자 계정만 볼 수 있어요");
+        LocalDate today = LocalDate.now();
+        List<Request> mine = requests.findAll().stream().filter(r -> u.id.equals(r.volunteerId) || u.id.equals(r.recipientId)).toList();
+        List<PlannerPick> myPicks = picks.findByUserId(u.id);
+        long planCount = myPicks.stream().map(pk -> posts.findById(pk.postId).orElse(null))
+                .filter(p -> p != null && p.status == PostStatus.OPEN && !p.date.isBefore(today)).count();
+        return Views.map("recommends", recommend(u, mine, myPicks, today, topCategory(u, mine)), "planCount", planCount,
+                "basis", Views.map("area", u.area, "timeSlots", u.timeSlots, "categories", u.categories));
+    }
+
+    /**
+     * 계획 만들기(41판 B-61): 고른 추천 봉사마다 내 빈 시간 후보를 코드가 만들고, 그 가운데 AI 가 시작 시각을 고른다.
+     * AI 가 고른 값이 후보에 없거나(범위 밖·겹침) 키가 없으면 코드가 고른다(가능 시간대와 맞는 것 → 공고 시작 시각에 가까운 것).
+     * 빈 자리가 없는 공고는 넣지 않고 skipped 로 알려 준다. 날짜는 공고의 날짜 그대로다.
+     * 반환 {made:[{postId,date,startHour,endHour,hours,source}], skipped:[{postId,title,reason}], source}
+     */
     @Transactional
-    public void addPicks(User u, List<Long> postIds) {
+    public Map<String, Object> addPicks(User u, List<Long> postIds) {
         if (u.role != Role.USER) throw ApiException.forbidden("사용자 계정만 쓸 수 있어요");
         if (postIds == null || postIds.isEmpty()) throw ApiException.bad("POSTS_REQUIRED", "추천 봉사를 골라 주세요");
+        List<Request> mine = requests.findAll().stream().filter(r -> u.id.equals(r.volunteerId) || u.id.equals(r.recipientId)).toList();
+        List<PlannerPick> myPicks = new ArrayList<>(picks.findByUserId(u.id));
+        List<Post> todo = new ArrayList<>();
         for (Long id : new LinkedHashSet<>(postIds)) {
             Post p = posts.findById(id).orElseThrow(() -> ApiException.notFound("공고를 찾을 수 없어요"));
             if (p.type != PostType.NEED || p.status != PostStatus.OPEN || u.id.equals(p.ownerId)) throw ApiException.bad("INVALID_POST", "열려 있는 봉사 요청 공고만 계획에 넣을 수 있어요");
             if (picks.findByUserIdAndPostId(u.id, id).isPresent()) continue;
-            PlannerPick pk = new PlannerPick(); pk.userId = u.id; pk.postId = id;
-            picks.save(pk);
+            todo.add(p);
         }
+        todo.sort(Comparator.comparing((Post p) -> p.date).thenComparing(p -> p.startHour));
+        // AI 에게 줄 재료: 공고마다 지금 일정 기준의 후보 시각(서로 겹치는지는 아래에서 다시 검사한다)
+        List<Map<String, Object>> options = new ArrayList<>();
+        for (Post p : todo) {
+            List<Double> c = freeStarts(p.startHour, p.endHour, planHours(p), busyOn(u, p.date, mine, myPicks, null));
+            if (!c.isEmpty()) options.add(Views.map("postId", p.id, "date", p.date.toString(), "title", p.title, "hours", planHours(p),
+                    "range", p.startHour + "~" + p.endHour, "candidates", c));
+        }
+        List<Map<String, Object>> busyFacts = mine.stream().filter(r -> !r.status.terminal() && !r.date.isBefore(LocalDate.now()))
+                .map(r -> Views.map("date", r.date.toString(), "startHour", r.startHour, "endHour", r.startHour + r.hours)).toList();
+        Map<Long, Double> aiPick = ai.pickTimes(Views.map("timeSlots", u.timeSlots, "busy", busyFacts), options);
+        List<Map<String, Object>> made = new ArrayList<>(), skipped = new ArrayList<>();
+        boolean anyAi = false;
+        for (Post p : todo) {
+            double h = planHours(p);
+            List<Double> cand = freeStarts(p.startHour, p.endHour, h, busyOn(u, p.date, mine, myPicks, null)); // 방금 넣은 계획까지 반영
+            if (cand.isEmpty()) {
+                skipped.add(Views.map("postId", p.id, "title", p.title, "reason", "그 시간에 이미 다른 일정이 있어요"));
+                continue;
+            }
+            Double want = aiPick.get(p.id);
+            boolean byAi = want != null && cand.stream().anyMatch(c -> Math.abs(c - want) < 1e-9);
+            double st = byAi ? want : ruleStart(u, p, cand);
+            PlannerPick pk = new PlannerPick();
+            pk.userId = u.id; pk.postId = p.id; pk.startHour = st; pk.hours = h; pk.planSource = byAi ? "ai" : "rule";
+            picks.save(pk);
+            myPicks.add(pk);
+            anyAi |= byAi;
+            made.add(Views.map("postId", p.id, "title", p.title, "date", p.date.toString(), "startHour", st, "endHour", st + h, "hours", h, "source", pk.planSource));
+        }
+        return Views.map("made", made, "skipped", skipped, "source", anyAi ? "ai" : "rule");
+    }
+
+    /** 규칙으로 고르는 시작 시각: 내 가능 시간대에 드는 후보가 있으면 그 가운데 가장 이른 것, 없으면 가장 이른 후보. */
+    private static double ruleStart(User u, Post p, List<Double> cand) {
+        if (u.timeSlots != null) for (Double c : cand) if (u.timeSlots.contains(slotOf(p.date, c))) return c;
+        return cand.get(0);
     }
 
     @Transactional

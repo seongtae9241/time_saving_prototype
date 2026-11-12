@@ -111,7 +111,7 @@ class LlmAssistFlowTest {
                 .content("{\"kind\":\"REQUEST\",\"postId\":" + p.id + ",\"date\":\"" + day + "\",\"startHour\":14,\"hours\":2,\"category\":\"동행\",\"content\":\"병원 같이 가 주세요\"}"))
                 .andExpect(status().isOk()));
         Request saved = requests.findById(rv.path("id").asLong()).orElseThrow();
-        assertEquals("같은 동네 · 범죄경력 확인 · 안전 교육 수료", saved.matchReason);
+        assertEquals("같은 동네 · 범죄경력 확인", saved.matchReason); // 41판 B-54: 교육 수료 가점·문구 없음
         assertEquals(saved.matchReason, rv.path("volunteer").path("matchReason").asText());
         // 봉사자가 받은 요청 목록에도 같은 한 줄
         JsonNode recv = json(mvc.perform(get("/api/requests?box=received").header("Authorization", token(vol))));

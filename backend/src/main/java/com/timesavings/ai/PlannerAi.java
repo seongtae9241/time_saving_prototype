@@ -19,6 +19,30 @@ public class PlannerAi {
 
     public PlannerAi(ActivityAi ai) { this.ai = ai; }
 
+    /**
+     * 41판 B-61 [플래너 AI]: 고른 추천 봉사마다 내 빈 시간 후보 가운데 시작 시각을 고른다.
+     * 후보(candidates)는 서버가 공고 범위·겹침을 따져 만든 것이고, AI 는 그 가운데 하나를 고르기만 한다.
+     * 돌려주는 값: {postId → startHour}. 후보에 없는 값·빠진 공고는 호출한 쪽(서버)이 규칙으로 정한다. 키가 없으면 빈 Map.
+     */
+    public Map<Long, Double> pickTimes(Map<String, Object> me, java.util.List<Map<String, Object>> options) {
+        Map<Long, Double> out = new LinkedHashMap<>();
+        if (options == null || options.isEmpty()) return out;
+        Optional<JsonNode> j = ai.ask("""
+                시간은행 봉사자의 이번 달 계획을 세우는 도우미다. 봉사 공고마다 candidates(시작할 수 있는 시각, 24시간제 숫자) 가운데 하나를 고른다.
+                내 정보(JSON)의 가능한 시간대와 이미 잡힌 일정을 보고, 같은 날 일정 사이에 이동할 여유가 있는 시각을 고른다.
+                candidates 에 없는 숫자는 쓰지 않는다. 날짜는 바꾸지 않는다.
+                출력: {"plans":[{"postId":1,"startHour":14.0}]}
+                """, "내 정보(JSON): " + Views.json(me) + "\n고를 공고(JSON): " + Views.json(options), 400);
+        if (j.isEmpty()) return out;
+        for (JsonNode n : j.get().path("plans")) {
+            if (!n.path("postId").canConvertToLong() || !n.path("startHour").isNumber()) continue;
+            out.put(n.path("postId").asLong(), n.path("startHour").asDouble());
+        }
+        return out;
+    }
+
+    public String providerName() { return ai.providerName(); }
+
     public Map<String, Object> explain(String role, Map<String, Object> facts, String ruleText) {
         Map<String, Object> m = new LinkedHashMap<>();
         Optional<JsonNode> j = ai.ask("""

@@ -703,13 +703,16 @@ public class RequestService {
         return n;
     }
 
-    public int remind(LocalDate today) {
+    public int remind(LocalDate today) { return remindAt(today.atTime(java.time.LocalTime.now())); }
+
+    /** 41판 B-58: 시작 1시간 전 리마인드(시작까지 1시간 이하로 남았고 아직 시작 전인 확정 일정, 한 번만). */
+    public int remindAt(LocalDateTime now) {
         int n = 0;
         for (Request r : repo.findByStatusIn(List.of(ReqStatus.CONFIRMED))) {
-            if (r.reminded || !r.date.equals(today.plusDays(1))) continue;
+            if (r.reminded || now.isBefore(r.startAt().minusHours(1)) || !now.isBefore(r.startAt())) continue;
             r.reminded = true;
-            noti.toVolunteer(r, "REMIND", "내일 " + hhmm(r.startHour) + " 봉사 일정이 있어요", noti.recipientLabel(r, false) + " · " + r.content);
-            noti.toRecipientSide(r, "REMIND", "내일 " + hhmm(r.startHour) + " 도움 일정이 있어요", noti.name(r.volunteerId) + " 님 · " + r.content);
+            noti.toVolunteer(r, "REMIND", "곧 " + hhmm(r.startHour) + " 봉사 일정이 있어요 (1시간 전 알림)", noti.recipientLabel(r, false) + " · " + r.content);
+            noti.toRecipientSide(r, "REMIND", "곧 " + hhmm(r.startHour) + " 도움 일정이 있어요 (1시간 전 알림)", noti.name(r.volunteerId) + " 님 · " + r.content);
             n++;
         }
         return n;

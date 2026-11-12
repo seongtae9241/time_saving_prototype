@@ -155,11 +155,18 @@ function PhoneVerify({ phone, setPhone, onVerified, verified }) {
   );
 }
 
-/* ---------- 회원가입 ---------- */
+/* ---------- 회원가입 (A-01): 약관 동의 4항목 — 필수 2개, 선택 2개. [제목, 필수 여부, 내용 요약] ---------- */
+const TERMS = [
+  ['[필수] 서비스 이용약관', true, ['시간 적금은 이웃끼리 도운 시간을 통장에 모으고, 나중에 도움을 받을 때 쓰는 서비스예요.', '시간은 돈으로 사고팔 수 없고, 연결된 가족에게 선물하는 것 말고는 넘기거나 상속할 수 없어요.', '신체 돌봄·의료 행위·돈 관리처럼 금지된 요청은 올릴 수 없고, 연락처 교환·금전 요구는 신고 대상이에요.', '약속을 지키지 않거나 규칙을 어기면 경고·이용 정지가 될 수 있어요.']],
+  ['[필수] 개인정보 수집·이용', true, ['모으는 정보: 이름, 휴대폰 번호, 아이디, 사는 동네, 나이대, 활동 기록.', '쓰는 곳: 본인 확인, 공고·요청 연결, 시간 통장 기록, 안전 신고 처리.', '보관 기간: 탈퇴할 때까지. 활동 기록은 법에 정한 기간만 통계용으로 남겨요.', '동의하지 않으면 가입할 수 없어요.']],
+  ['[선택] 위치 정보 이용 (가까운 순으로 안내)', false, ['공고와 도움을 가까운 순으로 보여 줄 때만 지금 위치를 써요.', '위치는 그 기능을 쓰는 순간에만 쓰고 저장하거나 계속 따라가지 않아요.', '동의하지 않아도 사는 동네 기준으로 모든 기능을 쓸 수 있고, 마이 › 설정에서 언제든 바꿀 수 있어요.']],
+  ['[선택] 관심 공고 알림 받기', false, ['저장해 둔 지역·날짜·도움 종류에 맞는 공고가 올라오면 알림을 보내요.', '동의하지 않으면 관심 공고 알림은 꺼진 채로 시작하고, 마이 › 알림 설정에서 언제든 켤 수 있어요.']],
+];
+
 export function Signup() {
   const nav = useNavigate();
   const { loginWithToken } = useAuth();
-  const { toast } = useUi();
+  const { toast, sheet, closeSheet } = useUi();
   const [st, setSt] = useState(1);
   const [f, setF] = useState({ name: '', phone: '', loginId: '', password: '', password2: '', area: '행복동', ageGroup: '20대', categories: [], timeSlots: [], intro: '' });
   const [vt, setVt] = useState(null);
@@ -177,7 +184,8 @@ export function Signup() {
     setSt(st + 1);
   };
   const done = () => run(async () => {
-    const r = await post('/auth/signup', { loginId: f.loginId.trim(), password: f.password, name: f.name.trim(), phone: f.phone.trim(), verifyToken: vt, area: f.area, ageGroup: f.ageGroup, categories: f.categories, timeSlots: f.timeSlots, intro: f.intro });
+    const r = await post('/auth/signup', { loginId: f.loginId.trim(), password: f.password, name: f.name.trim(), phone: f.phone.trim(), verifyToken: vt, area: f.area, ageGroup: f.ageGroup, categories: f.categories, timeSlots: f.timeSlots, intro: f.intro,
+      agreeTerms: !!agree[0], agreePrivacy: !!agree[1], agreeLocation: !!agree[2], agreeInterest: !!agree[3] });
     await loginWithToken(r.token);
     setSt(4);
   });
@@ -185,7 +193,7 @@ export function Signup() {
   if (st === 4) {
     return (
       <Screen noHeader noTabs cls="full">
-        <div className="sp-in" style={{ color: 'var(--ink)' }}><div className="done-ic">✓</div><h2 className="su-h center" style={{ marginTop: 20 }}>가입을 환영해요</h2><p className="su-p center">도움 받기는 바로 할 수 있어요.<br />봉사를 하려면 신원 인증과 안전 교육을 먼저 마쳐 주세요.</p></div>
+        <div className="sp-in" style={{ color: 'var(--ink)' }}><div className="done-ic">✓</div><h2 className="su-h center" style={{ marginTop: 20 }}>가입을 환영해요</h2><p className="su-p center">도움 받기는 바로 할 수 있어요.<br />봉사를 하려면 신분증 인증을 먼저 해 주세요.</p></div>
         <div className="su-bottom stack"><button className="btn big-cta" onClick={() => { toast('가입이 완료됐어요'); nav('/u/home', { replace: true }); }}>시작하기</button><button className="btn ghost" onClick={() => { nav('/u/home', { replace: true }); nav('/my/verify'); }}>봉사 신원 인증 하러 가기</button></div>
       </Screen>
     );
@@ -218,14 +226,19 @@ export function Signup() {
         <>
           <h2 className="su-h">약관에 동의해 주세요</h2>
           <div className={'su-check all ' + (all ? 'on' : '')} role="button" tabIndex={0} onClick={() => setAgree(agree.map(() => (all ? 0 : 1)))}><span className="bx" /><div className="b">전체 동의</div></div>
-          {['[필수] 서비스 이용약관', '[필수] 개인정보 수집·이용', '[필수] 위치 정보 이용 (근처 공고)', '[선택] 관심 공고 알림 받기'].map((t, i) => (
-            <div key={t} className={'su-check ' + (agree[i] ? 'on' : '')} role="button" tabIndex={0} onClick={() => setAgree(agree.map((v, k) => (k === i ? (v ? 0 : 1) : v)))}><span className="bx" /><div className="grow">{t}</div><span className="mute2">보기</span></div>
+          {TERMS.map(([t, , body], i) => (
+            <div key={t} className={'su-check ' + (agree[i] ? 'on' : '')} role="checkbox" aria-checked={!!agree[i]} tabIndex={0} onClick={() => setAgree(agree.map((v, k) => (k === i ? (v ? 0 : 1) : v)))} onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setAgree(agree.map((v, k) => (k === i ? (v ? 0 : 1) : v))); } }}>
+              <span className="bx" /><div className="grow">{t}</div>
+              <button type="button" className="mute2" style={{ border: 0, background: 'none', font: 'inherit', minHeight: 44, padding: '0 4px', cursor: 'pointer', textDecoration: 'underline' }} aria-label={`${t} 내용 보기`}
+                onClick={(e) => { e.stopPropagation(); sheet(<><h2>{t.replace(/^\[[^\]]+\]\s*/, '')}</h2><ul className="small muted" style={{ margin: '6px 0 0', paddingLeft: 18 }}>{body.map((x) => <li key={x} style={{ marginTop: 6 }}>{x}</li>)}</ul><button className="btn ghost" style={{ marginTop: 14 }} onClick={closeSheet}>닫기</button></>); }}>보기</button>
+            </div>
           ))}
-          <div className="notice" style={{ marginTop: 16 }}>시간은 돈으로 사고팔 수 없고, 가족 선물 외에는 넘길 수 없어요.</div>
+          <div className="notice" style={{ marginTop: 16 }}>위치 정보는 선택이에요. 켜면 브라우저가 위치 권한을 물어봐요. 허용하지 않아도 사는 동네 기준으로 쓸 수 있어요.</div>
+          <div className="mute2" style={{ margin: '10px 2px 0' }}>필수 2개에 동의하면 가입할 수 있어요. 시간은 돈으로 사고팔 수 없고, 가족 선물 외에는 넘길 수 없어요.</div>
         </>
       )}
       <div className="su-bottom">
-        {st < 3 ? <button className="btn big-cta" onClick={next}>다음</button> : <button className="btn big-cta" disabled={!agree.slice(0, 3).every(Boolean) || busy} onClick={done}>{busy ? '가입하는 중…' : '가입하기'}</button>}
+        {st < 3 ? <button className="btn big-cta" onClick={next}>다음</button> : <button className="btn big-cta" disabled={!agree.slice(0, 2).every(Boolean) || busy} onClick={done}>{busy ? '가입하는 중…' : '가입하기'}</button>}
         {st > 1 && <button className="au-demo" onClick={() => setSt(st - 1)}>이전 단계로</button>}
       </div>
     </Screen>
