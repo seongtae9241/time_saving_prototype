@@ -25,6 +25,8 @@ import java.util.*;
 public class AuthController {
     @org.springframework.beans.factory.annotation.Autowired private FileAccessService fileAccess;
     @org.springframework.beans.factory.annotation.Autowired private RateLimiter limiter;
+    /** 기능 U-34 봉사 자격(신분증 + 첫 활동 교육) */
+    @org.springframework.beans.factory.annotation.Autowired private VolunteerGate gate;
     private final AuthService auth;
     private final UserRepo users;
     private final OrganizationRepo orgs;
@@ -160,7 +162,12 @@ public class AuthController {
                 "balance", s.balance(), "hold", s.hold(), "available", s.available(), "usable", s.usable(),
                 "earnedSelf", s.earnedSelf(), "canUseSelf", s.canUseSelf(),
                 "regularBadges", views.regularBadges(u.id, u.id), "ratingAvg", r[0], "ratingCount", (int) r[1],
-                "verify", Views.map("idStatus", u.idStatus, "crimeStatus", u.crimeStatus));
+                "verify", Views.map("idStatus", u.idStatus, "crimeStatus", u.crimeStatus,
+                        "eduDone", u.eduDone, "eduRequired", gate.eduRequired(), "eduOn", gate.eduOn()));
+        m.put("eduDone", u.eduDone); // 기능 U-34 첫 활동 교육(안전 교육) 이수
+        String[] block = u.role == Role.USER ? gate.block(u, true) : null;
+        m.put("canVolunteer", u.role == Role.USER && block == null);
+        m.put("volunteerBlock", block == null ? null : Views.map("code", block[0], "message", block[1]));
         return m;
     }
 
@@ -350,7 +357,7 @@ public class AuthController {
         return Views.map("id", u.id, "name", u.name, "ageGroup", u.ageGroup, "area", u.area, "intro", u.intro, "experience", u.experience,
                 "personality", u.personality, "categories", u.categories, "timeSlots", u.timeSlots, "photoUrl", u.photoUrl,
                 "ratingAvg", r[0], "ratingCount", (int) r[1], "tags", views.topTags(u.id, 5),
-                "crime", u.crimeStatus == VerifyStatus.APPROVED, "idVerified", u.idStatus == VerifyStatus.APPROVED,
+                "crime", u.crimeStatus == VerifyStatus.APPROVED, "idVerified", u.idStatus == VerifyStatus.APPROVED, "eduDone", u.eduDone,
                 "regularBadges", views.regularBadges(u.id, viewer.id), "helpCount", helped);
     }
 

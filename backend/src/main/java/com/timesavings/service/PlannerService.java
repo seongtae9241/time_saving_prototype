@@ -215,8 +215,9 @@ public class PlannerService {
         items.sort(Comparator.comparing((Map<String, Object> m) -> (String) m.get("date")).thenComparing(m -> ((Number) (m.get("startHour") == null ? 0 : m.get("startHour"))).doubleValue()));
 
         // 추천 봉사: 열린 봉사 요청 공고 중 내 일정과 겹치지 않는 것(오늘 이후 30일)
-        String topCat = topCategory(u, mine);
-        List<Map<String, Object>> recs = recommend(u, mine, myPicks, today, topCat);
+        Map<String, Object> basis = historyBasis(u, mine);
+        String topCat = (String) basis.get("topCategory");
+        List<Map<String, Object>> recs = recommend(u, mine, myPicks, today, basis);
 
         LifePlan lp = lifePlans.findById(u.id).orElse(null);
         double target = lp != null && lp.monthlyHours > 0 ? lp.monthlyHours : 4;
@@ -227,10 +228,10 @@ public class PlannerService {
         String rule = planRows.isEmpty()
                 ? (left <= 0 ? "이번 달 목표 " + n(target) + "시간을 이미 채웠어요."
                     : "이번 달은 " + n(left) + "시간이 더 필요해요. " + (recs.isEmpty() ? "지금은 빈 시간에 맞는 봉사 요청이 없어요. 관심 알림을 켜 두면 새 공고를 알려 드려요."
-                    : "추천 봉사 중 마음에 드는 것을 고르고 계획 만들기를 누르면 빈 시간에 맞춰 날짜와 시간을 정해 드릴게요."))
+                    : basisText(basis, u) + " 마음에 드는 것을 고르고 계획 만들기를 누르면 빈 시간에 맞춰 날짜와 시간을 정해 드릴게요."))
                 : "고른 봉사 " + planRows.size() + "개를 빈 시간에 맞춰 달력에 넣었어요. 모두 하면 이번 달 " + n(confirmed + planned) + "시간으로 목표를 "
                     + (left <= 0 ? "채워요." : n(left) + "시간 남겨요.") + " 제안을 보내고 상대가 수락해야 확정돼요.";
-        Map<String, Object> note = ai.explain("이번 달 봉사 계획 안내", Views.map("goal", goal, "plannedCount", planRows.size(), "recommendCount", recs.size(), "topCategory", topCat), rule);
+        Map<String, Object> note = ai.explain("이번 달 봉사 계획 안내", Views.map("goal", goal, "plannedCount", planRows.size(), "recommendCount", recs.size(), "topCategory", topCat, "basis", basis), rule);
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("month", ym.toString());
         out.put("today", today.toString());
@@ -238,16 +239,59 @@ public class PlannerService {
         out.put("goal", goal);
         out.put("plans", planRows);
         out.put("recommends", recs);
+        out.put("basis", basis);
+        out.put("basisText", basisText(basis, u));
         out.put("text", note.get("text"));
         out.put("source", note.get("source"));
         return out;
     }
 
     // ===================== 추천 봉사 (41판 B-60) =====================
-    private static String topCategory(User u, List<Request> mine) {
-        return mine.stream().filter(r -> u.id.equals(r.volunteerId) && r.status == ReqStatus.DONE && r.category != null)
-                .collect(java.util.stream.Collectors.groupingBy(r -> r.category, java.util.stream.Collectors.counting()))
-                .entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
+    /**
+     * 기능 U-28 추천 봉사의 바탕: 내가 끝낸 봉사(DONE)에서 가장 많이 한 카테고리·지역(동)·시간대와 횟수(코드가 센다).
+     * 기록이 없으면 값이 null 이고 프로필(잘하는 도움·활동 지역·가능한 시간대)만으로 추천한다.
+     * {doneCount, topCategory, topCategoryCount, topArea, topAreaCount, topSlot, topSlotCount}
+     */
+    public Map<String, Object> historyBasis(User u, List<Request> mine) {
+        Map<String, Integer> cat = new LinkedHashMap<>(), area = new LinkedHashMap<>(), slot = new LinkedHashMap<>();
+        int done = 0;
+        for (Request r : mine) {
+            if (!u.id.equals(r.volunteerId) || r.status != ReqStatus.DONE) continue;
+            done++;
+            if (r.category != null) cat.merge(r.category, 1, Integer::sum);
+            String a = areaOf(r);
+            if (a != null && !a.isBlank()) area.merge(a, 1, Integer::sum);
+            slot.merge(slotOf(r.date, r.startHour), 1, Integer::sum);
+        }
+        Map.Entry<String, Integer> c = top(cat), a = top(area), s = top(slot);
+        return Views.map("doneCount", done, "topCategory", c == null ? null : c.getKey(), "topCategoryCount", c == null ? 0 : c.getValue(),
+                "topArea", a == null ? null : a.getKey(), "topAreaCount", a == null ? 0 : a.getValue(),
+                "topSlot", s == null ? null : s.getKey(), "topSlotCount", s == null ? 0 : s.getValue());
+    }
+
+    /** 가장 많은 것(같으면 먼저 나온 것). */
+    private static Map.Entry<String, Integer> top(Map<String, Integer> m) {
+        Map.Entry<String, Integer> best = null;
+        for (Map.Entry<String, Integer> e : m.entrySet()) if (best == null || e.getValue() > best.getValue()) best = e;
+        return best;
+    }
+
+    /** 활동한 지역(동): 공고의 동 → 기관 도움 대상의 동 → 받는 사람의 동네. */
+    private String areaOf(Request r) {
+        if (r.postId != null) { Post p = posts.findById(r.postId).orElse(null); if (p != null && p.area != null) return p.area; }
+        if (r.elderId != null) return elders.findById(r.elderId).map(e -> e.dong).orElse(null);
+        return r.recipientId == null ? null : users.findById(r.recipientId).map(x -> x.area).orElse(null);
+    }
+
+    /** 기능 U-28: 추천 바탕을 한 문장으로(규칙 문장). 기록이 없으면 프로필 기준이라고 알려 준다. */
+    static String basisText(Map<String, Object> b, User u) {
+        if (b == null || ((Number) b.get("doneCount")).intValue() == 0)
+            return "아직 끝낸 봉사가 없어서 프로필의 활동 지역·가능한 시간대·잘하는 도움에 맞춰 골랐어요.";
+        List<String> parts = new ArrayList<>();
+        if (b.get("topCategory") != null) parts.add(b.get("topCategory") + " " + b.get("topCategoryCount") + "회");
+        if (b.get("topArea") != null) parts.add(b.get("topArea") + " " + b.get("topAreaCount") + "회");
+        if (b.get("topSlot") != null) parts.add(b.get("topSlot") + " " + b.get("topSlotCount") + "회");
+        return "지금까지 많이 하신 봉사(" + String.join(" · ", parts) + ")를 바탕으로 골랐어요.";
     }
 
     /** 계획에 넣을 활동 시간: 공고의 예정 시간(없으면 1시간), 공고 범위보다 길 수 없다. */
@@ -280,7 +324,8 @@ public class PlannerService {
         return out;
     }
 
-    private List<Map<String, Object>> recommend(User u, List<Request> mine, List<PlannerPick> myPicks, LocalDate today, String topCat) {
+    private List<Map<String, Object>> recommend(User u, List<Request> mine, List<PlannerPick> myPicks, LocalDate today, Map<String, Object> basis) {
+        String topCat = (String) basis.get("topCategory"), topArea = (String) basis.get("topArea"), topSlot = (String) basis.get("topSlot");
         Set<Long> asked = new HashSet<>(), pickIds = new HashSet<>();
         for (Request r : mine) if (r.postId != null && !r.status.terminal()) asked.add(r.postId);
         for (PlannerPick pk : myPicks) pickIds.add(pk.postId);
@@ -290,10 +335,14 @@ public class PlannerService {
             if (u.id.equals(p.ownerId) || asked.contains(p.id) || pickIds.contains(p.id)) continue;
             // 빈 시간 필수: 공고 범위 안에 예정 시간만큼 들어갈 자리가 있어야 한다
             if (freeStarts(p.startHour, p.endHour, planHours(p), busyOn(u, p.date, mine, myPicks, null)).isEmpty()) continue;
+            // 기능 U-28: 내가 많이 한 카테고리·지역·시간대(기록)와 프로필을 함께 본다
+            boolean histArea = topArea != null && topArea.equals(p.area);
+            boolean histCat = topCat != null && p.categories.contains(topCat);
+            boolean histSlot = topSlot != null && topSlot.equals(slotOf(p.date, p.startHour));
             boolean sameArea = u.area != null && u.area.equals(p.area);
-            boolean catMatch = p.categories.stream().anyMatch(c -> c.equals(topCat) || (u.categories != null && u.categories.contains(c)));
+            boolean catMatch = histCat || p.categories.stream().anyMatch(c -> u.categories != null && u.categories.contains(c));
             boolean slotMatch = u.timeSlots != null && u.timeSlots.contains(slotOf(p.date, p.startHour));
-            scored.add(new Object[]{p, recScore(sameArea, catMatch, slotMatch), sameArea, catMatch, slotMatch});
+            scored.add(new Object[]{p, recScore(sameArea || histArea, catMatch, slotMatch || histSlot) + (histCat ? 1 : 0), sameArea, catMatch, slotMatch, histArea, histCat, histSlot});
         }
         scored.sort(Comparator.<Object[]>comparingInt(o -> -(int) o[1]).thenComparing(o -> ((Post) o[0]).date).thenComparing(o -> ((Post) o[0]).id));
         List<Map<String, Object>> recs = new ArrayList<>();
@@ -302,13 +351,17 @@ public class PlannerService {
             Map<String, Object> card = views.postCard(p, u);
             List<String> why = new ArrayList<>();
             why.add("그 시간에 다른 일정이 없어요");
-            if ((boolean) o[4]) why.add("가능 시간(" + slotOf(p.date, p.startHour) + ")과 맞아요");
+            if ((boolean) o[6]) why.add("가장 많이 하신 " + topCat + "(" + basis.get("topCategoryCount") + "회)이에요");
+            else if ((boolean) o[3]) why.add("잘하시는 도움이에요");
             if ((boolean) o[2]) why.add("같은 " + p.area + "이에요");
-            if ((boolean) o[3]) why.add("잘하시는 도움이에요");
+            else if ((boolean) o[5]) why.add("자주 활동하신 " + p.area + "(" + basis.get("topAreaCount") + "회)이에요");
+            if ((boolean) o[7]) why.add("자주 활동하신 시간대(" + topSlot + ")예요");
+            else if ((boolean) o[4]) why.add("가능 시간(" + slotOf(p.date, p.startHour) + ")과 맞아요");
             double w = ((Number) card.get("weight")).doubleValue();
             if (w > 1.0) why.add((w >= 1.5 ? "책임 " : "수고 ") + w + "배");
             card.put("why", String.join(" · ", why));
             card.put("score", o[1]);
+            card.put("whyBasis", Views.map("category", o[6], "area", o[5], "slot", o[7])); // 기록(많이 한 것)과 맞은 항목
             recs.add(card);
         }
         return recs;
@@ -323,8 +376,11 @@ public class PlannerService {
         List<PlannerPick> myPicks = picks.findByUserId(u.id);
         long planCount = myPicks.stream().map(pk -> posts.findById(pk.postId).orElse(null))
                 .filter(p -> p != null && p.status == PostStatus.OPEN && !p.date.isBefore(today)).count();
-        return Views.map("recommends", recommend(u, mine, myPicks, today, topCategory(u, mine)), "planCount", planCount,
-                "basis", Views.map("area", u.area, "timeSlots", u.timeSlots, "categories", u.categories));
+        Map<String, Object> hist = historyBasis(u, mine);
+        Map<String, Object> basis = Views.map("area", u.area, "timeSlots", u.timeSlots, "categories", u.categories);
+        basis.putAll(hist);
+        return Views.map("recommends", recommend(u, mine, myPicks, today, hist), "planCount", planCount,
+                "basis", basis, "basisText", basisText(hist, u));
     }
 
     /**

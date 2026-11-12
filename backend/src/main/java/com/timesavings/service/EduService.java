@@ -125,7 +125,50 @@ public class EduService {
      * "이렇게 바꿔 말해 보세요"(이유 + 바꿔 말할 문장)를, 잘했으면 칭찬을 돌려준다. 기록·수료는 남기지 않는다.
      * {quality, flag, ok, praise|null, feedback:{violation, flag, message, reason, better}|null, reply, source}
      */
-    public Map<String, Object> practice(String key, String text) {
+    public Map<String, Object> practice(String key, String text) { return practice(null, key, text); }
+
+    /**
+     * 기능 U-34 첫 활동 교육(안전 교육): 로그인한 사용자가 상황을 안전 규칙에 맞게 답하면 그 상황을 끝낸 것으로 적고,
+     * 지금 상황 목록을 모두 끝내면 이수(users.edu_done, edu_progress.completed_at)로 기록한다. 응답에 education{…}이 붙는다.
+     */
+    public Map<String, Object> practice(User me, String key, String text) {
+        Map<String, Object> out = practiceOnce(key, text);
+        if (me != null && me.role == com.timesavings.domain.Enums.Role.USER) {
+            if (Boolean.TRUE.equals(out.get("ok"))) markPracticed(me, key);
+            out.put("education", education(users.findById(me.id).orElse(me)));
+        }
+        return out;
+    }
+
+    private static final TypeReference<List<String>> KEYS = new TypeReference<>() {};
+
+    private void markPracticed(User me, String key) {
+        EduProgress p = of(me.id);
+        List<String> done = new ArrayList<>(Views.parse(p.practiceJson, KEYS, List.<String>of()));
+        if (!done.contains(key)) { done.add(key); p.practiceJson = Views.json(done); }
+        boolean all = situations().stream().allMatch(s -> done.contains(String.valueOf(s.get("key"))));
+        if (!all) return;
+        User u = users.findById(me.id).orElse(null);
+        if (u != null && !u.eduDone) {
+            u.eduDone = true;
+            p.completedAt = LocalDateTime.now();
+        }
+    }
+
+    /** 교육 진행 상태: {done, completedAt, total, doneCount, doneKeys[], required, on} */
+    public Map<String, Object> education(User me) {
+        EduProgress p = of(me.id);
+        List<String> keys = situations().stream().map(s -> String.valueOf(s.get("key"))).toList();
+        List<String> done = Views.parse(p.practiceJson, KEYS, List.<String>of()).stream().filter(keys::contains).toList();
+        return Views.map("done", me.eduDone, "completedAt", p.completedAt == null ? null : p.completedAt.toString(),
+                "total", keys.size(), "doneCount", me.eduDone ? keys.size() : done.size(), "doneKeys", done,
+                "required", gate != null && gate.eduRequired(), "on", gate == null || gate.eduOn());
+    }
+
+    /** 기능 U-34: 교육이 필수인지(운영자 설정) — 생성자를 바꾸지 않으려고 필드 주입 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private VolunteerGate gate;
+
+    private Map<String, Object> practiceOnce(String key, String text) {
         if (text == null || text.isBlank()) throw ApiException.bad("TEXT_REQUIRED", "할 말을 입력해 주세요");
         Map<String, Object> sit = situations().stream().filter(x -> String.valueOf(x.get("key")).equals(key)).findFirst()
                 .orElseThrow(() -> ApiException.notFound("연습 상황을 찾을 수 없어요"));
@@ -177,7 +220,7 @@ public class EduService {
             EduContent.Quiz q = EduContent.QUIZ.get(i);
             quiz.add(Views.map("no", i, "q", q.q(), "options", q.options(), "card", q.card()));
         }
-        return Views.map("optional", true, "diag", diag, "cardsDone", p.cardsDone, "quizScore", p.quizScore,
+        return Views.map("optional", gate == null || !gate.eduRequired(), "education", education(users.findById(me.id).orElse(me)), "diag", diag, "cardsDone", p.cardsDone, "quizScore", p.quizScore,
                 "roleplay", Views.parse(p.roleplayJson, new TypeReference<Map<String, Object>>() {}, new LinkedHashMap<>()),
                 "personas", personas.findAll().stream().filter(x -> x.active).map(x -> personaView(x, false)).toList(),
                 "situations", situationViews(),

@@ -194,6 +194,7 @@ public class DataSeeder implements ApplicationRunner {
         User u = new User();
         u.loginId = id; u.passwordHash = pwHash; u.name = name; u.phone = phone; u.area = area; u.ageGroup = age; u.intro = intro;
         u.experience = exp; u.categories = new ArrayList<>(cats); u.timeSlots = new ArrayList<>(slots); u.idStatus = idSt; u.crimeStatus = crime;
+        u.eduDone = idSt == VerifyStatus.APPROVED; // 기능 U-34: 시연 계정 가운데 신분증 인증이 끝난 사람은 첫 활동 교육도 마친 것으로 둔다
         u.role = Role.USER; u.createdAt = today.minusMonths(7).atTime(9, 0);
         users.save(u);
         U.put(id, u);

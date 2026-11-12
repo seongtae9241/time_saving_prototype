@@ -72,6 +72,22 @@ public class EventService {
         return out; // 정렬이 안정적이라 같은 거리 안에서는 날짜 순이 유지된다
     }
 
+    /** 기능 U-31: "근처"로 보는 거리(km) — 같은 동이거나, 동 중심 사이 거리가 이 값 이하(바로 옆 동). */
+    public static final double NEAR_KM = 1.2;
+
+    /** 두 동이 근처인가: 같은 동이면 참, 좌표 표(Geo.DONG)에 둘 다 있으면 중심 사이 거리로 판단, 모르는 동이면 거짓. */
+    public static boolean nearDong(String mine, String other) {
+        if (mine == null || other == null) return false;
+        if (mine.equals(other)) return true;
+        double[] a = Geo.DONG.get(mine), b = Geo.DONG.get(other);
+        return a != null && b != null && Geo.km(a[0], a[1], b[0], b[1]) <= NEAR_KM;
+    }
+
+    /** 기능 U-31 홈 섹션: 내 주소(사는 동네) 근처 기관 행사만 — 같은 동 먼저, 그다음 옆 동. 지역을 알 수 없는 행사는 뺀다. */
+    public List<Map<String, Object>> nearby(User viewer) {
+        return list(viewer, null).stream().filter(m -> nearDong(viewer.area, (String) m.get("area"))).toList();
+    }
+
     /** 사용자 목록: 열린 소식, 날짜가 지나지 않은 것 먼저(날짜 순). */
     public List<Map<String, Object>> list(User viewer) {
         LocalDate today = LocalDate.now();

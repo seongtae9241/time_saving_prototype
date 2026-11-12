@@ -90,10 +90,10 @@ public class RequestService {
         return r.date.getMonthValue() + "/" + r.date.getDayOfMonth() + " " + hhmm(r.startHour);
     }
 
-    private void checkVolunteerEligible(User v) {
-        if (v == null || v.status != UserStatus.ACTIVE || v.role != Role.USER) throw ApiException.bad("VOLUNTEER_UNAVAILABLE", "지금 활동할 수 없는 봉사자예요");
-        if (v.idStatus != VerifyStatus.APPROVED) throw ApiException.bad("ID_NOT_VERIFIED", "신분증 인증이 끝난 사용자만 봉사할 수 있어요 (B-01)");
-    }
+    /** 기능 U-34: 봉사 자격 검사는 VolunteerGate 한 곳에서 한다(신분증 + 첫 활동 교육). */
+    @org.springframework.beans.factory.annotation.Autowired private VolunteerGate volunteerGate;
+
+    private void checkVolunteerEligible(User v, boolean self) { volunteerGate.require(v, self); }
 
     // ======================= 생성 (B-14~B-16, C-05, C-06) =======================
     public Request create(User me, CreateCmd c) {
@@ -141,7 +141,7 @@ public class RequestService {
         if (r.elderId != null && blocks != null && blocks.existsByElderIdAndVolunteerId(r.elderId, r.volunteerId))
             throw new ApiException(org.springframework.http.HttpStatus.FORBIDDEN, "VOLUNTEER_BLOCKED",
                     me.id.equals(r.volunteerId) ? "담당자가 이 대상의 봉사를 받지 않기로 했어요. 다른 공고를 찾아봐 주세요" : "이 대상에게 받지 않기로 한 봉사자예요");
-        checkVolunteerEligible(users.findById(r.volunteerId).orElse(null));
+        checkVolunteerEligible(users.findById(r.volunteerId).orElse(null), me.id.equals(r.volunteerId));
 
         // 일정 (B-10, B-22)
         r.date = c.date() != null ? c.date() : (post != null ? post.date : null);
@@ -211,7 +211,7 @@ public class RequestService {
         String role = requireRole(r, me);
         if (r.status == ReqStatus.SENT && r.kind != Kind.PROPOSAL) {
             requireVolunteer(role);
-            checkVolunteerEligible(me);
+            checkVolunteerEligible(me, true);
             r.status = ReqStatus.VOL_ACCEPTED;
             r.deadlineAt = LocalDateTime.now().plusHours(24);
             closePostFor(r);

@@ -24,6 +24,8 @@ public class PostService {
     private final Views views;
     private final UserRepo users;
     private final FamilyLinkRepo family;
+    /** 기능 U-34 봉사 자격 검사(생성자를 바꾸지 않으려고 필드 주입) */
+    @org.springframework.beans.factory.annotation.Autowired private VolunteerGate volunteerGate;
 
     public PostService(PostRepo posts, RequestRepo requests, ElderRepo elders, InterestAlertRepo alerts, NotificationService noti, Views views,
                        UserRepo users, FamilyLinkRepo family) {
@@ -102,6 +104,7 @@ public class PostService {
         } else if (me.role != Role.USER) throw ApiException.forbidden("공고를 올릴 수 없는 계정이에요");
         if (c.type() == PostType.OFFER && me.idStatus != VerifyStatus.APPROVED)
             throw ApiException.bad("ID_NOT_VERIFIED", "신분증 인증이 끝나야 봉사 가능 공고를 올릴 수 있어요 (B-01)");
+        if (c.type() == PostType.OFFER) volunteerGate.require(me, true); // 기능 U-34: 첫 활동 교육(필수일 때) 이수 검사
         String text = String.join(" ", Objects.toString(c.title(), ""), Objects.toString(c.detail(), ""), Objects.toString(c.note(), ""));
         RuleEngine.FilterResult f = RuleEngine.filter(text);
         if (f.level() == FilterLevel.BLOCK) throw ApiException.bad("FORBIDDEN_REQUEST", f.reason());

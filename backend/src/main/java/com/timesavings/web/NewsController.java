@@ -31,6 +31,8 @@ public class NewsController {
     private final ElderRepo elders;
     /** B-64 AI가 찾은 소식을 같은 목록에 넣기 위해(생성자 인자를 늘리지 않으려고 필드 주입) */
     @org.springframework.beans.factory.annotation.Autowired private PublicClassService classes;
+    /** 기능 U-30 */
+    @org.springframework.beans.factory.annotation.Autowired private com.timesavings.ai.VolunteerGuideAi volunteerGuide;
 
     public NewsController(EventService events, LinkPreviewService preview, NearbyServiceAi nearby, TidyAi tidy, ElderRepo elders) {
         this.events = events; this.preview = preview; this.nearby = nearby; this.tidy = tidy; this.elders = elders;
@@ -45,7 +47,11 @@ public class NewsController {
     // ---------------- 동네 소식 ----------------
     @GetMapping("/events")
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> list(@CurrentUser User u, @RequestParam(required = false) String area) { return events.list(u, area); }
+    public List<Map<String, Object>> list(@CurrentUser User u, @RequestParam(required = false) String area,
+                                          @RequestParam(required = false) Boolean nearby) {
+        // 기능 U-31: nearby=true 면 내 주소(사는 동네) 근처 기관 행사만(홈 섹션)
+        return Boolean.TRUE.equals(nearby) ? events.nearby(u) : events.list(u, area);
+    }
 
     @GetMapping("/events/{id}")
     @Transactional(readOnly = true)
@@ -103,7 +109,9 @@ public class NewsController {
         if ((b.lat() != null || b.lng() != null) && !NearbyServiceAi.validCoord(b.lat(), b.lng()))
             throw ApiException.bad("INVALID_LOCATION", "위치 값이 맞지 않아요");
         String area = b.area() != null && !b.area().isBlank() ? b.area() : u.area;
-        return nearby.find(b.question(), b.lat(), b.lng(), area, u.ageGroup);
+        Map<String, Object> r = nearby.find(b.question(), b.lat(), b.lng(), area, u.ageGroup);
+        r.put("volunteer", volunteerGuide.guide(b.question())); // 기능 U-30: 봉사로 가능한 일인지와 봉사 기준
+        return r;
     }
 
     // ---------------- O2 대리 공고 AI로 정리하기 ----------------

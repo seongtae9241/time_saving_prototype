@@ -26,6 +26,8 @@ public class AiController {
     private final PostService posts;
     private final EduService edu;
     private final com.timesavings.service.PlannerService planner;
+    /** 기능 U-30 (생성자를 바꾸지 않으려고 필드 주입) */
+    @org.springframework.beans.factory.annotation.Autowired private com.timesavings.ai.VolunteerGuideAi volunteerGuide;
 
     public AiController(AiClient ai, ElderRepo elders, PostService posts, EduService edu, com.timesavings.service.PlannerService planner) {
         this.ai = ai; this.elders = elders; this.posts = posts; this.edu = edu; this.planner = planner;
@@ -82,7 +84,9 @@ public class AiController {
     @PostMapping("/public-services")
     public Map<String, Object> publicServices(@CurrentUser User u, @RequestBody ServiceBody b) {
         if (b.question() == null || b.question().isBlank()) throw ApiException.bad("QUESTION_REQUIRED", "궁금한 것을 적어 주세요");
-        return ai.publicServices(b.question(), b.area() != null ? b.area() : u.area, b.ageGroup() != null ? b.ageGroup() : u.ageGroup);
+        Map<String, Object> r = ai.publicServices(b.question(), b.area() != null ? b.area() : u.area, b.ageGroup() != null ? b.ageGroup() : u.ageGroup);
+        r.put("volunteer", volunteerGuide.guide(b.question())); // 기능 U-30: 봉사로 가능한 일인지와 봉사 기준
+        return r;
     }
 
     @PostMapping("/recommend")
