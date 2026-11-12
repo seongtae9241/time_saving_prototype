@@ -40,6 +40,8 @@ public class PlannerController {
     private final AppSettingRepo settings;
     private final UserRepo users;
     private final NotificationService noti;
+    /** 기능 A-15: 건의를 '반영'으로 답하면 공고 카테고리에 더한다(생성자 인자를 늘리지 않으려고 필드 주입) */
+    @org.springframework.beans.factory.annotation.Autowired private com.timesavings.service.CategoryRegistry categories;
 
     public PlannerController(PlannerService planner, CategorySuggestionRepo suggestions, AppSettingRepo settings, UserRepo users, NotificationService noti) {
         this.planner = planner; this.suggestions = suggestions; this.settings = settings; this.users = users; this.noti = noti;
@@ -110,7 +112,7 @@ public class PlannerController {
         if (!VoiceSafety.scrub(name + " " + reason).removed().isEmpty())
             throw ApiException.bad("PII_NOT_ALLOWED", "연락처·주소 같은 개인정보는 적지 않아요");
         String key = nameKey(name);
-        if (Rules.CATEGORIES.stream().anyMatch(c -> nameKey(c).equals(key)))
+        if (Rules.CATEGORIES.stream().anyMatch(c -> nameKey(c).equals(key)) || Rules.extraCategories().keySet().stream().anyMatch(c -> nameKey(c).equals(key)))
             throw ApiException.bad("CATEGORY_EXISTS", "이미 있는 종류예요. 그 종류를 골라 주세요");
         boolean dup = suggestions.findByUserIdOrderByIdDesc(u.id).stream()
                 .anyMatch(s -> s.nameKey.equals(key) && (s.status.equals("RECEIVED") || s.status.equals("REVIEWING")));
@@ -142,7 +144,7 @@ public class PlannerController {
         }
         groups.sort(Comparator.<Map<String, Object>>comparingInt(g -> -(int) g.get("count")));
         return Views.map("groups", groups, "total", by.values().stream().mapToInt(List::size).sum(), "waiting", open,
-                "note", "카테고리 6종 자체를 바꾸는 것은 가중치·금지 규칙이 걸려 있어 운영자 결정 사항이에요. 여기서는 건의에 답변만 해요.");
+                "note", "건의를 '반영'으로 답하면 그 이름이 공고 카테고리에 더해져요(등급을 골라 승인). 기본 6종은 그대로예요.");
     }
 
     /** 건의 하나에 답하면 같은 이름의 건의 전체에 같은 상태·답변을 적용하고 건의자에게 알린다. */
@@ -155,6 +157,8 @@ public class PlannerController {
         String ans = b.answer() == null ? "" : b.answer().trim();
         if (!st.equals("RECEIVED") && !st.equals("REVIEWING") && ans.isBlank()) throw ApiException.bad("ANSWER_REQUIRED", "건의자에게 보낼 답변을 적어 주세요");
         if (ans.length() > 500) throw ApiException.bad("ANSWER_TOO_LONG", "답변은 500자 안으로 적어 주세요");
+        // 기능 A-15: 반영(승인)하면 공고 카테고리에 더한다. 등급을 고르는 승인은 POST /api/admin/category-suggestions/{id}/adopt
+        if (st.equals("ADOPTED") && !Rules.isCategory(s.name)) categories.add(s.name, null);
         int n = 0;
         for (CategorySuggestion x : suggestions.findByNameKey(s.nameKey)) {
             x.status = st;

@@ -24,13 +24,20 @@ public final class Rules {
         return switch (l) { case BASIC -> "기본"; case EFFORT -> "수고"; case RESPONSIBLE -> "책임"; };
     }
 
+    /** 기능 A-15: 운영자가 건의를 승인해 더한 카테고리(이름 → 등급). 서버가 뜰 때와 승인할 때 CategoryRegistry 가 채운다. 기본 6종은 그대로다. */
+    private static final Map<String, Level> EXTRA_LEVEL = new java.util.concurrent.ConcurrentHashMap<>();
+    public static void putExtraCategory(String name, Level level) { if (name != null && !CAT_LEVEL.containsKey(name)) EXTRA_LEVEL.put(name, level == null ? Level.BASIC : level); }
+    public static void clearExtraCategories() { EXTRA_LEVEL.clear(); }
+    public static Map<String, Level> extraCategories() { return new java.util.TreeMap<>(EXTRA_LEVEL); }
+
     public static Level categoryLevel(String cat) {
         Level l = CAT_LEVEL.get(cat);
+        if (l == null && cat != null) l = EXTRA_LEVEL.get(cat);
         if (l == null) throw ApiException.bad("INVALID_CATEGORY", "알 수 없는 카테고리예요: " + cat);
         return l;
     }
 
-    public static boolean isCategory(String c) { return CAT_LEVEL.containsKey(c); }
+    public static boolean isCategory(String c) { return c != null && (CAT_LEVEL.containsKey(c) || EXTRA_LEVEL.containsKey(c)); }
 
     public static Level max(Level a, Level b) { return a.ordinal() >= b.ordinal() ? a : b; }
 
