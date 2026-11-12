@@ -12,6 +12,7 @@ import { Recommend, Public } from './screens/ai.jsx';
 import { VoiceReq } from './screens/voice.jsx';
 import { OHome, OElders, EDetail, EForm, OReqs, OReport, OMy } from './screens/org.jsx';
 import { News, EventDetail, OEvents, OEventNew } from './screens/news.jsx';
+import { OSchedule } from './screens/schedule.jsx'; // 기능 O-11~O-13 돌봄 편성표
 import { Edu, EduCard, EduQuiz, EduRp, EduRpRes } from './screens/edu.jsx';
 import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANotices, APub, APersona, AVerify, ASuggest } from './screens/admin.jsx';
 import { MyInsight, CarePlan, MyReport, FamRecentReport } from './screens/insight.jsx';
@@ -114,6 +115,7 @@ function Shell() {
         <Route path="/o/reqs" element={g(<OReqs />, O)} />
         <Route path="/o/reqs/:id" element={g(<RequestDetail />, O)} />
         <Route path="/o/report" element={g(<OReport />, O)} />
+        <Route path="/o/schedule" element={g(<OSchedule />, O)} />
         <Route path="/o/memo-posts" element={g(<MemoToPosts />, O)} />
         <Route path="/o/my" element={g(<OMy />, O)} />
         <Route path="/o/space" element={<Navigate to="/o/events" replace />} />

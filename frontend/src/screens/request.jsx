@@ -572,7 +572,7 @@ export function RequestDetail() {
           {v.tags && v.tags.length > 0 && <div className="tags" style={{ marginTop: 8 }}>{v.tags.map((t) => <span key={t} className="tag2">{t}</span>)}</div>}
         </div>
       )}
-      {r.elder && iVol && <div className="lock" style={{ marginTop: 14 }}><Ic n="users" s={18} /><div><b>{r.elder.displayName}</b> · {r.elder.dong} · 기관 등록 대상{r.elder.caution && <div style={{ marginTop: 4 }}>{r.elder.caution}</div>}<div style={{ marginTop: 6, opacity: 0.85 }}>{['CONFIRMED', 'IN_PROGRESS'].includes(st) ? '방문 장소는 아래 메시지로 담당자가 알려드려요.' : '수락되면 담당자가 방문 장소를 따로 알려드려요.'} 이 활동은 받는 분의 시간이 차감되지 않아요.</div></div></div>}
+      {r.elder && iVol && <div className="lock" style={{ marginTop: 14 }}><Ic n="users" s={18} /><div><b>{r.elder.displayName}</b> · {r.elder.dong} · 기관 등록 대상{r.elder.caution && <div style={{ marginTop: 4 }}>{r.elder.caution}</div>}{r.elder.cautionLocked && <div style={{ marginTop: 4 }}>방문 시 주의사항(특이사항)은 일정이 확정되면 여기에 보여요.</div>}<div style={{ marginTop: 6, opacity: 0.85 }}>{['CONFIRMED', 'IN_PROGRESS'].includes(st) ? '방문 장소는 아래 메시지로 담당자가 알려드려요.' : '수락되면 담당자가 방문 장소를 따로 알려드려요.'} 이 활동은 받는 분의 시간이 차감되지 않아요.</div></div></div>}
       {!r.elder && !showIntro && !mgr && (() => {
         const o = iVol ? r.recipient : r.volunteer;
         if (!o) return null;

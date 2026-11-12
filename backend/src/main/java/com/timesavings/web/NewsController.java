@@ -37,7 +37,7 @@ public class NewsController {
     }
 
     public record EventBody(String title, String content, LocalDate date, Double startHour, String place,
-                            String url, String ogTitle, String ogImage, String ogDesc) {}
+                            String url, String ogTitle, String ogImage, String ogDesc, Integer capacity) {}
     public record UrlBody(String url) {}
     public record NearbyBody(String question, Double lat, Double lng, String area) {}
     public record TidyBody(String text, Long elderId) {}
@@ -55,7 +55,7 @@ public class NewsController {
     @Transactional
     public Map<String, Object> create(@CurrentUser User u, @RequestBody EventBody b) {
         return events.view(events.create(u, new EventService.EventCmd(b.title(), b.content(), b.date(), b.startHour(), b.place(),
-                b.url(), b.ogTitle(), b.ogImage(), b.ogDesc())), u);
+                b.url(), b.ogTitle(), b.ogImage(), b.ogDesc(), b.capacity())), u);
     }
 
     /**
@@ -70,7 +70,7 @@ public class NewsController {
         for (Map<String, Object> e : events.list(u, a)) {
             Map<String, Object> m = Views.map("key", "ORG-" + e.get("id"), "kind", "ORG", "id", e.get("id"), "title", e.get("title"),
                     "orgName", e.get("orgName"), "date", e.get("date"), "startHour", e.get("startHour"), "when", null, "place", e.get("place"),
-                    "area", e.get("area"), "near", e.get("near"), "url", e.get("url"), "image", e.get("preview") instanceof Map<?, ?> p ? p.get("image") : null,
+                    "area", e.get("area"), "near", e.get("near"), "url", e.get("url"), "capacity", e.get("capacity"), "image", e.get("preview") instanceof Map<?, ?> p ? p.get("image") : null,
                     "aiFound", false, "notice", null);
             items.add(m);
         }

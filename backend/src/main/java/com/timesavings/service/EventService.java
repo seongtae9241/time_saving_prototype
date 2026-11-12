@@ -23,7 +23,13 @@ public class EventService {
     }
 
     public record EventCmd(String title, String content, LocalDate date, Double startHour, String place,
-                           String url, String ogTitle, String ogImage, String ogDesc) {}
+                           String url, String ogTitle, String ogImage, String ogDesc, Integer capacity) {
+        /** 정원 없이 만드는 예전 호출용 */
+        public EventCmd(String title, String content, LocalDate date, Double startHour, String place,
+                        String url, String ogTitle, String ogImage, String ogDesc) {
+            this(title, content, date, startHour, place, url, ogTitle, ogImage, ogDesc, null);
+        }
+    }
 
     public OrgEvent get(Long id) { return events.findById(id).orElseThrow(() -> ApiException.notFound("소식을 찾을 수 없어요")); }
 
@@ -40,6 +46,8 @@ public class EventService {
         Map<String, Object> m = Views.map("id", e.id, "orgId", e.orgId, "orgName", orgName, "title", e.title, "content", e.content,
                 "date", e.eventDate == null ? null : e.eventDate.toString(), "startHour", e.startHour, "place", e.place,
                 "applyType", "LINK", "url", e.url,
+                // 기능 O-09: 정원은 안내용 숫자다(0 = 제한 없음 → null). 앱 안 신청·남은 자리 계산은 없다
+                "capacity", e.capacity > 0 ? e.capacity : null,
                 "preview", e.ogTitle == null && e.ogImage == null ? null : Views.map("title", e.ogTitle, "image", e.ogImage, "description", e.ogDesc),
                 "status", e.status, "owner", owner(e, viewer), "createdAt", e.createdAt == null ? null : e.createdAt.toString());
         String area = areaOf(e, orgName);
@@ -97,6 +105,7 @@ public class EventService {
         if (c.date() != null && c.date().isBefore(LocalDate.now())) throw ApiException.bad("INVALID_DATE", "오늘 이후 날짜를 골라 주세요");
         if (c.startHour() != null && (c.startHour() < 0 || c.startHour() >= 24 || !Rules.halfStep(c.startHour())))
             throw ApiException.bad("INVALID_TIME", "시각은 30분 단위로 정해 주세요");
+        if (c.capacity() != null && (c.capacity() < 0 || c.capacity() > 9999)) throw ApiException.bad("INVALID_CAPACITY", "정원은 1~9999명으로 적어 주세요 (제한이 없으면 비워 두세요)");
         String url = c.url() == null || c.url().isBlank() ? null : c.url().trim();
         // B-64: 자세한 내용과 신청은 기관 페이지에서 → 링크가 꼭 있어야 한다
         if (url == null) throw ApiException.bad("URL_REQUIRED", "기관 페이지 링크를 넣어 주세요. 자세한 내용과 신청은 그 페이지에서 해요");
@@ -109,7 +118,7 @@ public class EventService {
         e.eventDate = c.date();
         e.startHour = c.startHour();
         e.place = c.place() == null ? null : c.place().trim();
-        e.capacity = 0;
+        e.capacity = c.capacity() == null ? 0 : c.capacity(); // 기능 O-09: 정원(표시용). 0 = 제한 없음
         e.applyType = "LINK";
         e.url = url;
         {

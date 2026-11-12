@@ -299,7 +299,7 @@ export function WriteNeed() {
     if (familyMode && !famUser) return toast('연결된 가족을 찾지 못했어요. 마이페이지에서 가족 연결을 먼저 해 주세요');
     const caution = m.caution;
     const cats = tf.categories && tf.categories.length && !(d.categories || []).length ? tf.categories : d.categories;
-    const p = await post('/posts', { type: 'NEED', date: d.date, startHour: d.startHour, endHour: d.endHour, estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), area: d.area || (elder ? elder.dong : me.area), ...(elderId ? { elderIssue: issueVal } : {}), categories: cats, title, detail: m.detail, note: caution ? `방문 시 주의: ${caution}` : d.note, caution, elderId: elderId ? Number(elderId) : undefined, forUserId: familyMode ? famUser.id : undefined });
+    const p = await post('/posts', { type: 'NEED', date: d.date, startHour: d.startHour, endHour: d.endHour, estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), area: d.area || (elder ? elder.dong : me.area), ...(elderId ? { elderIssue: [issueVal, caution].filter((x, i, a) => x && a.indexOf(x) === i).join(' / ').slice(0, 300) } : {}), categories: cats, title, detail: m.detail, note: elderId ? (d.note || '') : caution ? `방문 시 주의: ${caution}` : d.note, caution, elderId: elderId ? Number(elderId) : undefined, forUserId: familyMode ? famUser.id : undefined });
     const pf = Array.isArray(p) ? p[0] : p;
     toast(elderId ? `${who} 대신 공고를 올렸어요` : family ? `${who} 이름으로 올렸어요. 최종 수락·거부는 ${who}이 직접 해요` : '공고를 올렸어요');
     nav(`/post/${pf.id}`, { replace: true });

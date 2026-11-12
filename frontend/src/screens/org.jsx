@@ -52,9 +52,10 @@ function ChangeCard({ x }) {
   const change = (x.changes && x.changes.length ? x.changes : x.reasons && x.reasons.length ? x.reasons : ['이전 기록과 비슷해요.']).join(' · ');
   return (
     <div className="card click" style={{ marginTop: 10 }} role="button" tabIndex={0} onClick={() => nav(`/o/elders/${x.elderId}`)} onKeyDown={(ev) => { if (ev.key === 'Enter') nav(`/o/elders/${x.elderId}`); }}>
-      <div className="between"><span className="b" style={{ fontSize: 16 }}><span className="pill" style={{ marginRight: 6 }}>{x.rank}순위</span>{x.displayName} <span className="mute2" style={{ fontWeight: 500 }}>{x.dong}</span></span>{first ? <span className="st no">먼저 살펴보기</span> : <span className="st end">비슷해요</span>}</div>
+      <div className="between"><span className="b" style={{ fontSize: 16 }}><span className="pill" style={{ marginRight: 6 }}>{x.rank}순위</span>{x.displayName} <span className="mute2" style={{ fontWeight: 500 }}>{x.dong}</span></span>{first ? <span className="st no">안부 먼저 확인</span> : <span className="st end">비슷해요</span>}</div>
       <div className="small" style={{ marginTop: 8 }}><b>변화</b> {change}</div>
       <div className="small" style={{ marginTop: 6 }}><b>특이사항</b> {x.summary}</div>
+      {x.applyText && <div className="small" style={{ marginTop: 6 }}><b>신청 내역</b> {x.applyText}</div>}
       {first && x.reasons && x.reasons.length > 0 && <div className="hnote" style={{ marginTop: 6 }}>{x.reasons.join(' · ')}</div>}
     </div>
   );
@@ -120,12 +121,13 @@ export function OHome() {
       </div>
       <button className="btn soft" style={{ marginTop: 12 }} onClick={() => pick('누구 대신 말로 요청할까요?', elders, (e) => nav(`/voice?elder=${e.id}`))}><Ic h={I.mic} /> 들은 내용을 말로 공고 만들기</button>
       <button className="btn soft" style={{ marginTop: 8 }} onClick={() => nav('/o/memo-posts')}><Ic n="spark" s={18} /> 통화 메모로 한 번에 만들기 (여러 건)</button>
+      <div className="todo" style={{ marginTop: 12 }} role="button" tabIndex={0} onClick={() => nav('/o/schedule', { replace: true })}><div className="n" style={{ background: '#E1ECFE', color: '#3A6FD8' }}><Ic n="cal" s={20} /></div><div className="grow"><div className="t">돌봄 편성표</div><div className="d">이번 주 일정과 빈 칸을 한눈에 보고, 빈 칸에 공고를 한꺼번에 올려요</div></div><span className="st go">보기</span></div>
       <div style={{ marginTop: 14 }}><OrgBriefing /></div>
       <div className="sec-t"><span>기관 소식</span><a role="button" tabIndex={0} onClick={() => nav('/o/events')}>관리 ›</a></div>
       <div className="todo" role="button" tabIndex={0} onClick={() => nav('/o/events/new')}><div className="n" style={{ background: '#FFEDF3', color: '#E2557F' }}><Ic n="cal" s={20} /></div><div className="grow"><div className="t">기관 소식 올리기</div><div className="d">교실·모임·행사를 올리면 근처 사용자 홈에 보여요</div></div><span className="st go">올리기</span></div>
       <div className="sec-t"><span>단체 봉사</span><a role="button" tabIndex={0} onClick={() => nav('/board?tab=group&kind=mine')}>우리 기관 ›</a></div>
       <div className="todo" role="button" tabIndex={0} onClick={() => nav('/board?tab=group')}><div className="n" style={{ background: '#E4F5F9', color: '#178FAD' }}><Ic n="users" s={20} /></div><div className="grow"><div className="t">단체 봉사 공고</div><div className="d">기관 봉사거리에 단체를 모집하거나, 봉사 가능한 단체를 받아요</div></div><span className="st go">보기</span></div>
-      <div className="sec-t"><span>살펴볼 대상</span><a role="button" tabIndex={0} onClick={() => nav('/o/report', { replace: true })}>변화 리포트 ›</a></div>
+      <div className="sec-t"><span>살펴볼 대상</span><a role="button" tabIndex={0} onClick={() => nav('/o/report', { replace: true })}>관리 대상 리포트 ›</a></div>
       {watch ? (watch.length ? watch.map((x) => <ChangeCard key={x.elderId} x={x} />) : <Empty>먼저 살펴볼 대상이 없어요</Empty>)
         : flagged.length ? flagged.map((e) => <ElderCard key={e.id} e={e} sig={sigs[e.id]} />) : <Empty>변화가 큰 대상이 없어요</Empty>}
       <div className="notice" style={{ marginTop: 14 }}>도움 대상은 계정이 없어요. 요청·알림·메시지·확인·평가는 모두 담당자가 대신해요. 대상에게는 앱 알림을 보내지 않아요.</div>
@@ -203,13 +205,15 @@ export function EDetail() {
       {!ended && <button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => nav(`/voice?elder=${id}`)}><Ic h={I.mic} /> 말로 공고 만들기</button>}
       {!ended && <button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => nav(`/o/memo-posts?elder=${id}`)}><Ic n="spark" s={16} /> 통화 메모로 공고 여러 건 만들기</button>}
       <div className="card" style={{ marginTop: 14 }}>
-        <dl className="kv"><dt>필요한 도움</dt><dd>{arr(e.needs).join(', ') || '-'}</dd><dt>단골</dt><dd>{(e.regulars || []).map((r) => `${r.name} ★`).join(', ') || '없음'}</dd></dl>
-        <div className="mute2" style={{ marginTop: 8 }}>봉사자에게는 가린 이름({maskN(e.alias)} 님)·동·도움 내용·시간·주의사항까지만 보여요.</div>
+        <dl className="kv"><dt>필요한 도움</dt><dd>{arr(e.needs).join(', ') || '-'}</dd><dt>단골</dt><dd>{(e.regulars || []).map((r) => `${r.name} ★`).join(', ') || '없음'}</dd>
+          <dt>이번 달 활동</dt><dd>{e.monthDone ?? 0}회 <span className="mute2">(누적 {e.doneTotal ?? 0}회)</span></dd>
+          <dt>서비스 동의</dt><dd>{e.serviceConsentAt ? `받음 (${dshort(e.serviceConsentAt).split(' ')[0]})` : <>기록 없음 {!ended && <button className="btn soft sm" style={{ width: 'auto', padding: '0 10px', minHeight: 32, marginLeft: 6 }} disabled={busy} onClick={async () => { if (!(await confirm('서비스 동의를 받았나요?', `${elderName(e)}께 서비스 이용을 설명하고 동의를 받았을 때만 기록해 주세요.`, '동의 받음으로 기록'))) return; run(async () => { await put(`/org/elders/${id}`, { consent: true }); await reload(); toast('서비스 동의를 기록했어요'); }); }}>동의 받음으로 기록</button>}</>}</dd></dl>
+        <div className="mute2" style={{ marginTop: 8 }}>봉사자에게는 가린 이름({maskN(e.alias)} 님)·동·도움 내용·시간까지만 보여요. 주의사항(특이사항)은 일정이 확정된 봉사자에게만 보여요.</div>
       </div>
-      <div className="sec-t"><span>봉사자에게 보내는 정보</span><span className="mute2" style={{ fontWeight: 500 }}>메모와 따로 관리</span></div>
+      <div className="sec-t"><span>봉사자에게 보내는 정보</span><span className="mute2" style={{ fontWeight: 500 }}>확정된 봉사자에게만</span></div>
       <div className="card">
         <div className="small">{e.caution || '적어 둔 주의사항이 없어요'}</div>
-        <div className="mute2" style={{ marginTop: 6 }}>여기에 적은 주의사항은 봉사자에게 보여요. 아래 담당자 메모는 나만 봐요.</div>
+        <div className="mute2" style={{ marginTop: 6 }}>여기에 적은 주의사항은 일정이 확정된 봉사자에게만 보여요. 아래 담당자 메모는 나만 봐요.</div>
         {!ended && <div className="row" style={{ marginTop: 10 }}><input className="in grow" placeholder="주의사항 추가 (병명은 적지 않아요)" value={cu} onChange={(x) => setCu(x.target.value)} aria-label="주의사항 추가" /><button className="btn sm" style={{ width: 'auto', padding: '0 14px', flex: '0 0 auto' }} disabled={busy} onClick={() => run(async () => { const v = cu.trim(); if (!v) return toast('주의사항을 적어 주세요'); await put(`/org/elders/${id}`, { caution: e.caution ? `${e.caution} / ${v}` : v }); setCu(''); await reload(); toast('봉사자에게 보내는 정보에 추가했어요'); })}>추가</button></div>}
       </div>
       <div className="sec-t"><span>담당자 메모 <span className="mute2" style={{ fontWeight: 500 }}>담당자만 봐요</span></span><a role="button" tabIndex={0} onClick={() => (memos.length ? setTidyOpen(!tidyOpen) : toast('정리할 메모가 없어요'))}>✨ AI 정리</a></div>
@@ -226,7 +230,7 @@ export function EDetail() {
         {memos.length ? memos.map((m) => <div key={m.id} style={{ padding: '6px 0', borderBottom: '1px dashed var(--line)' }}><span className="mute2">{dshort(m.createdAt).split(' ')[0]}</span> {m.text}</div>) : <div className="mute2">메모가 없어요</div>}
         <div className="row" style={{ marginTop: 10 }}><MicButton onText={(t) => setMemo((x) => (x.trim() ? `${x.trim()} ${t}` : t))} /><input id="elder-memo-in" className="in grow" placeholder="특이사항·방문하고 느낀 점 (병명은 적지 않아요)" value={memo} onChange={(x) => setMemo(x.target.value)} aria-label="담당자 메모" /><button className="btn sm" style={{ width: 'auto', padding: '0 14px', flex: '0 0 auto' }} disabled={busy} onClick={() => run(async () => { if (!memo.trim()) return toast('메모를 적어 주세요'); await post(`/org/elders/${id}/memos`, { text: memo.trim() }); setMemo(''); reload(); toast('메모를 저장하고 읽기 쉽게 정리했어요'); })}>추가</button></div>
       </div>
-      <div className="sec-t"><span>요청·활동</span></div>
+      <div className="sec-t"><span>받은 도움 기록 · 요청</span></div>
       {myReqs.length ? myReqs.map((r) => <ReqRow key={r.id} r={{ ...r, myRole: 'MANAGER' }} />) : <Empty>진행 중인 요청이 없어요</Empty>}
       <BlockList elderId={id} />
       {!ended && <ElderClasses elderId={id} />}
@@ -352,11 +356,11 @@ export function OReport() {
   const keep = (o) => { const n = {}; if (sp.get('elder')) n.elder = sp.get('elder'); if (range === 'today') n.range = 'today'; return { ...n, ...o }; };
   const items = (chg && chg.items) || [];
   return (
-    <Screen title="변화 리포트" back={false}>
-      <div className="ai"><div className="ah"><Spk /><span className="mod m1">변화 리포트 AI</span><Mod n={5} /></div><div className="small">일지를 모아 <b>이전 상태와 비교</b>하고, 오늘·최근 기록으로 <b>먼저 살펴볼 순서</b>를 정리했어요. 진단이나 건강 판단은 하지 않아요.</div><RuleNote source={chg && chg.source} /></div>
+    <Screen title="관리 대상 리포트" back={false}>
+      <div className="ai"><div className="ah"><Spk /><span className="mod m1">관리 대상 리포트 AI</span><Mod n={5} /></div><div className="small"><b>봉사 신청 내역</b>(성사·거절·만료)과 <b>활동 일지</b>를 모아 대상별 동향을 정리하고, <b>안부 확인 우선순위</b>를 매겼어요. 진단이나 건강 판단은 하지 않아요.</div><RuleNote source={chg && chg.source} /></div>
       <div className="chips" style={{ marginTop: 10 }}>{[['recent', `최근 ${(chg && chg.windowDays) || 30}일`], ['today', '오늘']].map(([k, t]) => <button key={k} className={'chip ' + (range === k ? 'on' : '')} onClick={() => { const n = keep({}); if (k === 'today') n.range = 'today'; else delete n.range; setSp(n, { replace: true }); }}>{t}</button>)}</div>
       {chg === undefined ? <Loading /> : items.length ? items.map((x) => <ChangeCard key={x.elderId} x={x} />) : <Empty>{range === 'today' ? '오늘 들어온 일지가 없어요' : '담당 대상이 없어요'}</Empty>}
-      <div className="mute2" style={{ marginTop: 8 }}>활동 횟수와 순서는 시스템이 계산하고, AI는 봉사자 일지 내용만 정리해요.</div>
+      <div className="mute2" style={{ marginTop: 8 }}>신청·활동 횟수와 순서는 시스템이 계산하고, AI는 봉사자 일지 내용만 정리해요.</div>
       <div className="sec-t"><span>최근 활동 기록</span><span className="mute2" style={{ fontWeight: 500 }}>인수인계용</span></div>
       {elders === undefined ? <Loading /> : !active.length ? <Empty>담당 대상이 없어요</Empty> : (
         <>

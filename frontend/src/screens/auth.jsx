@@ -299,6 +299,7 @@ export function OrgApply() {
       <div className="mute2" style={{ marginTop: 6 }}>{file ? `${file.name} · 신청할 때 함께 보내요` : '재직증명서 사진(jpg·png)이나 PDF를 올려 주세요. 운영자가 확인한 뒤 승인해요.'}</div>
       <button className="btn big-cta" style={{ marginTop: 20 }} onClick={async () => {
         if (!f.name.trim() || !f.managerName.trim()) return toast('기관 이름과 담당자 이름을 적어 주세요');
+        if (!f.address.trim()) return toast('기관 주소를 적어 주세요');
         if (!file) return toast('재직 증빙(재직증명서) 파일을 올려 주세요');
         if (!(await confirm('기관 서비스를 신청할까요?', '운영자가 재직 증빙을 확인한 뒤 담당자 계정(아이디·임시 비밀번호)을 기관 전화로 안내해요.', '신청하기'))) return;
         // 로그인 전이라 신청 내용과 증빙 파일을 한 번에(multipart) 보낸다
