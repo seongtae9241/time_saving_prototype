@@ -170,7 +170,7 @@ class FlowIntegrationTest {
         reqs.checkIn(vol, r.id, reqs.codeFor(r), null);
         reqs.checkOut(vol, r.id, reqs.codeFor(r), null);
         assertEquals(0, reqs.autoConfirmDue(LocalDateTime.now().plusDays(3))); // 일지 없음
-        reqs.submitLog(vol, r.id, "장보기", "장을 봤어요.", null, false);
+        reqs.submitLog(vol, r.id, "장보기", "장을 봤어요.", "/api/files/receipt.png", false); // 기능 U-16: 장보기는 영수증 사진이 있어야 제출
         assertEquals(0, reqs.autoConfirmDue(LocalDateTime.now().plusHours(23)));
         assertEquals(1, reqs.autoConfirmDue(LocalDateTime.now().plusHours(25)));
         assertEquals(ReqStatus.DONE, r.status);

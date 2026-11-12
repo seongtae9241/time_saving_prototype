@@ -37,6 +37,8 @@ public class Request {
     @Column(length = 1000) public String logText;
     @Column(length = 200) public String logPhotoUrl;
     public boolean photoConsent;
+    /** 기능 U-16 사진 인증: 가벼운 집안일의 "한 뒤" 사진(logPhotoUrl 은 영수증 또는 "하기 전" 사진). */
+    @Column(name = "log_photo_url2", length = 200) public String logPhotoUrl2;
     /** LLM 추가 A(7.12): "왜 이 봉사자?" 한 줄 이유(요청 생성 때 1회 계산·저장, 숫자는 코드 값) */
     @Column(name = "match_reason", length = 200) public String matchReason;
     public LocalDateTime logSubmittedAt;

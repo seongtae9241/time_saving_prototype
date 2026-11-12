@@ -180,6 +180,8 @@ export function Regular() {
   const elderId = sp.get('elder');
   const [list] = useLoad(() => api(elderId ? `/regulars?elderId=${elderId}` : '/regulars'), [elderId]);
   const [elder] = useLoad(() => (elderId ? api(`/org/elders/${elderId}`) : Promise.resolve(null)), [elderId]);
+  // 기능 U-19: 3회 이상이면 양쪽 모두 단골 — 내가 도운 분(봉사자 쪽)도 여기서 보인다
+  const [badges] = useLoad(() => (elderId ? Promise.resolve([]) : api('/me/regular-badges', { quiet: true }).catch(() => [])), [elderId]);
   return (
     <Screen title="단골에게 요청" noTabs>
       <p className="su-p" style={{ marginTop: 0 }}>{elderId ? `${elder ? elder.alias + ' 님' : '대상'}을` : '나를'} 3번 이상 도와준 분은 단골이 돼요. 공고 없이 바로 요청할 수 있어요.</p>
@@ -190,12 +192,32 @@ export function Regular() {
             <div className="top"><Avatar name={h.name} s={52} /><div className="grow"><div className="who">{h.name}<span className="badge">★ 단골{h.doneCount || h.count ? ` · ${h.doneCount || h.count}회` : ''}</span></div><div className="sub">{h.ageGroup ? `${h.ageGroup} · ` : ''}<Stars r={h.ratingAvg} />{h.experience ? ` · ${h.experience}` : ''}</div></div></div>
             {h.intro && <div className="muted small" style={{ marginTop: 10 }}>“{h.intro}”</div>}
             <button className="btn sm" style={{ marginTop: 12 }} onClick={() => nav(`/req/new?to=${id}${elderId ? `&elder=${elderId}` : ''}`)}>{h.name} 님에게 요청하기</button>
-            {h.manual && !elderId && <RegularButton volunteerId={id} compact style={{ marginTop: 8 }} />}
+            {!elderId && <RegularButton volunteerId={id} compact style={{ marginTop: 8 }} />}
           </div>
         );
       })}
+      {!elderId && (badges || []).length > 0 && (
+        <>
+          <div className="sec-t"><span>내가 도운 단골</span><span className="mute2" style={{ fontWeight: 500 }}>3번 이상 함께하면 서로 단골이에요</span></div>
+          {badges.map((b) => (
+            <div key={b.key} className="card item" style={{ marginTop: 8 }}>
+              <Avatar name={b.name} s={40} elder={b.kind === 'ELDER'} /><div className="grow"><div className="b">{b.name} <span className="badge">★ 단골</span></div><div className="mute2">{b.count}회 도왔어요{b.manual && !b.auto ? ' · 상대가 직접 등록' : ''} · 이분이 공고 없이 바로 요청할 수 있어요</div></div>
+            </div>
+          ))}
+        </>
+      )}
     </Screen>
   );
+}
+
+/** 기능 U-16: 일지에 붙은 인증 사진(영수증 / 하기 전·한 뒤). 그 요청의 당사자·담당자·운영자만 열린다. */
+function LogPhotos({ r }) {
+  if (!r.logPhotoUrl && !r.logPhotoUrl2) return null;
+  const two = r.photoRule === 'BEFORE_AFTER';
+  const cap = (t) => <div className="mute2" style={{ marginTop: 4, textAlign: 'center' }}>{t}</div>;
+  const img = (src, alt) => <AuthImg src={src} alt={alt} style={{ width: '100%', borderRadius: 12 }} />;
+  if (two) return <div className="btns" style={{ marginTop: 10, alignItems: 'flex-start' }}><div style={{ flex: 1, minWidth: 0 }}>{r.logPhotoUrl && img(r.logPhotoUrl, '하기 전 사진')}{cap('하기 전')}</div><div style={{ flex: 1, minWidth: 0 }}>{r.logPhotoUrl2 && img(r.logPhotoUrl2, '한 뒤 사진')}{cap('한 뒤')}</div></div>;
+  return <div style={{ marginTop: 10 }}>{img(r.logPhotoUrl, r.photoRule === 'RECEIPT' ? '영수증 사진' : '활동 사진')}{r.photoRule === 'RECEIPT' && cap('영수증')}</div>;
 }
 
 /* ---------- 요청 상세 · 활동 진행 (사용자/담당자 공통) ---------- */
@@ -479,7 +501,7 @@ export function RequestDetail() {
       </>
     );
   } else if (st === 'VOL_ACCEPTED') {
-    action = <div className="notice" style={{ marginTop: 16 }}>{r.elder ? '담당자가 대상에게 확인 후' : `${toName} 님이`} 최종 수락하면 일정이 확정돼요.</div>;
+    action = <><div className="notice" style={{ marginTop: 16 }}>{r.elder ? '담당자가 대상에게 확인 후' : `${toName} 님이`} 최종 수락하면 일정이 확정돼요.</div>{can(r, 'cancel', true) && <button className="btn ghost" style={{ marginTop: 10 }} disabled={busy} onClick={() => reject('cancel', '취소 사유', '취소했어요')}>수락 취소</button>}</>;
   } else if (['CONFIRMED', 'IN_PROGRESS', 'CHECKED_OUT'].includes(st) && iVol) {
     const end = Math.round(Number(r.hours) * 60);
     const to = r.elder ? '담당자' : `${toName} 님`;
@@ -509,7 +531,7 @@ export function RequestDetail() {
     const adj = r.adjust && r.adjust.status === 'PENDING';
     action = (
       <>
-        <div className="ai" style={{ marginTop: 16 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div>{r.logPhotoUrl && <AuthImg src={r.logPhotoUrl} alt="활동 사진" style={{ width: '100%', borderRadius: 12, marginTop: 10 }} />}</div>
+        <div className="ai" style={{ marginTop: 16 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div><LogPhotos r={r} /></div>
         <CareMemo text={r.careMemo} style={{ marginTop: 10 }} />
         {r.checkInAt && <div className="mute2" style={{ marginTop: 6 }}>체크 기록 {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))}){r.checkMethod === 'manual' ? ' · 버튼으로 기록돼 시간을 한 번 더 확인해 주세요' : ''}{closedNote ? ` · ${closedNote}` : ''}</div>}
         {gap}
@@ -573,11 +595,11 @@ export function RequestDetail() {
           {v.tags && v.tags.length > 0 && <div className="tags" style={{ marginTop: 8 }}>{v.tags.map((t) => <span key={t} className="tag2">{t}</span>)}</div>}
         </div>
       )}
-      {r.elder && iVol && <div className="lock" style={{ marginTop: 14 }}><Ic n="users" s={18} /><div><b>{r.elder.displayName}</b> · {r.elder.dong} · 기관 등록 대상{r.elder.caution && <div style={{ marginTop: 4 }}>{r.elder.caution}</div>}{r.elder.cautionLocked && <div style={{ marginTop: 4 }}>방문 시 주의사항(특이사항)은 일정이 확정되면 여기에 보여요.</div>}<div style={{ marginTop: 6, opacity: 0.85 }}>{['CONFIRMED', 'IN_PROGRESS'].includes(st) ? '방문 장소는 아래 메시지로 담당자가 알려드려요.' : '수락되면 담당자가 방문 장소를 따로 알려드려요.'} 이 활동은 받는 분의 시간이 차감되지 않아요.</div></div></div>}
+      {r.elder && iVol && <div className="lock" style={{ marginTop: 14 }}><Ic n="users" s={18} /><div><b>{r.elder.displayName}</b> · {r.elder.dong} · 기관 등록 대상{v.isRegular && <> <span className="badge">★ 단골</span></>}{r.elder.caution && <div style={{ marginTop: 4 }}>{r.elder.caution}</div>}{r.elder.cautionLocked && <div style={{ marginTop: 4 }}>방문 시 주의사항(특이사항)은 일정이 확정되면 여기에 보여요.</div>}<div style={{ marginTop: 6, opacity: 0.85 }}>{['CONFIRMED', 'IN_PROGRESS'].includes(st) ? '방문 장소는 아래 메시지로 담당자가 알려드려요.' : '수락되면 담당자가 방문 장소를 따로 알려드려요.'} 이 활동은 받는 분의 시간이 차감되지 않아요.</div></div></div>}
       {!r.elder && !showIntro && !mgr && (() => {
         const o = iVol ? r.recipient : r.volunteer;
         if (!o) return null;
-        return <div className="card item click" style={{ marginTop: 14 }} role="button" tabIndex={0} onClick={() => profile(o.id)}><Avatar name={o.name} photo={o.photoUrl} /><div className="grow"><div className="b">{o.name} {!iVol && v.isRegular && <span className="badge">★ 단골</span>}</div><div className="mute2">{iVol ? '도움 받는 분' : '봉사하는 분'}{!iVol && <> · <Stars r={v.ratingAvg} /></>}</div>{!iVol && <MatchWhy text={v.matchReason} style={{ marginTop: 6 }} />}</div>›</div>;
+        return <div className="card item click" style={{ marginTop: 14 }} role="button" tabIndex={0} onClick={() => profile(o.id)}><Avatar name={o.name} photo={o.photoUrl} /><div className="grow"><div className="b">{o.name} {v.isRegular && <span className="badge">★ {iVol ? '서로 단골' : '단골'}</span>}</div><div className="mute2">{iVol ? '도움 받는 분' : '봉사하는 분'}{!iVol && <> · <Stars r={v.ratingAvg} /></>}</div>{!iVol && <MatchWhy text={v.matchReason} style={{ marginTop: 6 }} />}</div>›</div>;
       })()}
       <div className="card" style={{ marginTop: 10 }}>
         <div className="row" style={{ gap: 12 }}><CatIc k={r.category} size={44} /><div className="grow"><div className="b" style={{ fontSize: 16.5 }}>{r.content}</div><div className="mute2">{mgr ? `${toName} · ${r.elder ? r.elder.dong : ''}` : `${r.category} · ${diffText(r)}`}</div></div></div>
@@ -596,7 +618,7 @@ export function RequestDetail() {
         <div className="lock" style={{ marginTop: 12 }} role="note"><Ic n="shield" s={18} /><div><b>방문 중 안전 규칙</b><div style={{ marginTop: 4 }}>· 신체 접촉은 하지 않아요 (부축이 꼭 필요하면 먼저 여쭤보고 최소한으로)<br />· 방문 시간 외의 개인 연락, 연락처 교환·금전 요구는 금지예요<br />· 불편한 일이 있으면 아래 "신고하기"로 알려 주세요. 응급 상황은 119·112로 바로 전화해요</div></div></div>
       )}
       {r.logText && !(st === 'LOG_SUBMITTED' && recv) && (
-        <div className="ai" style={{ marginTop: 14 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div>{r.checkInAt && r.checkOutAt && <div className="mute2" style={{ marginTop: 6 }}>기록된 시각 {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))}){r.autoClosed ? ' · 종료는 예정 시각으로 자동 마감' : ''}</div>}</div>
+        <div className="ai" style={{ marginTop: 14 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div>{r.checkInAt && r.checkOutAt && <div className="mute2" style={{ marginTop: 6 }}>기록된 시각 {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))}){r.autoClosed ? ' · 종료는 예정 시각으로 자동 마감' : ''}</div>}<LogPhotos r={r} /></div>
       )}
       {!(st === 'LOG_SUBMITTED' && recv) && <CareMemo text={r.careMemo} style={{ marginTop: 10 }} />}
       {r.careMemo && <div className="mute2" style={{ marginTop: 6 }}>전달 메모는 쓴 봉사자·{r.elder ? '담당자' : '받는 분과 공유에 동의한 가족'}만 볼 수 있어요.</div>}
@@ -660,11 +682,17 @@ export function LogWrite() {
   const [tidy, setTidy] = useState(null);
   const [consent, setConsent] = useState(false);
   const [photo, setPhoto] = useState(null);
+  const [photo2, setPhoto2] = useState(null); // 기능 U-16: 집안일의 "한 뒤" 사진
   const [careMemo, setCareMemo] = useState('');
   const [busy, run] = useBusy();
   if (r === undefined) return <Screen title="활동 일지" noTabs><Loading /></Screen>;
   if (!r) return <Screen title="활동 일지" noTabs><Empty>요청을 찾을 수 없어요</Empty></Screen>;
   const mins = durMin(r.checkInAt, r.checkOutAt);
+  // 기능 U-16 사진 인증: 장보기·심부름은 영수증, 가벼운 집안일은 전후 사진이 있어야 제출할 수 있다
+  const rule = r.photoRule || 'NONE';
+  const need = rule !== 'NONE';
+  const have1 = photo || r.logPhotoUrl, have2 = photo2 || r.logPhotoUrl2;
+  const photoMiss = rule === 'RECEIPT' ? (have1 ? '' : '영수증 사진을 올려 주세요') : rule === 'BEFORE_AFTER' ? (have1 && have2 ? '' : '하기 전·한 뒤 사진을 한 장씩 올려 주세요') : '';
   return (
     <Screen title="활동 일지" noTabs>
       <div className="card"><div className="mute2">{r.elder ? r.elder.displayName : r.recipient && r.recipient.name} · {dlabel(r.date)} {hh(r.startHour)}~{hh(Number(r.startHour) + Number(r.hours))}</div><div className="b" style={{ fontSize: 17 }}>{r.content}</div></div>
@@ -673,9 +701,23 @@ export function LogWrite() {
       <label className="f" htmlFor="cm">전달 메모 <span className="mute2" style={{ fontWeight: 500 }}>(선택 · {careMemo.length}/500)</span></label>
       <textarea id="cm" className="in" style={{ minHeight: 80 }} maxLength={500} placeholder="병원에서 들은 말, 다음에 챙길 것" value={careMemo} onChange={(e) => setCareMemo(e.target.value.slice(0, 500))} />
       <div className="mute2" style={{ margin: '4px 2px 0' }}>{r.elder ? '담당자' : '받는 분(과 공유에 동의한 가족)'}에게만 보여요. 다른 봉사자에게는 보이지 않아요.</div>
-      <label className="f">사진 <span className="mute2" style={{ fontWeight: 500 }}>(받는 분이 동의한 경우만, 선택)</span></label>
-      <div className={'su-check ' + (consent ? 'on' : '')} role="button" tabIndex={0} onClick={() => setConsent(!consent)}><span className="bx" /><div className="small">받는 분({r.elder ? '담당자 확인' : '본인'})이 사진 촬영에 동의했어요</div></div>
-      {consent && <Upload label="사진 올리기" accept="image/*" style={{ minHeight: 80 }} onUploaded={setPhoto} />}
+      {need ? (
+        <>
+          <label className="f">{rule === 'RECEIPT' ? '영수증 사진' : '하기 전 · 한 뒤 사진'} <span style={{ color: '#E5484D' }}>(필수)</span></label>
+          <div className="mute2" style={{ margin: '0 2px 8px' }}>{rule === 'RECEIPT' ? '장보기·심부름은 영수증 사진을 올려야 일지를 제출할 수 있어요.' : '가벼운 집안일은 하기 전과 한 뒤 사진을 한 장씩 올려야 일지를 제출할 수 있어요.'}</div>
+          {rule === 'RECEIPT'
+            ? <Upload label={have1 && !photo ? '영수증 사진 다시 올리기' : '영수증 사진 올리기'} accept="image/*" style={{ minHeight: 80 }} onUploaded={setPhoto} />
+            : <div className="btns"><Upload label="하기 전 사진" accept="image/*" style={{ minHeight: 80 }} onUploaded={setPhoto} /><Upload label="한 뒤 사진" accept="image/*" style={{ minHeight: 80 }} onUploaded={setPhoto2} /></div>}
+          <div className="notice" style={{ marginTop: 8 }}>사람 얼굴이나 개인정보(이름·주소·전화번호·카드 번호)가 보이지 않게 찍어 주세요. 사진은 {r.elder ? '담당자' : '받는 분'}와 운영자만 볼 수 있어요.</div>
+        </>
+      ) : (
+        <>
+          <label className="f">사진 <span className="mute2" style={{ fontWeight: 500 }}>(받는 분이 동의한 경우만, 선택)</span></label>
+          <div className={'su-check ' + (consent ? 'on' : '')} role="button" tabIndex={0} onClick={() => setConsent(!consent)}><span className="bx" /><div className="small">받는 분({r.elder ? '담당자 확인' : '본인'})이 사진 촬영에 동의했어요</div></div>
+          {consent && <Upload label="사진 올리기" accept="image/*" style={{ minHeight: 80 }} onUploaded={setPhoto} />}
+          {consent && <div className="mute2" style={{ margin: '6px 2px 0' }}>사람 얼굴이나 개인정보가 보이지 않게 찍어 주세요.</div>}
+        </>
+      )}
       <button className="btn soft" style={{ marginTop: 14 }} onClick={async () => {
         if (!raw.trim()) return toast('한 줄 기록을 먼저 적어 주세요');
         setTidy({ loading: true });
@@ -700,10 +742,12 @@ export function LogWrite() {
       </div>
       <button className="btn big-cta" style={{ marginTop: 14 }} disabled={busy} onClick={() => run(async () => {
         if (!raw.trim()) return toast('한 줄 기록은 꼭 적어야 해요');
-        await post(`/requests/${r.id}/log`, { raw: raw.trim(), text: (tidy && tidy.text) || raw.trim(), photoUrl: consent ? photo : null, photoConsent: consent, careMemo: careMemo.trim() });
+        if (photoMiss) return toast(photoMiss);
+        await post(`/requests/${r.id}/log`, { raw: raw.trim(), text: (tidy && tidy.text) || raw.trim(), photoUrl: need || consent ? photo : null, photoUrl2: rule === 'BEFORE_AFTER' ? photo2 : null, photoConsent: consent, careMemo: careMemo.trim() });
         toast('일지를 제출했어요. 확인되면 적립돼요');
         nav(-1);
       })}>일지 제출하기</button>
+      {photoMiss && <div className="mute2 center" style={{ marginTop: 8, color: '#E5484D' }}>{photoMiss}</div>}
       <div className="mute2 center" style={{ marginTop: 8 }}>실제 시간이 달랐다면 제출 후 시간 조정을 요청할 수 있어요</div>
     </Screen>
   );
@@ -731,7 +775,8 @@ export function Rate() {
       <div className="tags">{T.map((t) => <button key={t} className={'chip ' + (tags.includes(t) ? 'on' : '')} onClick={() => setTags(tags.includes(t) ? tags.filter((x) => x !== t) : [...tags, t])}>{t}</button>)}</div>
       <label className="f" htmlFor="rc">한마디 (선택)</label>
       <VoiceField value={comment} onChange={setComment}><textarea id="rc" className="in" style={{ minHeight: 80 }} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="고마운 마음을 적어 주세요 (금전 표현 없이)" /></VoiceField>
-      <div className="notice" style={{ marginTop: 14 }}>{iVol ? '봉사받는 분 평가는 상대에게 보이지 않는 비공개 점수예요.' : `같은 분께 3번 이상 도움을 받으면 그분에게 '단골' 배지가 생겨요.${r.volunteer && r.volunteer.isRegular ? ` 지금 ${target.name} 님은 이미 내 단골이에요 ★` : ''}`}</div>
+      <div className="lock" style={{ marginTop: 14 }} role="note"><Ic n="shield" s={18} /><div><b>이 평가는 {target.name || '상대'} 님에게 공개되지 않아요</b><div style={{ marginTop: 4 }}>{iVol ? '별점·좋았던 점·한마디 모두 상대에게 보이지 않는 비공개 기록이에요. 운영 참고용으로만 써요.' : '내가 준 별점·좋았던 점·한마디는 상대에게 따로 보이지 않아요. 여러 사람의 평가를 모은 평균 별점과 자주 받은 칭찬만 프로필에 나와요.'}</div></div></div>
+      {!iVol && <div className="notice" style={{ marginTop: 10 }}>{`같은 분과 3번 이상 함께하면 서로 '단골'이 돼요.${r.volunteer && r.volunteer.isRegular ? ` 지금 ${target.name} 님은 이미 내 단골이에요 ★` : ''}`}</div>}
       {r.myRole === 'RECIPIENT' && !r.elder && target.id && <RegularButton volunteerId={target.id} style={{ marginTop: 10 }} />}{/* B-65: 평가 화면에서 직접 단골 등록 */}
       <button className="btn big-cta" style={{ marginTop: 18 }} disabled={busy} onClick={() => run(async () => {
         await post(`/requests/${r.id}/rate`, { stars: s, tags, comment: comment.trim() });

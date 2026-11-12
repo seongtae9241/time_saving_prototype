@@ -26,6 +26,7 @@ import { Bundle } from './screens/bundle.jsx'; // 기능 U-12 빈 시간 묶음 
 import { RecurringList, RecurringNew } from './screens/recurring.jsx'; // 기능 U-09 정기 요청
 import { AForecast, ASim, AStats, ARecruit, AWeather, AMgrApps } from './screens/adminReports.jsx'; // 기능명세서 운영자 리포트
 import { ManagerApply } from './screens/managerApply.jsx'; // 기능 C-04 담당자 계정 신청
+import { TimePlan, MonthReport } from './screens/timeplan.jsx'; // 기능 U-24 시간 플랜 · U-25 월별 리포트
 
 /** 로그인·역할 확인 */
 function Guard({ roles, children }) {
@@ -89,6 +90,8 @@ function Shell() {
         <Route path="/my/insight" element={g(<MyInsight />, U)} />
         <Route path="/my/report" element={g(<MyReport />, U)} />
         <Route path="/bank/plan" element={g(<CarePlan />, U)} />
+        <Route path="/bank/time-plan" element={g(<TimePlan />, U)} />
+        <Route path="/bank/report" element={g(<MonthReport />, U)} />
         <Route path="/planner" element={g(<Planner />, U)} />
         <Route path="/my/alerts" element={g(<AlertSet />, U)} />
         <Route path="/my/noti" element={g(<NotiSet />, UO)} />{/* B-58: 담당자도 같은 알림 설정 */}

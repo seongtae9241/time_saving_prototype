@@ -104,15 +104,21 @@ export function Bank() {
   if (b === undefined) return <Screen title="시간 통장" back={false}><Loading /></Screen>;
   const bk = b || { balance: 0, hold: 0, entries: [], monthly: [] };
   const entries = bk.entries || [];
-  let bal = Number(bk.balance) || 0, last = '';
+  let bal = Number(bk.balance) || 0, last = '', lastM = '';
+  // 기능 U-22: 월별 목록 + 월별 합계(번 시간·쓴 시간). 합계는 서버(months)가 센 값
+  const monthSum = Object.fromEntries((bk.months || []).map((m) => [m.month, m]));
+  const lvOf = (w) => (Number(w) >= 1.5 ? '책임' : Number(w) >= 1.2 ? '수고' : '기본');
   const rows = entries.map((l) => {
     const d = dshort(l.createdAt).split(' ')[0];
+    const mk = String(l.createdAt).slice(0, 7), ms = monthSum[mk];
+    const mhead = mk !== lastM ? <div className="between" style={{ padding: '14px 0 6px', borderBottom: '1px solid var(--line)' }}><b>{mk.slice(0, 4)}년 {+mk.slice(5, 7)}월</b>{ms && <span className="small"><span className="p-in">번 시간 +{hmTxt(ms.in)}</span> · <span className="p-out">쓴 시간 −{hmTxt(ms.out)}</span></span>}</div> : null;
+    lastM = mk;
     const head = d !== last ? <div className="pass-d">{d}</div> : null; last = d;
     const v = Number(l.amount) || 0;
     const isHold = l.type === 'HOLD' || l.type === 'RELEASE';
     const row = (
-      <div key={l.id}>{head}
-        <div className="pass-r"><div className="pc"><b>{l.label || LT[l.type]}</b><span>{LT[l.type] || l.type}{l.baseHours ? ` · ${l.baseHours}시간 × ${Number(l.weight || 1).toFixed(1)}` : ''}</span></div>
+      <div key={l.id}>{mhead}{head}
+        <div className="pass-r"><div className="pc"><b>{l.label || LT[l.type]}</b><span>{LT[l.type] || l.type}{l.baseHours ? ` · ${fmt(l.baseHours)}시간 × ${lvOf(l.weight || 1)} ${Number(l.weight || 1).toFixed(1)} = ${fmt(Math.abs(v))}시간` : ''}</span></div>
           <div className="pa"><b className={v > 0 ? 'p-in' : 'p-out'}>{isHold ? '' : v > 0 ? '+' : '−'}{hmTxt(v)}</b><span>{isHold ? '보류' : `잔액 ${hmTxt(bal)}`}</span></div></div>
       </div>
     );
@@ -130,8 +136,12 @@ export function Bank() {
         </div>
         <div className="pb-acts pb3"><button onClick={() => nav('/gift')}>가족에게 선물</button><button onClick={() => nav('/planner')}>플래너</button><button onClick={rule}>이용 규칙</button></div>
       </div>
-      <div className="stat2" style={{ marginTop: 12 }}><div><b>{hmTxt(bk.totalEarned)}</b><span>전체 적립 시간</span></div><div><b>{hmTxt(bk.totalUsed)}</b><span>전체 사용 시간</span></div></div>
-      <div className="mute2" style={{ margin: '8px 2px 0' }}>잔액 {hmTxt(bk.balance)} · 직접 적립 {hmTxt(bk.earnedSelf)} · 선물받음 {hmTxt(bk.giftReceived)}</div>
+      {/* 기능 U-21: 쓸 수 있는 시간(위) · 묶인 시간 · 누적 번 시간 · 누적 쓴 시간 */}
+      <div className="kpis"><div><b>{hmTxt(bk.hold)}</b><span>묶인 시간</span></div><div><b>{hmTxt(bk.totalEarned)}</b><span>누적 번 시간</span></div><div><b>{hmTxt(bk.totalUsed)}</b><span>누적 쓴 시간</span></div></div>
+      <div className="mute2" style={{ margin: '8px 2px 0' }}>묶인 시간은 확정된 도움 일정에 잡혀 있는 시간이에요(끝나면 차감, 취소되면 돌아와요). 잔액 {hmTxt(bk.balance)} · 직접 적립 {hmTxt(bk.earnedSelf)} · 선물받음 {hmTxt(bk.giftReceived)}</div>
+      {/* 기능 U-24 시간 플랜 · U-25 월별 리포트 */}
+      <div className="card item click" style={{ marginTop: 12 }} role="button" tabIndex={0} onClick={() => nav('/bank/time-plan')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/bank/time-plan'); }}><DIc k="ai" size={40} bare /><div className="grow"><div className="b">시간 플랜</div><div className="mute2">앞으로 몇 년, 어떤 도움을 받을 수 있는지와 적립 목표</div></div>›</div>
+      <div className="card item click" style={{ marginTop: 8 }} role="button" tabIndex={0} onClick={() => nav('/bank/report')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/bank/report'); }}><span className="pb-mark"><CalIcon s={18} /></span><div className="grow"><div className="b">월별 리포트</div><div className="mute2">이번 달 봉사·도움 횟수와 지난달 대비 변화</div></div>›</div>
       {bk.canUseSelf === false && <div className="notice" style={{ marginTop: 12 }}>직접 적립한 시간이 10시간이 되면 도움을 받을 때 쓸 수 있어요. 선물받은 시간은 바로 쓸 수 있어요.</div>}
       <div className="card" style={{ marginTop: 12 }}>
         <div className="between"><span className="b">월별 결산 <span className="mute2" style={{ fontWeight: 500 }}>최근 {(bk.monthly || []).length}개월</span></span><span className="legend"><i style={{ background: '#5B8DEF' }} />적립<i style={{ background: '#F59E4B', marginLeft: 8 }} />사용</span></div>
@@ -139,7 +149,7 @@ export function Bank() {
         <div className="between mute2" style={{ marginTop: 4 }}><span>이번 달 적립 +{fmt(bk.monthIn)}</span><span>이번 달 사용 −{fmt(bk.monthOut)}</span></div>
         <MonthNote />
       </div>
-      <div className="sec-t"><span>적립·사용 내역</span><span className="mute2" style={{ fontWeight: 500 }}>가중치 적용 내역 포함</span></div>
+      <div className="sec-t"><span>적립·사용 내역</span><span className="mute2" style={{ fontWeight: 500 }}>월별 · 시간 × 난이도</span></div>
       {entries.length ? <div className="pass">{rows}</div> : <Empty>아직 내역이 없어요</Empty>}
     </Screen>
   );

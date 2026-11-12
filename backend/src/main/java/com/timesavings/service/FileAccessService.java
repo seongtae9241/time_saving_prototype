@@ -62,7 +62,7 @@ public class FileAccessService {
         // 3) 활동 일지 사진: 그 요청의 당사자·담당자
         boolean logPhoto = false;
         for (Request r : requests.findAll()) {
-            if (!url.equals(r.logPhotoUrl)) continue;
+            if (!url.equals(r.logPhotoUrl) && !url.equals(r.logPhotoUrl2)) continue; // 기능 U-16: 두 번째 인증 사진도 같은 규칙
             logPhoto = true;
             if (me.id.equals(r.volunteerId) || me.id.equals(r.recipientId) || (r.elderId == null && me.id.equals(r.senderId))
                     || (r.elderId != null && views.isManagerOf(me, r.elderId))) return true;

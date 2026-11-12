@@ -485,6 +485,20 @@ public class RequestService {
 
     /** careMemo: 전달 메모(선택, 500자까지). null 이면 그대로 두고, 빈 문자열이면 지운다. */
     public Request submitLog(User me, Long id, String raw, String text, String photoUrl, boolean photoConsent, String careMemo) {
+        return submitLog(me, id, raw, text, photoUrl, photoConsent, careMemo, null);
+    }
+
+    /** 기능 U-16 사진 인증 규칙: 장보기·심부름은 영수증 사진(RECEIPT), 가벼운 집안일은 전후 사진 2장(BEFORE_AFTER), 그 밖은 선택(NONE). */
+    public static String photoRule(String category) {
+        if ("장보기·심부름".equals(category)) return "RECEIPT";
+        if ("가벼운 집안일".equals(category)) return "BEFORE_AFTER";
+        return "NONE";
+    }
+
+    private static String blankToNull(String s) { return s == null || s.isBlank() ? null : s.trim(); }
+
+    /** photoUrl2: 가벼운 집안일의 "한 뒤" 사진(기능 U-16). 인증 사진이 필요한 카테고리는 사진이 없으면 제출할 수 없다. */
+    public Request submitLog(User me, Long id, String raw, String text, String photoUrl, boolean photoConsent, String careMemo, String photoUrl2) {
         Request r = get(id);
         requireVolunteer(requireRole(r, me));
         requireStatus(r, ReqStatus.CHECKED_OUT, ReqStatus.LOG_SUBMITTED);
@@ -494,8 +508,20 @@ public class RequestService {
         if (cm != null) r.careMemo = cm.isEmpty() ? null : cm;
         r.logRaw = raw.trim();
         r.logText = text != null && !text.isBlank() ? text.trim() : (String) ai.logTidy(raw).get("text");
+        // 기능 U-16: 인증 사진(영수증·전후 사진). 고쳐서 다시 낼 때 새 사진이 없으면 먼저 올린 사진을 그대로 쓴다.
+        String rule = photoRule(r.category);
+        String p1 = blankToNull(photoUrl), p2 = blankToNull(photoUrl2);
+        if (!"NONE".equals(rule)) {
+            if (p1 == null) p1 = r.logPhotoUrl;
+            if (p2 == null) p2 = r.logPhotoUrl2;
+            if ("RECEIPT".equals(rule) && p1 == null)
+                throw ApiException.bad("PHOTO_REQUIRED", "장보기·심부름은 영수증 사진을 올려야 일지를 제출할 수 있어요");
+            if ("BEFORE_AFTER".equals(rule) && (p1 == null || p2 == null))
+                throw ApiException.bad("PHOTO_REQUIRED", "가벼운 집안일은 하기 전·한 뒤 사진을 한 장씩 올려야 일지를 제출할 수 있어요");
+        }
         r.photoConsent = photoConsent;
-        r.logPhotoUrl = photoConsent ? photoUrl : null;
+        if ("NONE".equals(rule)) { r.logPhotoUrl = photoConsent ? p1 : null; r.logPhotoUrl2 = null; }
+        else { r.logPhotoUrl = p1; r.logPhotoUrl2 = "BEFORE_AFTER".equals(rule) ? p2 : null; }
         boolean first = r.status == ReqStatus.CHECKED_OUT;
         r.status = ReqStatus.LOG_SUBMITTED;
         r.logSubmittedAt = LocalDateTime.now();
@@ -536,6 +562,17 @@ public class RequestService {
         noti.toVolunteer(r, "EARNED", "+" + earned + "시간이 적립됐어요" + (r.anomalyHold ? " (점검 중이라 보류)" : ""),
                 r.category + " · " + Rules.fmtHours(hours) + "시간 × " + r.weight);
         if (auto) noti.toRecipientSide(r, "AUTO_CONFIRMED", "활동이 자동 확정됐어요", when(r) + " · 일지 제출 후 24시간이 지났어요");
+        regularNotice(r);
+    }
+
+    /** 기능 U-19: 같은 상대와 완료 3회째가 되면 양쪽 모두에게 단골이 됐다고 알린다(해지한 사이는 알리지 않는다). 한 번만. */
+    private void regularNotice(Request r) {
+        long n = repo.findAll().stream().filter(x -> x.status == ReqStatus.DONE && r.volunteerId.equals(x.volunteerId)
+                && (r.elderId != null ? r.elderId.equals(x.elderId) : x.elderId == null && r.recipientId != null && r.recipientId.equals(x.recipientId))).count();
+        if (n != 3 || !views.isRegular(r.volunteerId, r.recipientId, r.elderId)) return;
+        noti.toVolunteer(r, "REGULAR", noti.recipientLabel(r, false) + "과 단골이 됐어요 ★", "세 번 함께했어요. 서로 단골로 표시되고, 상대가 공고 없이 바로 요청할 수 있어요");
+        noti.toRecipientSide(r, "REGULAR", noti.name(r.volunteerId) + " 님과 단골이 됐어요 ★",
+                (r.elderId != null ? noti.recipientLabel(r, true) + "을 세 번 도와준 분이에요. " : "세 번 함께했어요. ") + "공고 없이 바로 요청할 수 있어요");
     }
 
     // ======================= 시간 조정 (B-22) =======================
@@ -590,7 +627,8 @@ public class RequestService {
         } else {
             x.targetUserId = r.volunteerId;
             x.isPrivate = false;
-            noti.toVolunteer(r, "RATED", "새 평가를 받았어요 (★" + stars + ")", r.category + " · " + when(r));
+            // 기능 U-18: 개별 평가(별점·좋았던 점·한마디)는 상대에게 알리지 않는다. 평가가 등록됐다는 것만 알린다.
+            noti.toVolunteer(r, "RATED", "활동 평가가 등록됐어요", r.category + " · " + when(r) + " · 개별 평가 내용은 공개되지 않고 평균에만 반영돼요");
         }
         return ratings.save(x);
     }
