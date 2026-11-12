@@ -10,6 +10,7 @@ import com.timesavings.domain.User;
 import com.timesavings.repo.ElderRepo;
 import com.timesavings.service.EventService;
 import com.timesavings.service.LinkPreviewService;
+import com.timesavings.service.PublicClassService;
 import com.timesavings.service.Views;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -28,13 +29,15 @@ public class NewsController {
     private final NearbyServiceAi nearby;
     private final TidyAi tidy;
     private final ElderRepo elders;
+    /** B-64 AI가 찾은 소식을 같은 목록에 넣기 위해(생성자 인자를 늘리지 않으려고 필드 주입) */
+    @org.springframework.beans.factory.annotation.Autowired private PublicClassService classes;
 
     public NewsController(EventService events, LinkPreviewService preview, NearbyServiceAi nearby, TidyAi tidy, ElderRepo elders) {
         this.events = events; this.preview = preview; this.nearby = nearby; this.tidy = tidy; this.elders = elders;
     }
 
-    public record EventBody(String title, String content, LocalDate date, Double startHour, String place, Integer capacity,
-                            String applyType, String url, String ogTitle, String ogImage, String ogDesc) {}
+    public record EventBody(String title, String content, LocalDate date, Double startHour, String place,
+                            String url, String ogTitle, String ogImage, String ogDesc) {}
     public record UrlBody(String url) {}
     public record NearbyBody(String question, Double lat, Double lng, String area) {}
     public record TidyBody(String text, Long elderId) {}
@@ -51,17 +54,32 @@ public class NewsController {
     @PostMapping("/events")
     @Transactional
     public Map<String, Object> create(@CurrentUser User u, @RequestBody EventBody b) {
-        return events.view(events.create(u, new EventService.EventCmd(b.title(), b.content(), b.date(), b.startHour(), b.place(), b.capacity(),
-                b.applyType(), b.url(), b.ogTitle(), b.ogImage(), b.ogDesc())), u);
+        return events.view(events.create(u, new EventService.EventCmd(b.title(), b.content(), b.date(), b.startHour(), b.place(),
+                b.url(), b.ogTitle(), b.ogImage(), b.ogDesc())), u);
     }
 
-    @PostMapping("/events/{id}/apply")
+    /**
+     * B-64 동네 기관 소식 한 목록: 담당자가 올린 소식(ORG)과 AI가 찾은 소식(AI, 출처 링크를 서버가 열어 확인한 것만)·공공데이터 강좌(PUBLIC)를 함께 준다.
+     * 항목마다 제목·일시·장소·기관 페이지 링크. 신청은 링크로 간 기관 페이지에서 한다. area 를 주면 그 동만.
+     */
+    @GetMapping("/news")
     @Transactional
-    public Map<String, Object> apply(@CurrentUser User u, @PathVariable Long id) { events.apply(u, id); return events.view(events.get(id), u); }
-
-    @PostMapping("/events/{id}/cancel")
-    @Transactional
-    public Map<String, Object> cancel(@CurrentUser User u, @PathVariable Long id) { events.cancel(u, id); return events.view(events.get(id), u); }
+    public Map<String, Object> news(@CurrentUser User u, @RequestParam(required = false) String area) {
+        String a = area == null || area.isBlank() ? null : area.trim();
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (Map<String, Object> e : events.list(u, a)) {
+            Map<String, Object> m = Views.map("key", "ORG-" + e.get("id"), "kind", "ORG", "id", e.get("id"), "title", e.get("title"),
+                    "orgName", e.get("orgName"), "date", e.get("date"), "startHour", e.get("startHour"), "when", null, "place", e.get("place"),
+                    "area", e.get("area"), "near", e.get("near"), "url", e.get("url"), "image", e.get("preview") instanceof Map<?, ?> p ? p.get("image") : null,
+                    "aiFound", false, "notice", null);
+            items.add(m);
+        }
+        items.addAll(classes.newsItems(a, u.area));
+        // 내 동네 먼저, 그 안에서는 날짜 빠른 순(날짜 없는 것은 뒤)
+        items.sort(Comparator.<Map<String, Object>>comparingInt(m -> Boolean.TRUE.equals(m.get("near")) ? 0 : 1)
+                .thenComparing(m -> m.get("date") == null ? "9999" : String.valueOf(m.get("date"))));
+        return Views.map("items", items, "area", a, "searchAvailable", classes.searchAvailable(), "aiNotice", PublicClassService.AI_NOTICE);
+    }
 
     @PostMapping("/events/{id}/close")
     @Transactional

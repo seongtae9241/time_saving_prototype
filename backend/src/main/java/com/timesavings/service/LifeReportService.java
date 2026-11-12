@@ -48,14 +48,22 @@ public class LifeReportService {
         double hours = cur.stream().mapToDouble(r -> r.hours).sum();
         boolean newCat = byCat.keySet().stream().anyMatch(k -> !prevByCat.containsKey(k)) && !prevByCat.isEmpty();
         boolean big = Math.abs(count - prevCount) >= 2 || newCat;
-        Map<String, Object> narr = ai.lifeNarrative(label, count, prevCount, byCat, logs);
+        // C-16: 이번 달 일지를 지난달 일지와 내용으로 비교할 수 있게 지난달 일지도 함께 준다(표시를 붙여 구분). 숫자는 위에서 코드가 센 값만 쓴다.
+        List<String> prevLogs = new ArrayList<>();
+        for (Request r : before) if (r.logText != null) prevLogs.add("[지난달 기록] " + r.date + " " + r.category + ": " + r.logText.replace("\n", " "));
+        List<String> forAi = new ArrayList<>(logs);
+        if (!logs.isEmpty() && !prevLogs.isEmpty()) {
+            forAi = new ArrayList<>(logs.stream().limit(6).toList());
+            forAi.addAll(prevLogs.stream().limit(4).toList());
+        }
+        Map<String, Object> narr = ai.lifeNarrative(label, count, prevCount, byCat, forAi);
         LifeReport lr = reports.findBySubjectTypeAndSubjectIdOrderByMonthDesc(type, id).stream()
                 .filter(x -> x.month.equals(month.toString())).findFirst().orElseGet(LifeReport::new);
         lr.subjectType = type;
         lr.subjectId = id;
         lr.month = month.toString();
         lr.statsJson = Views.json(Views.map("count", count, "prevCount", prevCount, "receivedCount", cur.size(), "helpCount", helpCur,
-                "hours", hours, "byCategory", byCat, "prevByCategory", prevByCat, "logCount", logs.size(), "newCategory", newCat));
+                "hours", hours, "byCategory", byCat, "prevByCategory", prevByCat, "logCount", logs.size(), "prevLogCount", prevLogs.size(), "newCategory", newCat));
         lr.narrative = (String) narr.get("narrative");
         lr.source = (String) narr.get("source");
         lr.bigChange = big;

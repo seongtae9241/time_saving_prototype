@@ -24,5 +24,8 @@ public class Elder {
     /** C-11 현관 QR 카드 번호(6자리). 다시 발급하면 값이 바뀌어 이전 카드는 쓸 수 없다. */
     @Column(name = "qr_code", length = 12) public String qrCode;
     @Column(name = "qr_issued_at") public LocalDateTime qrIssuedAt;
+    /** C-02 등록할 때 "대상에게 서비스 이용을 설명하고 동의를 받았음"을 확인한 시각·확인한 담당자. 41판 이전 등록분은 null */
+    @Column(name = "service_consent_at") public LocalDateTime serviceConsentAt;
+    @Column(name = "service_consent_by") public Long serviceConsentBy;
     public LocalDateTime createdAt = LocalDateTime.now();
 }

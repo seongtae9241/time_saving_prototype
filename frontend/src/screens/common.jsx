@@ -108,6 +108,8 @@ export function NoticeDetail() {
 }
 
 /* ---------- 1:1 문의 · 신고 내역 (B-37, B-47~49) ---------- */
+/** D-08 문의 처리 단계(운영자가 따로 바꿈). stage 가 없는 예전 문의는 status(접수/답변 완료)를 쓴다 */
+export const INQ_ST = { RECEIVED: ['wait', '접수'], CHECKING: ['wait', '확인 중'], ANSWERED: ['ok', '답변 완료'], CLOSED: ['ok', '처리 완료'] };
 const RP_ST = { RECEIVED: ['wait', '접수'], REVIEWING: ['wait', '검토 중'], DONE: ['ok', '처리 완료'] };
 const RP_ACT = { NONE: '조치 없음', WARNING: '경고', SUSPEND: '이용 정지', BAN: '퇴출' };
 export function Qna() {
@@ -120,7 +122,7 @@ export function Qna() {
       <div className="sec-t">내 문의</div>
       {qs === undefined ? <Loading /> : !qs || !qs.length ? <Empty>문의한 내역이 없어요</Empty> : qs.map((q) => (
         <div className="card" key={q.id}>
-          <div className="between"><span className="b">{q.title}</span><span className={'st ' + (q.status === 'ANSWERED' ? 'ok' : 'wait')}>{q.status === 'ANSWERED' ? '답변 완료' : '접수'}</span></div>
+          <div className="between"><span className="b">{q.title}</span><span className={'st ' + (INQ_ST[q.stage || q.status] || INQ_ST.RECEIVED)[0]}>{(INQ_ST[q.stage || q.status] || INQ_ST.RECEIVED)[1]}</span></div>
           <div className="mute2">{q.type} · {dshort(q.createdAt).split(' ')[0]}</div>
           {q.content && <div className="small muted" style={{ marginTop: 6, whiteSpace: 'pre-wrap' }}>{q.content}</div>}
           {q.answer && <div className="ai" style={{ marginTop: 10, background: '#fff' }}><div className="small"><b>운영자 답변</b><br />{q.answer}</div></div>}

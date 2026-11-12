@@ -94,6 +94,72 @@ public class AnalyticsService {
         return out;
     }
 
+    private static boolean accepted(Request r) {
+        return r.status == ReqStatus.VOL_ACCEPTED || r.status.active() || r.status == ReqStatus.DONE || r.status == ReqStatus.NOSHOW;
+    }
+
+    /** 묶음 키(지역·계절) → 카테고리 → [수요, 공급]. 수요·공급 뜻은 {@link #supplyDemand} 와 같다. */
+    private static void add(Map<String, Map<String, int[]>> m, String key, String cat, int demand, int supply) {
+        if (key == null || key.isBlank() || cat == null || !Rules.isCategory(cat)) return;
+        int[] v = m.computeIfAbsent(key, k -> { Map<String, int[]> c = new LinkedHashMap<>(); for (String x : Rules.CATEGORIES) c.put(x, new int[2]); return c; }).get(cat);
+        v[0] += demand; v[1] += supply;
+    }
+
+    private static List<Map<String, Object>> catRows(Map<String, int[]> cats) {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        cats.forEach((c, v) -> rows.add(Views.map("category", c, "demand", v[0], "supply", v[1], "gap", v[0] - v[1])));
+        return rows;
+    }
+
+    /**
+     * D-04 지역(동)별로 어떤 도움이 부족한지: since 이후 지역 × 카테고리 수요·공급.
+     * 공고는 공고의 동, 요청은 areaOf(공고의 동 → 도움 대상의 동 → 받는 사람의 동)로 묶는다. 부족(gap) 큰 지역이 위.
+     */
+    public static List<Map<String, Object>> areaShortage(List<Post> posts, List<Request> reqs, LocalDateTime since,
+                                                         java.util.function.Function<Request, String> areaOf) {
+        Map<String, Map<String, int[]>> m = new TreeMap<>();
+        for (Post p : posts) {
+            if (p.status == PostStatus.DELETED || p.createdAt == null || p.createdAt.isBefore(since)) continue;
+            for (String c : p.categories) add(m, p.area, c, p.type == PostType.NEED ? 1 : 0, p.type == PostType.NEED ? 0 : 1);
+        }
+        for (Request r : reqs) {
+            if (r.createdAt == null || r.createdAt.isBefore(since)) continue;
+            add(m, areaOf.apply(r), r.category, r.kind != Kind.PROPOSAL ? 1 : 0, accepted(r) ? 1 : 0);
+        }
+        List<Map<String, Object>> out = new ArrayList<>();
+        m.forEach((area, cats) -> {
+            List<Map<String, Object>> rows = catRows(cats);
+            int demand = rows.stream().mapToInt(x -> (Integer) x.get("demand")).sum(), supply = rows.stream().mapToInt(x -> (Integer) x.get("supply")).sum();
+            List<Map<String, Object>> shortList = rows.stream().filter(x -> (Integer) x.get("gap") > 0)
+                    .sorted((a, b) -> Integer.compare((Integer) b.get("gap"), (Integer) a.get("gap"))).toList();
+            out.add(Views.map("area", area, "demand", demand, "supply", supply, "gap", demand - supply,
+                    "shortTotal", shortList.stream().mapToInt(x -> (Integer) x.get("gap")).sum(), "short", shortList, "categories", rows));
+        });
+        out.sort((a, b) -> Integer.compare((Integer) b.get("shortTotal"), (Integer) a.get("shortTotal")));
+        return out;
+    }
+
+    /** D-11 계절별 봉사 요청(수요)·봉사 가능량(공급): from 이후 만들어진 공고·요청을 만든 달의 계절 × 카테고리로 센다. 봄·여름·가을·겨울 순. */
+    public static List<Map<String, Object>> seasonSupplyDemand(List<Post> posts, List<Request> reqs, LocalDateTime from) {
+        Map<String, Map<String, int[]>> m = new LinkedHashMap<>();
+        for (String s : List.of("봄", "여름", "가을", "겨울")) add(m, s, Rules.CATEGORIES.get(0), 0, 0);
+        for (Post p : posts) {
+            if (p.status == PostStatus.DELETED || p.createdAt == null || p.createdAt.isBefore(from)) continue;
+            for (String c : p.categories) add(m, season(p.createdAt.getMonthValue()), c, p.type == PostType.NEED ? 1 : 0, p.type == PostType.NEED ? 0 : 1);
+        }
+        for (Request r : reqs) {
+            if (r.createdAt == null || r.createdAt.isBefore(from)) continue;
+            add(m, season(r.createdAt.getMonthValue()), r.category, r.kind != Kind.PROPOSAL ? 1 : 0, accepted(r) ? 1 : 0);
+        }
+        List<Map<String, Object>> out = new ArrayList<>();
+        m.forEach((s, cats) -> {
+            List<Map<String, Object>> rows = catRows(cats);
+            int demand = rows.stream().mapToInt(x -> (Integer) x.get("demand")).sum(), supply = rows.stream().mapToInt(x -> (Integer) x.get("supply")).sum();
+            out.add(Views.map("season", s, "demand", demand, "supply", supply, "gap", demand - supply, "categories", rows));
+        });
+        return out;
+    }
+
     public Map<String, Object> analytics() {
         List<Request> all = requests.findAll();
         Map<Long, User> userMap = new HashMap<>();
@@ -132,8 +198,20 @@ public class AnalyticsService {
             seasonTop.add(Views.map("season", k, "total", total, "top", total == 0 ? List.of() : topCats(v, 2)));
         });
 
-        List<Map<String, Object>> sd = supplyDemand(posts.findAll(), all, LocalDateTime.now().minusDays(SD_DAYS));
-        return Views.map("periodMonths", 12, "byRecipientAge", byAge(recAge), "byVolunteerAge", byAge(volAge),
+        List<Post> allPosts = posts.findAll();
+        Map<Long, Post> postMap = new HashMap<>();
+        allPosts.forEach(p -> postMap.put(p.id, p));
+        java.util.function.Function<Request, String> areaOf = r -> {
+            Post p = r.postId == null ? null : postMap.get(r.postId);
+            if (p != null && p.area != null) return p.area;
+            if (r.elderId != null) return Optional.ofNullable(elderMap.get(r.elderId)).map(e -> e.dong).orElse(null);
+            return r.recipientId == null ? null : Optional.ofNullable(userMap.get(r.recipientId)).map(u -> u.area).orElse(null);
+        };
+        LocalDateTime sdSince = LocalDateTime.now().minusDays(SD_DAYS);
+        List<Map<String, Object>> sd = supplyDemand(allPosts, all, sdSince);
+        return Views.map("areaShortage", areaShortage(allPosts, all, sdSince, areaOf),
+                "seasonSupplyDemand", seasonSupplyDemand(allPosts, all, from.atStartOfDay()),
+                "periodMonths", 12, "byRecipientAge", byAge(recAge), "byVolunteerAge", byAge(volAge),
                 "monthlyCategory", monthly, "seasons", seasonTop, "supplyDemand", sd, "supplyDemandDays", SD_DAYS);
     }
 

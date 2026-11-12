@@ -201,7 +201,8 @@ public class Views {
         if (u.id.equals(r.volunteerId)) return "VOLUNTEER";
         if (r.recipientId != null && u.id.equals(r.recipientId)) return "RECIPIENT";
         if (r.elderId != null && isManagerOf(u, r.elderId)) return "MANAGER";
-        if (u.id.equals(r.senderId)) return r.elderId != null ? "MANAGER" : "RECIPIENT";
+        // C-03: 독거노인 건의 담당자 권한은 지금 담당자에게만 있다(이관 뒤 예전에 요청을 보냈던 담당자는 권한이 없다)
+        if (u.id.equals(r.senderId)) return r.elderId != null ? null : "RECIPIENT";
         return null;
     }
 

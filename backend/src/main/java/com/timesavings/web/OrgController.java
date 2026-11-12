@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
 
@@ -30,6 +31,9 @@ public class OrgController {
     private final LifeReportService reportSvc;
     private final NotificationService noti;
     private final Views views;
+    /** 41판 C-13 메모 정리 · C-16 변화 리포트(생성자 인자를 늘리지 않으려고 필드 주입) */
+    @org.springframework.beans.factory.annotation.Autowired private com.timesavings.ai.ManagerMemoAi memoAi;
+    @org.springframework.beans.factory.annotation.Autowired private ElderChangeService changeSvc;
 
     public OrgController(ElderRepo elders, ElderMemoRepo memos, ElderTransferRepo transfers, UserRepo users, RequestRepo requests,
                          PostRepo posts, NotificationRepo notis, LifeReportRepo reports,
@@ -39,7 +43,7 @@ public class OrgController {
         this.noti = noti; this.views = views;
     }
 
-    public record ElderBody(String alias, String dong, String ageGroup, List<String> needs, String caution, String memo) {}
+    public record ElderBody(String alias, String dong, String ageGroup, List<String> needs, String caution, String memo, Boolean consent) {}
     public record MemoBody(String text) {}
     public record TransferBody(Long toManagerId) {}
     public record AnswerBody(Boolean accept) {}
@@ -82,8 +86,10 @@ public class OrgController {
         Set<Long> ids = myElderIds(u);
         String last = YearMonth.now().minusMonths(1).toString();
         long flagged = reports.findByMonth(last).stream().filter(r -> r.subjectType == SubjectType.ELDER && ids.contains(r.subjectId) && r.bigChange).count();
+        YearMonth now = YearMonth.now();
         return Views.map("todo", todo,
-                "counts", Views.map("elders", elders.findByManagerId(u.id).stream().filter(e -> e.status == ElderStatus.ACTIVE).count(),
+                "counts", Views.map("monthDone", list.stream().filter(r -> r.status == ReqStatus.DONE && YearMonth.from(r.date).equals(now)).count(),
+                        "elders", elders.findByManagerId(u.id).stream().filter(e -> e.status == ElderStatus.ACTIVE).count(),
                         "pendingFinal", list.stream().filter(OrgController::needsMe).count(),
                         "logsToConfirm", list.stream().filter(r -> r.status == ReqStatus.LOG_SUBMITTED).count(),
                         "active", list.stream().filter(r -> r.status.active()).count(),
@@ -98,7 +104,7 @@ public class OrgController {
         LifeReport latest = reports.findBySubjectTypeAndSubjectIdOrderByMonthDesc(SubjectType.ELDER, e.id).stream().findFirst().orElse(null);
         return Views.map("id", e.id, "alias", e.alias, "displayName", e.alias + " 님", "maskedName", Rules.maskAlias(e.alias),
                 "dong", e.dong, "ageGroup", e.ageGroup, "needs", e.needs, "caution", e.caution, "status", e.status,
-                "reportConsent", e.reportConsent, "managerId", e.managerId, "createdAt", e.createdAt,
+                "reportConsent", e.reportConsent, "serviceConsentAt", e.serviceConsentAt, "managerId", e.managerId, "createdAt", e.createdAt,
                 "qrIssuedAt", e.qrIssuedAt,
                 "regularCount", views.regularsOf(null, e.id).size(),
                 "activeCount", rs.stream().filter(r -> !r.status.terminal()).count(),
@@ -139,8 +145,13 @@ public class OrgController {
     @PostMapping("/elders")
     public Map<String, Object> create(@CurrentUser User u, @RequestBody ElderBody b) {
         if (b.alias() == null || b.dong() == null) throw ApiException.bad("INVALID_INPUT", "별칭과 동을 적어 주세요");
+        // C-02: 대상에게 서비스 이용을 설명하고 동의를 받았음을 확인해야 등록된다(화면 체크만으로 끝내지 않고 서버가 확인·기록)
+        if (!Boolean.TRUE.equals(b.consent()))
+            throw ApiException.bad("CONSENT_REQUIRED", "대상에게 서비스 이용을 설명하고 동의를 받았는지 확인(체크)해 주세요");
         Elder e = new Elder();
         apply(e, b);
+        e.serviceConsentAt = LocalDateTime.now();
+        e.serviceConsentBy = u.id;
         e.orgId = u.orgId;
         e.managerId = u.id;
         elders.save(e);
@@ -152,6 +163,11 @@ public class OrgController {
         ElderMemo m = new ElderMemo();
         m.elderId = elderId;
         m.text = text.trim();
+        // C-13: 원문은 그대로 두고, 읽기 쉬운 정리본을 따로 저장한다(키 없으면 규칙 정리)
+        Map<String, Object> t = memoAi.tidy(m.text);
+        String tidy = (String) t.get("tidy");
+        m.tidyText = tidy == null || tidy.isBlank() ? null : (tidy.length() > 1000 ? tidy.substring(0, 1000) : tidy);
+        m.source = (String) t.get("source");
         memos.save(m);
     }
 
@@ -159,7 +175,7 @@ public class OrgController {
     public Map<String, Object> get(@CurrentUser User u, @PathVariable Long id) {
         Elder e = myElder(u, id);
         Map<String, Object> v = elderView(e);
-        v.put("memos", memos.findByElderIdOrderByCreatedAtDesc(id));
+        v.put("memos", memoViews(id));
         v.put("regulars", views.regularsOf(null, id));
         v.put("requests", requests.findByElderId(id).stream().sorted(Comparator.comparing((Request r) -> r.id).reversed()).limit(20)
                 .map(r -> views.requestView(r, u)).toList());
@@ -199,12 +215,23 @@ public class OrgController {
     }
 
     @PostMapping("/elders/{id}/memos")
-    public List<ElderMemo> memo(@CurrentUser User u, @PathVariable Long id, @RequestBody MemoBody b) {
+    public List<Map<String, Object>> memo(@CurrentUser User u, @PathVariable Long id, @RequestBody MemoBody b) {
         myElder(u, id);
         if (b.text() == null || b.text().isBlank()) throw ApiException.bad("TEXT_REQUIRED", "메모를 적어 주세요");
+        if (b.text().trim().length() > 1000) throw ApiException.bad("TEXT_TOO_LONG", "메모는 1000자 안으로 적어 주세요");
         noPii(b.text());
         addMemo(id, b.text());
-        return memos.findByElderIdOrderByCreatedAtDesc(id);
+        return memoViews(id);
+    }
+
+    /** C-13 메모 목록: 원문(text)과 정리본(tidy, 줄 목록 lines). 담당자만 본다 — 봉사자에게 가는 주의사항(Elder.caution)과 따로 관리. */
+    private List<Map<String, Object>> memoViews(Long elderId) {
+        return memos.findByElderIdOrderByCreatedAtDesc(elderId).stream().map(m -> {
+            List<String> lines = m.tidyText == null || m.tidyText.isBlank() ? List.of()
+                    : Arrays.stream(m.tidyText.split("\n")).map(String::trim).filter(x -> !x.isEmpty()).toList();
+            return Views.map("id", m.id, "elderId", m.elderId, "text", m.text, "tidy", m.tidyText, "lines", lines,
+                    "source", m.source, "createdAt", m.createdAt);
+        }).toList();
     }
 
     @PostMapping("/elders/{id}/end")
@@ -291,6 +318,15 @@ public class OrgController {
                 .sorted(Comparator.comparing((LifeReport r) -> !r.bigChange))
                 .map(r -> { Map<String, Object> v = reportSvc.view(r, mine.get(r.subjectId).alias + " 님"); v.put("reportConsent", mine.get(r.subjectId).reportConsent); return v; })
                 .toList();
+    }
+
+    /**
+     * C-16 대상 변화 리포트: 대상별 최근 활동 일지를 이전 기록과 비교한 특이사항·변화와, 먼저 살펴볼 순서.
+     * range=today 면 오늘 일지가 들어온 대상만, 아니면 담당 대상 전체(최근 30일 기준).
+     */
+    @GetMapping("/change-report")
+    public Map<String, Object> changeReport(@CurrentUser User u, @RequestParam(required = false) String range) {
+        return changeSvc.report(u, "today".equalsIgnoreCase(range));
     }
 
     @PostMapping("/reports/{id}/flag")

@@ -281,11 +281,18 @@ export function OrgApply() {
       <label className="f">담당자 이름</label><input className="in" placeholder="이름" value={f.managerName} onChange={set('managerName')} />
       <label className="f">담당자 연락처 (기관 전화)</label><input className="in" placeholder="02-000-0000" value={f.managerPhone} onChange={set('managerPhone')} />
       <label className="f">담당자 이메일</label><input className="in" placeholder="name@example.go.kr" value={f.managerEmail} onChange={set('managerEmail')} />
-      <label className="f">재직 증빙</label><Upload label="재직증명서 올리기" onUploaded={setFile} />
+      <label className="f">재직 증빙 (필수)</label>
+      <input className="in" type="file" accept="image/*,.pdf" aria-label="재직증명서 파일" onChange={(e) => setFile((e.target.files && e.target.files[0]) || null)} />
+      <div className="mute2" style={{ marginTop: 6 }}>{file ? `${file.name} · 신청할 때 함께 보내요` : '재직증명서 사진(jpg·png)이나 PDF를 올려 주세요. 운영자가 확인한 뒤 승인해요.'}</div>
       <button className="btn big-cta" style={{ marginTop: 20 }} onClick={async () => {
         if (!f.name.trim() || !f.managerName.trim()) return toast('기관 이름과 담당자 이름을 적어 주세요');
-        if (!(await confirm('기관 서비스를 신청할까요?', '운영자가 검토 후 담당자 계정(아이디·임시 비밀번호)을 기관 전화로 안내해요.', '신청하기'))) return;
-        try { await post('/orgs/apply', { ...f, memo: [f.memo, file ? `재직증명서: ${file}` : ''].filter(Boolean).join(' / ') }); nav(-1); toast('신청했어요. 보통 3일 안에 결과가 나와요'); } catch { /* 토스트 */ }
+        if (!file) return toast('재직 증빙(재직증명서) 파일을 올려 주세요');
+        if (!(await confirm('기관 서비스를 신청할까요?', '운영자가 재직 증빙을 확인한 뒤 담당자 계정(아이디·임시 비밀번호)을 기관 전화로 안내해요.', '신청하기'))) return;
+        // 로그인 전이라 신청 내용과 증빙 파일을 한 번에(multipart) 보낸다
+        const fd = new FormData();
+        Object.entries(f).forEach(([k, v]) => { if (v) fd.append(k, v); });
+        fd.append('proof', file);
+        try { await api('/orgs/apply', { method: 'POST', form: fd }); nav(-1); toast('신청했어요. 보통 3일 안에 결과가 나와요'); } catch { /* 토스트 */ }
       }}>신청하기</button>
     </Screen>
   );

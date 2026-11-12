@@ -59,6 +59,9 @@ public class AdminController {
     public record AppealAnswer(Boolean accept, Level resultLevel, String note) {}
     public record HandleBody(ReportAction action, String result) {}
     public record AnswerBody(String answer) {}
+    public record InquiryStatusBody(String status) {}
+    static final List<String> INQUIRY_STAGES = List.of("RECEIVED", "CHECKING", "ANSWERED", "CLOSED");
+    static String stageOf(Inquiry q) { return q.stage != null ? q.stage : q.status.name(); }
     public record NoticeBody(String title, String content) {}
     public record ServiceBody(String name, String target, String content, String applyHow, String contact, String region, List<String> keywords) {}
     public record PersonaBody(String name, String initial, String ageLabel, String fitCategory, String trait, String goal, String opening,
@@ -129,7 +132,7 @@ public class AdminController {
                         "crimes", users.findAll().stream().filter(u -> u.crimeStatus == VerifyStatus.PENDING).count(),
                         "appeals", appeals.findAll().stream().filter(a -> a.status == AppealStatus.RECEIVED).count(),
                         "reports", reports.findAll().stream().filter(r -> r.status != ReportStatus.DONE).count(),
-                        "inquiries", inquiries.findAll().stream().filter(q -> q.status == InquiryStatus.RECEIVED).count(),
+                        "inquiries", inquiries.findAll().stream().filter(q -> List.of("RECEIVED", "CHECKING").contains(stageOf(q))).count(),
                         "anomalies", anomalyGroups().size()));
     }
 
@@ -423,9 +426,30 @@ public class AdminController {
     // ======================= 문의 (D-08) =======================
     @GetMapping("/inquiries")
     public List<Map<String, Object>> inquiries() {
-        return inquiries.findAll().stream().sorted(Comparator.comparing((Inquiry q) -> q.status).thenComparing(q -> -q.id))
-                .map(q -> Views.map("id", q.id, "user", views.userBrief(users.findById(q.userId).orElse(null)), "type", q.type, "title", q.title,
-                        "content", q.content, "status", q.status, "answer", q.answer, "answeredAt", q.answeredAt, "createdAt", q.createdAt)).toList();
+        return inquiries.findAll().stream().sorted(Comparator.comparing((Inquiry q) -> INQUIRY_STAGES.indexOf(stageOf(q))).thenComparing(q -> -q.id))
+                .map(this::inquiryView).toList();
+    }
+
+    private Map<String, Object> inquiryView(Inquiry q) {
+        return Views.map("id", q.id, "user", views.userBrief(users.findById(q.userId).orElse(null)), "type", q.type, "title", q.title,
+                "content", q.content, "status", q.status, "stage", stageOf(q), "answer", q.answer, "answeredAt", q.answeredAt, "createdAt", q.createdAt);
+    }
+
+    /** D-08 처리 상태만 따로 바꾸기. 답변 완료(ANSWERED)는 답변이 있어야 한다. 바뀌면 문의한 사람에게 알린다. */
+    @PutMapping("/inquiries/{id}/status")
+    public Map<String, Object> inquiryStatus(@PathVariable Long id, @RequestBody InquiryStatusBody b) {
+        Inquiry q = inquiries.findById(id).orElseThrow(() -> ApiException.notFound("문의를 찾을 수 없어요"));
+        String s = b == null || b.status() == null ? "" : b.status().trim().toUpperCase();
+        if (!INQUIRY_STAGES.contains(s)) throw ApiException.bad("INVALID_STATUS", "처리 상태는 접수·확인 중·답변 완료·처리 완료 중에서 골라 주세요");
+        boolean hasAnswer = q.answer != null && !q.answer.isBlank();
+        if (s.equals("ANSWERED") && !hasAnswer) throw ApiException.bad("ANSWER_REQUIRED", "답변을 먼저 등록해 주세요");
+        if (s.equals(stageOf(q))) return inquiryView(q);
+        q.stage = s;
+        // status(접수/답변 완료)는 답변이 있는지에 맞춘다: 다시 접수·확인 중으로 돌리면 접수로 보인다
+        q.status = hasAnswer && (s.equals("ANSWERED") || s.equals("CLOSED")) ? InquiryStatus.ANSWERED : InquiryStatus.RECEIVED;
+        String label = switch (s) { case "CHECKING" -> "확인 중"; case "ANSWERED" -> "답변 완료"; case "CLOSED" -> "처리 완료"; default -> "접수"; };
+        noti.send(q.userId, "INQUIRY", "1:1 문의 처리 상태가 '" + label + "'(으)로 바뀌었어요", q.title, "/my/inquiries");
+        return inquiryView(q);
     }
 
     @PostMapping("/inquiries/{id}/answer")
@@ -434,6 +458,7 @@ public class AdminController {
         Inquiry q = inquiries.findById(id).orElseThrow(() -> ApiException.notFound("문의를 찾을 수 없어요"));
         q.answer = b.answer().trim();
         q.status = InquiryStatus.ANSWERED;
+        q.stage = "ANSWERED";
         q.answeredAt = LocalDateTime.now();
         noti.send(q.userId, "INQUIRY", "1:1 문의에 답변이 등록됐어요", q.title, "/my/inquiries");
         return q;

@@ -83,7 +83,7 @@ function Shell() {
         <Route path="/my/cert" element={g(<Cert />, U)} />
         <Route path="/my/info" element={g(<InfoEdit />)} />
         <Route path="/my/suggest" element={g(<Suggest />, UO)} />
-        <Route path="/my/withdraw" element={g(<Withdraw />, U)} />
+        <Route path="/my/withdraw" element={g(<Withdraw />)} />
         <Route path="/recommend" element={g(<Recommend />, U)} />
         <Route path="/public" element={g(<Public />, UO)} />
 
