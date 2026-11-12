@@ -6,7 +6,39 @@ let onUnauthorized = () => {};
 export const setErrorHandler = (f) => { onError = f; };
 export const setUnauthorizedHandler = (f) => { onUnauthorized = f; };
 export const getToken = () => { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } };
-export const setToken = (t) => { try { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); } catch { /* 무시 */ } };
+export const setToken = (t) => { clearFileCache(); try { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); } catch { /* 무시 */ } };
+
+/* ---------- 올린 파일 (/api/files/…) ----------
+   파일은 로그인하고 볼 수 있는 사람만 열 수 있다. <img src> 나 새 창 링크는 인증 머리글을 못 붙이므로,
+   머리글을 붙여 받아 온 뒤 이 탭 안에서만 쓰는 임시 주소(blob:)로 보여 준다. 로그인이 바뀌면 받아 둔 것을 버린다. */
+const fileCache = new Map(); // 파일 주소 → Promise<blob 주소>
+function clearFileCache() {
+  fileCache.forEach((p) => p.then((u) => URL.revokeObjectURL(u)).catch(() => {}));
+  fileCache.clear();
+}
+export const isProtectedFile = (u) => typeof u === 'string' && u.startsWith('/api/files/');
+export function fileBlobUrl(url) {
+  if (!fileCache.has(url)) {
+    const token = getToken();
+    const p = fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then((res) => { if (!res.ok) throw new ApiError(res.status === 403 ? '이 파일을 볼 수 있는 권한이 없어요' : '파일을 열 수 없어요', res.status); return res.blob(); })
+      .then((b) => URL.createObjectURL(b));
+    p.catch(() => fileCache.delete(url));
+    fileCache.set(url, p);
+  }
+  return fileCache.get(url);
+}
+/** 파일을 새 창으로 연다(운영자의 제출 서류 보기). 창을 먼저 열어 두고 받아 온 뒤 주소를 넣는다(팝업 차단을 피하려고). */
+export async function openFile(url) {
+  const w = window.open('', '_blank');
+  try {
+    const b = await fileBlobUrl(url);
+    if (w) w.location.href = b; else window.location.href = b;
+  } catch (e) {
+    if (w) w.close();
+    onError(e.message || '파일을 열 수 없어요');
+  }
+}
 
 export class ApiError extends Error {
   constructor(message, status, code, data) { super(message); this.status = status; this.code = code; this.data = data; }

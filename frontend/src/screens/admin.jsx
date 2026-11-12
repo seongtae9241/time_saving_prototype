@@ -4,8 +4,8 @@ import Screen from '../ui/Frame.jsx';
 import { SUG_ST } from '../ui/suggest.jsx';
 import { Ic, Mi, Spk, Mod, RuleNote, Loading, Empty, useLoad, useBusy, hbars } from '../ui/bits.jsx';
 import { useUi } from '../ui/ctx.jsx';
-import { api, post, put, del } from '../api.js';
-import { CATS, CC, SHORT, AREAS, fmt, dshort, arr, lvName } from '../lib/format.js';
+import { api, post, put, del, openFile } from '../api.js';
+import { CATS, CC, SHORT, AREAS, fmt, dshort, arr, lvName, ro } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useLogout } from './my.jsx';
 import { JudgeAssist } from '../ui/ActivityAi.jsx'; // 7.13 B-4
@@ -191,7 +191,7 @@ export function ADash() {
         <div className="card" style={{ marginTop: 12 }}>
           <div className="b">처리할 일</div>
           <div className="tags" style={{ marginTop: 8 }}>
-            {[['orgs', '기관 신청', '/a/approve?seg=org'], ['ids', '신분증', '/a/approve?seg=vol'], ['crimes', '범죄경력', '/a/approve?seg=vol'], ['appeals', '난이도 이의', '/a/approve?seg=diff'], ['reports', '신고', '/a/safety'], ['inquiries', '문의', '/a/inquiries']].filter(([k]) => pend[k]).map(([k, l, to]) => <button key={k} className="tag2" onClick={() => nav(to)}>{l} {pend[k]}</button>)}
+            {[['orgs', '기관 신청', '/a/approve?seg=org'], ['ids', '신분증', '/a/approve?seg=vol'], ['crimes', '범죄경력', '/a/approve?seg=vol'], ['appeals', '난이도 이의', '/a/approve?seg=diff'], ['reports', '신고', '/a/safety'], ['welfare', '안부 확인 접수', '/a/safety'], ['inquiries', '문의', '/a/inquiries']].filter(([k]) => pend[k]).map(([k, l, to]) => <button key={k} className="tag2" onClick={() => nav(to)}>{l} {pend[k]}</button>)}
           </div>
         </div>
       )}
@@ -234,7 +234,7 @@ export function AApprove() {
           <div className="mute2">{o.orgType} · 담당자 {o.managerName} · {o.managerPhone || o.phone}</div>
           {o.address && <div className="small muted">{o.address}</div>}
           {o.memo && <div className="small" style={{ marginTop: 6 }}>{o.memo}</div>}
-          <div className="small" style={{ marginTop: 6 }}><b>재직 증빙</b> {o.proofFileUrl ? <a href={o.proofFileUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand)' }}>재직증명서 열어 보기 ↗</a> : <span className="warnc">제출된 파일이 없어요 (41판 이전 신청)</span>}</div>
+          <div className="small" style={{ marginTop: 6 }}><b>재직 증빙</b> {o.proofFileUrl ? <a role="button" tabIndex={0} style={{ color: 'var(--brand)', cursor: 'pointer' }} onClick={() => openFile(o.proofFileUrl)} onKeyDown={(e) => { if (e.key === 'Enter') openFile(o.proofFileUrl); }}>재직증명서 열어 보기 ↗</a> : <span className="warnc">증빙 없음 (41판 이전 신청)</span>}</div>
           <div className="btns" style={{ marginTop: 12 }}>
             <button className="btn ghost sm" disabled={busy} onClick={() => run(async () => { await post(`/admin/orgs/${o.id}/reject`); reloadO(); toast(`${o.name}: 반려`); })}>반려</button>
             <button className="btn sm" disabled={busy} onClick={() => run(async () => {
@@ -251,7 +251,7 @@ export function AApprove() {
           <div className="card" key={`${v.kind}-${uid}`}>
             <div className="between"><span className="b" style={{ fontSize: 16 }}>{v.name || v.userName}</span><span className="st wait">{VKIND[v.kind] || v.kind}</span></div>
             <div className="mute2">{v.loginId ? `${v.loginId} · ` : ''}{v.area || ''} {v.ageGroup || ''}</div>
-            {v.fileUrl && <a href={v.fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand)', fontSize: 14 }}>제출 파일 보기 ↗</a>}
+            {v.fileUrl && <a role="button" tabIndex={0} style={{ color: 'var(--brand)', fontSize: 14, cursor: 'pointer' }} onClick={() => openFile(v.fileUrl)} onKeyDown={(e) => { if (e.key === 'Enter') openFile(v.fileUrl); }}>제출 파일 보기 ↗</a>}
             <div className="btns" style={{ marginTop: 12 }}>
               <button className="btn ghost sm" disabled={busy} onClick={() => run(async () => { await post(`/admin/verifications/${uid}/${v.kind}/reject`); reloadV(); toast('반려했어요'); })}>반려</button>
               <button className="btn sm" disabled={busy} onClick={() => run(async () => { await post(`/admin/verifications/${uid}/${v.kind}/approve`); reloadV(); toast('승인했어요'); })}>승인</button>
@@ -387,14 +387,15 @@ function MemberSheet({ id, onDone }) {
     <>
       <h2>{u.name} <span className="mute2" style={{ fontSize: 14, fontWeight: 500 }}>{u.loginId}</span></h2>
       <dl className="kv">
-        <dt>역할</dt><dd>{RL[u.role] || u.role}</dd><dt>상태</dt><dd>{{ ACTIVE: '정상', SUSPENDED: '정지', WITHDRAWN: '탈퇴' }[u.status] || u.status}</dd>
+        <dt>역할</dt><dd>{RL[u.role] || u.role}</dd><dt>상태</dt><dd>{u.banned ? '퇴출 (다시 로그인할 수 없어요)' : { ACTIVE: '정상', SUSPENDED: '정지', WITHDRAWN: '탈퇴' }[u.status] || u.status}</dd>
         <dt>지역</dt><dd>{u.area} · {u.ageGroup}</dd><dt>연락처</dt><dd>{u.phone}</dd>
         <dt>봉사</dt><dd>{u.volunteerCount ?? u.helpCount ?? '-'}회</dd><dt>도움 받음</dt><dd>{u.recipientCount ?? u.helpedCount ?? '-'}회</dd>
         <dt>잔액</dt><dd>{u.balance != null ? `${fmt(u.balance)}시간` : '-'}</dd><dt>경고·노쇼</dt><dd>경고 {u.warningCount || 0} · 패널티 {u.penaltyCount || 0}</dd>
         {u.role === 'USER' && <><dt>인증</dt><dd>신분증 {VERIFY_KO[u.idStatus] || u.idStatus} · 범죄경력 회보서 {VERIFY_KO[u.crimeStatus] || u.crimeStatus}</dd></>}
         <dt>가입</dt><dd>{dshort(u.createdAt)}</dd>
       </dl>
-      {u.role !== 'ADMIN' && u.status !== 'WITHDRAWN' && <button className={'btn ' + (sus ? '' : 'warn')} style={{ marginTop: 14 }} onClick={async () => { try { await post(`/admin/users/${u.id}/${sus ? 'unsuspend' : 'suspend'}`); await reload(); onDone(); toast(sus ? '정지를 해제했어요' : '정지했어요'); } catch { /* 토스트 */ } }}>{sus ? '정지 해제' : '회원 정지'}</button>}
+      {u.banned && <div className="notice" style={{ marginTop: 14 }}>신고 처리로 퇴출된 계정이에요. 진행 중이던 요청은 취소되고 열린 공고는 마감됐어요. 정지와 달리 다시 풀 수 없어요.</div>}
+      {u.role !== 'ADMIN' && u.status !== 'WITHDRAWN' && !u.banned && <button className={'btn ' + (sus ? '' : 'warn')} style={{ marginTop: 14 }} onClick={async () => { try { await post(`/admin/users/${u.id}/${sus ? 'unsuspend' : 'suspend'}`); await reload(); onDone(); toast(sus ? '정지를 해제했어요' : '정지했어요'); } catch { /* 토스트 */ } }}>{sus ? '정지 해제' : '회원 정지'}</button>}
     </>
   );
 }
@@ -411,7 +412,7 @@ export function AMembers() {
       {list === undefined ? <Loading /> : (list || []).length ? list.map((u) => (
         <div key={u.id} className="card item click" style={{ marginTop: 8 }} role="button" tabIndex={0} onClick={() => sheet(() => <MemberSheet id={u.id} onDone={reload} />)}>
           <div className="grow"><div className="b">{u.name} <span className="mute2" style={{ fontWeight: 500 }}>{u.loginId}</span></div><div className="mute2">{RL[u.role]} · {u.area || ''}{u.volunteerCount != null ? ` · 봉사 ${u.volunteerCount}` : ''}{u.recipientCount != null ? ` · 받음 ${u.recipientCount}` : ''}{u.warningCount ? ` · 경고 ${u.warningCount}` : ''}</div></div>
-          <span className={'st ' + (u.status === 'ACTIVE' ? 'ok' : 'no')}>{{ ACTIVE: '정상', SUSPENDED: '정지', WITHDRAWN: '탈퇴' }[u.status] || u.status}</span>
+          <span className={'st ' + (u.status === 'ACTIVE' ? 'ok' : 'no')}>{u.banned ? '퇴출' : { ACTIVE: '정상', SUSPENDED: '정지', WITHDRAWN: '탈퇴' }[u.status] || u.status}</span>
         </div>
       )) : <Empty>회원이 없어요</Empty>}
     </Screen>
@@ -444,10 +445,10 @@ export function AManagers() {
         const sus = m.status === 'SUSPENDED';
         return (
           <div key={m.id} className="card" style={{ marginTop: 8 }}>
-            <div className="between"><span className="b">{m.orgName || (m.org && m.org.name) || ''} · {m.name}</span><span className={'st ' + (sus ? 'no' : 'ok')}>{sus ? '정지' : '정상'}</span></div>
+            <div className="between"><span className="b">{m.orgName || (m.org && m.org.name) || ''} · {m.name}</span><span className={'st ' + (sus ? 'no' : 'ok')}>{m.banned ? '퇴출' : sus ? '정지' : '정상'}</span></div>
             <div className="mute2">{m.loginId} · 대상 {(m.elders || []).length}명</div>
             <div className="btns" style={{ marginTop: 10 }}>
-              <button className="btn ghost sm" disabled={busy} onClick={() => run(async () => { await post(`/admin/managers/${m.id}/${sus ? 'unsuspend' : 'suspend'}`); reload(); toast(sus ? '정지를 해제했어요' : '정지했어요'); })}>{sus ? '정지 해제' : '정지'}</button>
+              <button className="btn ghost sm" disabled={busy || m.banned} onClick={() => run(async () => { await post(`/admin/managers/${m.id}/${sus ? 'unsuspend' : 'suspend'}`); reload(); toast(sus ? '정지를 해제했어요' : '정지했어요'); })}>{sus ? '정지 해제' : '정지'}</button>
               <button className="btn soft sm" onClick={() => sheet(() => <AdminTransfer m={m} managers={list} onDone={() => { closeSheet(); reload(); }} />)}>대신 이관</button>
             </div>
           </div>
@@ -483,7 +484,7 @@ export function AInquiries() {
           <div className="between"><span className="b">{q.title}</span><span className={'st ' + (INQ_ST[q.stage || q.status] || INQ_ST.RECEIVED)[0]}>{(INQ_ST[q.stage || q.status] || INQ_ST.RECEIVED)[1]}</span></div>
           <div className="mute2">{q.user ? q.user.name : ''} · {q.type} · {dshort(q.createdAt).split(' ')[0]}</div>
           {q.answer && <div className="small muted" style={{ marginTop: 6 }}>답변: {q.answer}</div>}
-          <div className="chips" role="group" aria-label="처리 상태" style={{ marginTop: 8, flexWrap: 'wrap' }}>{Object.entries(INQ_ST).map(([k, [, t]]) => <button key={k} className={'chip ' + ((q.stage || q.status) === k ? 'on' : '')} disabled={busy} onClick={() => (q.stage || q.status) !== k && run(async () => { await put(`/admin/inquiries/${q.id}/status`, { status: k }); reload(); toast(`처리 상태를 '${t}'(으)로 바꿨어요`); })}>{t}</button>)}</div>
+          <div className="chips" role="group" aria-label="처리 상태" style={{ marginTop: 8, flexWrap: 'wrap' }}>{Object.entries(INQ_ST).map(([k, [, t]]) => <button key={k} className={'chip ' + ((q.stage || q.status) === k ? 'on' : '')} disabled={busy} onClick={() => (q.stage || q.status) !== k && run(async () => { await put(`/admin/inquiries/${q.id}/status`, { status: k }); reload(); toast(`처리 상태를 '${t}'${ro(t).slice(t.length)} 바꿨어요`); })}>{t}</button>)}</div>
           <button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => sheet(() => <AnswerSheet q={q} onDone={() => { closeSheet(); reload(); }} />)}>{q.answer ? '답변 고치기' : '답변 쓰기'}</button>
         </div>
       )) : <Empty>문의가 없어요</Empty>}

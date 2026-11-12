@@ -198,7 +198,7 @@ export function ProfileEdit() {
     <Screen title="프로필 관리" noTabs>
       <p className="su-p" style={{ marginTop: 0 }}>공고와 소개 카드에 보여요. 매칭은 자동이 아니라 상대가 보고 골라요.</p>
       <label className="f">사진 (선택)</label>
-      <div className="row" style={{ gap: 12 }}>{f.photoUrl ? <img src={f.photoUrl} alt="" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} /> : <Avatar name={me.name} s={64} />}<div className="grow"><Upload label="사진 올리기" accept="image/*" style={{ minHeight: 64 }} onUploaded={set('photoUrl')} /></div></div>
+      <div className="row" style={{ gap: 12 }}><Avatar name={me.name} s={64} photo={f.photoUrl} style={{ borderRadius: '50%' }} /><div className="grow"><Upload label="사진 올리기" accept="image/*" style={{ minHeight: 64 }} onUploaded={set('photoUrl')} /></div></div>
       <label className="f">한 줄 소개</label><input className="in" value={f.intro} onChange={set('intro')} />
       <label className="f">활동 지역</label><ChipsPick options={AREAS} value={f.area} onChange={set('area')} />
       <label className="f">나이대</label><ChipsPick options={AGE_GROUPS} value={f.ageGroup} onChange={set('ageGroup')} />
@@ -319,7 +319,7 @@ export function AlertSet() {
   const [list, reload] = useLoad(() => api('/interest-alerts'), []);
   const [edit, setEdit] = useState(null);
   const [busy, run] = useBusy();
-  const start = (a) => setEdit(a ? { id: a.id, area: a.area || '', categories: arr(a.categories), dayType: a.dayType || '', dateFrom: a.dateFrom || '', dateTo: a.dateTo || '', enabled: a.enabled !== false } : { area: '행복동', categories: ['디지털 도움'], dayType: '주말', dateFrom: '', dateTo: '', enabled: true });
+  const start = (a) => setEdit(a ? { id: a.id, area: a.area || '', categories: arr(a.categories), dayType: a.dayType || '', dateFrom: a.dateFrom || '', dateTo: a.dateTo || '', enabled: a.enabled !== false } : { area: '', categories: [], dayType: '', dateFrom: '', dateTo: '', enabled: true } /* 새 조건은 비어 있게 시작한다(고른 것만 저장) */);
   if (list === undefined) return <Screen title="관심 공고 알림" noTabs><Loading /></Screen>;
   if (!edit) {
     return (
@@ -345,7 +345,7 @@ export function AlertSet() {
       <label className="f">도움 종류</label><ChipsPick multi options={CATS.map((c) => c.k)} value={edit.categories} onChange={(v) => setEdit({ ...edit, categories: v })} />
       <button className="btn big-cta" style={{ marginTop: 18 }} disabled={busy} onClick={() => run(async () => {
         if (edit.dateFrom && edit.dateTo && edit.dateTo < edit.dateFrom) return toast('끝 날짜가 시작 날짜보다 빨라요');
-        const body = { area: edit.area, categories: edit.categories, dayType: edit.dayType, dateFrom: edit.dateFrom || null, dateTo: edit.dateTo || null, enabled: edit.enabled };
+        const body = { area: edit.area, categories: edit.categories, dayType: edit.dayType, dateFrom: edit.dateFrom || '', dateTo: edit.dateTo || '', enabled: edit.enabled }; // 비운 날짜는 빈 글자로 보내 서버에서 지운다
         if (edit.id) await put(`/interest-alerts/${edit.id}`, body); else await post('/interest-alerts', body);
         toast('저장했어요'); setEdit(null); reload();
       })}>저장</button>

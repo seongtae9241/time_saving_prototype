@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
-import { Ic, Loading, Empty, useLoad, ChipsPick } from '../ui/bits.jsx';
+import { Ic, Loading, Empty, useLoad, ChipsPick, hasBack } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
 import { ago, dshort } from '../lib/format.js';
@@ -25,7 +25,8 @@ const NT_IC = (t = '') => {
 /** 서버가 알림에 적는 링크 → 화면 경로. 위에서부터 처음 맞는 것 하나만 바꾼다. */
 const LINK_MAP = [
   [/^\/requests\/(\d+)/, '/req/$1'],                 // 요청·제안·메시지·활동 알림
-  [/^\/posts\/(\d+)/, '/post/$1'],                   // 관심 공고
+  [/^\/posts\/(\d+)/, '/post/$1'],                   // 관심 공고·가족 대신 공고
+  [/^\/posts\/?$/, '/board'],                         // 공고 번호가 없는 옛 알림은 공고 목록으로
   [/^\/my\/(inquiries|reports)\b.*/, '/qna'],         // 문의 답변·신고 처리 결과 → 문의·신고 내역
   [/^\/family\/(\d+)\/report/, '/my/family/$1/monthly'], // 가족 월별 리포트
   [/^\/org\/elders\/(\d+)/, '/o/elders/$1'],
@@ -155,7 +156,9 @@ export function QnaNew() {
       <label className="f" htmlFor="qc">내용</label><VoiceField value={content} onChange={setContent}><textarea id="qc" className="in" placeholder="자세히 적어 주세요" value={content} onChange={(e) => setContent(e.target.value)} /></VoiceField>
       <button className="btn big-cta" style={{ marginTop: 18 }} onClick={async () => {
         if (!title.trim() || !content.trim()) return toast('제목과 내용을 적어 주세요');
-        try { await post('/inquiries', { type, title: title.trim(), content: content.trim() }); nav(-1); toast('문의를 등록했어요. 답변이 오면 알려드려요'); } catch { /* 토스트 */ }
+        try { await post('/inquiries', { type, title: title.trim(), content: content.trim() });
+          if (hasBack()) nav(-1); else nav('/qna', { replace: true }); // 주소로 바로 들어왔으면 이전 화면이 없으니 문의 내역으로
+          toast('문의를 등록했어요. 답변이 오면 알려드려요'); } catch { /* 토스트 */ }
       }}>등록하기</button>
     </Screen>
   );

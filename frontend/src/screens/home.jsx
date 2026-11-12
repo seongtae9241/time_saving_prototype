@@ -59,14 +59,13 @@ function BankCard({ me }) {
   );
 }
 
-/** 내 일정 (프로토타입 planCard): 헤더 모드에 맞는 확정 일정 + 신청한 기관 소식, 가까운 날짜 3개 */
-function PlanCard({ list, events, give }) {
+/** 내 일정 (프로토타입 planCard): 헤더 모드에 맞는 확정 일정, 가까운 날짜 3개 (기관 소식은 앱 안 신청이 없어 일정에 넣지 않는다) */
+function PlanCard({ list, give }) {
   const nav = useNavigate();
   const today = todayISO();
   const up = list.filter((r) => ['CONFIRMED', 'IN_PROGRESS', 'CHECKED_OUT'].includes(r.status) && ((r.myRole === 'VOLUNTEER') === give) && String(r.date).slice(0, 10) >= today)
     .map((r) => ({ k: give ? 'give' : 'recv', cat: r.category, t: r.content, w: give ? (r.elder ? r.elder.displayName : r.recipient && `${r.recipient.name} 님`) : r.volunteer && `${r.volunteer.name} 님`, d: String(r.date).slice(0, 10), h: r.startHour, v: give ? `+${hmTxt(r.estEarn)}` : `−${hmTxt(r.hours)}`, to: `/req/${r.id}`, r }));
-  const evs = (events || []).filter((e) => e.myApplied && e.date && e.date >= today).map((e) => ({ k: 'ev', cat: 'news', t: e.title, w: e.orgName || '기관', d: e.date, h: e.startHour, v: '행사', to: `/news/${e.id}` }));
-  const rows = [...up, ...evs].sort((a, b) => a.d.localeCompare(b.d) || (a.h || 0) - (b.h || 0)).slice(0, 3);
+  const rows = up.sort((a, b) => a.d.localeCompare(b.d) || (a.h || 0) - (b.h || 0)).slice(0, 3);
   return (
     <>
       <div className="pc-up"><span>내 일정</span><a role="button" tabIndex={0} style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 600, color: 'var(--sub)' }} onClick={() => nav('/planner')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/planner'); }}>달력 ›</a></div>
@@ -249,7 +248,7 @@ export function UHome() {
   return (
     <Screen title={<span className="hlogo"><i><Ic h={I.logo} /></i>시간 적금</span>} back={false}>
       <BankCard me={me} />
-      <PlanCard list={list} events={events} give={give} />
+      <PlanCard list={list} give={give} />
       <div className="qa" style={{ marginTop: 18 }}>
         {qa.map(([g, t, i, sub]) => <button key={t} onClick={() => nav(g)} aria-label={sub ? `${t} ${sub}` : t}><DIc k={i} size={56} />{t}{sub && <small className="qm-sub">{sub}</small>}</button>)}
       </div>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
 import { hmTxt, useMode } from '../ui/proto.jsx';
-import { Ic, Spk, Mod, TBar, CatIc, Avatar, Stars, StTag, FlowBar, Loading, Empty, AiLoading, RuleNote, QrSvg, Upload, useLoad, useBusy, postWho, postCats, diffText } from '../ui/bits.jsx';
+import { Ic, Spk, Mod, TBar, CatIc, Avatar, AuthImg, Stars, StTag, FlowBar, Loading, Empty, AiLoading, RuleNote, QrSvg, Upload, useLoad, useBusy, postWho, postCats, diffText } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
 import { CATS, SHORT, W, LV, fmt, hh, dlabel, dshort, KIND_LABEL, lvName, lvWeight, addDays } from '../lib/format.js';
@@ -42,7 +42,7 @@ function MgrRejectSheet({ r, onSubmit }) {
 
 /* ---------- 공개 프로필 시트 (B-12, B-40, B-41) ---------- */
 /** 소개 카드·프로필의 얼굴 자리(B-12): 사진이 있으면 사진, 없으면 이름 첫 글자 */
-const Ph = ({ name, photo }) => (photo ? <img className="ph" src={photo} alt={`${name || ''} 님 사진`} style={{ objectFit: 'cover' }} /> : <div className="ph">{(name || '?')[0]}</div>);
+const Ph = ({ name, photo }) => { const ini = <div className="ph">{(name || '?')[0]}</div>; return photo ? <AuthImg className="ph" src={photo} fallback={ini} alt={`${name || ''} 님 사진`} style={{ objectFit: 'cover' }} /> : ini; };
 
 export function ProfileView({ p }) {
   if (!p) return <Loading />;
@@ -215,11 +215,9 @@ const QrStepsBar = ({ k }) => <div className="qr-steps">{['도착 · 시작 QR',
 
 /** 봉사자: 시작·종료 QR 찍기 시트 (카메라로 실제 QR 인식 + 번호 6자리 입력) */
 function ScanSheet({ r, mode, onDone, onClose }) {
-  const [busy, run] = useBusy();
   const who = r.elder ? `${r.elder.displayName} 댁 현관의 QR 카드` : `${r.recipient ? r.recipient.name : '받는 분'} 님 휴대폰의 QR`;
   const url = `/requests/${r.id}/${mode === 'in' ? 'check-in' : 'check-out'}`;
   const submit = (body) => post(url, body, { quiet: body.method === 'qr' });
-  const manual = () => run(async () => { await post(url, { method: 'manual' }); onClose(); onDone(); });
   return (
     <>
       <h2>{mode === 'in' ? '시작 QR 찍기' : '종료 QR 찍기'}</h2>
@@ -227,7 +225,6 @@ function ScanSheet({ r, mode, onDone, onClose }) {
       <QrScanner kind={r.elder ? 'ELD' : 'REQ'} id={r.elder ? r.elder.id : r.id} submit={submit} onDone={() => { onClose(); onDone(); }}
         codeHint={r.elder ? 'QR이 안 찍히면 카드에 적힌 번호 6자리를 넣어 주세요' : undefined}
         foot={r.elder ? '카드가 안 보이거나 맞지 않으면 담당자에게 메시지로 알려 주세요' : '상대방이 휴대폰 화면 밝기를 높이면 잘 찍혀요'} />
-      <button className="au-demo" disabled={busy} onClick={manual}>번호 없이 {mode === 'in' ? '시작' : '마치기'} (받는 분이 한 번 더 확인해요)</button>
       <button className="btn ghost" style={{ marginTop: 8 }} onClick={onClose}>닫기</button>
     </>
   );
@@ -511,7 +508,7 @@ export function RequestDetail() {
     const adj = r.adjust && r.adjust.status === 'PENDING';
     action = (
       <>
-        <div className="ai" style={{ marginTop: 16 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div>{r.logPhotoUrl && <img src={r.logPhotoUrl} alt="활동 사진" style={{ width: '100%', borderRadius: 12, marginTop: 10 }} />}</div>
+        <div className="ai" style={{ marginTop: 16 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div>{r.logPhotoUrl && <AuthImg src={r.logPhotoUrl} alt="활동 사진" style={{ width: '100%', borderRadius: 12, marginTop: 10 }} />}</div>
         <CareMemo text={r.careMemo} style={{ marginTop: 10 }} />
         {r.checkInAt && <div className="mute2" style={{ marginTop: 6 }}>체크 기록 {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))}){r.checkMethod === 'manual' ? ' · 버튼으로 기록돼 시간을 한 번 더 확인해 주세요' : ''}{closedNote ? ` · ${closedNote}` : ''}</div>}
         {gap}

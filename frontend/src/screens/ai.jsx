@@ -37,6 +37,19 @@ export function PubCards({ list, big, ai }) {
   );
 }
 
+/** B-67·B-09: 금지 요청(불가)의 대체 안내 → 근처에서 받을 수 있는 공공 서비스 안내(위치 기준 안내 화면)로 가는 버튼 */
+export function NearbyPublicBtn({ f, style }) {
+  const nav = useNavigate();
+  const n = (f && f.nearby) || {};
+  const link = n.link || '/public?near=1';
+  return (
+    <>
+      <button type="button" className="btn soft sm" style={{ marginTop: 10, ...style }} onClick={() => nav(link)}><Ic n="pin" s={16} /> {n.label || '근처에서 받을 수 있는 공공 서비스 찾기'}</button>
+      <div className="mute2" style={{ marginTop: 4 }}>지금 계신 곳 기준으로 찾아요. 위치를 쓰지 않으면 사는 동네 기준으로 안내해요.</div>
+    </>
+  );
+}
+
 /* ---------- 금지 요청·난이도 판단 결과 (B-08, B-09) ---------- */
 export function FilterBox({ f, diff }) {
   const nav = useNavigate();
@@ -47,7 +60,8 @@ export function FilterBox({ f, diff }) {
       <div className="ai warn">
         <div className="ah"><Spk />이 요청은 보낼 수 없어요 · 불가<Mod n={2} /></div>
         <div className="small">{f.reason}</div>
-        {f.alternatives && f.alternatives.length ? <><div className="small" style={{ marginTop: 6 }}>대신 받을 수 있는 공공 서비스예요.</div><PubCards list={f.alternatives} /></> : <button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav('/public')}>공공 서비스 안내 보기</button>}
+        {f.alternatives && f.alternatives.length ? <><div className="small" style={{ marginTop: 6 }}>대신 받을 수 있는 공공 서비스예요.</div><PubCards list={f.alternatives} /></> : null}
+        <NearbyPublicBtn f={f} />
         <RuleNote source={f.source} />
       </div>
     );
@@ -184,7 +198,20 @@ export function Public() {
     setAsked(q.trim() ? `${q.trim()} (내 위치 근처)` : '내 위치 근처 공공 서비스'); setRes({ loading: true, near: true });
     try { setRes({ ...(await nearby(pos.lat, pos.lng)), near: true }); } catch { setRes(null); }
   };
-  useLoad(async () => { if (sp.get('q')) ask(sp.get('q')); return null; }, []);
+  /* B-67·B-09: 금지 요청 안내에서 넘어오면(near=1) 바로 위치 기준으로 찾는다. 위치를 못 쓰면 사는 동네 기준 안내로 대신한다. */
+  const nearFirst = async (t) => {
+    const pos = await askLocation('근처 공공 서비스 안내');
+    if (!pos) return ask(t || '근처에서 받을 수 있는 공공 서비스');
+    setLocNote(null);
+    setAsked(t ? `${t} (내 위치 근처)` : '내 위치 근처 공공 서비스'); setRes({ loading: true, near: true });
+    try {
+      const r = await post('/ai/public-services/nearby', { question: t || undefined, lat: pos.lat, lng: pos.lng, area: me && me.area });
+      if (r && (r.services || []).length) return setRes({ ...r, near: r.usedLocation !== false });
+      setRes(await post('/ai/public-services', { question: t || '공공 서비스', area: me && me.area, ageGroup: me && me.ageGroup }));
+    } catch { setRes(null); }
+    return null;
+  };
+  useLoad(async () => { if (sp.get('near')) nearFirst(sp.get('q') || ''); else if (sp.get('q')) ask(sp.get('q')); return null; }, []);
   return (
     <Screen title="공공 서비스 안내" noTabs>
       <AskBox mic title="필요한 걸 말해 주세요" sub="AI가 공공 서비스 DB에서 맞는 서비스를 찾아 쉬운 말로 알려드려요" placeholder="예) 혼자 사는데 쓰러지면 걱정돼요" q={q} setQ={setQ} onAsk={ask}

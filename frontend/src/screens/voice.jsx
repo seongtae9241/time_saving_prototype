@@ -5,7 +5,7 @@ import { Ic, Spk, Mod, CatIc, RuleNote, useLoad, useBusy } from '../ui/bits.jsx'
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
 import { CATS, SHORT, AREAS, fmt, hh, dlabel, lvName, lvWeight, addDays } from '../lib/format.js';
-import { PubCards } from './ai.jsx';
+import { PubCards, NearbyPublicBtn } from './ai.jsx';
 import { useSpeechInput, SttServerToggle } from '../ui/VoiceInput.jsx';
 import { PostCheck, mergeChecks } from './assist.jsx'; // LLM 추가 A(7.12) 빠진 정보 점검
 
@@ -200,6 +200,7 @@ export function VoiceReq() {
           <div className="ah"><Spk />이 요청은 올릴 수 없어요<Mod n={2} /></div>
           <div className="vr-say">{res.filter.reason}</div>
           {(res.filter.alternatives || []).length > 0 && <><div className="vr-say" style={{ marginTop: 8 }}>대신 이런 공공 서비스가 있어요</div><PubCards big list={res.filter.alternatives} /></>}
+          <NearbyPublicBtn f={res.filter} />
           <div className="vr-say" style={{ marginTop: 10, fontSize: 16 }}>말벗, 장보기, 병원 동행, 휴대폰 도움처럼 이웃이 할 수 있는 일은 요청할 수 있어요.</div>
           <button className="btn vr-big" style={{ marginTop: 12 }} onClick={reset}>다시 말하기</button>
           <RuleNote source={res.source} />

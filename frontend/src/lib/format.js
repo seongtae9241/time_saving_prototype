@@ -73,6 +73,13 @@ export const josa = (word, withFinal, noFinal) => {
   const has = c >= 0xac00 && c <= 0xd7a3 ? (c - 0xac00) % 28 !== 0 : false;
   return w + (has ? withFinal : noFinal);
 };
+/** (으)로: 받침이 없거나 ㄹ 받침이면 '로', 그 밖의 받침은 '으로'. ro('확인 중') → '확인 중으로' */
+export const ro = (word) => {
+  const w = String(word || '');
+  const c = w.charCodeAt(w.length - 1);
+  const j = c >= 0xac00 && c <= 0xd7a3 ? (c - 0xac00) % 28 : 0;
+  return w + (j === 0 || j === 8 ? '로' : '으로');
+};
 export const maskN = (n) => (n ? (n.length <= 1 ? n + '○' : n[0] + '○' + n.slice(-1)) : '');
 
 export const ST = {

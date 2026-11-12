@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Screen, { useDemoSheet } from '../ui/Frame.jsx';
-import { Ic, Logo, ChipsPick, Upload, useBusy } from '../ui/bits.jsx';
+import { Ic, Logo, ChipsPick, Upload, useBusy, hasBack } from '../ui/bits.jsx';
 import { useAuth, useUi, HOME_OF } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
 import { firebaseConfigured, sendSms, confirmSms, clearSms, smsErrorText } from '../lib/firebasePhone.js';
@@ -305,7 +305,9 @@ export function OrgApply() {
         const fd = new FormData();
         Object.entries(f).forEach(([k, v]) => { if (v) fd.append(k, v); });
         fd.append('proof', file);
-        try { await api('/orgs/apply', { method: 'POST', form: fd }); nav(-1); toast('신청했어요. 보통 3일 안에 결과가 나와요'); } catch { /* 토스트 */ }
+        try { await api('/orgs/apply', { method: 'POST', form: fd });
+          if (hasBack()) nav(-1); else nav('/login', { replace: true }); // 주소로 바로 들어왔으면 이전 화면이 없으니 시작 화면으로
+          toast('신청했어요. 보통 3일 안에 결과가 나와요'); } catch { /* 토스트 */ }
       }}>신청하기</button>
     </Screen>
   );

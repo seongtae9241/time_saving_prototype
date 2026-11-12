@@ -196,7 +196,7 @@ export function PostDetail() {
               <div className="card item" key={r.id}><div className="grow"><div className="b">{r.volunteer ? r.volunteer.name : ''} · {KIND_LABEL[r.kind] || '요청'}</div><div className="mute2">{dlabel(r.date)} {hh(r.startHour)}~{hh(Number(r.startHour) + Number(r.hours))} · {r.content}</div></div><StTag st={r.status} /></div>
             ))
             : reqs.map((r) => <ReqRow key={r.id} r={r} />)}
-          {open && !accepted && (
+          {mine && open && !accepted && (
             <div className="btns" style={{ marginTop: 14 }}>
               <button className="btn ghost" onClick={() => nav(`/post/${p.id}/edit`)}>수정</button>
               <button className="btn ghost" onClick={async () => {
@@ -205,8 +205,9 @@ export function PostDetail() {
               }}>삭제</button>
             </div>
           )}
-          {!open && <div className="notice" style={{ marginTop: 14 }}>요청이 수락되었거나 마감된 공고는 바꿀 수 없어요.</div>}
-          <button className="btn soft" style={{ marginTop: 8 }} onClick={() => repost(p, (np) => nav(`/post/${np.id}`, { replace: true }))}>↻ 같은 내용으로 다시 올리기 (날짜만 골라요)</button>
+          {mine && !open && <div className="notice" style={{ marginTop: 14 }}>요청이 수락되었거나 마감된 공고는 바꿀 수 없어요.</div>}
+          {mine && <button className="btn soft" style={{ marginTop: 8 }} onClick={() => repost(p, (np) => nav(`/post/${np.id}`, { replace: true }))}>↻ 같은 내용으로 다시 올리기 (날짜만 골라요)</button>}
+          {proxyMine && <div className="notice" style={{ marginTop: 14 }}>수정·삭제·다시 올리기는 {p.ownerName} 님이 직접 할 수 있어요.</div>}
         </>
       ) : open ? (
         me && me.role !== 'ADMIN' && (me.role !== 'ORG' || offer) && <button className="btn big-cta" style={{ marginTop: 18 }} onClick={start}>{offer ? (elderId ? `${elder ? elder.alias + ' 님' : '대상'} 대신 도움 요청하기` : '이 시간에 도움 요청하기') : '봉사 제안하기'}</button>

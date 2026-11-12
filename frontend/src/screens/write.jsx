@@ -6,7 +6,7 @@ import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post, put } from '../api.js';
 import { CATS, AREAS, SHORT, hh, fmt, dlabel, addDays, lvName, lvWeight } from '../lib/format.js';
 import { I } from '../ui/icons.js';
-import { PubCards } from './ai.jsx';
+import { PubCards, NearbyPublicBtn } from './ai.jsx';
 import { useSpeechInput } from './voice.jsx';
 import { PostCheck, mergeChecks } from './assist.jsx'; // LLM 추가 A(7.12) 빠진 정보 점검
 import { DIc } from '../ui/proto.jsx';
@@ -19,7 +19,7 @@ export function Write() {
   const { me } = useAuth();
   const [mine] = useLoad(() => api('/posts/mine', { quiet: true }), []);
   const repost = useRepost();
-  const past = (mine || []).slice(0, 3);
+  const past = (mine || []).filter((p) => !p.proxyMine).slice(0, 3); // 가족 대신 올린 공고는 읽기만이라 다시 올리기 목록에 넣지 않는다
   return (
     <Screen title="공고 올리기" noTabs>
       <h2 className="su-h" style={{ marginTop: 4 }}>어떤 공고를<br />올릴까요?</h2>
@@ -44,8 +44,20 @@ export function Write() {
   );
 }
 
+/** 대화형 작성의 빠른 답 칩: 지금 묻는 칸에 맞춘다(시작 시각 ↔ 걸리는 시간 길이를 섞지 않는다). */
+export function quickFor(field, forElder) {
+  switch (field) {
+    case 'date': return ['내일', '이번 주 토요일', '다음 주 화요일'];
+    case 'startHour': return ['오전 10시', '오후 2시', '저녁 6시'];
+    case 'endHour': return ['오후 1시까지', '오후 5시까지', '저녁 8시까지'];
+    case 'estHours': return ['1시간', '1시간 30분', '2시간', '3시간'];
+    case 'area': return forElder ? ['대상 집 (주소는 담당자가 안내)', '행복동 주민센터'] : ['우리 집', '근처 카페', '행복동 주민센터'];
+    default: return [];
+  }
+}
+
 /* ---------- 도움 가능 공고 (B-04, B-06) · 공고 수정(B-11) ---------- */
-function PostForm({ init, type, onSubmit, submitLabel, extra }) {
+function PostForm({ init, type, onSubmit, submitLabel, extra, needDate }) {
   const [f, setF] = useState(init);
   const sp = useSpeechInput({ onFinal: (t) => setF((x) => ({ ...x, note: t })), onInterim: (t) => setF((x) => ({ ...x, note: t })) });
   const dates = Array.from({ length: 10 }, (_, i) => addDays(i + 1));
@@ -55,6 +67,7 @@ function PostForm({ init, type, onSubmit, submitLabel, extra }) {
   return (
     <>
       <label className="f">날짜</label>
+      {needDate && !f.date && <div className="notice" style={{ marginBottom: 8 }}>지난 공고를 불러왔어요. 날짜를 골라 주세요.</div>}
       <div className="tags">{dates.map((d) => <button key={d} className={'chip ' + (f.date === d ? 'on' : '')} onClick={() => set('date', d)}>{dlabel(d)}</button>)}</div>
       <label className="f">{offer ? '비는 시간' : '도움이 필요한 시간'}</label>
       <div className="row">
@@ -77,7 +90,7 @@ function PostForm({ init, type, onSubmit, submitLabel, extra }) {
       {sp.msg && <div className="mute2" style={{ marginTop: 6 }}>{sp.msg}</div>}
       {init.elderIssue !== undefined && <IssueField value={f.elderIssue} onChange={(v) => set('elderIssue', v)} />}
       {extra}
-      <button className="btn big-cta" style={{ marginTop: 18 }} onClick={() => onSubmit(f)}>{submitLabel}</button>
+      <button className="btn big-cta" style={{ marginTop: 18 }} disabled={!f.date} onClick={() => f.date && onSubmit(f)}>{f.date ? submitLabel : '날짜를 골라 주세요'}</button>
     </>
   );
 }
@@ -148,12 +161,13 @@ export function WriteOffer() {
     <Screen title="도움 가능" noTabs>
       <div className="mute2" style={{ margin: '-2px 0 6px' }}>도울 수 있는 시간을 올리면, 도움이 필요한 이웃이 그 시간에 요청해요.</div>
       {me.idStatus !== 'APPROVED' && <div className="notice">도움 가능 공고는 신분증 인증을 마친 뒤 올릴 수 있어요. <a role="button" tabIndex={0} style={{ color: 'var(--brand)', fontWeight: 700 }} onClick={() => nav('/my/verify')}>인증하러 가기 ›</a></div>}
-      <PostForm key={loaded ? `re-${loaded.id}` : 'new'} type="OFFER" submitLabel={busy ? '올리는 중…' : '공고 등록하기'}
+      <PostForm key={loaded ? `re-${loaded.id}` : 'new'} type="OFFER" needDate={!!loaded} submitLabel={busy ? '올리는 중…' : '공고 등록하기'}
         extra={<><button type="button" className="btn soft" style={{ marginTop: 10 }} onClick={reuse}>지난 공고 불러오기</button><div className="mute2" style={{ marginTop: 6 }}>공고 1개에는 요청 1건만 받아요 · 자동으로 반복되지 않아요</div></>}
         init={loaded
-          ? { date: addDays(1), startHour: Number(loaded.startHour), endHour: Number(loaded.endHour), area: loaded.area || me.area || '행복동', categories: postCats(loaded), note: loaded.note || loaded.title || '' }
+          ? { date: '', startHour: Number(loaded.startHour), endHour: Number(loaded.endHour), area: loaded.area || me.area || '행복동', categories: postCats(loaded), note: loaded.note || loaded.title || '' }
           : { date: addDays(1), startHour: 13, endHour: 17, area: me.area || '행복동', categories: (me.categories && me.categories.length ? me.categories : ['디지털 도움']).slice(0, 3), note: '' }}
         onSubmit={(f) => run(async () => {
+          if (!f.date) return toast('날짜를 골라 주세요');
           if (!f.categories.length) return toast('할 수 있는 도움을 골라 주세요');
           const r = await post('/posts', { type: 'OFFER', date: f.date, startHour: f.startHour, endHour: f.endHour, area: f.area, categories: f.categories, title: f.note || '봉사할 수 있어요', detail: '', note: f.note });
           toast('공고를 올렸어요. 요청이 오면 알려드려요');
@@ -275,9 +289,7 @@ export function WriteNeed() {
   const missing = (res && res.missing) || [];
   const qs = !target ? [] : !chat.length
     ? (elderId ? ['다음 주 화요일 오전에 병원 같이 가 줄 사람', '이번 주 금요일 장보기 도와줄 사람', '약 챙겨서 먹여 줄 사람'] : ['다음 주 수요일 오후에 폰 사진 옮기는 거 도와줄 사람', '주말에 같이 장 봐줄 사람', '약 챙겨서 먹여 줄 사람'])
-    : missing.some((m) => /time|hour|시간/i.test(m)) ? ['오후 2시~5시', '오전 10시~12시', '저녁 6시~8시']
-      : missing.some((m) => /area|place|장소/i.test(m)) ? (elderId ? ['대상 집 (주소는 담당자가 안내)', '행복동 주민센터'] : ['우리 집', '근처 카페', '행복동 주민센터'])
-        : missing.some((m) => /date|날짜/i.test(m)) ? ['내일', '이번 주 토요일', '다음 주 화요일'] : [];
+    : quickFor(missing[0], !!elderId); // 서버가 지금 묻는 칸(missing 의 첫 칸)에 맞는 빠른 답
   const publish = (r) => run(async () => {
     const d = r.draft;
     const tf = tidyFix || {};
@@ -342,7 +354,7 @@ export function WriteNeed() {
           {chat.map((m, i) => {
             if (m.card === 'block') {
               const f = m.res.filter;
-              return <div className="mrow" key={i}><Bot /><div className="mcol wide"><div className="ai warn"><div className="ah"><Spk />이 요청은 보낼 수 없어요 · 불가<Mod n={2} /></div><div className="small">{f.reason}</div>{(f.alternatives || []).length > 0 && <PubCards list={f.alternatives} />}<RuleNote source={m.res.source} /></div></div></div>;
+              return <div className="mrow" key={i}><Bot /><div className="mcol wide"><div className="ai warn"><div className="ah"><Spk />이 요청은 보낼 수 없어요 · 불가<Mod n={2} /></div><div className="small">{f.reason}</div>{(f.alternatives || []).length > 0 && <PubCards list={f.alternatives} />}<NearbyPublicBtn f={f} /><RuleNote source={m.res.source} /></div></div></div>;
             }
             if (m.card === 'done') {
               const base = tidyFix ? { ...m.res.draft, title: tidyFix.title || m.res.draft.title, detail: tidyFix.detail || m.res.draft.detail, caution: tidyFix.caution || m.res.draft.caution } : m.res.draft;
