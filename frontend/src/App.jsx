@@ -20,6 +20,8 @@ import { ModeProvider } from './ui/proto.jsx';
 import { Planner } from './screens/planner.jsx';
 import { Ask } from './screens/assist.jsx'; // LLM 추가 A(7.12) 음성 비서
 import { ClassDetail, APublicClasses } from './screens/publicClass.jsx';
+import { Bundle } from './screens/bundle.jsx'; // 기능 U-12 빈 시간 묶음 추천
+import { RecurringList, RecurringNew } from './screens/recurring.jsx'; // 기능 U-09 정기 요청
 
 /** 로그인·역할 확인 */
 function Guard({ roles, children }) {
@@ -65,6 +67,9 @@ function Shell() {
         <Route path="/write/offer" element={g(<WriteOffer />, U)} />
         <Route path="/write/need" element={g(<WriteNeed />, UO)} />
         <Route path="/write/need/manual" element={g(<WriteNeedManual />, UO)} />
+        <Route path="/bundle" element={g(<Bundle />, U)} />
+        <Route path="/recurring" element={g(<RecurringList />, UO)} />
+        <Route path="/recurring/new" element={g(<RecurringNew />, UO)} />
         <Route path="/act" element={g(<Act />, U)} />
         <Route path="/bank" element={g(<Bank />, U)} />
         <Route path="/gift" element={g(<Gift />, U)} />

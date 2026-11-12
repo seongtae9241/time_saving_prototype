@@ -4,7 +4,7 @@ import Screen from '../ui/Frame.jsx';
 import { Ic, Spk, Mod, TBar, Cats, PostCard, ReqRow, Avatar, Stars, StTag, Loading, Empty, RuleNote, useLoad, postWho, postCats } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, del } from '../api.js';
-import { CATS, SHORT, AREAS, KIND_LABEL, fmt, hh, dlabel, lvName, lvWeight, todayISO, addDays } from '../lib/format.js';
+import { CATS, SHORT, AREAS, KIND_LABEL, W, fmt, hh, dlabel, lvName, lvWeight, todayISO, addDays } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useReport } from './common.jsx';
 import { useProfileSheet } from './request.jsx';
@@ -14,6 +14,7 @@ import { FixTips } from './assist.jsx';
 import { DIc, useMode } from '../ui/proto.jsx';
 import { useLocationAsk } from '../ui/location.jsx';
 import { useRepost } from '../ui/repost.jsx';
+import { BundleLink } from './bundle.jsx';
 
 const DATES = [['all', '전체 날짜'], ['today', '오늘'], ['week', '이번 주'], ['next', '다음 주']]; // + 날짜 고르기(pick)
 const SLOTS = [['all', '시간대'], ['am', '오전'], ['pm', '오후'], ['eve', '저녁']];
@@ -45,10 +46,13 @@ export function Board() {
   const [sort, setSort] = useState('new');
   const [pos, setPos] = useState(null);
   const askLocation = useLocationAsk();
+  // 기능 U-02: 정렬은 최신순 → 가까운 순(거리순) → 시간순(활동 날짜·시작 시각이 빠른 순) 차례로 바뀐다
+  const SORT_L = { new: '최신순', near: '가까운 순', time: '시간순' };
   const toggleSort = async () => {
-    if (sort === 'near') return setSort('new');
+    if (sort === 'near') return setSort('time');
+    if (sort === 'time') return setSort('new');
     const got = await askLocation('가까운 순 정렬');
-    if (!got) return; // 위치를 못 얻으면 최신순 그대로
+    if (!got) return setSort('time'); // 위치를 못 얻으면 거리순은 건너뛰고 시간순
     setPos(got); setSort('near');
   };
   const [area, setArea] = useState('');
@@ -103,11 +107,13 @@ export function Board() {
         <button className="tag2" onClick={pickDay}>{dtLabel} <Ic h={I.down} /></button>
         <button className="tag2" onClick={() => pick('시간대', SLOTS.map(([v, l]) => [v, v === 'all' ? '전체 시간대' : l]), slot, setSlot)}>{SLOTS.find((d) => d[0] === slot)[1]} <Ic h={I.down} /></button>
         <span className="grow" />
-        <button className="tag2" style={NW} onClick={toggleSort} aria-label={sort === 'near' ? '지금 가까운 순. 누르면 최신순' : '지금 최신순. 누르면 가까운 순(위치 정보 이용)'}>{sort === 'near' ? '가까운 순' : '최신순'} ⇅</button>
+        <button className="tag2" style={NW} onClick={toggleSort} aria-label={sort === 'near' ? '지금 가까운 순. 누르면 시간순' : sort === 'time' ? '지금 시간순(활동 시간이 빠른 순). 누르면 최신순' : '지금 최신순. 누르면 가까운 순(위치 정보 이용)'}>{SORT_L[sort]} ⇅</button>
       </div>
       {sort === 'near' && pos && <div className="mute2" style={{ margin: '-2px 0 8px' }}><Ic n="pin" s={13} /> 지금 계신 곳에서 가까운 순이에요. 위치는 이번 정렬에만 쓰고 저장하지 않아요.</div>}
       <div className="chips">{['전체', ...catOrder].map((k) => <button key={k} className={'chip ' + (k === cat ? 'on' : '')} onClick={() => setCat(k)}>{type === 'OFFER' && favSet.has(k) && <span className="fav-mark" aria-label="자주 받는 도움">★</span>}{k === '전체' ? '전체' : SHORT[k]}</button>)}</div>
       {!elderId && me && me.role === 'USER' && <div className="tip" style={{ marginTop: 12, padding: '12px 16px' }}><div className="grow small"><Ic n="bell" s={16} /> 조건에 맞는 공고가 올라오면 알려드려요</div><button className="btn soft sm" style={{ width: 'auto', padding: '0 12px', minHeight: 36 }} onClick={() => nav('/my/alerts')}>관심 조건</button></div>}
+      {sort === 'time' && <div className="mute2" style={{ margin: '8px 0 0' }}>활동 날짜와 시작 시각이 빠른 순이에요.</div>}
+      {!elderId && isUser && type === 'NEED' && <BundleLink />}
       <div className="sec-t"><span>공고 <span style={{ color: 'var(--brand)' }}>{shown.length}</span>개</span></div>
       {list === undefined ? <Loading /> : shown.length ? shown.map((p) => <PostCard key={p.id} p={p} to={elderId ? `/post/${p.id}?elder=${elderId}` : undefined} />) : <Empty>조건에 맞는 공고가 없어요</Empty>}
       {!elderId && me && me.role === 'USER' && (
@@ -168,6 +174,9 @@ export function PostDetail() {
           : mine ? <><b>{p.proxyByName || '가족'} 님이 대신 올려 준 공고예요.</b> 봉사 제안이 오면 최종 수락·거부는 직접 해 주세요.</>
             : <>가족이 대신 올린 공고예요. 최종 수락은 {p.ownerName} 님이 직접 해요.</>}</div></div>
       )}
+      {p.seriesId && p.repeatRule && (
+        <div className="notice" style={{ marginTop: 12 }}><Ic n="repeat" s={15} /> <b>{p.repeatRule}</b> 정기 요청의 회차 공고예요. 이 공고에도 요청 1건만 수락돼요.{(mine || proxyMine) && <> <a role="button" tabIndex={0} style={{ color: 'var(--brand)', fontWeight: 700 }} onClick={() => nav(p.elderId ? `/recurring?elder=${p.elderId}` : '/recurring')}>정기 요청 관리 ›</a></>}</div>
+      )}
       {mine && <FixTips p={p} />}
       <div className="card" style={{ marginTop: 16 }}>
         <div className="mute2">{offer ? '봉사할 수 있는 시간' : '도움이 필요한 시간'}</div>
@@ -186,6 +195,12 @@ export function PostDetail() {
           <div className="small muted" style={{ marginTop: 4 }}>근거: {diffReason(p)}</div>
         </div>
       )}
+      {offer && postCats(p).length > 0 && (() => {
+        // 기능 U-03: 도움 가능 공고에도 예상 적립 시간을 보여 준다(1시간 기준, 요청한 도움 종류의 가중치에 따라)
+        const ws = postCats(p).map((c) => W(c));
+        const lo = Math.min(...ws), hi = Math.max(...ws);
+        return <div className="notice" style={{ marginTop: 12 }}>예상 적립: 1시간 도우면 <b>+{lo.toFixed(1)}{hi > lo ? `~${hi.toFixed(1)}` : ''}시간</b> (요청받은 시간 × 도움 종류 가중치)</div>;
+      })()}
       {w.elder && <div className="lock" style={{ marginTop: 12 }}><Ic n="shield" s={18} /><div><b>방문 시 주의사항</b><br />{p.elderCaution || p.caution || '담당자가 따로 안내해요'}<div style={{ marginTop: 6, opacity: 0.85 }}>이름·주소·연락처는 보이지 않아요. 수락되면 담당자가 방문 장소를 따로 알려드려요.</div></div></div>}
       <div className="notice" style={{ marginTop: 12 }}>공고 1개에는 요청 1건만 수락돼요. 시간은 공고 범위 안에서 30분 단위, 최대 4시간이에요.</div>
       {mine || proxyMine ? (
