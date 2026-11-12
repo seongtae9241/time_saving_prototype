@@ -12,6 +12,10 @@ import { PostCheck, mergeChecks } from './assist.jsx'; // LLM 추가 A(7.12) 빠
 /* ---------- 음성 도구: 받아쓰기는 공용 ui/VoiceInput.jsx(브라우저 → 서버 음성 인식) · 읽어 주기(speechSynthesis) ---------- */
 export { useSpeechInput, speechSupported } from '../ui/VoiceInput.jsx';
 
+
+/* 말로 뽑힌 반복("매주 목요일" 같은 글자)을 서버가 받는 모양으로 바꾼다. 주마다 반복만 지원(4주), 격주·매달은 한 번만 올린다. */
+const isWeekly = (r) => typeof r === 'string' ? r.replace(/\s/g, '').startsWith('매주') : !!(r && r.weekly);
+const repeatBody = (r) => (isWeekly(r) ? { weekly: true, weeks: (r && r.weeks) || 4 } : undefined);
 export function getTts() { try { return localStorage.getItem('ts-tts') !== '0'; } catch { return true; } }
 export function setTts(v) { try { localStorage.setItem('ts-tts', v ? '1' : '0'); } catch { /* 무시 */ } }
 export function stopSpeak() { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch { /* 무시 */ } }
@@ -113,14 +117,15 @@ export function VoiceReq() {
     const body = {
       type: 'NEED', date: d.date, startHour: Number(d.startHour), endHour: Number(d.endHour), area: d.area || (elder ? elder.dong : me && me.area),
       categories: d.categories, estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), title: d.title || `${d.categories[0]} 도움`, detail: d.detail || '', note: d.caution ? `방문 시 주의: ${d.caution}` : (d.note || ''), caution: d.caution || undefined,
-      repeat: d.repeat || undefined, elderId: elderId ? Number(elderId) : undefined, inputMode: 'voice',
+      repeat: repeatBody(d.repeat), elderId: elderId ? Number(elderId) : undefined, inputMode: 'voice',
     };
     const p = await post('/posts', body);
     const first = Array.isArray(p) ? p[0] : p;
     setPhase('posted');
     refresh();
-    say('요청서를 올렸어요. 도와줄 이웃이 나타나면 알려 드릴게요.');
-    toast(who ? `${who} 대신 공고를 올렸어요` : '공고를 올렸어요');
+    say(((p && p.createdCount) || 1) > 1 ? `요청서 ${p.createdCount}건을 올렸어요. 도와줄 이웃이 나타나면 알려 드릴게요.` : '요청서를 올렸어요. 도와줄 이웃이 나타나면 알려 드릴게요.');
+    const n = (p && p.createdCount) || (Array.isArray(p) ? p.length : 1);
+    toast(n > 1 ? `매주 반복으로 ${n}건을 올렸어요` : who ? `${who} 대신 공고를 올렸어요` : '공고를 올렸어요');
     setRes((x) => ({ ...x, postedId: first && first.id }));
   });
 
@@ -211,6 +216,7 @@ export function VoiceReq() {
               {field('time', '시간', `${hh(draft.startHour)} ~ ${hh(draft.endHour)}${draft.estHours ? ` (${draft.estHours}시간)` : ''}`)}
               {field('area', '장소', draft.area || (elder ? elder.dong : me && me.area))}
               {field('category', '도움 종류', (draft.categories || []).join(', ') || '고르지 않음')}
+              {draft.repeat && <div className="vr-f"><span className="vr-l">반복</span><span className="vr-v">{isWeekly(draft.repeat) ? `${draft.repeat} · 4주 동안 4건이 올라가요` : `${draft.repeat} 반복은 아직 안 돼요. 이번 한 번만 올려요`}{isWeekly(draft.repeat) && <button type="button" className="chip" style={{ marginLeft: 8 }} onClick={() => setDraft((d) => ({ ...d, repeat: null }))}>이번 한 번만</button>}</span></div>}
               {mergeChecks(draft, chk).detail && <div className="vr-f"><span className="vr-l">내용</span><span className="vr-v">{mergeChecks(draft, chk).detail}</span></div>}
               {mergeChecks(draft, chk).caution && <div className="vr-f"><span className="vr-l">방문 시 주의사항</span><span className="vr-v">{mergeChecks(draft, chk).caution}</span></div>}
               <div className="vr-f"><span className="vr-l">난이도</span><span className="vr-v">{diff ? `${lvName(diff.level)} ${dWeight.toFixed(1)}` : '-'}</span></div>

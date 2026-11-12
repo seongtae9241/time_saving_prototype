@@ -311,10 +311,11 @@ public class AiClient {
         draft.put("estHours", d.estHours);
         draft.put("caution", d.caution);
         draft.put("repeat", d.repeat);
-        draft.put("summarySpeech", done ? d.summarySpeech : null);
+        draft.put("summarySpeech", done ? PostChatRule.withRepeat(d.summarySpeech, d.repeat) : null);
 
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("reply", reply);
+        // 다 채워진 요약을 그대로 답으로 쓸 때(음성)는 답에도 반복 안내를 붙인다
+        out.put("reply", done && reply != null && reply.equals(d.summarySpeech) ? PostChatRule.withRepeat(reply, d.repeat) : reply);
         out.put("done", done);
         out.put("intent", intent);
         out.put("draft", draft);

@@ -130,6 +130,15 @@ public final class PostChatRule {
         return new Result(reply, missing.isEmpty(), d, missing, intent, conf, false, new ArrayList<>(pii));
     }
 
+    /** 소리로 읽어 줄 요약에 반복 여부를 덧붙인다(올리기 전에 몇 건이 올라가는지 알 수 있게). */
+    public static String withRepeat(String summary, String repeat) {
+        if (summary == null || repeat == null || repeat.isBlank() || summary.contains("반복")) return summary;
+        String tail = repeat.replace(" ", "").startsWith("매주")
+                ? "매주 반복으로 4주치를 올릴까요?"
+                : repeat + " 반복은 아직 안 돼서 이번 한 번만 올려요. 올릴까요?";
+        return summary.contains("올릴까요?") ? summary.replace("올릴까요?", tail) : summary + " " + tail;
+    }
+
     static String ask(String field, boolean offer, boolean voice, Draft d) {
         if (d.hoursTooLong && field.equals("estHours"))
             return "한 번에 최대 4시간까지예요. 몇 시간으로 할까요?";

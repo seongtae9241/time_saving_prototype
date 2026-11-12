@@ -32,7 +32,23 @@ public class PostController {
         this.posts = posts; this.postRepo = postRepo; this.requests = requests; this.elders = elders; this.alerts = alerts; this.views = views;
     }
 
-    public record Repeat(Boolean weekly, Integer weeks) {}
+    /**
+     * 반복 규칙. 화면은 {weekly, weeks} 객체로 보내지만, 말로 요청하기의 초안은 "매주 목요일" 같은 글자로 온다.
+     * 글자로 와도 400이 나지 않게 받는다: "매주…"만 주마다 반복(기본 4주)이고, 격주·매달 등은 아직 지원하지 않아 한 번만 올린다.
+     */
+    public record Repeat(Boolean weekly, Integer weeks) {
+        @com.fasterxml.jackson.annotation.JsonCreator(mode = com.fasterxml.jackson.annotation.JsonCreator.Mode.DELEGATING)
+        public static Repeat from(com.fasterxml.jackson.databind.JsonNode n) {
+            if (n == null || n.isNull()) return null;
+            if (n.isTextual()) return new Repeat(isWeeklyText(n.asText()), null);
+            if (n.isBoolean()) return new Repeat(n.asBoolean(), null);
+            if (!n.isObject()) return null;
+            return new Repeat(n.path("weekly").asBoolean(false), n.hasNonNull("weeks") && n.get("weeks").canConvertToInt() ? n.get("weeks").asInt() : null);
+        }
+        public static boolean isWeeklyText(String t) {
+            return t != null && t.replace(" ", "").startsWith("매주");
+        }
+    }
     public record PostBody(PostType type, LocalDate date, Double startHour, Double endHour, String area, List<String> categories,
                            String title, String detail, String note, Double estHours, Repeat repeat, Long elderId,
                            Level difficulty, String difficultyReason, String elderIssue) {
