@@ -398,6 +398,9 @@ public class DataSeeder implements ApplicationRunner {
         p6.difficultyReason = "동행은 기본 책임 등급 → 책임 등급(×1.5)을 제안해요.";
         Post p7 = post(PostType.OFFER, yujin, null, p(11, 14), 13, 17, "행복동", List.of("디지털 도움", "말동무·정서", "장보기·심부름"), "디지털·말벗 도와드려요", null, "금요일 오후 비어요", null, PostStatus.OPEN, now.minusDays(1));
         Post p8 = post(PostType.NEED, yujin, null, p(11, 16), 10, 14, "행복동", List.of("생활 정리"), "이사 후 옷장 정리", "혼자 하기엔 양이 많아요", null, 2.0, PostStatus.OPEN, now.minusDays(1).plusHours(2));
+        // 기능 U-12 빈 시간 묶음 추천 시연용: 같은 날(p5 와 같은 날) 겹치지 않는 도움 요청 2건을 더 둔다
+        post(PostType.NEED, U.get("mom"), null, p(11, 13), 10, 12, "행복동", List.of("말동무·정서"), "오전 말벗과 산책", "공원 한 바퀴 같이 걸어요", null, 1.0, PostStatus.OPEN, now.minusHours(8));
+        post(PostType.NEED, null, E.get("e2"), p(11, 13), 12, 15, "희망동", List.of("장보기·심부름"), "약국·마트 심부름", "약국에서 파스, 마트에서 두부와 달걀", null, 1.5, PostStatus.OPEN, now.minusHours(7));
         Post p9 = post(PostType.OFFER, yujin, null, p(11, 9), 9, 13, "희망동", List.of("생활 정리", "장보기·심부름"), "주말 오전 정리 도와드려요", null, null, null, PostStatus.MATCHED, now.minusDays(4));
 
         Request r1 = req(Kind.REQUEST, p7, bok, yujin, bok, null, p(11, 14), 14, 2, "장보기·심부름", "행복마트에서 쌀 10kg, 반찬거리 장보기", "쌀이 무거워서 부탁해요. 엘리베이터 있어요.", ReqStatus.SENT, now.minusMinutes(10));

@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** 말로 요청하기에서 "매주 …"가 와도 400 없이 한 건만 등록되고(41판 B-06 자동 반복 없음) 다시 올리기를 안내하는지. */
+/** POST /api/posts 는 "매주 …"가 와도 400 없이 한 건만 등록하고 정기 요청·다시 올리기를 안내한다. 대화 초안은 매주면 정기 요청(기능 U-09)으로 이어 준다. */
 @SpringBootTest
 @AutoConfigureMockMvc
 class VoiceRepeatTest {
@@ -50,7 +50,7 @@ class VoiceRepeatTest {
 
     int count(JsonNode n) { return n.path("createdCount").asInt(1); }
 
-    /** 41판 B-06: 자동 반복 등록은 하지 않는다. "매주"가 와도 한 건만 올리고 다시 올리기를 안내한다. */
+    /** 이 주소는 늘 한 건만 올린다. "매주"가 와도 한 건만 올리고 정기 요청·다시 올리기를 안내한다. */
     @Test
     void weeklyTextPostsOnceWithNotice() throws Exception {
         JsonNode a = create("\"매주 목요일\"");
@@ -75,35 +75,53 @@ class VoiceRepeatTest {
         assertFalse(create(null).has("repeatNotice"));
     }
 
+    /** 기능 U-09: 매주면 정기 요청으로 올릴 수 있다고 알리고, 격주·매달은 한 번만 올린다고 알린다. */
     @Test
-    void summaryTellsOnceAndRepost() {
+    void summaryTellsRecurringOrOnce() {
         String s = PostChatRule.withRepeatNotice("11월 19일 목요일 오전 10시부터 1시간, 말벗 요청서를 만들었어요. 올릴까요?", PostChatRule.REPEAT_NOTICE);
-        assertTrue(s.contains("한 번만") && s.contains("다시 올리기") && s.endsWith("올릴까요?"), s);
-        assertFalse(s.contains("4주"), s);
+        assertTrue(s.contains("정기 요청") && s.endsWith("올릴까요?"), s);
+        String once = PostChatRule.withRepeatNotice("요청서를 만들었어요. 올릴까요?", PostChatRule.REPEAT_ONCE_NOTICE);
+        assertTrue(once.contains("한 번만") && once.contains("다시 올리기") && once.endsWith("올릴까요?"), once);
         assertEquals("그대로", PostChatRule.withRepeatNotice("그대로", null));
+        assertEquals(4, PostChatRule.weekdayOf("매주 목요일"));
+        assertNull(PostChatRule.weekdayOf("매주"));
+        assertTrue(PostChatRule.weekly("매주 화요일"));
+        assertFalse(PostChatRule.weekly("격주 화요일"));
     }
 
-    /** 말에 "매주"가 있으면 초안은 한 번짜리이고, 답과 초안에 다시 올리기 안내가 실린다(반복 규칙 칸은 없다). */
+    /** 말에 "매주"가 있으면 초안에 반복 표시가 실리고, 없으면 실리지 않는다. */
     @Test
-    void chatDraftHasNoRepeatRule() {
+    void chatDraftKeepsRepeatLabel() {
         var today = LocalDate.of(2026, 11, 12);
         var r = PostChatRule.run("NEED", java.util.List.of(new PostChatRule.Msg("user", "매주 목요일 오전 10시에 한 시간 말벗 해 줄 사람 행복동")), today, "행복동", true);
         assertTrue(r.done(), r.missing().toString());
-        assertNotNull(r.draft().repeatNotice);
+        assertEquals(PostChatRule.REPEAT_NOTICE, r.draft().repeatNotice);
+        assertEquals("매주 목요일", r.draft().repeatLabel);
+        var biweekly = PostChatRule.run("NEED", java.util.List.of(new PostChatRule.Msg("user", "격주 목요일 오전 10시에 한 시간 말벗 해 줄 사람 행복동")), today, "행복동", true);
+        assertEquals(PostChatRule.REPEAT_ONCE_NOTICE, biweekly.draft().repeatNotice);
         var plain = PostChatRule.run("NEED", java.util.List.of(new PostChatRule.Msg("user", "다음 주 목요일 오전 10시에 한 시간 말벗 해 줄 사람 행복동")), today, "행복동", true);
         assertNull(plain.draft().repeatNotice);
+        assertNull(plain.draft().repeatLabel);
     }
 
+    /** 기능 U-09: "매주 목요일"이면 초안에 repeat {weekly, weekday=4} 가 실려 정기 요청으로 이어 갈 수 있다. 격주면 실리지 않는다. */
     @Test
-    void chatApiSaysOnceInReply() throws Exception {
+    void chatApiOffersRecurring() throws Exception {
         String body = "{\"type\":\"NEED\",\"inputMode\":\"voice\",\"messages\":[{\"role\":\"user\",\"text\":\"매주 목요일 오전 10시에 한 시간 말벗 해 줄 사람 행복동\"}]}";
         String res = mvc.perform(post("/api/ai/post-chat").header("Authorization", token()).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
         JsonNode j = om.readTree(res);
         assertTrue(j.path("done").asBoolean(), res);
-        assertFalse(j.path("draft").has("repeat"), "초안에 반복 규칙 칸이 없다");
-        assertTrue(j.path("draft").path("repeatNotice").asText().contains("다시 올리기"), res);
-        assertTrue(j.path("reply").asText().contains("한 번만"), res);
-        assertFalse(j.path("reply").asText().contains("4주"), res);
+        assertTrue(j.path("draft").path("repeat").path("weekly").asBoolean(), res);
+        assertEquals(4, j.path("draft").path("repeat").path("weekday").asInt(), res);
+        assertEquals("매주 목요일", j.path("draft").path("repeat").path("label").asText(), res);
+        assertTrue(j.path("draft").path("repeatNotice").asText().contains("정기 요청"), res);
+        assertTrue(j.path("reply").asText().contains("정기 요청"), res);
+        String res2 = mvc.perform(post("/api/ai/post-chat").header("Authorization", token()).contentType(MediaType.APPLICATION_JSON)
+                        .content(body.replace("매주 목요일", "격주 목요일")))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        JsonNode k = om.readTree(res2);
+        assertFalse(k.path("draft").has("repeat"), res2);
+        assertTrue(k.path("draft").path("repeatNotice").asText().contains("한 번만"), res2);
     }
 }

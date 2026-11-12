@@ -182,6 +182,61 @@ public class PostService {
         return p;
     }
 
+    /**
+     * 기능 U-09 정기 요청: 등록하기 전에 공고 한 건을 올릴 때와 똑같은 검사(대상·가족 연결·시간·카테고리·금지 요청)만 하고 저장하지 않는다.
+     * c.date 에는 첫 회차 날짜를 넣는다.
+     */
+    @Transactional(readOnly = true)
+    public void precheck(User me, PostCmd c, Long forUserId) {
+        Elder elder = null;
+        if (c.elderId() != null) {
+            elder = elders.findById(c.elderId()).orElseThrow(() -> ApiException.notFound("도움 대상을 찾을 수 없어요"));
+            if (!views.isManagerOf(me, elder.id)) throw ApiException.forbidden("내가 담당하는 대상만 대신 올릴 수 있어요");
+            if (elder.status != ElderStatus.ACTIVE) throw ApiException.bad("ELDER_ENDED", "지원이 종료된 대상이에요");
+        }
+        if (forUserId != null) {
+            if (elder != null) throw ApiException.bad("INVALID_FAMILY", "도움 대상 공고와 가족 대신 공고를 함께 고를 수 없어요");
+            linkedFamily(me, forUserId);
+            if (c.type() != PostType.NEED) throw ApiException.bad("INVALID_TYPE", "가족 대신으로는 도움 요청 공고만 올릴 수 있어요 (B-57)");
+        }
+        validate(c.withDefaultHours(), me, elder);
+    }
+
+    /**
+     * 기능 U-09: 지금 이 공고를 올릴 수 없는 까닭(올릴 수 있으면 null). 스케줄러가 회차 공고를 만들기 전에 물어본다.
+     * 예외를 밖으로 던지지 않으므로 부른 쪽의 트랜잭션을 깨지 않는다.
+     */
+    public String whyCannotPost(User me, PostCmd c, Long forUserId) {
+        try {
+            Elder elder = null;
+            if (c.elderId() != null) {
+                elder = elders.findById(c.elderId()).orElse(null);
+                if (elder == null) return "도움 대상을 찾을 수 없어요";
+                if (!views.isManagerOf(me, elder.id)) return "담당자가 바뀌었어요";
+                if (elder.status != ElderStatus.ACTIVE) return "지원이 종료된 대상이에요";
+            }
+            if (forUserId != null) linkedFamily(me, forUserId);
+            validate(c.withDefaultHours(), me, elder);
+            return null;
+        } catch (ApiException e) {
+            return e.getMessage() == null ? "공고를 올릴 수 없어요" : e.getMessage();
+        }
+    }
+
+    /** 기능 U-09: 이 공고를 지금 내릴(삭제할) 수 있는지. 수락된 요청이 있거나 마감됐으면 false. 예외를 던지지 않는다. */
+    public boolean deletable(Post p, User me) {
+        try { requireEditable(p, me); return true; } catch (ApiException e) { return false; }
+    }
+
+    /** 기능 U-09 정기 요청의 회차 공고 한 건: 보통 등록과 같은 길로 만들고 반복 표시(repeatRule·seriesId)만 더한다. */
+    public Post createOccurrence(User me, PostCmd c, Long forUserId, String repeatRule, String seriesId, String issueNote) {
+        Post p = create(me, c, forUserId).get(0);
+        p.repeatRule = repeatRule;
+        p.seriesId = seriesId;
+        if (p.elderId != null && issueNote != null && !issueNote.isBlank()) p.issueNote = issueNote;
+        return posts.save(p);
+    }
+
     private static String blankTo(String s, String d) { return s == null || s.isBlank() ? d : s.trim(); }
 
     private static String defaultTitle(PostCmd c) {
@@ -291,6 +346,9 @@ public class PostService {
         });
         if ("new".equals(sort)) {
             out.sort(Comparator.<Map<String, Object>, java.time.LocalDateTime>comparing(m -> (java.time.LocalDateTime) m.get("createdAt"), Comparator.reverseOrder()).thenComparing(rating));
+        } else if ("time".equals(sort)) { // 기능 U-02 시간순: 활동 날짜·시작 시각이 빠른 순
+            out.sort(Comparator.<Map<String, Object>, String>comparing(m -> String.valueOf(m.get("date")))
+                    .thenComparingDouble(m -> ((Number) m.get("startHour")).doubleValue()).thenComparing(rating));
         } else { // near: 가까운 순, 같은 거리면 평가 높은 순(B-40)
             out.sort(Comparator.<Map<String, Object>>comparingDouble(m -> ((Number) m.get("distanceKm")).doubleValue()).thenComparing(rating));
         }

@@ -25,8 +25,10 @@ public final class PostChatRule {
         public Double estHours;
         public String summarySpeech;
         public String caution;
-        /** "매주…"처럼 반복을 바란 말이 있었을 때의 안내(B-06: 자동 반복 등록은 없다). 없으면 null */
+        /** "매주…"처럼 반복을 바란 말이 있었을 때의 안내. 없으면 null (기능 U-09: 매주면 정기 요청으로 이어 준다) */
         public String repeatNotice;
+        /** 반복을 바란 말의 정리("매주 목요일", "매주", "격주" …). 없으면 null */
+        public String repeatLabel;
         public boolean hoursTooLong;
     }
 
@@ -77,7 +79,8 @@ public final class PostChatRule {
         if (d.area == null && defaultArea != null && !defaultArea.isBlank()) d.area = defaultArea;
         String all = allText.toString();
         d.caution = VoiceSafety.caution(all);
-        d.repeatNotice = VoiceSafety.repeat(all) == null ? null : REPEAT_NOTICE;
+        d.repeatLabel = VoiceSafety.repeat(all);
+        d.repeatNotice = d.repeatLabel == null ? null : weekly(d.repeatLabel) ? REPEAT_NOTICE : REPEAT_ONCE_NOTICE;
         // 핵심 카테고리를 앞에: 정리 요청에 "냉장고"가 있으면 생활 정리 우선 등은 순서 유지
         String main = d.categories.isEmpty() ? null : d.categories.get(0);
         if (!details.isEmpty()) {
@@ -132,12 +135,24 @@ public final class PostChatRule {
         return new Result(reply, missing.isEmpty(), d, missing, intent, conf, false, new ArrayList<>(pii));
     }
 
-    /** B-06: 자동 반복 등록은 하지 않는다. 말에 "매주"가 있어도 한 번만 올리고 다시 올리기를 안내한다. */
-    public static final String REPEAT_NOTICE = "매주 자동으로 올리는 기능은 없어서 이번 한 번만 올려요. 다음에는 '다시 올리기'에서 날짜만 고르면 돼요.";
+    /** 기능 U-09: 말에 "매주"가 있으면 정기 요청(회차마다 공고 자동 생성)으로 올릴 수 있다고 알려 준다. 고르는 것은 사용자다. */
+    public static final String REPEAT_NOTICE = "매주 올리는 정기 요청으로 할 수 있어요. '매주 정기 요청으로 올리기'를 고르면 회차마다 공고가 자동으로 올라가요.";
+    /** 격주·매일·매달처럼 매주가 아닌 반복은 정기 요청으로 못 한다: 한 번만 올리고 다시 올리기를 안내한다. */
+    public static final String REPEAT_ONCE_NOTICE = "정기 요청은 매주 한 요일만 돼요. 이번 한 번만 올리고, 다음에는 '다시 올리기'에서 날짜만 고르면 돼요.";
 
-    /** 소리로 읽어 줄 요약에 "한 번만 올린다"는 안내를 덧붙인다(반복을 바란 말이 있었을 때만). */
+    /** 정기 요청으로 이어 줄 수 있는 반복인가("매주", "매주 목요일"). */
+    public static boolean weekly(String repeatLabel) { return repeatLabel != null && repeatLabel.startsWith("매주"); }
+
+    /** "매주 목요일" → 4 (1=월 … 7=일). 요일이 없으면 null. */
+    public static Integer weekdayOf(String repeatLabel) {
+        if (repeatLabel == null) return null;
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("([월화수목금토일])요일").matcher(repeatLabel);
+        return m.find() ? "월화수목금토일".indexOf(m.group(1)) + 1 : null;
+    }
+
+    /** 소리로 읽어 줄 요약에 반복 안내를 덧붙인다(반복을 바란 말이 있었을 때만). */
     public static String withRepeatNotice(String summary, String notice) {
-        if (summary == null || notice == null || notice.isBlank() || summary.contains("한 번만")) return summary;
+        if (summary == null || notice == null || notice.isBlank() || summary.contains(notice)) return summary;
         return summary.contains("올릴까요?") ? summary.replace("올릴까요?", notice + " 올릴까요?") : summary + " " + notice;
     }
 

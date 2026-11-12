@@ -269,7 +269,8 @@ public class AiClient {
                     x.note = dj.path("note").asText(null);
                     x.summarySpeech = dj.path("summarySpeech").asText(null);
                     x.caution = VoiceSafety.sanitizeCaution(dj.path("caution").asText(null));
-                    x.repeatNotice = d.repeatNotice; // 반복을 바랐는지는 규칙이 본다(B-06)
+                    x.repeatNotice = d.repeatNotice; // 반복을 바랐는지는 규칙이 본다
+                    x.repeatLabel = d.repeatLabel;
                     if (x.caution == null) x.caution = d.caution;
                     String in = j.path("intent").asText("");
                     if (VoiceSafety.INTENTS.contains(in)) intent = in;
@@ -325,10 +326,17 @@ public class AiClient {
         draft.put("estHours", d.estHours);
         draft.put("caution", d.caution);
         draft.put("repeatNotice", d.repeatNotice);
+        // 기능 U-09: "매주"면 정기 요청으로 이어 갈 수 있게 요일을 싣는다(요일을 말하지 않았으면 초안 날짜의 요일). 등록은 사용자가 고른다.
+        if (PostChatRule.weekly(d.repeatLabel) && !"OFFER".equalsIgnoreCase(type)) {
+            Integer wd = PostChatRule.weekdayOf(d.repeatLabel);
+            if (wd == null && d.date != null) wd = d.date.getDayOfWeek().getValue();
+            draft.put("repeat", com.timesavings.service.Views.map("weekly", true, "weekday", wd,
+                    "label", wd == null ? "매주" : com.timesavings.service.RecurringService.dayLabel(wd)));
+        }
         draft.put("summarySpeech", done ? PostChatRule.withRepeatNotice(d.summarySpeech, d.repeatNotice) : null);
 
         Map<String, Object> out = new LinkedHashMap<>();
-        // 다 채워진 요약을 그대로 답으로 쓸 때(음성)는 답에도 "한 번만 올린다"는 안내를 붙인다
+        // 다 채워진 요약을 그대로 답으로 쓸 때(음성)는 답에도 반복 안내를 붙인다
         out.put("reply", done && reply != null && reply.equals(d.summarySpeech) ? PostChatRule.withRepeatNotice(reply, d.repeatNotice) : reply);
         out.put("done", done);
         out.put("intent", intent);

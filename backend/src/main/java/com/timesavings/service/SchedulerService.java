@@ -27,6 +27,9 @@ public class SchedulerService {
     /** LLM 추가 A(7.12): 24시간 요청 없는 공고 고치기 제안(공고당 1번). 생성자를 바꾸지 않으려고 필드 주입. */
     @org.springframework.beans.factory.annotation.Autowired(required = false) private UnmatchedPostService unmatched;
 
+    /** 기능 U-09 정기 요청: 다가오는 회차(7일 안) 공고를 만든다. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private RecurringService recurring;
+
     public SchedulerService(RequestService requests, PostService posts, LifeReportService reports,
                             @Value("${app.scheduler.enabled:true}") boolean enabled) {
         this.requests = requests; this.posts = posts; this.reports = reports; this.enabled = enabled;
@@ -58,6 +61,7 @@ public class SchedulerService {
         if (today.getDayOfMonth() == 1 && !reports.existsFor(prev)) lr = reports.generate(prev);
         out.put("lifeReports", lr);
         out.put("unmatchedTips", unmatched == null ? 0 : unmatched.run(now));
+        out.put("recurringPosts", recurring == null ? 0 : recurring.generateDue(now));
         out.put("ranAt", now.toString());
         return out;
     }
