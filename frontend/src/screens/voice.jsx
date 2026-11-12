@@ -137,10 +137,29 @@ export function VoiceReq() {
     const first = Array.isArray(p) ? p[0] : p;
     setPhase('posted');
     refresh();
-    // B-06: 말에 "매주"가 있었어도 한 번만 올린다. 다음에는 다시 올리기에서 날짜만 고르면 된다고 알려 준다
+    // 한 번만 올리기를 골랐을 때: 다음에는 다시 올리기에서 날짜만 고르면 된다고 알려 준다
     say(d.repeatNotice ? '요청서를 한 번 올렸어요. 다음에는 다시 올리기에서 날짜만 고르면 같은 내용으로 올릴 수 있어요.' : '요청서를 올렸어요. 도와줄 이웃이 나타나면 알려 드릴게요.');
     toast(who ? `${who} 대신 공고를 올렸어요` : '공고를 올렸어요');
     setRes((x) => ({ ...x, postedId: first && first.id, repeatNotice: d.repeatNotice || null }));
+  });
+
+  // 기능 U-09: "매주"라고 말했으면 정기 요청으로 올릴 수 있다. 회차 수만 고르면 회차마다 공고가 자동으로 올라간다
+  const [weeks, setWeeks] = useState(4);
+  const publishRecurring = () => run(async () => {
+    const d = mergeChecks(draft, chk);
+    if (!d.date || d.startHour == null || d.endHour == null) return toast('날짜와 시간을 정해 주세요');
+    if (!d.categories || !d.categories.length) return toast('도움 종류를 골라 주세요');
+    const r = await post('/recurring', {
+      weekday: (d.repeat && d.repeat.weekday) || undefined, startDate: d.date, weeks, startHour: Number(d.startHour), endHour: Number(d.endHour),
+      estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), area: d.area || (elder ? elder.dong : me && me.area), categories: d.categories,
+      title: d.title || `${d.categories[0]} 도움`, detail: d.detail || '', note: d.caution ? `방문 시 주의: ${d.caution}` : (d.note || ''),
+      elderId: elderId ? Number(elderId) : undefined,
+    });
+    setPhase('posted');
+    refresh();
+    say(`${r.repeatLabel} 정기 요청을 등록했어요. 모두 ${r.totalCount}번이고, 회차마다 공고가 자동으로 올라가요.`);
+    toast('정기 요청을 등록했어요');
+    setRes((x) => ({ ...x, postedId: r.nextPostId || (r.createdPostIds || [])[0], repeatNotice: null, recurring: r }));
   });
 
   // 되묻기가 3번을 넘으면 말 대신 큰 선택 버튼
@@ -243,7 +262,11 @@ export function VoiceReq() {
               {field('time', '시간', `${hh(draft.startHour)} ~ ${hh(draft.endHour)}${draft.estHours ? ` (${draft.estHours}시간)` : ''}`)}
               {field('area', '장소', draft.area || (elder ? elder.dong : me && me.area))}
               {field('category', '도움 종류', (draft.categories || []).join(', ') || '고르지 않음')}
-              {draft.repeatNotice && <div className="vr-f"><span className="vr-l">반복</span><span className="vr-v">{draft.repeatNotice}</span></div>}
+              {draft.repeat ? (
+                <div className="vr-f"><span className="vr-l">반복</span><span className="vr-v">{draft.repeat.label} · 몇 번 올릴까요?
+                  <div className="vr-choices" role="radiogroup" aria-label="회차 수" style={{ marginTop: 6 }}>{[4, 8, 12].map((w) => <button key={w} type="button" role="radio" aria-checked={weeks === w} className={weeks === w ? 'on' : ''} onClick={() => setWeeks(w)}>{w}번</button>)}</div>
+                </span></div>
+              ) : draft.repeatNotice && <div className="vr-f"><span className="vr-l">반복</span><span className="vr-v">{draft.repeatNotice}</span></div>}
               {mergeChecks(draft, chk).detail && <div className="vr-f"><span className="vr-l">내용</span><span className="vr-v">{mergeChecks(draft, chk).detail}</span></div>}
               {mergeChecks(draft, chk).caution && <div className="vr-f"><span className="vr-l">방문 시 주의사항</span><span className="vr-v">{mergeChecks(draft, chk).caution}</span></div>}
               <div className="vr-f"><span className="vr-l">난이도</span><span className="vr-v">{diff ? `${lvName(diff.level)} ${dWeight.toFixed(1)}` : '-'}</span></div>
@@ -257,7 +280,8 @@ export function VoiceReq() {
           )}
           {!editing && <PostCheck draft={draft} elderId={elderId} onChange={setChk} big />}
           <div className="stack" style={{ marginTop: 16 }}>
-            <button className="btn vr-big" disabled={busy} onClick={publish}>{busy ? '올리는 중…' : '이대로 올리기'}</button>
+            {draft.repeat && <button className="btn vr-big" disabled={busy} onClick={publishRecurring}>{busy ? '올리는 중…' : `${draft.repeat.label} ${weeks}번 정기 요청으로 올리기`}</button>}
+            <button className={'btn vr-big' + (draft.repeat ? ' soft' : '')} disabled={busy} onClick={publish}>{busy ? '올리는 중…' : draft.repeat ? '이번 한 번만 올리기' : '이대로 올리기'}</button>
             <div className="btns">
               <button className="btn ghost vr-big" onClick={() => { setEditing(!editing); if (!editing) say('고칠 칸을 직접 고치거나, 아래 마이크로 고칠 내용을 말씀해 주세요.'); }}>{editing ? '고친 내용 보기' : '고칠래요'}</button>
               <button className="btn ghost vr-big" onClick={reset}>다시 말하기</button>
@@ -270,9 +294,10 @@ export function VoiceReq() {
       {phase === 'posted' && (
         <div className="cert-c" style={{ marginTop: 14 }}>
           <div className="done-ic" style={{ margin: '0 auto 12px' }}>✓</div>
-          <div className="vr-title" style={{ textAlign: 'center' }}>요청서를 올렸어요</div>
-          <p className="vr-say">도와줄 이웃이 요청하면 알림으로 알려 드려요.</p>
-          {res && res.repeatNotice && <div className="notice" style={{ marginBottom: 10 }}>매주 자동으로 올리지는 않아요. 다음에는 올린 공고의 ‘같은 내용으로 다시 올리기’에서 날짜만 고르면 돼요.</div>}
+          <div className="vr-title" style={{ textAlign: 'center' }}>{res && res.recurring ? '정기 요청을 등록했어요' : '요청서를 올렸어요'}</div>
+          <p className="vr-say">{res && res.recurring ? `${res.recurring.repeatLabel} · 모두 ${res.recurring.totalCount}번. 회차마다 공고가 자동으로 올라가고, 수락·거절은 그때마다 직접 해요.` : '도와줄 이웃이 요청하면 알림으로 알려 드려요.'}</p>
+          {res && res.recurring && <button className="btn soft vr-big" style={{ marginBottom: 8 }} onClick={() => nav(elderId ? `/recurring?elder=${elderId}` : '/recurring', { replace: true })}>내 정기 요청 보기 (일시정지·해지)</button>}
+          {res && res.repeatNotice && <div className="notice" style={{ marginBottom: 10 }}>이번 한 번만 올렸어요. 다음에는 올린 공고의 ‘같은 내용으로 다시 올리기’에서 날짜만 고르거나, 공고 올리기의 ‘정기 요청 등록’을 써 보세요.</div>}
           {res && res.postedId && <button className="btn vr-big" onClick={() => nav(`/post/${res.postedId}`, { replace: true })}>올린 공고 보기</button>}
           <button className="btn ghost vr-big" style={{ marginTop: 8 }} onClick={() => nav(-1)}>처음 화면으로</button>
         </div>

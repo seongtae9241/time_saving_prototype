@@ -12,6 +12,7 @@ import { PostCheck, mergeChecks } from './assist.jsx'; // LLM 추가 A(7.12) 빠
 import { DIc } from '../ui/proto.jsx';
 import { SuggestLink } from '../ui/suggest.jsx';
 import { useRepost } from '../ui/repost.jsx';
+import { RecurringLink } from './recurring.jsx'; // 기능 U-09 정기 요청
 
 /* ---------- 봉사 요청 · 도움 가능 선택 ---------- */
 export function Write() {
@@ -19,7 +20,10 @@ export function Write() {
   const { me } = useAuth();
   const [mine] = useLoad(() => api('/posts/mine', { quiet: true }), []);
   const repost = useRepost();
-  const past = (mine || []).filter((p) => !p.proxyMine).slice(0, 3); // 가족 대신 올린 공고는 읽기만이라 다시 올리기 목록에 넣지 않는다
+  // 기능 U-06: 내가 올렸던 공고 목록에서 골라 날짜만 바꿔 다시 올린다(처음엔 3개, "더 보기"로 전부)
+  const [allPast, setAllPast] = useState(false);
+  const pastAll = (mine || []).filter((p) => !p.proxyMine); // 가족 대신 올린 공고는 읽기만이라 다시 올리기 목록에 넣지 않는다
+  const past = allPast ? pastAll : pastAll.slice(0, 3);
   return (
     <Screen title="공고 올리기" noTabs>
       <h2 className="su-h" style={{ marginTop: 4 }}>어떤 공고를<br />올릴까요?</h2>
@@ -32,6 +36,8 @@ export function Write() {
         <div role="button" tabIndex={0} onClick={() => nav('/write/need/manual')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/write/need/manual'); }}><Ic n="pen" s={20} /><div className="grow">봉사 요청 직접 적기<span>AI 없이 칸을 직접 채워요 (수동)</span></div>›</div>
         <div role="button" tabIndex={0} onClick={() => nav('/group/new')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/group/new'); }}><Ic n="users" s={20} /><div className="grow">단체로 봉사하기<span>동아리·모임처럼 2명 이상이 함께 봉사할 때 (단체 공고)</span></div>›</div>
         <div role="button" tabIndex={0} onClick={() => nav('/voice')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/voice'); }}><Ic n="mic" s={20} /><div className="grow">말로 요청하기<span>마이크를 누르고 말하면 큰 글씨 요청서로 만들어 드려요</span></div>›</div>
+        <div role="button" tabIndex={0} onClick={() => nav('/recurring/new')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/recurring/new'); }}><Ic n="repeat" s={20} /><div className="grow">정기 요청 등록<span>매주 요일·시간과 기간을 정하면 회차마다 공고가 올라가요</span></div>›</div>
+        <div role="button" tabIndex={0} onClick={() => nav('/recurring')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/recurring'); }}><Ic n="list" s={20} /><div className="grow">내 정기 요청<span>다음 회차·남은 회차 보기 · 일시정지 · 해지</span></div>›</div>
       </div>
       {past.length > 0 && <><div className="sec-t">지난 공고 다시 올리기</div><div className="mute2" style={{ margin: '-4px 0 8px' }}>누르면 같은 내용으로 불러와요. 날짜만 고르면 돼요.</div></>}
       {past.map((p) => (
@@ -40,6 +46,7 @@ export function Write() {
           <div className="grow"><div className="b">{p.type === 'OFFER' ? p.note || p.title : p.title}</div><div className="mute2">{p.proxyMine ? `${p.ownerName} 님 대신 · ` : ''}{postCats(p).map((c) => SHORT[c]).join('·')} · {dlabel(p.date)} {hh(p.startHour)}~{hh(p.endHour)}</div></div><span className="mute2">↻</span>
         </div>
       ))}
+      {!allPast && pastAll.length > 3 && <button className="btn ghost sm" style={{ marginTop: 8 }} onClick={() => setAllPast(true)}>지난 공고 {pastAll.length}개 모두 보기</button>}
       {me && me.idStatus !== 'APPROVED' && <div className="notice" style={{ marginTop: 14 }}>도움 가능 공고는 신분증 인증을 마친 뒤 올릴 수 있어요.</div>}
     </Screen>
   );
@@ -116,13 +123,28 @@ export function WriteNeedManual() {
   const { toast } = useUi();
   const [busy, run] = useBusy();
   const [elder] = useLoad(() => (elderId ? api(`/org/elders/${elderId}`) : Promise.resolve(null)), [elderId]);
+  // 기능 U-08: 직접 적을 때도 연결된 가족을 "도움 받는 사람"으로 지정할 수 있다(서버가 연결을 다시 확인한다)
+  const [links] = useLoad(() => (elderId || !me || me.role !== 'USER' ? Promise.resolve([]) : api('/family', { quiet: true }).catch(() => [])), [elderId]);
+  const linked = (links || []).filter((x) => x.status === 'ACCEPTED' && x.user);
+  const [forId, setForId] = useState(sp.get('familyId') ? Number(sp.get('familyId')) : null);
+  const fam = linked.find((x) => x.user.id === forId);
   if (!me || (elderId && elder === undefined)) return <Screen title="봉사 요청" noTabs><Loading /></Screen>;
   const who = elder ? `${elder.alias} 님` : null;
   return (
     <Screen title={who ? '대신 봉사 요청' : '봉사 요청'} noTabs>
       {who ? <div className="lock"><Ic n="users" s={18} /><div><b>{who}</b>({elder.dong}) 대신 올려요. 대상 시간은 차감되지 않아요.</div></div>
         : <div className="mute2" style={{ margin: '-2px 0 6px' }}>칸을 직접 채워 올려요. AI와 대화로 만들려면 <button type="button" className="linkbtn" onClick={() => nav('/write/need', { replace: true })}>AI로 정리하기</button></div>}
-      <PostForm type="NEED" submitLabel={busy ? '올리는 중…' : '공고 등록하기'}
+      {!elder && linked.length > 0 && (
+        <>
+          <label className="f">도움 받는 사람</label>
+          <div className="tags">
+            <button className={'chip ' + (!fam ? 'on' : '')} onClick={() => setForId(null)}>나</button>
+            {linked.map((x) => <button key={x.user.id} className={'chip ' + (fam && fam.user.id === x.user.id ? 'on' : '')} onClick={() => setForId(x.user.id)}>{x.relation ? `${x.relation} ` : ''}{x.user.name}</button>)}
+          </div>
+          {fam && <div className="mute2" style={{ marginTop: 6 }}>공고는 {fam.user.name} 님 이름으로 올라가고, 봉사 제안의 최종 수락·거부는 {fam.user.name} 님이 직접 해요. 시간도 {fam.user.name} 님 통장에서 차감돼요.</div>}
+        </>
+      )}
+      <PostForm type="NEED" submitLabel={busy ? '올리는 중…' : '공고 등록하기'} extra={<RecurringLink elderId={elderId} />}
         init={{ date: addDays(1), startHour: 10, endHour: 12, area: (elder && elder.dong) || me.area || '행복동', categories: elder && elder.needs && elder.needs.length ? elder.needs.slice(0, 1) : [], title: '', detail: '', note: '', ...(elder ? { elderIssue: elder.caution || '' } : {}) }}
         onSubmit={(f) => run(async () => {
           if (!f.categories.length) return toast('필요한 도움을 골라 주세요');
@@ -130,8 +152,8 @@ export function WriteNeedManual() {
           const chk = await post('/ai/filter', { text: `${f.title} ${f.detail || ''}` }, { quiet: true }).catch(() => null);
           if (chk && chk.level === 'BLOCK') return toast(chk.reason || '이 요청은 올릴 수 없어요');
           const r = await post('/posts', { type: 'NEED', date: f.date, startHour: f.startHour, endHour: f.endHour, estHours: Math.min(4, f.endHour - f.startHour), area: f.area, categories: f.categories, title: f.title.trim(), detail: f.detail || '', note: f.note,
-            ...(elder ? { elderId: Number(elderId), elderIssue: f.elderIssue || '' } : {}) });
-          toast(who ? `${who} 대신 봉사 요청을 올렸어요` : '공고를 올렸어요');
+            ...(elder ? { elderId: Number(elderId), elderIssue: f.elderIssue || '' } : {}), ...(fam ? { forUserId: fam.user.id } : {}) });
+          toast(who ? `${who} 대신 봉사 요청을 올렸어요` : fam ? `${fam.user.name} 님 이름으로 올렸어요. 최종 수락·거부는 ${fam.user.name} 님이 직접 해요` : '공고를 올렸어요');
           const first = Array.isArray(r) ? r[0] : r;
           nav(`/post/${first.id}`, { replace: true });
         })} />
@@ -359,7 +381,10 @@ export function WriteNeed() {
             }
             if (m.card === 'done') {
               const base = tidyFix ? { ...m.res.draft, title: tidyFix.title || m.res.draft.title, detail: tidyFix.detail || m.res.draft.detail, caution: tidyFix.caution || m.res.draft.caution } : m.res.draft;
-              return <div className="mrow" key={i}><Bot /><div className="mcol wide"><DraftCard r={{ ...m.res, draft: mergeChecks(base, chk) }} elderId={elderId} forName={family ? who : null} onReset={reset} onPost={() => publish(m.res)} posting={posting}
+              const md = mergeChecks(base, chk);
+              // 기능 U-09: "매주"라고 했으면 정리한 내용을 그대로 들고 정기 요청 등록 화면으로 간다(등록은 거기서 사용자가 누른다)
+              const toRecurring = () => nav(`/recurring/new${elderId ? `?elder=${elderId}` : ''}`, { state: { draft: { ...md, title: (tidyFix && tidyFix.title) || md.title, note: md.caution ? `방문 시 주의: ${md.caution}` : md.note }, forUserId: familyMode && famUser ? famUser.id : null } });
+              return <div className="mrow" key={i}><Bot /><div className="mcol wide"><DraftCard r={{ ...m.res, draft: md }} elderId={elderId} forName={family ? who : null} onReset={reset} onPost={() => publish(m.res)} posting={posting} onRecurring={toRecurring}
                 check={<PostCheck draft={base} elderId={elderId} onChange={setChk} />} /></div></div>;
             }
             if (m.role === 'assistant') { firstAI = false; return <div className="mrow" key={i}><Bot /><div className="mcol"><div className="msg ai-m">{m.text}</div></div></div>; }
@@ -386,7 +411,7 @@ export function WriteNeed() {
   );
 }
 
-function DraftCard({ r, elderId, forName, onReset, onPost, posting, check }) {
+function DraftCard({ r, elderId, forName, onReset, onPost, posting, check, onRecurring }) {
   const d = r.draft;
   const df = r.difficulty || {};
   const w = lvWeight(df.level, df.weight);
@@ -416,7 +441,8 @@ function DraftCard({ r, elderId, forName, onReset, onPost, posting, check }) {
         <div className="small muted">금지 요청 확인: {{ ALLOW: '허용 ✓', CAUTION: '주의' }[r.filter && r.filter.level] || '허용 ✓'}{r.filter && r.filter.level === 'CAUTION' && r.filter.reason ? ` (${r.filter.reason})` : ''} · {elderId ? '기관 대상이라 시간 차감 없음' : forName ? `확정되면 ${forName} 통장에서 예정 시간 기준으로 보류, 완료 후 차감` : '확정되면 예정 시간 기준으로 보류, 완료 후 차감'}</div>
       </div>
       {check}
-      <div className="btns" style={{ marginTop: 10 }}><button className="btn ghost" onClick={onReset}>다시 쓰기</button><button className="btn" disabled={posting} onClick={onPost}>공고 등록</button></div>
+      <div className="btns" style={{ marginTop: 10 }}><button className="btn ghost" onClick={onReset}>다시 쓰기</button><button className="btn" disabled={posting} onClick={onPost}>{d.repeat ? '이번 한 번만 등록' : '공고 등록'}</button></div>
+      {d.repeat && onRecurring && <button className="btn soft" style={{ marginTop: 8 }} onClick={onRecurring}>↻ {d.repeat.label} 정기 요청으로 올리기 (기간 정하기)</button>}
     </>
   );
 }

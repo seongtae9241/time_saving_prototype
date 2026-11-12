@@ -113,8 +113,8 @@ public class PostController {
         return card;
     }
 
-    /** B-06: 자동 반복 등록은 없다. 반복을 바란 요청이면 이 안내를 응답의 repeatNotice 로 돌려준다. */
-    public static final String REPEAT_NOTICE = "자동 반복 등록은 하지 않아요. 이번 한 번만 올렸어요. 다음에는 '다시 올리기'에서 날짜만 골라 올려 주세요.";
+    /** 이 주소(POST /api/posts)는 늘 한 건만 올린다. 반복을 바란 요청이면 정기 요청(기능 U-09, POST /api/recurring)과 다시 올리기를 안내한다. */
+    public static final String REPEAT_NOTICE = "이번 한 번만 올렸어요. 매주 올리려면 '정기 요청'으로 등록해 주세요. 한 번씩 올릴 때는 '다시 올리기'에서 날짜만 고르면 돼요.";
 
     @PostMapping("/posts")
     public Map<String, Object> create(@CurrentUser User u, @RequestBody PostBody b) {

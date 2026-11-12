@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { BundleLink } from './bundle.jsx'; // 기능 U-12 빈 시간 묶음 추천
 import { useNavigate } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
 import { Ic, Spk, CatIc, Stars, TBar, Cats, Avatar, StTag, Empty, useLoad, postCats } from '../ui/bits.jsx';
@@ -253,6 +254,7 @@ export function UHome() {
       </div>
       {reqs === undefined ? null : <WaitBox need={need} give={give} />}
       {give && <RecBox />}
+      {give && <BundleLink />}
       <div className="sec-t"><span>{give ? '도움이 필요한 이웃' : '도와줄 수 있는 이웃'}</span><span className="sec-r"><a role="button" tabIndex={0} onClick={() => nav(`/board?type=${give ? 'NEED' : 'OFFER'}`, { replace: true })} onKeyDown={(e) => { if (e.key === 'Enter') nav(`/board?type=${give ? 'NEED' : 'OFFER'}`, { replace: true }); }}>전체 ›</a></span></div>
       <div className="npanel"><div className="hs hs2">{near.map((p) => <NCard key={p.id} p={p} />)}{posts && !near.length && <Empty>근처에 열린 공고가 없어요</Empty>}</div></div>
       {evs.length > 0 && (
