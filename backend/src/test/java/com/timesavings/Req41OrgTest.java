@@ -84,8 +84,11 @@ class Req41OrgTest {
         return r;
     }
 
+    @Autowired RateLimiter limiter;
+
     @BeforeEach
     void setUp() {
+        limiter.reset(); // 기관 신청 횟수 제한(같은 IP 10분에 5번)이 다른 테스트의 신청과 섞이지 않게
         org = new Organization();
         org.name = "행복동 주민센터"; org.orgType = "주민센터"; org.status = OrgStatus.APPROVED;
         orgs.save(org);
@@ -126,7 +129,11 @@ class Req41OrgTest {
         // 운영자 승인 목록에 증빙 주소가 나오고, 그 주소로 파일이 열린다
         mvc.perform(get("/api/admin/orgs").header("Authorization", tok(admin))).andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.name=='미래동 주민센터')].proofFileUrl", contains(o.proofFileUrl)));
-        mvc.perform(get(o.proofFileUrl)).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_PDF));
+        mvc.perform(get(o.proofFileUrl).header("Authorization", tok(admin))).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_PDF));
+        // 재직 증빙은 운영자만 연다: 로그인 없이는 401, 다른 계정은 403
+        mvc.perform(get(o.proofFileUrl)).andExpect(status().isUnauthorized());
+        mvc.perform(get(o.proofFileUrl).header("Authorization", tok(mgr))).andExpect(status().isForbidden());
+        mvc.perform(get(o.proofFileUrl).header("Authorization", tok(usr))).andExpect(status().isForbidden());
         // 올린 주소로 JSON 신청도 된다
         mvc.perform(post("/api/orgs/apply").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"희망동 복지관\",\"managerName\":\"이담당\",\"proofFileUrl\":\"" + o.proofFileUrl + "\"}"))

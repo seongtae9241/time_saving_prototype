@@ -86,15 +86,16 @@ class LlmCFeaturesTest {
 
     // ---------- C1 ----------
     @Test
-    void C1_변화_신호는_2건_이상일_때만_확인_권장() throws Exception {
+    void C1_약한_변화_신호는_2건_이상일_때만_확인_권장() throws Exception {
+        // 식사 거름·쓰러짐 같은 뚜렷한 표현은 한 건으로도 알린다(41판 B-36, Req41FixTest). 여기는 이어질 때만 알리는 약한 신호.
         logWith("손녀 이야기를 즐겁게 하셨어요. 다음에 사진첩 같이 보기로 했어요.");
-        logWith("요즘 입맛이 없다며 점심을 거르셨대요.");
+        logWith("요즘 밤에 자주 깨신대요.");
         assertFalse(signals.status(SubjectType.ELDER, elder.id, null).flagged()); // 1건은 아직
         assertEquals(0, signalNotis());
         logWith("기운이 없다고 하셔서 산책은 다음에 하자고 하셨어요.");
         CareSignalService.Signal s = signals.status(SubjectType.ELDER, elder.id, null);
         assertTrue(s.flagged());
-        assertTrue(s.labels().containsAll(List.of("식사 거름", "기운 없음", "외출 감소")), s.labels().toString());
+        assertTrue(s.labels().containsAll(List.of("잠 못 잠", "기운 없음", "외출 감소")), s.labels().toString());
         assertEquals(1, signalNotis()); // 담당자에게 한 번
         logWith("오늘도 잠을 잘 못 주무셨대요.");
         assertEquals(1, signalNotis()); // 이미 켜져 있으면 다시 보내지 않음
@@ -132,7 +133,8 @@ class LlmCFeaturesTest {
         assertEquals(3, d.size());
         Map<?, ?> a = (Map<?, ?>) d.get(0), b = (Map<?, ?>) d.get(1), c = (Map<?, ?>) d.get(2);
         assertEquals(List.of("말동무·정서"), a.get("categories"));
-        assertEquals(true, ((Map<?, ?>) a.get("repeat")).get("weekly"));
+        assertFalse(a.containsKey("repeat"), "자동 반복 칸은 없다(41판 B-06)");
+        assertTrue(String.valueOf(a.get("repeatLabel")).startsWith("매주"), "반복을 바랐다는 표시만 남는다(안내용)");
         assertEquals(DayOfWeek.THURSDAY, LocalDate.parse((String) a.get("date")).getDayOfWeek());
         assertEquals(9.0, a.get("startHour"));
         assertEquals(List.of("동행"), b.get("categories"));

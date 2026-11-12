@@ -21,6 +21,7 @@ public class RequestController {
     private final RequestRepo repo;
     private final ElderRepo elders;
     private final Views views;
+    @org.springframework.beans.factory.annotation.Autowired private FileAccessService fileAccess;
     /** LLM 추가 A(7.12): 요청 생성 때 "왜 이 봉사자?" 이유를 1번 저장(생성자를 바꾸지 않으려고 필드 주입) */
     @org.springframework.beans.factory.annotation.Autowired(required = false) private MatchReasonService matchReasons;
 
@@ -120,6 +121,8 @@ public class RequestController {
 
     @PostMapping("/requests/{id}/log")
     public Map<String, Object> log(@CurrentUser User u, @PathVariable Long id, @RequestBody LogBody b) {
+        if (Boolean.TRUE.equals(b.photoConsent()) && b.photoUrl() != null && !b.photoUrl().isBlank() && !fileAccess.uploadedBy(b.photoUrl(), u))
+            throw ApiException.bad("FILE_NOT_MINE", "직접 올린 사진만 붙일 수 있어요. 사진을 다시 올려 주세요");
         return view(svc.submitLog(u, id, b.raw(), b.text(), b.photoUrl(), Boolean.TRUE.equals(b.photoConsent()), b.careMemo()), u);
     }
 

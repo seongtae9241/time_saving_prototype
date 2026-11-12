@@ -177,7 +177,8 @@ public class OrgController {
         Map<String, Object> v = elderView(e);
         v.put("memos", memoViews(id));
         v.put("regulars", views.regularsOf(null, id));
-        v.put("requests", requests.findByElderId(id).stream().sorted(Comparator.comparing((Request r) -> r.id).reversed()).limit(20)
+        v.put("requests", requests.findByElderId(id).stream() // 최근 날짜순(같은 날은 늦은 시각 먼저)
+                .sorted(Comparator.comparing((Request r) -> r.date).thenComparing(r -> r.startHour).thenComparing(r -> r.id).reversed()).limit(20)
                 .map(r -> views.requestView(r, u)).toList());
         v.put("posts", posts.findByElderId(id).stream().filter(p -> p.status != PostStatus.DELETED).map(p -> views.postCard(p, u)).toList());
         v.put("reports", reports.findBySubjectTypeAndSubjectIdOrderByMonthDesc(SubjectType.ELDER, id).stream().map(r -> reportSvc.view(r, e.alias + " 님")).toList());

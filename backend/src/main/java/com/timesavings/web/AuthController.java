@@ -23,6 +23,8 @@ import java.util.*;
 @RequestMapping("/api")
 @Transactional
 public class AuthController {
+    @org.springframework.beans.factory.annotation.Autowired private FileAccessService fileAccess;
+    @org.springframework.beans.factory.annotation.Autowired private RateLimiter limiter;
     private final AuthService auth;
     private final UserRepo users;
     private final OrganizationRepo orgs;
@@ -177,7 +179,10 @@ public class AuthController {
         if (b.personality() != null) u.personality = b.personality();
         if (b.categories() != null) u.categories = clean(b.categories());
         if (b.timeSlots() != null) u.timeSlots = new ArrayList<>(b.timeSlots());
-        if (b.photoUrl() != null) u.photoUrl = b.photoUrl();
+        if (b.photoUrl() != null && !b.photoUrl().equals(u.photoUrl)) {
+            if (!b.photoUrl().isBlank()) requireMyUpload(b.photoUrl(), cu);
+            u.photoUrl = b.photoUrl().isBlank() ? null : b.photoUrl();
+        }
         if (b.textSize() != null) u.textSize = "BIG".equalsIgnoreCase(b.textSize()) ? "BIG" : "NORMAL"; // B-55
         if (b.voiceAlert() != null) u.voiceAlert = b.voiceAlert();
         if (b.smsAlert() != null) u.smsAlert = b.smsAlert();
@@ -199,6 +204,9 @@ public class AuthController {
         if (b.result() != null) u.notiResult = b.result();
         if (b.remind() != null) u.notiRemind = b.remind();
         if (b.interest() != null) u.notiInterest = b.interest();
+        // B-43: 음성 전화·문자 병행은 일반 사용자만 켤 수 있다(끄는 것은 누구나)
+        if ((Boolean.TRUE.equals(b.voiceAlert()) || Boolean.TRUE.equals(b.smsAlert())) && u.role != Role.USER)
+            throw ApiException.bad("USER_ONLY", "음성 전화·문자 알림은 일반 사용자만 켤 수 있어요");
         if (b.voiceAlert() != null) u.voiceAlert = b.voiceAlert();
         if (b.smsAlert() != null) u.smsAlert = b.smsAlert();
         return NotificationService.settings(u);
@@ -261,9 +269,15 @@ public class AuthController {
         return Views.map("ok", true);
     }
 
+    /** 남이 올린 파일 주소를 내 서류·사진으로 붙이지 못하게 한다(붙이면 그 파일을 열 수 있게 되므로). */
+    private void requireMyUpload(String url, User me) {
+        if (!fileAccess.uploadedBy(url, me)) throw ApiException.bad("FILE_NOT_MINE", "직접 올린 파일만 쓸 수 있어요. 파일을 다시 올려 주세요");
+    }
+
     @PostMapping("/me/verify/id")
     public Map<String, Object> verifyId(@CurrentUser User cu, @RequestBody FileBody b) {
         if (b.fileUrl() == null || b.fileUrl().isBlank()) throw ApiException.bad("FILE_REQUIRED", "신분증 사진을 올려 주세요");
+        requireMyUpload(b.fileUrl(), cu);
         User u = users.findById(cu.id).orElseThrow();
         u.idFileUrl = b.fileUrl();
         u.idStatus = VerifyStatus.PENDING;
@@ -274,6 +288,7 @@ public class AuthController {
     @PostMapping("/me/verify/crime")
     public Map<String, Object> verifyCrime(@CurrentUser User cu, @RequestBody FileBody b) {
         if (b.fileUrl() == null || b.fileUrl().isBlank()) throw ApiException.bad("FILE_REQUIRED", "범죄경력 회보서를 올려 주세요");
+        requireMyUpload(b.fileUrl(), cu);
         User u = users.findById(cu.id).orElseThrow();
         u.crimeFileUrl = b.fileUrl();
         u.crimeStatus = VerifyStatus.PENDING;
@@ -290,20 +305,25 @@ public class AuthController {
                                             @RequestParam(required = false) String address, @RequestParam(required = false) String phone,
                                             @RequestParam(required = false) String managerName, @RequestParam(required = false) String managerPhone,
                                             @RequestParam(required = false) String managerEmail, @RequestParam(required = false) String memo,
-                                            @RequestParam(value = "proof", required = false) MultipartFile proof) {
+                                            @RequestParam(value = "proof", required = false) MultipartFile proof, HttpServletRequest req) {
         checkOrgApply(name, managerName);
         if (proof == null || proof.isEmpty()) throw ApiException.bad("PROOF_REQUIRED", "재직 증빙(재직증명서) 파일을 올려 주세요");
-        String url = "/api/files/" + files.save(proof);
+        // 파일을 저장하기 직전에 센다: 같은 IP 가 10분에 5번을 넘기면 429(내용이 모자라 400 으로 돌아간 신청은 세지 않는다)
+        limiter.check("org-apply", RateLimiter.clientIp(req));
+        String fid = files.save(proof);
+        fileAccess.record(fid, null); // 로그인 없이 올린 파일: 운영자만 연다
+        String url = "/api/files/" + fid;
         return saveOrgApply(new OrgApplyBody(name, orgType, address, phone, managerName, managerPhone, managerEmail, memo, url));
     }
 
     @PostMapping(value = "/orgs/apply", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Map<String, Object> orgApply(@RequestBody OrgApplyBody b) {
+    public Map<String, Object> orgApply(@RequestBody OrgApplyBody b, HttpServletRequest req) {
         checkOrgApply(b.name(), b.managerName());
         String url = b.proofFileUrl() == null ? "" : b.proofFileUrl().trim();
         if (!url.startsWith("/api/files/")) throw ApiException.bad("PROOF_REQUIRED", "재직 증빙(재직증명서) 파일을 올려 주세요");
         try { files.path(url.substring("/api/files/".length())); }
         catch (ApiException e) { throw ApiException.bad("PROOF_REQUIRED", "재직 증빙(재직증명서) 파일을 다시 올려 주세요"); }
+        limiter.check("org-apply", RateLimiter.clientIp(req));
         return saveOrgApply(b);
     }
 
@@ -337,13 +357,18 @@ public class AuthController {
     // ---------------- 파일 ----------------
     @PostMapping("/files")
     public Map<String, Object> upload(@CurrentUser User u, @RequestParam("file") MultipartFile file) {
-        return Views.map("url", "/api/files/" + files.save(file));
+        String id = files.save(file);
+        fileAccess.record(id, u);
+        return Views.map("url", "/api/files/" + id);
     }
 
+    /** 로그인해야 열 수 있고, 파일 쓰임새에 따라 볼 수 있는 사람이 다르다(FileAccessService). 주소만 알아서는 열리지 않는다. */
     @GetMapping("/files/{id}")
-    public ResponseEntity<FileSystemResource> download(@PathVariable String id) {
+    public ResponseEntity<FileSystemResource> download(@CurrentUser User u, @PathVariable String id) {
         Path p = files.path(id);
+        fileAccess.requireReadable(id, u);
         MediaType t = MediaTypeFactory.getMediaType(p.getFileName().toString()).orElse(MediaType.APPLICATION_OCTET_STREAM);
-        return ResponseEntity.ok().contentType(t).body(new FileSystemResource(p));
+        return ResponseEntity.ok().contentType(t).header("Cache-Control", "private, no-store").header("X-Content-Type-Options", "nosniff")
+                .body(new FileSystemResource(p));
     }
 }

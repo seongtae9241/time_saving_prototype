@@ -41,13 +41,37 @@ public final class Rules {
         return l;
     }
 
+    /** 알림·안내 문장의 날짜 표기: 11/20(금) */
+    public static String md(java.time.LocalDate d) {
+        if (d == null) return "";
+        String[] w = {"월", "화", "수", "목", "금", "토", "일"};
+        return d.getMonthValue() + "/" + d.getDayOfMonth() + "(" + w[d.getDayOfWeek().getValue() - 1] + ")";
+    }
+
+    private static int jong(String word) {
+        if (word == null || word.isEmpty()) return 0;
+        char c = word.charAt(word.length() - 1);
+        return c >= 0xAC00 && c <= 0xD7A3 ? (c - 0xAC00) % 28 : 0;
+    }
+
+    /** 낱말 + 받침에 맞는 조사: josa("동행", "은", "는") → "동행은", josa("장보기", "을", "를") → "장보기를" */
+    public static String josa(String word, String withBatchim, String without) {
+        return (word == null ? "" : word) + (jong(word) != 0 ? withBatchim : without);
+    }
+
+    /** 낱말 + (으)로: 받침이 없거나 ㄹ 받침이면 "로", 그 밖의 받침은 "으로". */
+    public static String ro(String word) {
+        int j = jong(word);
+        return (word == null ? "" : word) + (j == 0 || j == 8 ? "로" : "으로");
+    }
+
     /** 0.5 단위 반올림(B-26). 1.8 → 2.0, 1.2 → 1.0, 1.25 → 1.5 */
     public static double round05(double v) {
         return BigDecimal.valueOf(v).multiply(BigDecimal.valueOf(2)).setScale(0, RoundingMode.HALF_UP)
                 .divide(BigDecimal.valueOf(2)).doubleValue();
     }
 
-    /** 적립 = 활동 시간 × 가중치, 0.5 단위 반올림. */
+    /** 적립·차감 = 예정 시간 × 가중치, 0.5 단위 반올림(41판 B-30: 요청에 적힌 예정 시간 기준. 양쪽이 받아들인 시간 조정이 있으면 그 시간). */
     public static double earn(double hours, double weight) {
         return round05(BigDecimal.valueOf(hours).multiply(BigDecimal.valueOf(weight)).doubleValue());
     }

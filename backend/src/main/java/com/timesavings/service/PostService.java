@@ -47,7 +47,7 @@ public class PostService {
 
     public boolean canEdit(Post p, User u) {
         if (u.id.equals(p.ownerId)) return true;
-        if (isProxyAuthor(p, u)) return true; // B-57: 대신 올린 사람도 수락 전까지는 자기가 쓴 공고를 고치거나 지울 수 있다
+        // B-57: 가족 대신 올린 사람은 읽기만 한다(수정·삭제·다시 올리기는 공고 주인인 가족 본인만).
         return p.elderId != null && views.isManagerOf(u, p.elderId);
     }
 
@@ -57,7 +57,7 @@ public class PostService {
     }
 
     /** 받은 요청·제안 목록을 볼 수 있는 사람: 공고 주인, 담당자, 대신 올린 사람(읽기만). */
-    public boolean canSeeRequests(Post p, User u) { return canEdit(p, u); }
+    public boolean canSeeRequests(Post p, User u) { return canEdit(p, u) || isProxyAuthor(p, u); }
 
     /** 공고 카드에 "대신 올림" 정보를 붙인다(B-57). */
     public Map<String, Object> decorate(Map<String, Object> card, Post p, User viewer) {
@@ -161,14 +161,14 @@ public class PostService {
         posts.save(p);
         if (fam != null)
             noti.send(fam.id, "FAMILY_POST", me.name + " 님이 대신 도움 요청 공고를 올렸어요",
-                    p.title + " · " + p.date + " · 봉사 제안이 오면 최종 수락·거부는 직접 해 주세요", "/posts/" + p.id);
+                    p.title + " · " + Rules.md(p.date) + " · 봉사 제안이 오면 최종 수락·거부는 직접 해 주세요", "/posts/" + p.id);
         notifyInterest(p, me);
         return new ArrayList<>(List.of(p));
     }
 
     /**
      * B-06 다시 올리기: 지난 공고를 같은 내용으로 불러와 날짜만 바꿔 새 공고 1건을 만든다.
-     * 내 공고, 내가 담당하는 독거노인의 공고(담당자), 내가 가족 대신 올린 공고에 쓸 수 있다. 원래 공고는 그대로 둔다.
+     * 내 공고, 내가 담당하는 독거노인의 공고(담당자)에 쓸 수 있다(가족 대신 올린 사람은 읽기만이라 못 한다). 원래 공고는 그대로 둔다.
      */
     public Post repost(User me, Long id, LocalDate date) {
         Post src = get(id);
@@ -177,7 +177,7 @@ public class PostService {
         if (date == null) throw ApiException.bad("INVALID_DATE", "다시 올릴 날짜를 골라 주세요");
         PostCmd c = new PostCmd(src.type, date, src.startHour, src.endHour, src.area, new ArrayList<>(src.categories), src.title, src.detail, src.note,
                 src.estHours, false, 1, src.elderId, src.difficulty, src.difficultyReason);
-        Post p = create(me, c, isProxyAuthor(src, me) ? src.ownerId : null).get(0);
+        Post p = create(me, c, null).get(0);
         if (src.elderId != null) p.issueNote = src.issueNote; // 관리 대상 이슈도 같이 가져온다
         return p;
     }
@@ -202,7 +202,7 @@ public class PostService {
             if (a.dateFrom != null && p.date.isBefore(a.dateFrom)) continue; // B-21 날짜 조건(기간, 하루면 시작=끝)
             if (a.dateTo != null && p.date.isAfter(a.dateTo)) continue;
             noti.send(a.userId, "INTEREST", "관심 조건에 맞는 새 공고가 올라왔어요",
-                    p.area + " · " + String.join("·", p.categories) + " · " + p.date, "/posts/" + p.id);
+                    p.area + " · " + String.join("·", p.categories) + " · " + Rules.md(p.date), "/posts/" + p.id);
             sent.add(a.userId);
         }
     }

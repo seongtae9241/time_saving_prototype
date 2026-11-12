@@ -35,7 +35,7 @@ public class FileService {
     }
 
     public Path path(String id) {
-        if (!id.matches("[0-9a-f]{32}\\.[a-z]{3,4}")) throw ApiException.notFound("파일을 찾을 수 없어요");
+        if (id == null || !id.matches("[0-9a-f]{32}\\.[a-z]{3,4}")) throw ApiException.notFound("파일을 찾을 수 없어요");
         Path p = dir.resolve(id);
         if (!Files.exists(p)) throw ApiException.notFound("파일을 찾을 수 없어요");
         return p;

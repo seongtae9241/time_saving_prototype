@@ -54,7 +54,6 @@ public class OrgAi {
         List<String> cats = new ArrayList<>(p.categories);
         if (cats.size() > 2) cats = cats.subList(0, 2);
         String repeat = VoiceSafety.repeat(s);
-        boolean weekly = repeat != null && (repeat.startsWith("매주") || repeat.startsWith("매일"));
         double hours = p.hours != null ? p.hours : defaultHours(cats);
         Double start = p.startHour, end = p.endHour;
         String timeConf = "high";
@@ -90,7 +89,6 @@ public class OrgAi {
         d.put("endHour", end);
         d.put("estHours", hours);
         d.put("area", p.area != null ? p.area : area);
-        d.put("repeat", Map.of("weekly", weekly, "weeks", weekly ? 4 : 1));
         d.put("repeatLabel", repeat);
         d.put("confidence", Map.of("date", p.date == null ? "low" : p.dateConf, "time", timeConf, "category", cats.isEmpty() ? "low" : "high"));
         d.put("piiRemoved", sc.removed());

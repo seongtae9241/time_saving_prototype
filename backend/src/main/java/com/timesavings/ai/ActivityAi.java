@@ -76,7 +76,7 @@ public class ActivityAi {
                 진단·건강 상태 추측·병명은 쓰지 않는다. 이름·연락처·주소는 쓰지 않는다. 재료에 없는 새 사실을 지어내지 않는다.
                 출력: {"lines":["...","..."]}
                 """, "기본 정보(JSON): " + json(basics) + "\n카테고리: " + category
-                + "\n카테고리 규칙: " + json(ActivityRules.CATEGORY_RULES.getOrDefault(category, List.of()))
+                + "\n카테고리 규칙: " + json(ActivityRules.categoryRules(category, basics.get("senior")))
                 + "\n교육 규칙: " + json(ActivityRules.EDU_RULES), 500);
         if (j.isPresent()) {
             List<String> lines = new ArrayList<>();

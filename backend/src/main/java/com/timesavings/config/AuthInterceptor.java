@@ -21,8 +21,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (path.startsWith("/api/auth/") && !path.equals("/api/auth/logout")) return true;
         if (path.equals("/api/orgs/apply")) return true;
         if ("GET".equals(method) && path.equals("/api/ai/status")) return true;
-        if (path.startsWith("/api/notices")) return true;
-        return "GET".equals(method) && path.startsWith("/api/files/");
+        // 올린 파일(/api/files/**)은 공개가 아니다: 로그인하고, 볼 수 있는 사람만(FileAccessService)
+        return path.startsWith("/api/notices");
     }
 
     @Override

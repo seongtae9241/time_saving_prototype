@@ -31,6 +31,7 @@ public class User {
     @Column(length = 200) public String idFileUrl;
     @Enumerated(EnumType.STRING) @Column(length = 10) public VerifyStatus crimeStatus = VerifyStatus.NONE;
     @Column(length = 200) public String crimeFileUrl;
+    /** 41판부터 쓰지 않는다(B-54 수료 배지 없음). 기존 DB 의 not null 칸 때문에 필드만 남긴다. */
     public boolean eduDone;
     public boolean voiceAlert;
     @Column(length = 10) public String textSize = "normal";
@@ -46,6 +47,8 @@ public class User {
     public Boolean notiRemind;
     public Boolean notiInterest;
     public Boolean smsAlert;
+    /** D-02 퇴출: 정지(status=SUSPENDED)와 달리 운영자가 다시 풀 수 없고 로그인할 수 없다. null·false 는 퇴출 아님. */
+    public Boolean banned;
     public int penaltyCount;
     public int warningCount;
     public LocalDateTime createdAt = LocalDateTime.now();

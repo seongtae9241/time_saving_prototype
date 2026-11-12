@@ -65,13 +65,24 @@ class ActivityRulesTest {
 
     @Test
     void 브리핑_규칙은_기본_정보와_카테고리_규칙_교육_규칙으로_3_6줄() {
-        List<String> lines = ActivityRules.briefingRule(Map.of("alias", "이○례 님", "dong", "행복동", "content", "병원 동행", "caution", "천천히 걸어 주세요", "when", "11/12 14:00, 2시간"), "동행");
+        List<String> lines = ActivityRules.briefingRule(Map.of("alias", "이○례 님", "dong", "행복동", "content", "병원 동행", "caution", "천천히 걸어 주세요", "when", "11/12 14:00, 2시간", "senior", true), "동행");
         assertTrue(lines.size() >= 3 && lines.size() <= 6);
         assertTrue(lines.get(0).startsWith("이○례 님 · 행복동 · 병원 동행"));
         assertTrue(lines.stream().anyMatch(l -> l.contains("결정은 어르신 본인")));
         assertTrue(lines.stream().anyMatch(l -> l.contains("부축까지만")));
         assertTrue(lines.stream().anyMatch(l -> l.contains("신체 돌봄")));
         assertTrue(ActivityRules.briefingRule(Map.of("alias", "a", "content", "c"), "디지털 도움").stream().anyMatch(l -> l.contains("비밀번호")));
+        // 받는 분이 어르신이 아니거나 나이대를 모르면 어르신용 문장을 쓰지 않는다
+        for (Map<String, Object> basics : List.of(Map.<String, Object>of("alias", "손유진 님", "content", "말벗", "senior", false), Map.<String, Object>of("alias", "받는 분", "content", "말벗"))) {
+            List<String> young = ActivityRules.briefingRule(basics, "말동무·정서");
+            assertTrue(young.stream().noneMatch(l -> l.contains("또박또박") || l.contains("반복하셔도") || l.contains("어르신")), young.toString());
+            assertTrue(young.stream().anyMatch(l -> l.contains("끝까지 듣고")));
+        }
+        assertTrue(ActivityRules.briefingRule(Map.of("alias", "이○례 님", "content", "말벗", "senior", true), "말동무·정서").stream().anyMatch(l -> l.contains("또박또박")));
+        assertEquals(Boolean.TRUE, ActivityRules.seniorOf("80대 이상"));
+        assertEquals(Boolean.TRUE, ActivityRules.seniorOf("60대"));
+        assertEquals(Boolean.FALSE, ActivityRules.seniorOf("20대"));
+        assertNull(ActivityRules.seniorOf(null));
     }
 
     @Test

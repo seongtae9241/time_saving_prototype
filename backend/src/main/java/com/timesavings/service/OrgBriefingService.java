@@ -66,8 +66,7 @@ public class OrgBriefingService {
     }
 
     static String md(LocalDate d) {
-        String[] w = {"월", "화", "수", "목", "금", "토", "일"};
-        return d.getMonthValue() + "/" + d.getDayOfMonth() + "(" + w[d.getDayOfWeek().getValue() - 1] + ")";
+        return Rules.md(d);
     }
 
     @SuppressWarnings("unchecked")

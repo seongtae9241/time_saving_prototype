@@ -20,11 +20,22 @@ public class CareMemoAi {
     /** 생활 변화 신호(코드 키워드). 이름은 이 목록에서만 쓴다. */
     public static final LinkedHashMap<String, Pattern> SIGNALS = new LinkedHashMap<>();
     static {
-        SIGNALS.put("식사 거름", Pattern.compile("(식사|끼니|밥|점심|저녁|아침)\\s*(을|를)?\\s*(자주\\s*)?(거르|걸러|걸렀|굶|안\\s*드|못\\s*드|안\\s*먹|못\\s*먹)|입맛이\\s*없|식욕이\\s*없|반찬이\\s*그대로|음식이\\s*그대로"));
+        // 41판 B-36: 한 번만 적혀도 담당자에게 알리는 뚜렷한 표현(URGENT 참고)
+        SIGNALS.put("쓰러짐", Pattern.compile("쓰러지|쓰러졌|쓰러져|쓰러짐|쓰러진|실신|기절|의식(을|이)\\s*(잃|없)|정신을\\s*잃"));
+        SIGNALS.put("넘어짐", Pattern.compile("넘어지|넘어졌|넘어져|넘어짐|넘어진|낙상|미끄러져|미끄러지셨|주저앉"));
+        SIGNALS.put("식사 거름", Pattern.compile("(식사|끼니|밥|점심|저녁|아침)\\s*(을|를|도)?\\s*(자주\\s*|계속\\s*)?(거르|거름|거른|걸러|걸렀|굶|안\\s*드|못\\s*드|안\\s*먹|못\\s*먹)|입맛이\\s*없|식욕이\\s*없|반찬이\\s*그대로|음식이\\s*그대로"));
         SIGNALS.put("외출 감소", Pattern.compile("외출(을|이)?\\s*(안|못|줄|잘\\s*안)|밖에\\s*(잘\\s*)?(안|못)\\s*나가|집에만\\s*계|나가기\\s*싫|산책(은|을)?\\s*(다음에|안\\s*하|싫|못)|(경로당|복지관)에?도?\\s*(요즘\\s*)?(안|못)\\s*가"));
         SIGNALS.put("기운 없음", Pattern.compile("기운이\\s*없|힘이\\s*없|기력이\\s*(없|떨어)|축\\s*처지|하루\\s*종일\\s*누워|누워만\\s*계|피곤해\\s*하"));
         SIGNALS.put("잠 못 잠", Pattern.compile("잠(을|이)?\\s*(잘\\s*)?(못\\s*주무|못\\s*자|안\\s*와|설치)|밤에\\s*(자주\\s*)?깨|못\\s*주무"));
         SIGNALS.put("말수·기분 변화", Pattern.compile("말수가\\s*줄|말씀이\\s*줄|웃지\\s*않|웃음이\\s*줄|기분이\\s*(가라앉|안\\s*좋|처지)|울적|적적해\\s*하|외로워\\s*하"));
+    }
+
+    /** 일지 한 건에만 있어도 담당자에게 알리는 표현(명세 B-36 예시: 쓰러짐, 식사 거름 등). 나머지 신호는 여러 번 이어질 때만 알린다. */
+    public static final Set<String> URGENT = Set.of("쓰러짐", "넘어짐", "식사 거름");
+
+    /** 신호 이름 가운데 한 번만 나와도 알릴 것만 고른다(순서 유지). */
+    public static List<String> urgentOf(Collection<String> signals) {
+        return signals == null ? List.of() : signals.stream().filter(URGENT::contains).toList();
     }
 
     /** 진단·건강 판단으로 읽힐 수 있는 말. 이런 문장은 저장·표시하지 않는다. */
@@ -102,7 +113,7 @@ public class CareMemoAi {
                 next: 다음 방문 때 챙길 것 0~4개(각 30자 안, '~하기' 체).
                 hospital: 병원·약국·보건소에서 들은 안내가 있으면 무엇에 대한 안내인지만 15자 안(예: "다음 진료 일정", "약 먹는 시간"), 없으면 빈 문자열.
                 life: 평소와 달라진 생활 모습 0~3개(관찰한 그대로, 예: "점심을 거르셨다고 하심").
-                signals: 다음 이름 중 해당하는 것만 [식사 거름, 외출 감소, 기운 없음, 잠 못 잠, 말수·기분 변화]. 없으면 [].
+                signals: 다음 이름 중 해당하는 것만 [쓰러짐, 넘어짐, 식사 거름, 외출 감소, 기운 없음, 잠 못 잠, 말수·기분 변화]. 없으면 [].
                 출력: {"next":["..."],"hospital":"...","life":["..."],"signals":["..."]}
                 """, "전달 메모: " + m + (l.isBlank() ? "" : "\n활동 일지: " + l), 500);
         if (j.isEmpty() || !(j.get().has("next") || j.get().has("signals"))) return rule;

@@ -167,7 +167,15 @@ public class PostController {
     @GetMapping("/interest-alerts")
     public List<InterestAlert> alerts(@CurrentUser User u) { return alerts.findByUserId(u.id); }
 
-    private InterestAlert apply(InterestAlert a, AlertBody b) {
+    @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper om;
+
+    /** 날짜 칸은 빈 글자("")나 null 을 보내면 지운다(칸을 아예 안 보내면 그대로 둔다). */
+    private InterestAlert apply(InterestAlert a, com.fasterxml.jackson.databind.JsonNode j) {
+        AlertBody b;
+        try { b = om.treeToValue(j, AlertBody.class); } catch (Exception e) { throw ApiException.bad("INVALID", "조건을 다시 확인해 주세요"); }
+        if (b == null) throw ApiException.bad("INVALID", "조건을 다시 확인해 주세요");
+        if (j.has("dateFrom") && j.get("dateFrom").isNull()) a.dateFrom = null;
+        if (j.has("dateTo") && j.get("dateTo").isNull()) a.dateTo = null;
         if (b.area() != null) a.area = b.area();
         if (b.categories() != null) a.categories = AuthController.clean(b.categories());
         if (b.dayType() != null) a.dayType = b.dayType();
@@ -184,7 +192,7 @@ public class PostController {
     }
 
     @PostMapping("/interest-alerts")
-    public InterestAlert addAlert(@CurrentUser User u, @RequestBody AlertBody b) {
+    public InterestAlert addAlert(@CurrentUser User u, @RequestBody com.fasterxml.jackson.databind.JsonNode b) {
         InterestAlert a = new InterestAlert();
         a.userId = u.id;
         return apply(a, b);
@@ -197,11 +205,11 @@ public class PostController {
     }
 
     @PutMapping("/interest-alerts/{id}")
-    public InterestAlert putAlert(@CurrentUser User u, @PathVariable Long id, @RequestBody AlertBody b) { return apply(mineAlert(u, id), b); }
+    public InterestAlert putAlert(@CurrentUser User u, @PathVariable Long id, @RequestBody com.fasterxml.jackson.databind.JsonNode b) { return apply(mineAlert(u, id), b); }
 
     /** 계약서의 "PUT /api/interest-alerts"(id 없이) 도 받는다: 첫 조건을 고치거나 없으면 만든다. */
     @PutMapping("/interest-alerts")
-    public InterestAlert putFirst(@CurrentUser User u, @RequestBody AlertBody b) {
+    public InterestAlert putFirst(@CurrentUser User u, @RequestBody com.fasterxml.jackson.databind.JsonNode b) {
         InterestAlert a = alerts.findByUserId(u.id).stream().findFirst().orElseGet(() -> { InterestAlert x = new InterestAlert(); x.userId = u.id; return x; });
         return apply(a, b);
     }

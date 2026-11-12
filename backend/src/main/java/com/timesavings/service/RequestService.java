@@ -123,6 +123,7 @@ public class RequestService {
             case PROPOSAL -> {
                 post = openPost(c.postId(), PostType.NEED);
                 if (post.elderId == null && me.id.equals(post.ownerId)) throw ApiException.bad("OWN_POST", "내 공고에는 제안할 수 없어요");
+                if (post.elderId == null && me.id.equals(post.createdBy)) throw ApiException.bad("OWN_POST", "가족 대신 올린 공고에는 직접 제안할 수 없어요"); // B-57
                 r.volunteerId = me.id;
                 r.recipientId = post.ownerId;
                 r.elderId = post.elderId;
@@ -332,6 +333,30 @@ public class RequestService {
         return r;
     }
 
+    /**
+     * D-02 퇴출: 그 사용자의 아직 끝나지 않은 요청(수락 대기·확정·진행 중)을 취소하고 보류 시간을 돌려준다. 열린 공고는 마감한다.
+     * 이미 활동을 마친 건(종료 체크·일지 제출)은 상대의 적립이 걸려 있어 그대로 두고 평소처럼 정산된다. 정리한 요청 수를 돌려준다.
+     */
+    public int closeAllFor(User u, String reason) {
+        int n = 0;
+        for (Request r : repo.findAll()) {
+            boolean mine = u.id.equals(r.volunteerId) || u.id.equals(r.recipientId) || (r.elderId == null && u.id.equals(r.senderId));
+            if (!mine || !(r.status.pending() || r.status == ReqStatus.CONFIRMED || r.status == ReqStatus.IN_PROGRESS)) continue;
+            boolean held = !r.status.pending();
+            r.status = ReqStatus.CANCELLED;
+            r.rejectReason = reason;
+            r.deadlineAt = null;
+            if (held) { releaseHold(r); closeMatchedPost(r); }
+            sys(r, "운영자가 취소했어요. 사유: " + reason);
+            if (!u.id.equals(r.volunteerId)) noti.toVolunteer(r, "CANCELLED", "활동이 취소됐어요", when(r) + " · 사유: " + reason);
+            else noti.toRecipientSide(r, "CANCELLED", "활동이 취소됐어요", when(r) + " · 사유: " + reason);
+            n++;
+        }
+        for (Post p : posts.findAll())
+            if (p.elderId == null && u.id.equals(p.ownerId) && (p.status == PostStatus.OPEN || p.status == PostStatus.MATCHED)) p.status = PostStatus.CLOSED;
+        return n;
+    }
+
     public Request noshow(User me, Long id) {
         Request r = get(id);
         String role = requireRole(r, me);
@@ -400,7 +425,9 @@ public class RequestService {
     }
 
     private String verifyCode(Request r, String code, String method) {
-        if ("manual".equals(method)) return "manual";
+        // 번호 없이 기록하는 길은 없앴다(2026-11-12 결정). QR 을 찍거나 6자리 번호를 넣어야 한다.
+        if ("manual".equals(method))
+            throw ApiException.bad("MANUAL_NOT_ALLOWED", "번호 없이는 시작·종료를 기록할 수 없어요. QR을 찍거나 번호 6자리를 넣어 주세요");
         String c = code == null ? "" : code.trim();
         if (r.elderId != null) {
             // 독거노인 건: 도움 대상별 현관 QR 카드(C-11). 다시 발급하면 이전 카드 번호는 여기서 걸린다.

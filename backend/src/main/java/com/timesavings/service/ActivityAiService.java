@@ -103,6 +103,9 @@ public class ActivityAiService {
         m.put("content", r.content);
         m.put("caution", caution == null || caution.isBlank() ? null : caution.trim());
         m.put("when", when(r));
+        // 받는 분 나이대에 맞는 문장을 고른다: 기관 도움 대상(독거노인)·60대 이상이면 어르신용, 그 밖이거나 모르면 중립
+        Boolean senior = e != null ? Boolean.TRUE : com.timesavings.ai.ActivityRules.seniorOf(rec == null ? null : rec.ageGroup);
+        if (senior != null) m.put("senior", senior);
         return m;
     }
 

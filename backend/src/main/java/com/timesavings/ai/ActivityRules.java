@@ -24,13 +24,34 @@ public final class ActivityRules {
             "생활 정리", List.of("버릴 물건은 하나하나 어르신께 확인받아요", "귀중품·서류는 손대지 않고 자리만 알려 드려요"),
             "가벼운 집안일", List.of("높은 곳·무거운 짐·전기·가스 일은 하지 않아요", "칼·불을 쓸 때는 어르신과 함께 확인해요"));
 
+    /** 받는 분이 어르신이 아니거나 나이대를 모를 때 쓰는 중립 문장(같은 규칙을 나이와 상관없는 말로). */
+    public static final Map<String, List<String>> CATEGORY_RULES_NEUTRAL = Map.of(
+            "동행", List.of("진료·치료 결정은 받는 분 본인이 해요. 함께 듣고 기억을 돕는 데까지만", "부축까지만 해요. 업거나 안아 옮기지 않아요"),
+            "장보기·심부름", CATEGORY_RULES.get("장보기·심부름"),
+            "디지털 도움", List.of("비밀번호·인증번호는 받는 분이 직접 입력하게 하고 화면을 보지 않아요", "송금·결제는 대신 하지 않아요"),
+            "말동무·정서", List.of("상대의 말을 끝까지 듣고 편하게 이야기를 나눠요", "사적인 질문은 삼가고 불편해하는 이야기는 피해요"),
+            "생활 정리", List.of("버릴 물건은 하나하나 받는 분께 확인받아요", "귀중품·서류는 손대지 않고 자리만 알려 드려요"),
+            "가벼운 집안일", List.of("높은 곳·무거운 짐·전기·가스 일은 하지 않아요", "칼·불을 쓸 때는 받는 분과 함께 확인해요"));
+
+    /** senior 가 true 일 때만 어르신용 문장, 아니면(일반 사용자·나이대 모름) 중립 문장. */
+    public static List<String> categoryRules(String category, Object senior) {
+        return (Boolean.TRUE.equals(senior) ? CATEGORY_RULES : CATEGORY_RULES_NEUTRAL).getOrDefault(category, List.of());
+    }
+
+    /** 나이대 글자("70대", "80대 이상")로 어르신(60대 이상)인지 본다. 모르면 null. */
+    public static Boolean seniorOf(String ageGroup) {
+        if (ageGroup == null || ageGroup.isBlank()) return null;
+        java.util.regex.Matcher m = Pattern.compile("(\\d{2,3})").matcher(ageGroup);
+        return m.find() ? Integer.parseInt(m.group(1)) >= 60 : null;
+    }
+
     /** 교육 규칙 카드에서 가져온 공통 금지(신체 돌봄·금전·연락처). */
     public static final List<String> EDU_RULES = List.of(
             "목욕·기저귀·파스 붙이기 같은 신체 돌봄과 약 먹이기는 하지 않아요",
             "돈·선물은 마음만 받고 정중히 사양해요",
             "전화번호·카톡 아이디는 주고받지 않아요. 연락은 앱 메시지로만");
 
-    /** basics: alias(표시 이름)·dong·content·caution·when. 지난 전달 메모는 받지 않는다. */
+    /** basics: alias(표시 이름)·dong·content·caution·when·senior(받는 분이 어르신인가, 없으면 중립 문장). 지난 전달 메모는 받지 않는다. */
     public static List<String> briefingRule(Map<String, Object> basics, String category) {
         List<String> out = new ArrayList<>();
         String head = String.join(" · ", nonBlank(basics.get("alias"), basics.get("dong"), basics.get("content")));
@@ -38,7 +59,7 @@ public final class ActivityRules {
         out.add(head + (when == null ? "" : " (" + when + ")"));
         Object caution = basics.get("caution");
         if (caution != null && !caution.toString().isBlank()) out.add("주의: " + caution.toString().trim());
-        out.addAll(CATEGORY_RULES.getOrDefault(category, List.of()));
+        out.addAll(categoryRules(category, basics.get("senior")));
         out.add(EDU_RULES.get(0));
         if (out.size() < 6) out.add(EDU_RULES.get(2));
         if (out.size() < 6 && ("장보기·심부름".equals(category) || "디지털 도움".equals(category) || "말동무·정서".equals(category))) out.add(EDU_RULES.get(1));
@@ -161,7 +182,7 @@ public final class ActivityRules {
         String when = null;
         if ((m = S_DATE.matcher(t)).find()) when = m.group(1);
         else if ((m = S_DATE_BARE.matcher(t)).find()) when = m.group().replaceAll("로$", "");
-        if (when != null) return new Schedule("DATE", "날짜를 " + when.replaceAll("\\s+", " ").trim() + "(으)로 바꾸자고 했어요", null, null);
+        if (when != null) return new Schedule("DATE", "날짜를 " + Rules.ro(when.replaceAll("\\s+", " ").trim()) + " 바꾸자고 했어요", null, null);
         return null;
     }
 

@@ -231,18 +231,29 @@ class Req41PostTest {
     }
 
     @Test
-    void 올린_사람은_수락_전에는_자기가_쓴_공고를_고칠_수_있다() {
+    void 올린_사람은_읽기만_하고_수정_삭제_다시_올리기_직접_제안은_못_한다() throws Exception {
         Post p = postSvc.create(son, new PostService.PostCmd(PostType.NEED, day, 10.0, 12.0, "행복동", List.of("말동무·정서"),
                 "말벗", "이야기", null, 1.0, false, null, null, null, null), mom.id).get(0);
-        postSvc.update(son, p.id, new PostService.PostCmd(null, null, null, null, null, null, "말벗과 산책", null, null, null, false, 1, null, null, null));
+        PostService.PostCmd edit = new PostService.PostCmd(null, null, null, null, null, null, "말벗과 산책", null, null, null, false, 1, null, null, null);
+        assertFalse(postSvc.canEdit(p, son));
+        assertTrue(postSvc.canSeeRequests(p, son), "진행 상황은 볼 수 있다");
+        assertThrows(ApiException.class, () -> postSvc.update(son, p.id, edit));
+        assertThrows(ApiException.class, () -> postSvc.delete(son, p.id));
+        assertThrows(ApiException.class, () -> postSvc.repost(son, p.id, day.plusDays(7)));
+        mvc.perform(delete("/api/posts/" + p.id).header("Authorization", tok(son))).andExpect(status().isForbidden());
+        mvc.perform(post("/api/posts/" + p.id + "/repost").header("Authorization", tok(son)).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"date\":\"" + day.plusDays(7) + "\"}")).andExpect(status().isForbidden());
+        assertEquals("말벗", p.title);
+        assertEquals(PostStatus.OPEN, p.status);
+        // 올린 사람은 그 공고에 직접 봉사 제안을 할 수 없다
+        ApiException own = assertThrows(ApiException.class, () -> reqs.create(son,
+                new RequestService.CreateCmd(Kind.PROPOSAL, p.id, null, null, day, 10.0, 1.0, null, "제가 할게요", null)));
+        assertEquals("OWN_POST", own.code);
+        // 공고 주인(가족)은 고치고 다시 올릴 수 있다
+        postSvc.update(mom, p.id, edit);
         assertEquals("말벗과 산책", p.title);
-        assertEquals(mom.id, p.ownerId);
-        assertThrows(ApiException.class, () -> postSvc.update(stranger, p.id,
-                new PostService.PostCmd(null, null, null, null, null, null, "다른 제목", null, null, null, false, 1, null, null, null)));
-        // 다시 올리기도 가족 이름으로
-        Post again = postSvc.repost(son, p.id, day.plusDays(7));
+        Post again = postSvc.repost(mom, p.id, day.plusDays(7));
         assertEquals(mom.id, again.ownerId);
-        assertEquals(son.id, again.createdBy);
     }
 
     // ---------------- B-20·B-59 위치·날짜 ----------------
@@ -327,6 +338,16 @@ class Req41PostTest {
         // 끝이 시작보다 앞이면 400, 날짜 모양이 틀려도 400
         mvc.perform(put("/api/interest-alerts/" + id).header("Authorization", tok(stranger)).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"dateFrom\":\"2026-12-10\",\"dateTo\":\"2026-12-01\"}")).andExpect(status().isBadRequest());
+        // 화면이 보내는 null 로도 지워진다(칸을 아예 안 보내면 그대로)
+        mvc.perform(put("/api/interest-alerts/" + id).header("Authorization", tok(stranger)).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"dateFrom\":\"" + day.plusDays(2) + "\",\"dateTo\":\"" + day.plusDays(3) + "\"}")).andExpect(status().isOk());
+        JsonNode kept = json(mvc.perform(put("/api/interest-alerts/" + id).header("Authorization", tok(stranger)).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"enabled\":true}")).andExpect(status().isOk()));
+        assertEquals(day.plusDays(2).toString(), kept.path("dateFrom").asText());
+        JsonNode nulled = json(mvc.perform(put("/api/interest-alerts/" + id).header("Authorization", tok(stranger)).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"area\":\"행복동\",\"dateFrom\":null,\"dateTo\":null}")).andExpect(status().isOk()));
+        assertTrue(nulled.path("dateFrom").isNull());
+        assertTrue(nulled.path("dateTo").isNull());
         mvc.perform(put("/api/interest-alerts/" + id).header("Authorization", tok(stranger)).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"dateFrom\":\"내일\"}")).andExpect(status().isBadRequest());
     }

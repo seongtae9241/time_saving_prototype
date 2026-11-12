@@ -88,7 +88,7 @@ public final class RuleEngine {
         Level level = Rules.max(base, calc);
 
         List<String> why = new ArrayList<>();
-        if (base != Level.BASIC) why.add(String.join("·", cats.stream().filter(c -> Rules.categoryLevel(c) == base).toList()) + "은(는) 기본 " + Rules.levelKo(base) + " 등급");
+        if (base != Level.BASIC) why.add(Rules.josa(String.join("·", cats.stream().filter(c -> Rules.categoryLevel(c) == base).toList()), "은", "는") + " 기본 " + Rules.levelKo(base) + " 등급");
         if (f.get("physical") > 0) why.add("무거운 짐 등 신체 부담");
         if (resp > 0 && base != Level.RESPONSIBLE) why.add("병원·기관 동행 등 책임");
         if (f.get("risk") > 0) why.add("도구·반려동물 등 위험 요소");

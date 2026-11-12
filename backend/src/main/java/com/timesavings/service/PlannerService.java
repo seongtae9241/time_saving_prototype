@@ -193,13 +193,6 @@ public class PlannerService {
                     "category", r.category, "title", r.content, "who", whoOf(r, u), "amount", give ? earn : r.hours,
                     "requestId", r.id, "status", r.status));
         }
-        for (Map<String, Object> e : events.list(u)) {
-            if (!Boolean.TRUE.equals(e.get("myApplied")) || e.get("date") == null) continue;
-            LocalDate d = LocalDate.parse((String) e.get("date"));
-            if (!YearMonth.from(d).equals(ym)) continue;
-            items.add(Views.map("kind", "event", "date", d.toString(), "startHour", e.get("startHour"), "hours", 0,
-                    "category", null, "title", e.get("title"), "who", e.get("orgName"), "amount", 0, "eventId", e.get("id")));
-        }
         // 내 계획(추천 봉사에서 고른 공고) — 열려 있고 날짜가 안 지난 것만
         List<PlannerPick> myPicks = picks.findByUserId(u.id);
         Set<Long> pickIds = new HashSet<>();

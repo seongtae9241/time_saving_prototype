@@ -35,7 +35,6 @@ public class DataSeeder implements ApplicationRunner {
     private final AuthService auth; private final LifeReportService lifeReports; private final AiClient ai; private final TransactionTemplate tx;
     private final boolean enabled;
     @org.springframework.beans.factory.annotation.Autowired private OrgEventRepo orgEvents; // 동네 소식(2026-11-09)
-    @org.springframework.beans.factory.annotation.Autowired private EventApplicationRepo eventApps;
     @org.springframework.beans.factory.annotation.Autowired private PublicClassRepo publicClasses; // 기관 클래스 추천 샘플(2026-11-10)
 
     private LocalDate today;
@@ -77,25 +76,25 @@ public class DataSeeder implements ApplicationRunner {
 
         // ---------------- 기관·계정 ----------------
         Organization o1 = org("행복동 주민센터", "주민센터", OrgStatus.APPROVED, "박지원", "010-2000-0001", today.minusMonths(6));
-        org("희망동 노인복지관", "노인복지관", OrgStatus.PENDING, "김민수", "010-2000-0002", p(11, 7)).memo = "재직증명서 첨부";
-        org("사랑동 주민센터", "주민센터", OrgStatus.PENDING, "이수정", "010-2000-0003", p(11, 6)).memo = "재직증명서 첨부";
+        org("희망동 노인복지관", "노인복지관", OrgStatus.PENDING, "김민수", "010-2000-0002", p(11, 7)).memo = "독거 어르신 12분을 담당하고 있어요";
+        org("사랑동 주민센터", "주민센터", OrgStatus.PENDING, "이수정", "010-2000-0003", p(11, 6)).memo = "복지팀에서 신청해요";
 
         user("yujin", "손유진", "010-1111-0001", "행복동", "20대", "퇴근 후·주말에 시간 있어요. 폰·키오스크 설명 자신 있어요", "디지털 9회 · 말동무 6회",
-                List.of("디지털 도움", "말동무·정서", "장보기·심부름"), List.of("평일 저녁", "주말 오후"), VerifyStatus.APPROVED, VerifyStatus.NONE, false);
+                List.of("디지털 도움", "말동무·정서", "장보기·심부름"), List.of("평일 저녁", "주말 오후"), VerifyStatus.APPROVED, VerifyStatus.NONE);
         user("sky", "김하늘", "010-1111-0002", "행복동", "20대", "간호학과 학생이에요. 병원 동행·폰 설정 자신 있어요", "동행 12회 · 디지털 9회",
-                List.of("동행", "디지털 도움"), List.of("평일 오후"), VerifyStatus.APPROVED, VerifyStatus.APPROVED, true);
+                List.of("동행", "디지털 도움"), List.of("평일 오후"), VerifyStatus.APPROVED, VerifyStatus.APPROVED);
         user("mikyung", "최미경", "010-1111-0003", "행복동", "60대", "은퇴 후 이웃 돕기를 시작했어요. 산책·말벗 좋아해요", "동행 18회 · 말동무 11회",
-                List.of("말동무·정서", "동행"), List.of("평일 오전", "평일 저녁"), VerifyStatus.APPROVED, VerifyStatus.APPROVED, true);
+                List.of("말동무·정서", "동행"), List.of("평일 오전", "평일 저녁"), VerifyStatus.APPROVED, VerifyStatus.APPROVED);
         user("doyun", "이도윤", "010-1111-0004", "희망동", "30대", "주말에 시간이 많은 직장인이에요", "장보기 8회 · 집안일 5회",
-                List.of("장보기·심부름", "가벼운 집안일", "생활 정리"), List.of("주말 오전"), VerifyStatus.APPROVED, VerifyStatus.NONE, true);
+                List.of("장보기·심부름", "가벼운 집안일", "생활 정리"), List.of("주말 오전"), VerifyStatus.APPROVED, VerifyStatus.NONE);
         user("bok", "김복남", "010-1111-0005", "행복동", "70대", "행복동 8통에 살아요. 김치는 50년 담갔어요", "도움 받기 6회",
-                List.of("디지털 도움", "말동무·정서"), List.of("평일 오후"), VerifyStatus.APPROVED, VerifyStatus.NONE, false);
+                List.of("디지털 도움", "말동무·정서"), List.of("평일 오후"), VerifyStatus.APPROVED, VerifyStatus.NONE);
         user("mom", "이순자", "010-1111-0006", "행복동", "50대", "손유진 엄마예요. 장보기 같이 해요", "장보기 3회",
-                List.of("장보기·심부름"), List.of("평일 오전"), VerifyStatus.APPROVED, VerifyStatus.NONE, true);
+                List.of("장보기·심부름"), List.of("평일 오전"), VerifyStatus.APPROVED, VerifyStatus.NONE);
         user("dain", "정다은", "010-1111-0007", "사랑동", "20대", "주말 봉사를 시작하려고 해요", null,
-                List.of("디지털 도움"), List.of("주말 오후"), VerifyStatus.PENDING, VerifyStatus.PENDING, true).idFileUrl = "/api/files/demo-id.png";
+                List.of("디지털 도움"), List.of("주말 오후"), VerifyStatus.PENDING, VerifyStatus.PENDING).idFileUrl = "/api/files/demo-id.png";
         user("sehun", "오세훈", "010-1111-0008", "미래동", "40대", "동네 어르신 장보기 도와드릴게요", null,
-                List.of("장보기·심부름"), List.of("주말 오전"), VerifyStatus.PENDING, VerifyStatus.NONE, true).idFileUrl = "/api/files/demo-id2.png";
+                List.of("장보기·심부름"), List.of("주말 오전"), VerifyStatus.PENDING, VerifyStatus.NONE).idFileUrl = "/api/files/demo-id2.png";
         U.get("dain").crimeFileUrl = "/api/files/demo-crime.pdf";
         User org1 = staff("org1", "박지원", Role.ORG, o1.id, "010-2000-0001");
         staff("org2", "최서연", Role.ORG, o1.id, "010-2000-0011");
@@ -153,7 +152,7 @@ public class DataSeeder implements ApplicationRunner {
                 double h = "동행".equals(c) ? 2 : 1.5;
                 int day = Math.min(ym.lengthOfMonth(), 3 + i * 4);
                 done(vols[(i + k) % vols.length], null, eks[(i + k) % eks.length], ym.atDay(day), 10 + (i % 3) * 2, h, c,
-                        c + " 도움", c + "을(를) 함께했어요.", null, i == 0);
+                        c.endsWith("도움") ? c : c + " 도움", Rules.josa(c, "을", "를") + " 함께했어요.", null, i == 0);
             }
         }
 
@@ -191,11 +190,11 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     private User user(String id, String name, String phone, String area, String age, String intro, String exp, List<String> cats,
-                      List<String> slots, VerifyStatus idSt, VerifyStatus crime, boolean eduDone) {
+                      List<String> slots, VerifyStatus idSt, VerifyStatus crime) {
         User u = new User();
         u.loginId = id; u.passwordHash = pwHash; u.name = name; u.phone = phone; u.area = area; u.ageGroup = age; u.intro = intro;
         u.experience = exp; u.categories = new ArrayList<>(cats); u.timeSlots = new ArrayList<>(slots); u.idStatus = idSt; u.crimeStatus = crime;
-        u.eduDone = eduDone; u.role = Role.USER; u.createdAt = today.minusMonths(7).atTime(9, 0);
+        u.role = Role.USER; u.createdAt = today.minusMonths(7).atTime(9, 0);
         users.save(u);
         U.put(id, u);
         return u;
@@ -238,7 +237,7 @@ public class DataSeeder implements ApplicationRunner {
         x.createdBy = owner != null ? owner.id : U.get("org1").id; x.date = date; x.startHour = s; x.endHour = e; x.area = area;
         x.categories = new ArrayList<>(cats); x.title = title; x.detail = detail; x.note = note; x.estHours = est;
         Level lv = Rules.maxLevel(cats);
-        x.difficulty = lv; x.weight = Rules.weight(lv); x.difficultyReason = String.join("·", cats) + " 기본 " + Rules.levelKo(lv) + " 등급";
+        x.difficulty = lv; x.weight = Rules.weight(lv); x.difficultyReason = Rules.josa(String.join("·", cats), "은", "는") + " 카테고리 기본이 " + Rules.levelKo(lv) + " 등급이에요";
         x.status = st; x.createdAt = created;
         return posts.save(x);
     }
@@ -367,7 +366,7 @@ public class DataSeeder implements ApplicationRunner {
                 String[] pr = pairs[(i + k) % pairs.length];
                 int day = Math.min(ym.lengthOfMonth(), 2 + (i * 7 + k * 3) % 26);
                 done(pr[0], pr[1], pr[2], ym.atDay(day), 10 + (i % 4) * 2, Double.parseDouble(pr[4]), pr[3], pr[5],
-                        pr[5] + "을(를) 함께했어요.", null, i % 3 == 0);
+                        Rules.josa(pr[5], "을", "를") + " 함께했어요.", null, i % 3 == 0);
             }
             // 매칭 안 된 공고·요청(지역별 매칭률)
             LocalDate d = ym.atDay(Math.min(ym.lengthOfMonth(), 15));
@@ -388,11 +387,8 @@ public class DataSeeder implements ApplicationRunner {
         User yujin = U.get("yujin"), sky = U.get("sky"), mk = U.get("mikyung"), doyun = U.get("doyun"), bok = U.get("bok");
         LocalDateTime now = LocalDateTime.now();
         Post p1 = post(PostType.OFFER, sky, null, p(11, 12), 13, 17, "행복동", List.of("동행", "디지털 도움"), "병원 동행·폰 설정 도와드려요", null, "병원 동행·폰 설정 도와드려요", null, PostStatus.MATCHED, now.minusDays(2));
-        String series = UUID.randomUUID().toString();
-        for (int w = 0; w < 4; w++) {
-            Post p2 = post(PostType.OFFER, mk, null, p(11, 13).plusWeeks(w), 10, 13, "행복동", List.of("말동무·정서", "동행"), "말벗·동행 도와드려요", null, "오전에 산책·말벗 가능해요", null, PostStatus.OPEN, now.minusDays(1).minusHours(3));
-            p2.seriesId = series; p2.repeatRule = "매주 " + "월화수목금토일".charAt(p2.date.getDayOfWeek().getValue() - 1) + "요일";
-        }
+        // 41판 B-06: 자동 반복 공고는 없다. 한 건만 올린다.
+        post(PostType.OFFER, mk, null, p(11, 13), 10, 13, "행복동", List.of("말동무·정서", "동행"), "말벗·동행 도와드려요", null, "오전에 산책·말벗 가능해요", null, PostStatus.OPEN, now.minusDays(1).minusHours(3));
         post(PostType.OFFER, doyun, null, p(11, 15), 9, 12, "희망동", List.of("장보기·심부름", "가벼운 집안일"), "장보기·집안일 도와드려요", null, "주말 오전 장보기 대신 해드려요", null, PostStatus.OPEN, now.minusHours(20));
         Post p5 = post(PostType.NEED, bok, null, p(11, 13), 15, 18, "행복동", List.of("디지털 도움"), "카페 키오스크 주문 연습", "동네 카페 키오스크 쓰는 법을 배우고 싶어요", null, 1.0, PostStatus.OPEN, now.minusHours(30));
         p5.difficultyReason = "키오스크 사용법 설명(전문성 낮음) → 기본 등급";
@@ -453,7 +449,7 @@ public class DataSeeder implements ApplicationRunner {
         noti(yujin, "NEW_REQUEST", "이○례 님이 도움을 요청했어요", "안부 방문 · 말동무", "/requests/" + r2.id, now.minusHours(3), true);
         noti(yujin, "REMIND", "내일 오전 10시 봉사 일정이 있어요", "정○순 님 · 냉장고 정리 (리마인드)", "/requests/" + r5.id, now.minusHours(14), true);
         r5.reminded = true;
-        noti(yujin, "INTEREST", "관심 조건에 맞는 새 공고가 올라왔어요", "행복동 · 디지털 도움 · 주말", "/posts", now.minusDays(2), true);
+        noti(yujin, "INTEREST", "관심 조건에 맞는 새 공고가 올라왔어요", p5.area + " · " + String.join("·", p5.categories) + " · " + Rules.md(p5.date), "/posts/" + p5.id, now.minusDays(2), true);
         noti(yujin, "INQUIRY", "1:1 문의에 답변이 등록됐어요", "적립 시간이 안 들어왔어요", "/my/inquiries", now.minusDays(3), true);
         noti(org1, "VOL_ACCEPTED", "최미경 님이 이순례 님 요청을 수락했어요", "전화로 확인 후 최종 수락/거부를 입력해 주세요", "/requests/" + q1.id, now.minusMinutes(30), false);
         noti(org1, "NEW_PROPOSAL", "이도윤 님이 정말순 님 공고에 제안했어요", "일주일치 장보기", "/requests/" + q2.id, now.minusHours(1), false);
@@ -517,13 +513,6 @@ public class DataSeeder implements ApplicationRunner {
         a.userId = yujin.id; a.area = "행복동"; a.categories = new ArrayList<>(List.of("디지털 도움")); a.dayType = "주말";
         alerts.save(a);
 
-        for (String k : List.of("sky", "mikyung", "doyun", "mom")) {
-            EduProgress e = new EduProgress();
-            e.userId = U.get(k).id; e.cardsDone = true; e.quizScore = 5;
-            e.roleplayJson = Views.json(Map.of("1", Views.map("passed", true, "comm", 100, "emp", 100, "safe", true)));
-            e.completedAt = today.minusMonths(3).atTime(21, 0);
-            edu.save(e);
-        }
         EduProgress y = new EduProgress();
         y.userId = yujin.id;
         y.diagJson = Views.json(Views.map("cats", yujin.categories, "who", "상관없어요", "exp", "조금 있어요"));

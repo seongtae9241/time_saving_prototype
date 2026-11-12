@@ -42,6 +42,7 @@ public class AdminController {
     private final SchedulerService scheduler;
     private final EduService eduSvc;
     private final Views views;
+    @org.springframework.beans.factory.annotation.Autowired private RequestService reqSvc;
 
     public AdminController(UserRepo users, OrganizationRepo orgs, ElderRepo elders, ElderTransferRepo transfers, RequestRepo requests,
                            PostRepo posts, LedgerRepo ledger, MessageRepo messages, DifficultyAppealRepo appeals, ReportRepo reports,
@@ -116,7 +117,6 @@ public class AdminController {
                 && YearMonth.from(r.doneAt).equals(now)).mapToDouble(r -> r.earned).sum());
         int tot = rate.stream().mapToInt(m -> (Integer) m.get("total")).sum(), mat = rate.stream().mapToInt(m -> (Integer) m.get("matched")).sum();
         long volunteers = users.findAll().stream().filter(u -> u.role == Role.USER && u.idStatus == VerifyStatus.APPROVED).count();
-        long eduDone = users.findAll().stream().filter(u -> u.role == Role.USER && u.eduDone).count();
         return Views.map(
                 "supply", cur.get("supply"), "demand", cur.get("demand"), "elderUsage", cur.get("elderUsage"),
                 "kpi", Views.map("activities", cur.get("activities"), "prevActivities", prev.get("activities"),
@@ -125,13 +125,15 @@ public class AdminController {
                 "timeBalance", Views.map("issued", issued, "consumed", consumed, "elderFree", elderFree,
                         "useRatio", issued == 0 ? 0 : Math.round(consumed * 100 / issued)),
                 "monthly", monthly, "weekly", weekly,
-                "edu", Views.map("volunteers", volunteers, "eduDone", eduDone),
+                "edu", Views.map("volunteers", volunteers),
                 "pending", Views.map(
                         "orgs", orgs.findAll().stream().filter(o -> o.status == OrgStatus.PENDING).count(),
                         "ids", users.findAll().stream().filter(u -> u.idStatus == VerifyStatus.PENDING).count(),
                         "crimes", users.findAll().stream().filter(u -> u.crimeStatus == VerifyStatus.PENDING).count(),
                         "appeals", appeals.findAll().stream().filter(a -> a.status == AppealStatus.RECEIVED).count(),
-                        "reports", reports.findAll().stream().filter(r -> r.status != ReportStatus.DONE).count(),
+                        // 안부 확인(이상 징후) 접수는 제재 없는 기록이라 신고 대기와 따로 센다
+                        "reports", reports.findAll().stream().filter(r -> r.status != ReportStatus.DONE && !r.welfare()).count(),
+                        "welfare", reports.findAll().stream().filter(r -> r.status != ReportStatus.DONE && r.welfare()).count(),
                         "inquiries", inquiries.findAll().stream().filter(q -> List.of("RECEIVED", "CHECKING").contains(stageOf(q))).count(),
                         "anomalies", anomalyGroups().size()));
     }
@@ -172,7 +174,7 @@ public class AdminController {
     @GetMapping("/managers")
     public List<Map<String, Object>> managers() {
         return users.findByRole(Role.ORG).stream().map(m -> Views.map("id", m.id, "loginId", m.loginId, "name", m.name, "status", m.status,
-                "orgId", m.orgId, "orgName", m.orgId == null ? null : orgs.findById(m.orgId).map(o -> o.name).orElse(null),
+                "banned", Boolean.TRUE.equals(m.banned), "orgId", m.orgId, "orgName", m.orgId == null ? null : orgs.findById(m.orgId).map(o -> o.name).orElse(null),
                 "elders", elders.findByManagerId(m.id).stream().map(e -> Views.map("id", e.id, "alias", e.alias, "status", e.status)).toList())).toList();
     }
 
@@ -184,9 +186,21 @@ public class AdminController {
     @PostMapping("/managers/{id}/unsuspend")
     public Map<String, Object> unsuspendManager(@PathVariable Long id) { return setStatus(id, UserStatus.ACTIVE); }
 
+    /**
+     * D-02 퇴출: 정지와 달리 되돌릴 수 없다. 다시 로그인할 수 없고(로그인 토큰 폐기), 진행 중인 요청은 취소·보류 해제, 열린 공고는 마감한다.
+     * 담당자 계정은 담당 대상·요청을 그대로 두므로(운영자가 이관) 계정만 막는다.
+     */
+    private void ban(User u) {
+        u.status = UserStatus.SUSPENDED;
+        u.banned = true;
+        auth.revokeAll(u.id);
+        if (u.role == Role.USER) reqSvc.closeAllFor(u, "운영 정책 위반으로 상대 계정의 이용이 끝났어요");
+    }
+
     private Map<String, Object> setStatus(Long id, UserStatus s) {
         User u = userOf(id);
         if (u.role == Role.ADMIN) throw ApiException.forbidden("운영자 계정은 정지할 수 없어요");
+        if (Boolean.TRUE.equals(u.banned)) throw ApiException.conflict("BANNED", "퇴출된 계정은 정지를 풀 수 없어요");
         u.status = s;
         if (s != UserStatus.ACTIVE) auth.revokeAll(u.id);
         return Views.map("id", u.id, "status", u.status);
@@ -212,8 +226,8 @@ public class AdminController {
     public List<Map<String, Object>> verifications() {
         List<Map<String, Object>> out = new ArrayList<>();
         for (User u : users.findAll()) {
-            if (u.idStatus == VerifyStatus.PENDING) out.add(Views.map("userId", u.id, "name", u.name, "kind", "id", "fileUrl", u.idFileUrl, "ageGroup", u.ageGroup, "eduDone", u.eduDone, "createdAt", u.createdAt));
-            if (u.crimeStatus == VerifyStatus.PENDING) out.add(Views.map("userId", u.id, "name", u.name, "kind", "crime", "fileUrl", u.crimeFileUrl, "ageGroup", u.ageGroup, "eduDone", u.eduDone, "createdAt", u.createdAt));
+            if (u.idStatus == VerifyStatus.PENDING) out.add(Views.map("userId", u.id, "name", u.name, "kind", "id", "fileUrl", u.idFileUrl, "ageGroup", u.ageGroup, "createdAt", u.createdAt));
+            if (u.crimeStatus == VerifyStatus.PENDING) out.add(Views.map("userId", u.id, "name", u.name, "kind", "crime", "fileUrl", u.crimeFileUrl, "ageGroup", u.ageGroup, "createdAt", u.createdAt));
         }
         return out;
     }
@@ -332,7 +346,8 @@ public class AdminController {
             User u = userOf(t);
             switch (b.action()) {
                 case WARNING -> { u.warningCount++; noti.send(u.id, "WARNING", "운영 정책 위반으로 경고를 받았어요", r.type + " · 반복되면 이용이 제한돼요", "/my"); }
-                case SUSPEND, BAN -> { if (u.role != Role.ADMIN) { u.status = UserStatus.SUSPENDED; auth.revokeAll(u.id); } }
+                case SUSPEND -> { if (u.role != Role.ADMIN) { u.status = UserStatus.SUSPENDED; auth.revokeAll(u.id); } }
+                case BAN -> { if (u.role != Role.ADMIN) ban(u); }
                 default -> { }
             }
         }
@@ -371,7 +386,7 @@ public class AdminController {
         boolean done = r.status == ReqStatus.DONE && r.earned != null;
         if (hold) {
             if (done) bank.add(r.volunteerId, LedgerType.ADJUST, -r.earned, r.hours, r.weight, r.id, "이상 패턴 점검으로 적립 보류");
-            noti.send(r.volunteerId, "ANOMALY", "활동 적립이 재확인을 위해 보류됐어요", r.category + " · " + r.date, "/bank");
+            noti.send(r.volunteerId, "ANOMALY", "활동 적립이 재확인을 위해 보류됐어요", r.category + " · " + Rules.md(r.date), "/bank");
         } else if (done) {
             bank.add(r.volunteerId, LedgerType.ADJUST, r.earned, r.hours, r.weight, r.id, "점검 완료 · 보류 해제");
             noti.send(r.volunteerId, "ANOMALY", "보류됐던 적립이 풀렸어요", "+" + r.earned + "시간", "/bank");
@@ -384,7 +399,7 @@ public class AdminController {
     private Map<String, Object> userRow(User u, List<Request> all) {
         BankService.Summary s = bank.summary(u.id);
         return Views.map("id", u.id, "loginId", u.loginId, "name", u.name, "role", u.role, "status", u.status, "area", u.area,
-                "ageGroup", u.ageGroup, "phone", u.phone, "idStatus", u.idStatus, "crimeStatus", u.crimeStatus, "eduDone", u.eduDone,
+                "ageGroup", u.ageGroup, "phone", u.phone, "idStatus", u.idStatus, "crimeStatus", u.crimeStatus, "banned", Boolean.TRUE.equals(u.banned),
                 "volunteerCount", all.stream().filter(r -> u.id.equals(r.volunteerId) && r.status == ReqStatus.DONE).count(),
                 "recipientCount", all.stream().filter(r -> u.id.equals(r.recipientId) && r.status == ReqStatus.DONE).count(),
                 "balance", s.balance(), "penaltyCount", u.penaltyCount, "warningCount", u.warningCount, "createdAt", u.createdAt);
@@ -448,7 +463,7 @@ public class AdminController {
         // status(접수/답변 완료)는 답변이 있는지에 맞춘다: 다시 접수·확인 중으로 돌리면 접수로 보인다
         q.status = hasAnswer && (s.equals("ANSWERED") || s.equals("CLOSED")) ? InquiryStatus.ANSWERED : InquiryStatus.RECEIVED;
         String label = switch (s) { case "CHECKING" -> "확인 중"; case "ANSWERED" -> "답변 완료"; case "CLOSED" -> "처리 완료"; default -> "접수"; };
-        noti.send(q.userId, "INQUIRY", "1:1 문의 처리 상태가 '" + label + "'(으)로 바뀌었어요", q.title, "/my/inquiries");
+        noti.send(q.userId, "INQUIRY", "1:1 문의 처리 상태가 '" + label + "'" + Rules.ro(label).substring(label.length()) + " 바뀌었어요", q.title, "/my/inquiries");
         return inquiryView(q);
     }
 

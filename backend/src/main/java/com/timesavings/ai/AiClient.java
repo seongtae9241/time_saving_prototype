@@ -125,6 +125,20 @@ public class AiClient {
         return out;
     }
 
+    /**
+     * 41판 B-67·B-09: 금지 요청(불가)의 대체 안내를 "근처에서 받을 수 있는 공공 서비스 안내"(위치 기준 안내 화면)로 잇는 길.
+     * question 은 개인정보를 지운 요청 문장(위치 기준 안내의 질문으로 쓴다), link 는 화면 경로.
+     */
+    public static Map<String, Object> nearbyGuide(String text) {
+        String q = VoiceSafety.scrub(text == null ? "" : text).text().replaceAll("\\s+", " ").trim();
+        if (q.length() > 60) q = q.substring(0, 60);
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("label", "근처에서 받을 수 있는 공공 서비스 찾기");
+        m.put("question", q);
+        m.put("link", "/public?near=1" + (q.isEmpty() ? "" : "&q=" + java.net.URLEncoder.encode(q, java.nio.charset.StandardCharsets.UTF_8)));
+        return m;
+    }
+
     // ===================== 금지 요청 필터 (B-09) =====================
     public Map<String, Object> filter(String text) {
         RuleEngine.FilterResult rule = RuleEngine.filter(text);
@@ -159,6 +173,7 @@ public class AiClient {
         out.put("level", level.name());
         out.put("reason", reason);
         out.put("alternatives", svcMaps(alt));
+        if (level == FilterLevel.BLOCK) out.put("nearby", nearbyGuide(text));
         return src(out, source);
     }
 

@@ -77,6 +77,7 @@ public class AuthService {
     public User login(String loginId, String password) {
         User u = users.findByLoginId(loginId == null ? "" : loginId.trim()).orElse(null);
         if (u == null || !matches(password, u.passwordHash)) throw ApiException.bad("LOGIN_FAILED", "아이디 또는 비밀번호가 맞지 않아요");
+        if (Boolean.TRUE.equals(u.banned)) throw ApiException.forbidden("운영 정책 위반으로 퇴출된 계정이에요. 다시 로그인할 수 없어요");
         if (u.status == UserStatus.SUSPENDED) throw ApiException.forbidden("이용이 정지된 계정이에요. 고객센터에 문의해 주세요");
         if (u.status == UserStatus.WITHDRAWN) throw ApiException.bad("WITHDRAWN", "탈퇴한 계정이에요");
         return u;

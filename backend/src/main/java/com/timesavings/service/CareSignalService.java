@@ -15,6 +15,8 @@ import java.util.*;
  * 7.14 C1 전달 메모 정리 + 생활 변화 신호.
  * 일지 제출 때(RequestService.submitLog 끝) 한 번 정리해 care_notes 에 저장하고, 같은 받는 사람의 최근 메모 WINDOW 건 중
  * 생활 변화 신호가 있는 메모가 2건 이상이면 '확인 권장'. 독거노인이면 처음 켜질 때 담당자에게 알림(CARE_SIGNAL).
+ * 41판 B-36: 쓰러짐·넘어짐·식사 거름처럼 뚜렷한 표현(CareMemoAi.URGENT)은 일지 한 건에만 있어도 '확인 권장'이 켜지고,
+ * 독거노인이면 그 일지로 바로 담당자에게 요약 알림을 보낸다(같은 일지를 고쳐 다시 내도 한 번만).
  * 일반 사용자는 알림 없이 공유 동의한 가족 리포트에만 보인다. 진단이 아니라 "확인 권장"이다.
  */
 @Service
@@ -23,7 +25,7 @@ public class CareSignalService {
     public static final int WINDOW = 3;
     public static final int MIN_SIGNALS = 2;
     public static final int MAX_AGE_DAYS = 45;
-    public static final String NOTICE = "진단이 아니에요. 최근 메모에 생활 변화 표현이 이어져 안부 확인을 권해요.";
+    public static final String NOTICE = "진단이 아니에요. 최근 일지·메모에 생활 변화 표현이 있어 안부 확인을 권해요.";
 
     private final CareNoteRepo notes;
     private final ElderRepo elders;
@@ -64,11 +66,17 @@ public class CareSignalService {
         n.updatedAt = LocalDateTime.now();
         notes.save(n);
         Signal after = status(type, sid, null);
-        if (!before && after.flagged() && !n.flagRaised) {
+        List<String> urgent = CareMemoAi.urgentOf(n.signals);
+        boolean windowRaised = !before && after.flagged();
+        if ((windowRaised || !urgent.isEmpty()) && !n.flagRaised) {
             n.flagRaised = true;
             if (type == SubjectType.ELDER) elders.findById(sid).ifPresent(e -> {
-                if (e.managerId != null) noti.send(e.managerId, "CARE_SIGNAL", e.alias + " 님 생활 변화 확인 권장",
-                        "최근 메모에 '" + String.join("·", after.labels()) + "' 표현이 " + after.count() + "번 나왔어요. 진단이 아니라 안부 확인을 권해요", "/o/elders/" + e.id);
+                if (e.managerId == null) return;
+                // AI·규칙 모두 진단·건강 판단은 쓰지 않는다. 적힌 표현의 이름만 전하고 "확인해 보세요"까지만 말한다.
+                String body = !urgent.isEmpty()
+                        ? Rules.md(r.date) + " 활동 일지에 '" + String.join("·", urgent) + "' 표현이 있어요. 진단이 아니에요. 전화나 방문으로 안부를 확인해 보세요"
+                        : "최근 메모에 '" + String.join("·", after.labels()) + "' 표현이 " + after.count() + "번 나왔어요. 진단이 아니라 안부 확인을 권해요";
+                noti.send(e.managerId, "CARE_SIGNAL", e.alias + " 님 " + (urgent.isEmpty() ? "생활 변화 확인 권장" : "안부 확인 권장"), body, "/o/elders/" + e.id);
             });
         }
         return n;
@@ -81,7 +89,7 @@ public class CareSignalService {
         }
     }
 
-    /** 최근 WINDOW 건 메모 중 신호가 있는 것이 MIN_SIGNALS 건 이상이면 확인 권장. excludeRequestId 는 '바꾸기 전' 계산용. */
+    /** 최근 WINDOW 건 메모 중 신호가 있는 것이 MIN_SIGNALS 건 이상이거나, 한 건이라도 뚜렷한 표현(URGENT)이 있으면 확인 권장. excludeRequestId 는 '바꾸기 전' 계산용. */
     @Transactional(readOnly = true)
     public Signal status(SubjectType type, Long sid, Long excludeRequestId) {
         LocalDate cut = LocalDate.now().minusDays(MAX_AGE_DAYS);
@@ -97,7 +105,8 @@ public class CareSignalService {
         LocalDate since = hit.stream().map(n -> n.activityDate).filter(Objects::nonNull).min(Comparator.naturalOrder()).orElse(null);
         List<Map<String, Object>> recent = hit.stream().map(n -> Views.map("requestId", n.requestId,
                 "date", n.activityDate == null ? null : n.activityDate.toString(), "signals", n.signals)).toList();
-        return new Signal(hit.size() >= MIN_SIGNALS, hit.size(), new ArrayList<>(labels), since, recent);
+        boolean urgent = hit.stream().anyMatch(n -> !CareMemoAi.urgentOf(n.signals).isEmpty());
+        return new Signal(hit.size() >= MIN_SIGNALS || urgent, hit.size(), new ArrayList<>(labels), since, recent);
     }
 
     public static Map<String, Object> view(CareNote n) {
