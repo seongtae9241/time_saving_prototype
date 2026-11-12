@@ -92,7 +92,7 @@ class Req41MeTest {
         mvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_JSON).content(signupBody("r41new", vt, ",\"agreeTerms\":true,\"agreePrivacy\":true")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.user.locConsent").value(false)).andExpect(jsonPath("$.user.interestConsent").value(false))
                 .andExpect(jsonPath("$.user.notiSettings.interest").value(false)).andExpect(jsonPath("$.user.notiSettings.req").value(true))
-                .andExpect(jsonPath("$.user.accountNo", startsWith("TS-"))).andExpect(jsonPath("$.user.eduDone").doesNotExist());
+                .andExpect(jsonPath("$.user.accountNo", startsWith("TS-"))).andExpect(jsonPath("$.user.eduDone").value(false)); // 기능 U-34: 교육 이수 표시를 다시 살렸다
         User u = users.findByLoginId("r41new").orElseThrow();
         assertNotNull(u.termsAgreedAt);
         assertNotNull(u.privacyAgreedAt);
@@ -237,9 +237,9 @@ class Req41MeTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.safe").value(false)).andExpect(jsonPath("$.pass").doesNotExist())
                 .andExpect(jsonPath("$.fixes", hasSize(1))).andExpect(jsonPath("$.fixes[0].violation").value(true))
                 .andExpect(jsonPath("$.good.text", containsString("봉사자예요")));
-        // 연습을 했든 안 했든 내 정보·프로필에 수료 표시가 없다
+        // 기능 U-34(기능명세서): 교육 이수 표시를 다시 살렸다. AI 어르신과 길게 대화하기만으로는 이수가 아니다(상황 4개를 모두 마쳐야 이수 — FuncMeTest)
         mvc.perform(get("/api/me").header("Authorization", tok(vol))).andExpect(status().isOk())
-                .andExpect(jsonPath("$.eduDone").doesNotExist()).andExpect(jsonPath("$.verify.eduDone").doesNotExist());
+                .andExpect(jsonPath("$.eduDone").value(false)).andExpect(jsonPath("$.verify.eduDone").value(false));
         assertFalse(users.findById(vol.id).orElseThrow().eduDone);
     }
 

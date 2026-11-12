@@ -35,6 +35,7 @@ const LINK_MAP = [
   [/^\/admin\/reports\b.*/, '/a/safety'],
   [/^\/admin\/inquiries\b.*/, '/a/inquiries'],
   [/^\/admin\/orgs\b.*/, '/a/approve?seg=org'],
+  [/^\/admin\/manager-applications\b.*/, '/a/mgr-apps'], // 기능 C-04: 담당자 계정 자동 승인 알림
   [/^\/admin\/verifications\b.*/, '/a/approve?seg=vol'],
   [/^\/admin\/appeals\b.*/, '/a/approve?seg=diff'],
 ];
@@ -60,7 +61,7 @@ export function Notif() {
   return (
     <Screen title="알림" noTabs noBell>
       <div className="between" style={{ marginBottom: 4 }}>
-        <span className="mute2">{role === 'ORG' ? '담당 대상 관련 알림을 대신 받아요' : '요청·메시지·일정 알림'}</span>
+        <span className="mute2">{role === 'ORG' ? '담당 대상 관련 알림을 대신 받아요' : '요청·수락·일정·일지·시간 적립 알림'}</span>
         <a className="mute2" role="button" tabIndex={0} style={{ cursor: 'pointer' }} onClick={async () => { await post('/notifications/read-all'); reload(); refreshUnread(); }}>모두 읽음</a>
       </div>
       {list === undefined ? <Loading /> : !list || !list.length ? <Empty>새 알림이 없어요</Empty> : list.map((n) => {
@@ -87,7 +88,7 @@ export function Notice() {
   return (
     <Screen title="공지사항" noTabs>
       {list === undefined ? <Loading /> : !list || !list.length ? <Empty>공지가 없어요</Empty> : (
-        <div className="ml">{list.map((n) => <div key={n.id} role="button" tabIndex={0} onClick={() => nav(`/notice/${n.id}`)}><div className="grow">{n.pinned && <em className="badge" style={{ fontStyle: 'normal', marginRight: 6 }}>고정</em>}{n.title}<span>{dshort(n.createdAt).split(' ')[0]}</span></div>›</div>)}</div>
+        <div className="ml">{list.map((n) => <div key={n.id} role="button" tabIndex={0} onClick={() => nav(`/notice/${n.id}`)}><div className="grow">{n.pinned && <span className="badge" style={{ marginRight: 6 }}>고정</span>}{n.title}<span>{dshort(n.createdAt).split(' ')[0]}</span></div>›</div>)}</div>
       )}
     </Screen>
   );
@@ -99,7 +100,7 @@ export function NoticeDetail() {
     <Screen title="공지사항" noTabs>
       {n === undefined ? <Loading /> : !n ? <Empty>공지를 찾을 수 없어요</Empty> : (
         <>
-          <div className="b" style={{ fontSize: 20, letterSpacing: '-.5px' }}>{n.title}</div>
+          <div className="b" style={{ fontSize: 20, letterSpacing: '-.5px' }}>{n.pinned && <span className="badge" style={{ marginRight: 6, verticalAlign: 'middle' }}>고정</span>}{n.title}</div>
           <div className="mute2">{dshort(n.createdAt)}</div>
           <div className="card" style={{ marginTop: 14, whiteSpace: 'pre-wrap' }}>{n.content}</div>
         </>

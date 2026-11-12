@@ -64,6 +64,12 @@ public class PlannerController {
     /** 단체 봉사(기능 U-10) 일정 — 생성자를 바꾸지 않으려고 필드 주입 */
     @org.springframework.beans.factory.annotation.Autowired(required = false) private com.timesavings.service.GroupService groups;
 
+    /** 기능 U-26: 주 단위 캘린더. start 가 든 주(일~토)의 일정, mode(give|recv)를 주면 그 모드 일정만. */
+    @GetMapping("/me/planner/week")
+    public Map<String, Object> week(@CurrentUser User u, @RequestParam(required = false) String start, @RequestParam(required = false) String mode) {
+        return planner.week(u, start, mode);
+    }
+
     /** 41판 B-60: 홈 화면의 추천 봉사(내 활동 지역·가능 시간대·카테고리에 맞고 빈 시간에 들어가는 공고). AI 를 부르지 않는다. */
     @GetMapping("/me/recommends")
     public Map<String, Object> recommends(@CurrentUser User u) { return planner.recommends(u); }
@@ -179,28 +185,10 @@ public class PlannerController {
     }
 
     // ---------------- 봉사 인증 항목 설정 ----------------
-    /** key, 이름, 설명, 기본 켜짐, 기본 필수, 잠금(끄거나 선택으로 바꿀 수 없음) */
-    private static final Object[][] VERIFY_DEFAULT = {
-            {"phone", "휴대폰 본인인증", "가입할 때 · 필수", true, true, true},
-            {"id", "신분증 인증", "운영자가 확인하고 승인 · 필수", true, true, false},
-            {"crime", "범죄경력 회보서", "내면 신뢰 배지 · 선택", true, false, false},
-    };
+    /** 항목 목록·기본값·읽기는 VolunteerGate(봉사 자격 검사)에 있다. 기능 U-34: 첫 활동 교육(edu) 항목 포함. */
+    @org.springframework.beans.factory.annotation.Autowired private com.timesavings.service.VolunteerGate gate;
 
-    private List<Map<String, Object>> verifyItems() {
-        Map<String, Map<String, Boolean>> saved = new HashMap<>();
-        settings.findById("verify.items").ifPresent(s -> {
-            try { saved.putAll(OM.readValue(s.value, new TypeReference<Map<String, Map<String, Boolean>>>() {})); } catch (Exception ignored) { }
-        });
-        List<Map<String, Object>> out = new ArrayList<>();
-        for (Object[] d : VERIFY_DEFAULT) {
-            Map<String, Boolean> v = saved.get(d[0]);
-            boolean locked = (boolean) d[5];
-            boolean on = locked || (v != null && v.get("on") != null ? v.get("on") : (boolean) d[3]);
-            boolean req = locked || (on && (v != null && v.get("required") != null ? v.get("required") : (boolean) d[4]));
-            out.add(Views.map("key", d[0], "title", d[1], "desc", d[2], "on", on, "required", req, "locked", locked));
-        }
-        return out;
-    }
+    private List<Map<String, Object>> verifyItems() { return gate.items(); }
 
     @GetMapping("/verify-items")
     public Map<String, Object> verifyGet() {
@@ -212,7 +200,7 @@ public class PlannerController {
     public Map<String, Object> verifyPut(@RequestBody VerifyBody b) {
         Map<String, Map<String, Boolean>> m = new LinkedHashMap<>();
         if (b != null && b.items() != null) for (VerifyItem i : b.items()) {
-            if (i.key() == null || Arrays.stream(VERIFY_DEFAULT).noneMatch(d -> d[0].equals(i.key()))) throw ApiException.bad("INVALID_ITEM", "알 수 없는 인증 항목이에요");
+            if (!com.timesavings.service.VolunteerGate.knownKey(i.key())) throw ApiException.bad("INVALID_ITEM", "알 수 없는 인증 항목이에요");
             Map<String, Boolean> v = new LinkedHashMap<>();
             v.put("on", Boolean.TRUE.equals(i.on()));
             v.put("required", Boolean.TRUE.equals(i.on()) && Boolean.TRUE.equals(i.required()));

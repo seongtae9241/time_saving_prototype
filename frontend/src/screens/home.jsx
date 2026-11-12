@@ -207,7 +207,7 @@ function RecBox() {
   return (
     <>
       <div className="sec-t"><span>추천 봉사</span><span className="sec-r"><a role="button" tabIndex={0} onClick={() => nav('/planner', { replace: true })} onKeyDown={(e) => { if (e.key === 'Enter') nav('/planner', { replace: true }); }}>플래너 ›</a></span></div>
-      <div className="mute2" style={{ margin: '-4px 0 6px' }}>내 지역·시간대·가능한 도움에 맞는 봉사예요. 골라서 플래너에 넣어요</div>
+      <div className="mute2" style={{ margin: '-4px 0 6px' }}>{(d && d.basisText) || '내 지역·시간대·가능한 도움에 맞는 봉사예요.'} 골라서 플래너에 넣어요</div>
       {d === undefined ? null : recs.length ? (
         <>
           <div className="recs">
@@ -216,7 +216,7 @@ function RecBox() {
               return (
                 <button key={r.id} className={'rec ' + (on ? 'on' : '')} aria-pressed={on} onClick={() => setPicked(on ? picked.filter((x) => x !== r.id) : [...picked, r.id])}>
                   <DIc k={(r.categories || [])[0]} size={46} />
-                  <div className="grow" style={{ minWidth: 0 }}><div className="b">{r.title}</div><div className="mute2">{r.ownerName} · {r.distanceKm}km · {dlabel(r.date)} {hh(r.startHour)}~{hh(r.endHour)}</div></div>
+                  <div className="grow" style={{ minWidth: 0 }}><div className="b">{r.title}</div><div className="mute2">{r.ownerName} · {r.distanceKm}km · {dlabel(r.date)} {hh(r.startHour)}~{hh(r.endHour)}</div>{r.why && <div className="rec-why"><Spk /> {r.why}</div>}</div>
                   <div className="rec-r"><span className="pill">+{fmt(r.estEarn)}</span><span className="rec-ck">{on ? '✓' : ''}</span></div>
                 </button>
               );
@@ -236,7 +236,7 @@ export function UHome() {
   const top = useTopCats();
   const [reqs] = useLoad(() => api('/requests?box=all'), []);
   const [posts] = useLoad(() => api(`/posts?type=${give ? 'NEED' : 'OFFER'}&sort=near`), [give]);
-  const [events] = useLoad(() => api('/events', { quiet: true }).catch(() => []), []);
+  const [events] = useLoad(() => api('/events?nearby=true', { quiet: true }).catch(() => []), []); // 기능 U-31: 내 동네 근처 기관 행사만
   const list = reqs || [];
   const need = list.filter(needsMe).filter((r) => (r.myRole === 'VOLUNTEER') === give);
   const shown = (posts || []).filter((p) => !p.mine && p.status === 'OPEN');
@@ -259,7 +259,7 @@ export function UHome() {
       <div className="npanel"><div className="hs hs2">{near.map((p) => <NCard key={p.id} p={p} />)}{posts && !near.length && <Empty>근처에 열린 공고가 없어요</Empty>}</div></div>
       {evs.length > 0 && (
         <>
-          <div className="sec-t"><span>동네 기관 소식</span><span className="sec-r"><a role="button" tabIndex={0} onClick={() => nav('/news')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/news'); }}>전체 ›</a></span></div>
+          <div className="sec-t"><span>동네 기관 소식 <span className="mute2" style={{ fontWeight: 500 }}>{me && me.area ? `${me.area} 근처` : '내 동네 근처'}</span></span><span className="sec-r"><a role="button" tabIndex={0} onClick={() => nav('/news')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/news'); }}>전체 ›</a></span></div>
           <EvSlider events={evs} />
         </>
       )}

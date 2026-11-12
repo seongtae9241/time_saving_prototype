@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
 import { Mi, Spk, Mod, RuleNote, Loading, Empty, useLoad, useBusy, hbars } from '../ui/bits.jsx';
 import { useUi } from '../ui/ctx.jsx';
-import { api, post, del } from '../api.js';
+import { api, post, del, openFile } from '../api.js';
 import { CC, SHORT, dshort } from '../lib/format.js';
 
 const OR = '#F59E4B', BL = '#5B8DEF', GR = '#B6BCC8';
@@ -495,14 +495,16 @@ export function AMgrApps() {
       {list === undefined ? <Loading /> : !(list || []).length ? <Empty>신청·승인 내역이 없어요</Empty> : list.map((a, i) => {
         const uid = a.userId || a.managerId || (a.user && a.user.id);
         const m = (mgrs || []).find((x) => x.id === uid);
-        const sus = (m && m.status === 'SUSPENDED') || a.status === 'SUSPENDED' || a.status === 'CANCELLED';
+        const sus = (m && m.status === 'SUSPENDED') || a.status === 'SUSPENDED' || a.status === 'CANCELLED' || a.status === 'REVOKED' || a.userStatus === 'SUSPENDED';
         const st = APP_ST[sus ? 'SUSPENDED' : a.status] || APP_ST.APPROVED;
         return (
           <div key={a.id || i} className="card" style={{ marginTop: 8 }}>
             <div className="between"><span className="b">{a.name || a.managerName || (a.user && a.user.name) || (m && m.name) || '담당자'}</span><span className={'st ' + st[0]}>{st[1]}</span></div>
             <div className="mute2">{a.orgName || (a.org && a.org.name) || (m && m.orgName) || ''}{a.loginId ? ` · ${a.loginId}` : ''}{a.createdAt || a.appliedAt ? ` · ${dshort(a.createdAt || a.appliedAt).split(' ')[0]} 신청` : ''}</div>
             <div className="small muted" style={{ marginTop: 4 }}>기관 승인 {a.orgApproved === false ? '안 됨' : '확인'} · 본인 확인 {a.phoneVerified === false ? '안 됨' : '확인'}</div>
-            {uid && !sus && <button className="btn ghost sm" style={{ marginTop: 10 }} disabled={busy} onClick={async () => { if (await confirm('이 담당자 계정을 정지할까요?', '정지하면 로그인할 수 없어요. 담당자 계정 화면에서 다시 풀 수 있어요.', '정지', true)) run(async () => { await post(`/admin/managers/${uid}/suspend`); toast('계정을 정지했어요'); reload(); reloadM(); }); }}>승인 취소(계정 정지)</button>}
+            {a.existingManagers > 0 && <div className="small" style={{ marginTop: 4, color: '#A0521A' }}>신청할 때 이 기관에 이미 담당자가 {a.existingManagers}명 있었어요</div>}
+            {a.proofFileUrl && <button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => openFile(a.proofFileUrl)}>재직 증빙 열기</button>}
+            {uid && !sus && <button className="btn ghost sm" style={{ marginTop: 10 }} disabled={busy} onClick={async () => { if (await confirm('이 담당자 계정을 정지할까요?', '정지하면 로그인할 수 없어요. 담당자 계정 화면에서 다시 풀 수 있어요.', '정지', true)) run(async () => { if (a.id) await post(`/admin/manager-applications/${a.id}/revoke`, { reason: '운영자 승인 취소' }); else await post(`/admin/managers/${uid}/suspend`); toast('승인을 취소하고 계정을 정지했어요'); reload(); reloadM(); }); }}>승인 취소(계정 정지)</button>}
           </div>
         );
       })}

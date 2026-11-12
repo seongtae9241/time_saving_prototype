@@ -46,7 +46,7 @@ public class EduController {
 
     /** 상황 하나 연습: 답을 보내면 위반 알림·바꿔 말하기 또는 칭찬이 온다. */
     @PostMapping("/edu/practice")
-    public Map<String, Object> practice(@RequestBody PracticeBody b) { return edu.practice(b.key(), b.text()); }
+    public Map<String, Object> practice(@CurrentUser User u, @RequestBody PracticeBody b) { return edu.practice(u, b.key(), b.text()); }
 
     /** 사용자용: 어느 답이 맞는지는 빼고 준다. */
     @GetMapping("/edu/situations")

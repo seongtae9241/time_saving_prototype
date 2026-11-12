@@ -152,7 +152,7 @@ class MeetingChangesTest {
                 .andExpect(jsonPath("$[1].userId").value(s2.id)).andExpect(jsonPath("$[1].count").value(0)).andExpect(jsonPath("$[1].manual").value(true));
         // 프로필 배지(3회 이상만)
         mvc.perform(get("/api/users/" + teacher.id + "/profile").header("Authorization", token(s3))).andExpect(status().isOk())
-                .andExpect(jsonPath("$.regularBadges.length()").value(1)).andExpect(jsonPath("$.eduDone").doesNotExist());
+                .andExpect(jsonPath("$.regularBadges.length()").value(1)).andExpect(jsonPath("$.eduDone").value(false)); // 기능 U-34: 교육 이수 표시를 다시 살렸다(연습을 안 했으면 false)
         // B-65: 등록된 쪽(봉사자)이 자동 단골을 해지 → 양쪽 목록에서 빠지고, 상대는 다시 등록할 수 없다
         mvc.perform(delete("/api/me/regular-badges/" + s1.id).header("Authorization", token(teacher))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1)).andExpect(jsonPath("$[0].userId").value(s2.id));

@@ -25,6 +25,7 @@ import { GroupDetail, GroupNew } from './screens/group.jsx'; // 기능 U-10·U-1
 import { Bundle } from './screens/bundle.jsx'; // 기능 U-12 빈 시간 묶음 추천
 import { RecurringList, RecurringNew } from './screens/recurring.jsx'; // 기능 U-09 정기 요청
 import { AForecast, ASim, AStats, ARecruit, AWeather, AMgrApps } from './screens/adminReports.jsx'; // 기능명세서 운영자 리포트
+import { ManagerApply } from './screens/managerApply.jsx'; // 기능 C-04 담당자 계정 신청
 
 /** 로그인·역할 확인 */
 function Guard({ roles, children }) {
@@ -48,6 +49,7 @@ function Shell() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/pw-reset" element={<PwReset />} />
         <Route path="/org-apply" element={<OrgApply />} />
+        <Route path="/manager-apply" element={<ManagerApply />} />
 
         <Route path="/notif" element={g(<Notif />)} />
         <Route path="/notice" element={g(<Notice />)} />

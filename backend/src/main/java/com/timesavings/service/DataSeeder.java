@@ -194,6 +194,7 @@ public class DataSeeder implements ApplicationRunner {
         User u = new User();
         u.loginId = id; u.passwordHash = pwHash; u.name = name; u.phone = phone; u.area = area; u.ageGroup = age; u.intro = intro;
         u.experience = exp; u.categories = new ArrayList<>(cats); u.timeSlots = new ArrayList<>(slots); u.idStatus = idSt; u.crimeStatus = crime;
+        u.eduDone = idSt == VerifyStatus.APPROVED; // 기능 U-34: 시연 계정 가운데 신분증 인증이 끝난 사람은 첫 활동 교육도 마친 것으로 둔다
         u.role = Role.USER; u.createdAt = today.minusMonths(7).atTime(9, 0);
         users.save(u);
         U.put(id, u);
@@ -482,7 +483,12 @@ public class DataSeeder implements ApplicationRunner {
     // ======================= 공지·문의·신고·가족·교육 =======================
     private void seedMisc(User org1) {
         User yujin = U.get("yujin");
-        notice("11월 첫 활동 연습 안내", "첫 활동 연습은 앱에서 언제든 해 볼 수 있어요. AI가 도움 받는 어르신이 되어 상황을 던져요. 선택이라 안 해도 봉사할 수 있어요.", p(11, 3));
+        notice("11월 첫 활동 교육 안내", "봉사를 시작하기 전에 첫 활동 교육(안전 교육)을 마쳐 주세요. 마이 › 봉사 인증에서 AI 역할극 상황 4개를 모두 마치면 이수로 기록돼요. AI가 도움 받는 어르신이 되어 상황을 던져요.", p(11, 3));
+        // 기능 C-08: 고정 공지(오래된 글이어도 목록 맨 위에 보인다)
+        Notice pin = new Notice();
+        pin.title = "꼭 지켜 주세요: 방문 중 안전 규칙"; pin.pinned = true; pin.createdAt = p(9, 1).atTime(9, 0);
+        pin.content = "신체 돌봄·의료 행위·돈 관리는 봉사로 하지 않아요. 연락처 교환과 금전 요구는 금지예요. 문제가 생기면 활동 상세에서 바로 신고해 주세요. 응급 상황은 119에 먼저 연락해 주세요.";
+        notices.save(pin);
         notice("시간 통장 월별 결산 기능이 생겼어요", "시간 통장 화면에서 달마다 들어오고 나간 시간을 한눈에 볼 수 있어요.", p(10, 28));
         notice("추석 연휴 고객센터 운영 안내", "연휴 기간에는 1:1 문의 답변이 늦어질 수 있어요.", p(9, 30));
 

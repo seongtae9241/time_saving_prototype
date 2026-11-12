@@ -78,13 +78,15 @@ export function LoginForm() {
       </div>
       <p className="lf-sign">아직 회원이 아니신가요? <a role="button" tabIndex={0} onClick={() => nav('/signup', { replace: true })}>회원가입</a></p>
       <div className="tip" style={{ marginTop: 22 }}><div className="grow"><div className="b">주민센터·복지관이신가요?</div><div className="mute2">기관 신청이 승인되면 담당자 계정을 드려요</div></div><button className="btn soft sm" style={{ width: 'auto', padding: '0 14px' }} onClick={() => nav('/org-apply')}>기관 신청</button></div>
+      {/* 기능 C-04: 이미 승인된 기관 소속 담당자는 본인 확인만으로 계정을 만든다 */}
+      <div className="tip" style={{ marginTop: 10 }}><div className="grow"><div className="b">승인된 기관의 담당자이신가요?</div><div className="mute2">휴대폰 본인인증이 되면 바로 담당자 계정이 생겨요</div></div><button className="btn soft sm" style={{ width: 'auto', padding: '0 14px' }} onClick={() => nav('/manager-apply')}>담당자 신청</button></div>
     </Screen>
   );
 }
 
 /* ---------- 휴대폰 본인인증: Firebase 실제 문자 + 프로토타입 데모 코드 123456 (A-01, A-03) ---------- */
 const DEMO_CODE = '123456';
-function PhoneVerify({ phone, setPhone, onVerified, verified }) {
+export function PhoneVerify({ phone, setPhone, onVerified, verified }) {
   const { toast } = useUi();
   const [cfg, setCfg] = useState(null); // {firebase, demo}
   const [stage, setStage] = useState('phone'); // phone | code
@@ -193,8 +195,8 @@ export function Signup() {
   if (st === 4) {
     return (
       <Screen noHeader noTabs cls="full">
-        <div className="sp-in" style={{ color: 'var(--ink)' }}><div className="done-ic">✓</div><h2 className="su-h center" style={{ marginTop: 20 }}>가입을 환영해요</h2><p className="su-p center">도움 받기는 바로 할 수 있어요.<br />봉사를 하려면 신분증 인증을 먼저 해 주세요.</p></div>
-        <div className="su-bottom stack"><button className="btn big-cta" onClick={() => { toast('가입이 완료됐어요'); nav('/u/home', { replace: true }); }}>시작하기</button><button className="btn ghost" onClick={() => { nav('/u/home', { replace: true }); nav('/my/verify'); }}>봉사 신원 인증 하러 가기</button></div>
+        <div className="sp-in" style={{ color: 'var(--ink)' }}><div className="done-ic">✓</div><h2 className="su-h center" style={{ marginTop: 20 }}>가입을 환영해요</h2><p className="su-p center">도움 받기는 바로 할 수 있어요.<br />봉사를 하려면 신분증 인증과 첫 활동 교육을 먼저 해 주세요.</p></div>
+        <div className="su-bottom stack"><button className="btn big-cta" onClick={() => { toast('가입이 완료됐어요'); nav('/u/home', { replace: true }); }}>시작하기</button><button className="btn ghost" onClick={() => { nav('/u/home', { replace: true }); nav('/my/verify'); }}>봉사 인증 하러 가기</button></div>
       </Screen>
     );
   }

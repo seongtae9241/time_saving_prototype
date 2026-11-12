@@ -57,7 +57,8 @@ public class CommonController {
 
     @GetMapping("/notices")
     public List<Notice> notices() {
-        return notices.findAll().stream().sorted(Comparator.comparing((Notice n) -> !Boolean.TRUE.equals(n.pinned)) // 기능 A-16: 고정 공지 먼저
+        // 기능 C-08: 고정 공지가 맨 위, 그 안에서는 최근 순
+        return notices.findAll().stream().sorted(Comparator.comparing((Notice n) -> Boolean.TRUE.equals(n.pinned) ? 0 : 1)
                 .thenComparing(Comparator.comparing((Notice n) -> n.createdAt).reversed())).toList();
     }
 
