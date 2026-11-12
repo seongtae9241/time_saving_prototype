@@ -8,7 +8,7 @@ AI를 부르는 곳은 없다(세 기능 모두 ✨ 아님). 인원·적립 시�
 | 기능 | 상세 설명(문장) | 적용 전 | 지금 | 근거 |
 |---|---|---|---|---|
 | U-10 | 1:1 공고와 분리된 단체 공고 탭 | 없음 | 충족 | 공고 화면 맨 위 "1:1 공고 / 단체 공고" 탭 `frontend/src/screens/group.jsx:16`(BoardSeg), `board.jsx:92`(단체 목록 부르기). 표·API도 따로(`group_posts`, `/api/group-posts`) |
-| U-10 | 모집 인원, 현재 참여 인원 | 없음 | 충족 | 카드·상세의 "모집 n명 · 지금 m명 참여" 막대 `group.jsx:27`(People), 서버 `GroupService.java:263`(card: capacity·joined·left·full) |
+| U-10 | 모집 인원, 현재 참여 인원 | 없음 | 충족 | 카드·상세의 "모집 n명 · 지금 m명 참여" 막대 `group.jsx:27`(People), 서버 `GroupService.java:261`(card: capacity·joined·left·full) |
 | U-10 | 참여 신청 | 없음 | 충족 | `GroupService.java:154`(join: 신분증 인증·정원 선착순·시간 겹침), 취소 `:173`, 화면 `group.jsx:96`(GroupDetail) |
 | U-11 | 동아리 등 2명 이상이 함께 봉사하겠다는 공고 작성 | 없음 | 충족 | 제공형(OFFER) 올리기 `GroupService.java:82`, 화면 `group.jsx:213`(GroupNew), 들어가는 곳: 공고 올리기 화면 "단체로 봉사하기" `write.jsx:33`, 단체 탭의 "단체 공고 올리기" 버튼 |
 | U-11 | 인원 2명 이상이면 단체 공고로 분류 | 없음 | 충족(아래 "판단" 1) | 인원 2명 미만이면 거절 `GroupService.java:92`(INVALID_CAPACITY, "혼자 하는 봉사는 일반 공고로"), 화면도 1명이면 안내 |
