@@ -109,6 +109,8 @@ public class EduService {
         return out;
     }
 
+    public List<Map<String, Object>> situationViews() { return situations().stream().map(EduService::situationView).toList(); }
+
     /** 사용자에게 주는 상황: 어느 답이 맞는지는 알려 주지 않고 고를 답만 섞어서 준다. */
     static Map<String, Object> situationView(Map<String, Object> s) {
         List<Object> options = new ArrayList<>();
@@ -178,7 +180,7 @@ public class EduService {
         return Views.map("optional", true, "diag", diag, "cardsDone", p.cardsDone, "quizScore", p.quizScore,
                 "roleplay", Views.parse(p.roleplayJson, new TypeReference<Map<String, Object>>() {}, new LinkedHashMap<>()),
                 "personas", personas.findAll().stream().filter(x -> x.active).map(x -> personaView(x, false)).toList(),
-                "situations", situations().stream().map(EduService::situationView).toList(),
+                "situations", situationViews(),
                 "rules", EduContent.cardsFor(cats), "quiz", quiz);
     }
 

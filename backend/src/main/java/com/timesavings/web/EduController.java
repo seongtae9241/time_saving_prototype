@@ -48,8 +48,13 @@ public class EduController {
     @PostMapping("/edu/practice")
     public Map<String, Object> practice(@RequestBody PracticeBody b) { return edu.practice(b.key(), b.text()); }
 
+    /** 사용자용: 어느 답이 맞는지는 빼고 준다. */
     @GetMapping("/edu/situations")
-    public Map<String, Object> situations() { return Views.map("items", edu.situations()); }
+    public Map<String, Object> situations() { return Views.map("items", edu.situationViews()); }
+
+    /** 운영자용: 고를 답·이유·안전 규칙까지 모두. */
+    @GetMapping("/admin/edu/situations")
+    public Map<String, Object> adminSituations() { return Views.map("items", edu.situations()); }
 
     /** /api/admin/** 는 운영자만(AuthInterceptor). */
     @PutMapping("/admin/edu/situations")

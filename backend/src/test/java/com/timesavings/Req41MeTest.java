@@ -253,6 +253,8 @@ class Req41MeTest {
                 .content("{\"items\":[{\"title\":\"가\",\"line\":\"짧\"}]}")).andExpect(status().isBadRequest());
         mvc.perform(get("/api/edu/situations").header("Authorization", tok(vol))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.items", hasSize(2))).andExpect(jsonPath("$.items[0].title").value("선물을 주실 때"));
+        mvc.perform(get("/api/admin/edu/situations").header("Authorization", tok(vol))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/admin/edu/situations").header("Authorization", tok(admin))).andExpect(status().isOk()).andExpect(jsonPath("$.items[0].flag").value("금전·선물"));
         // 바뀐 상황이 연습 대화에 쓰인다
         RoleplayPersona p = persona("[]");
         mvc.perform(post("/api/ai/roleplay").header("Authorization", tok(vol)).contentType(MediaType.APPLICATION_JSON)
