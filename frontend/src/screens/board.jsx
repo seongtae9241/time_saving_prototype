@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
-import { Ic, Spk, Mod, TBar, Cats, PostCard, ReqRow, Avatar, Stars, Loading, Empty, RuleNote, useLoad, postWho, postCats } from '../ui/bits.jsx';
+import { Ic, Spk, Mod, TBar, Cats, PostCard, ReqRow, Avatar, Stars, StTag, Loading, Empty, RuleNote, useLoad, postWho, postCats } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
-import { api, del, post as apost } from '../api.js';
-import { CATS, SHORT, AREAS, fmt, hh, dlabel, lvName, lvWeight, todayISO, addDays } from '../lib/format.js';
+import { api, del } from '../api.js';
+import { CATS, SHORT, AREAS, KIND_LABEL, fmt, hh, dlabel, lvName, lvWeight, todayISO, addDays } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useReport } from './common.jsx';
 import { useProfileSheet } from './request.jsx';
@@ -12,8 +12,10 @@ import { useTopCats, sortByTop, RegularButton } from '../ui/extras.jsx';
 import { MatchWhy, EasyListen } from '../ui/assist.jsx';
 import { FixTips } from './assist.jsx';
 import { DIc, useMode } from '../ui/proto.jsx';
+import { useLocationAsk } from '../ui/location.jsx';
+import { useRepost } from '../ui/repost.jsx';
 
-const DATES = [['all', '전체 날짜'], ['today', '오늘'], ['week', '이번 주'], ['next', '다음 주']];
+const DATES = [['all', '전체 날짜'], ['today', '오늘'], ['week', '이번 주'], ['next', '다음 주']]; // + 날짜 고르기(pick)
 const SLOTS = [['all', '시간대'], ['am', '오전'], ['pm', '오후'], ['eve', '저녁']];
 
 /* ---------- 공고 게시판 (B-20) · 담당자 대리 요청(C-05) ---------- */
@@ -39,21 +41,31 @@ export function Board() {
   const pickType = (t) => { setSp({ type: t }, { replace: true }); setCat('전체'); if (isUser) setMode(t === 'OFFER' ? 'recv' : 'give'); };
   const [cat, setCat] = useState(sp.get('cat') || '전체');
   const top = useTopCats();
-  const [sort, setSort] = useState('near');
+  // B-20·B-59: 가까운 순은 위치 정보를 쓴다. 처음에는 최신순이고, 가까운 순을 누르는 순간에만 위치를 묻는다(좌표는 화면 안에서만 쓰고 저장하지 않음)
+  const [sort, setSort] = useState('new');
+  const [pos, setPos] = useState(null);
+  const askLocation = useLocationAsk();
+  const toggleSort = async () => {
+    if (sort === 'near') return setSort('new');
+    const got = await askLocation('가까운 순 정렬');
+    if (!got) return; // 위치를 못 얻으면 최신순 그대로
+    setPos(got); setSort('near');
+  };
   const [area, setArea] = useState('');
   const [dt, setDt] = useState('all');
+  const [pickDate, setPickDate] = useState('');
   const [slot, setSlot] = useState('all');
   const [elder] = useLoad(() => (elderId ? api(`/org/elders/${elderId}`) : Promise.resolve(null)), [elderId]);
   const q = new URLSearchParams({ type, sort });
   if (area) q.set('area', area);
   if (cat !== '전체') q.set('cat', cat);
   if (dt === 'today') q.set('date', todayISO());
+  if (dt === 'pick' && pickDate) q.set('date', pickDate);
+  if (dt === 'week') { q.set('dateFrom', todayISO()); q.set('dateTo', addDays(6)); }
+  if (dt === 'next') { q.set('dateFrom', addDays(7)); q.set('dateTo', addDays(13)); }
+  if (sort === 'near' && pos) { q.set('lat', pos.lat); q.set('lng', pos.lng); }
   const [list] = useLoad(() => api(`/posts?${q}`), [q.toString()]);
-  let shown = (list || []).filter((p) => !p.mine && (p.status || 'OPEN') === 'OPEN');
-  if (dt === 'week' || dt === 'next') {
-    const a = dt === 'week' ? todayISO() : addDays(7), b = dt === 'week' ? addDays(7) : addDays(14);
-    shown = shown.filter((p) => p.date >= a && p.date < b);
-  }
+  let shown = (list || []).filter((p) => !p.mine && !p.proxyMine && (p.status || 'OPEN') === 'OPEN');
   if (slot !== 'all') shown = shown.filter((p) => (slot === 'am' ? p.startHour < 12 : slot === 'pm' ? p.endHour > 12 && p.startHour < 18 : p.endHour > 18));
   // U3: 도움 받고 싶을 때(도움 가능 공고)는 "내가 자주 받는 도움" 공고가 먼저, 칩도 그 순서로
   const favSet = new Set(((top && top.top) || []).map((t) => t.category));
@@ -65,6 +77,16 @@ export function Board() {
       {opts.map(([v, l]) => <div key={v} className={'opt ' + (val === v ? 'on' : '')} role="button" tabIndex={0} onClick={() => { set(v); closeSheet(); }}><span className="rd" /><div>{l}</div></div>)}
     </>
   ));
+  // B-20 날짜 필터: 묶음(오늘·이번 주·다음 주) 말고 특정 날짜도 고를 수 있다
+  const pickDay = () => sheet(() => (
+    <>
+      <h2>날짜</h2>
+      {DATES.map(([v, l]) => <div key={v} className={'opt ' + (dt === v ? 'on' : '')} role="button" tabIndex={0} onClick={() => { setDt(v); closeSheet(); }}><span className="rd" /><div>{l}</div></div>)}
+      <label className="f" htmlFor="board-date">날짜 고르기</label>
+      <input id="board-date" className="in" type="date" min={todayISO()} defaultValue={dt === 'pick' ? pickDate : ''} onChange={(e) => { if (e.target.value) { setPickDate(e.target.value); setDt('pick'); closeSheet(); } }} />
+    </>
+  ));
+  const dtLabel = dt === 'pick' && pickDate ? dlabel(pickDate) : (DATES.find((d) => d[0] === dt) || DATES[0])[1];
   const eName = elder ? elder.alias + ' 님' : '';
   return (
     <Screen title={elderId ? `${eName} 대신 요청` : '공고'} tab={me && me.role === 'ORG' ? '/o/elders' : '/board'} noTabs={!!elderId} back={elderId ? true : false}>
@@ -78,11 +100,12 @@ export function Board() {
       )}
       <div className="row" style={{ gap: 6, marginBottom: 8 }}>
         <button className="tag2" onClick={() => pick('지역', [['', '행복구 전체'], ...AREAS.map((a) => [a, a])], area, setArea)}><Ic n="pin" s={14} />{area || '행복구 전체'} <Ic h={I.down} /></button>
-        <button className="tag2" onClick={() => pick('날짜', DATES, dt, setDt)}>{DATES.find((d) => d[0] === dt)[1]} <Ic h={I.down} /></button>
+        <button className="tag2" onClick={pickDay}>{dtLabel} <Ic h={I.down} /></button>
         <button className="tag2" onClick={() => pick('시간대', SLOTS.map(([v, l]) => [v, v === 'all' ? '전체 시간대' : l]), slot, setSlot)}>{SLOTS.find((d) => d[0] === slot)[1]} <Ic h={I.down} /></button>
         <span className="grow" />
-        <button className="tag2" style={NW} onClick={() => setSort(sort === 'near' ? 'new' : 'near')}>{sort === 'near' ? '가까운 순' : '최신순'} ⇅</button>
+        <button className="tag2" style={NW} onClick={toggleSort} aria-label={sort === 'near' ? '지금 가까운 순. 누르면 최신순' : '지금 최신순. 누르면 가까운 순(위치 정보 이용)'}>{sort === 'near' ? '가까운 순' : '최신순'} ⇅</button>
       </div>
+      {sort === 'near' && pos && <div className="mute2" style={{ margin: '-2px 0 8px' }}><Ic n="pin" s={13} /> 지금 계신 곳에서 가까운 순이에요. 위치는 이번 정렬에만 쓰고 저장하지 않아요.</div>}
       <div className="chips">{['전체', ...catOrder].map((k) => <button key={k} className={'chip ' + (k === cat ? 'on' : '')} onClick={() => setCat(k)}>{type === 'OFFER' && favSet.has(k) && <span className="fav-mark" aria-label="자주 받는 도움">★</span>}{k === '전체' ? '전체' : SHORT[k]}</button>)}</div>
       {!elderId && <div className="tip" style={{ marginTop: 12, padding: '12px 16px' }}><div className="grow small"><Ic n="bell" s={16} /> 조건에 맞는 공고가 올라오면 알려드려요</div><button className="btn soft sm" style={{ width: 'auto', padding: '0 12px', minHeight: 36 }} onClick={() => nav('/my/alerts')}>관심 조건</button></div>}
       <div className="sec-t"><span>공고 <span style={{ color: 'var(--brand)' }}>{shown.length}</span>개</span></div>
@@ -110,6 +133,7 @@ export function PostDetail() {
   const nav = useNavigate();
   const { me } = useAuth();
   const { toast, confirm } = useUi();
+  const repost = useRepost();
   const report = useReport();
   const profile = useProfileSheet();
   const [p, reload] = useLoad(() => api(`/posts/${id}`), [id]);
@@ -119,11 +143,13 @@ export function PostDetail() {
   const w = postWho(p);
   const offer = p.type === 'OFFER';
   const mine = p.mine;
+  const proxyMine = !!p.proxyMine; // B-57: 내가 가족 대신 올린 공고(주인은 가족) — 진행 상황은 읽기만
   const reqs = p.requests || [];
   const open = (p.status || 'OPEN') === 'OPEN';
   const accepted = reqs.some((r) => !['SENT', 'REJECTED', 'EXPIRED', 'CANCELLED'].includes(r.status));
   const start = () => {
-    if (!offer && me && me.role === 'USER' && !me.eduDone) return toast('봉사는 신원 인증과 첫 활동 교육 후 할 수 있어요');
+    // B-01: 봉사 조건은 신분증 인증뿐이다(안전 교육은 선택 연습이라 막지 않는다)
+    if (!offer && me && me.role === 'USER' && me.idStatus !== 'APPROVED') { toast('봉사는 신분증 인증이 끝난 뒤 할 수 있어요'); return nav('/my/verify'); }
     nav(`/req/new?post=${p.id}${elderId ? `&elder=${elderId}` : ''}`);
   };
   return (
@@ -136,12 +162,17 @@ export function PostDetail() {
       {offer && !mine && <MatchWhy text={p.matchReason} style={{ marginTop: 10 }} />}
       {offer && p.ownerId && !mine && !w.elder && me && me.role === 'USER' && <RegularButton volunteerId={p.ownerId} compact style={{ marginTop: 10 }} />}
       <div style={{ marginTop: 12 }}><EasyListen postId={p.id} showText /></div>
+      {p.proxy && (
+        <div className="lock" style={{ marginTop: 12 }}><Ic n="users" s={18} /><div>{proxyMine
+          ? <><b>{p.ownerName} 님 대신 올린 공고예요.</b> 봉사 제안의 최종 수락·거부는 {p.ownerName} 님이 직접 하고, 시간도 {p.ownerName} 님 통장에서 보류·차감돼요. 여기서는 진행 상황만 볼 수 있어요.</>
+          : mine ? <><b>{p.proxyByName || '가족'} 님이 대신 올려 준 공고예요.</b> 봉사 제안이 오면 최종 수락·거부는 직접 해 주세요.</>
+            : <>가족이 대신 올린 공고예요. 최종 수락은 {p.ownerName} 님이 직접 해요.</>}</div></div>
+      )}
       {mine && <FixTips p={p} />}
       <div className="card" style={{ marginTop: 16 }}>
         <div className="mute2">{offer ? '봉사할 수 있는 시간' : '도움이 필요한 시간'}</div>
         <div className="b" style={{ fontSize: 20, marginTop: 2 }}>{dlabel(p.date)} {hh(p.startHour)} ~ {hh(p.endHour)}</div>
         <TBar s={p.startHour} e={p.endHour} />
-        {p.repeatRule && <div className="mute2 ic-line" style={{ marginTop: 8 }}><Ic n="repeat" s={15} />{p.repeatRule} 반복 공고</div>}
         <div className="mute2 ic-line" style={{ marginTop: 6 }}><Ic n="pin" s={15} />{p.area}</div>
       </div>
       <label className="f">{offer ? '할 수 있는 도움' : '필요한 도움'}</label>
@@ -157,10 +188,14 @@ export function PostDetail() {
       )}
       {w.elder && <div className="lock" style={{ marginTop: 12 }}><Ic n="shield" s={18} /><div><b>방문 시 주의사항</b><br />{p.elderCaution || p.caution || '담당자가 따로 안내해요'}<div style={{ marginTop: 6, opacity: 0.85 }}>이름·주소·연락처는 보이지 않아요. 수락되면 담당자가 방문 장소를 따로 알려드려요.</div></div></div>}
       <div className="notice" style={{ marginTop: 12 }}>공고 1개에는 요청 1건만 수락돼요. 시간은 공고 범위 안에서 30분 단위, 최대 4시간이에요.</div>
-      {mine ? (
+      {mine || proxyMine ? (
         <>
-          <div className="sec-t">받은 요청·제안 {reqs.length}건</div>
-          {reqs.length ? reqs.map((r) => <ReqRow key={r.id} r={r} />) : <Empty>아직 받은 요청이 없어요</Empty>}
+          <div className="sec-t">받은 요청·제안 {reqs.length}건{proxyMine ? ' · 보기만' : ''}</div>
+          {!reqs.length ? <Empty>아직 받은 요청이 없어요</Empty> : proxyMine
+            ? reqs.map((r) => (
+              <div className="card item" key={r.id}><div className="grow"><div className="b">{r.volunteer ? r.volunteer.name : ''} · {KIND_LABEL[r.kind] || '요청'}</div><div className="mute2">{dlabel(r.date)} {hh(r.startHour)}~{hh(Number(r.startHour) + Number(r.hours))} · {r.content}</div></div><StTag st={r.status} /></div>
+            ))
+            : reqs.map((r) => <ReqRow key={r.id} r={r} />)}
           {open && !accepted && (
             <div className="btns" style={{ marginTop: 14 }}>
               <button className="btn ghost" onClick={() => nav(`/post/${p.id}/edit`)}>수정</button>
@@ -171,15 +206,7 @@ export function PostDetail() {
             </div>
           )}
           {!open && <div className="notice" style={{ marginTop: 14 }}>요청이 수락되었거나 마감된 공고는 바꿀 수 없어요.</div>}
-          <button className="btn soft" style={{ marginTop: 8 }} onClick={async () => {
-            const d = new Date(p.date); d.setDate(d.getDate() + 7);
-            const nd = d.toISOString().slice(0, 10) < todayISO() ? addDays(7) : d.toISOString().slice(0, 10);
-            try {
-              const np = await apost('/posts', { type: p.type, date: nd, startHour: p.startHour, endHour: p.endHour, area: p.area, categories: postCats(p), title: p.title, detail: p.detail, note: p.note, estHours: p.estHours, elderId: p.elderId || undefined });
-              toast('같은 내용으로 다음 주에 다시 올렸어요');
-              nav(`/post/${(Array.isArray(np) ? np[0] : np).id}`, { replace: true });
-            } catch { /* 토스트 */ }
-          }}>↻ 같은 내용으로 다시 올리기</button>
+          <button className="btn soft" style={{ marginTop: 8 }} onClick={() => repost(p, (np) => nav(`/post/${np.id}`, { replace: true }))}>↻ 같은 내용으로 다시 올리기 (날짜만 골라요)</button>
         </>
       ) : open ? (
         me && me.role !== 'ADMIN' && (me.role !== 'ORG' || offer) && <button className="btn big-cta" style={{ marginTop: 18 }} onClick={start}>{offer ? (elderId ? `${elder ? elder.alias + ' 님' : '대상'} 대신 도움 요청하기` : '이 시간에 도움 요청하기') : '봉사 제안하기'}</button>

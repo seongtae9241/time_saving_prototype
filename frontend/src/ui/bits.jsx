@@ -94,7 +94,7 @@ export function PostCard({ p, to }) {
   const offer = p.type === 'OFFER';
   return (
     <div className="pc2 click" role="button" tabIndex={0} onClick={() => nav(to || `/post/${p.id}`)}>
-      <div className="top"><Avatar name={w.name} elder={w.elder} /><div className="grow"><div className="who">{w.name}{w.badge}{p.repeatRule && <span className="kind reg">{p.repeatRule}</span>}</div><div className="sub">{w.sub}</div></div><span className={`kind ${offer ? 'offer' : 'need'}`}>{offer ? '도움 가능' : '봉사 요청'}</span></div>
+      <div className="top"><Avatar name={w.name} elder={w.elder} /><div className="grow"><div className="who">{w.name}{w.badge}{p.proxy && <span className="kind reg">가족 대신</span>}</div><div className="sub">{w.sub}</div></div><span className={`kind ${offer ? 'offer' : 'need'}`}>{offer ? '도움 가능' : '봉사 요청'}</span></div>
       <div className="ttl">{offer ? (p.note || p.title) : p.title}</div>
       <Cats list={postCats(p)} style={{ marginTop: 10 }} />
       {offer && <MatchWhy text={p.matchReason} style={{ marginTop: 10 }} />}

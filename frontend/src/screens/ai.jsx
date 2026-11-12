@@ -8,6 +8,7 @@ import { post } from '../api.js';
 import { hh, dlabel, lvName, lvWeight, LV, W, fmt } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useSpeechInput } from './voice.jsx';
+import { useLocationAsk } from '../ui/location.jsx';
 
 /* ---------- 공공 서비스 카드 (프로토타입 pubCards) ---------- */
 export function PubCards({ list, big, ai }) {
@@ -135,12 +136,12 @@ export function Recommend() {
               )}
               {res.help && !res.help.blocked && <div className="mute2" style={{ margin: '8px 2px 0' }}>{res.help.note}</div>}
               {/* 2026-11-11: 단골 추천 / 가까운 사람 추천 두 섹션 (순위는 서버 코드: 같은 동 → 가능 시간 → 거리) */}
-              <RecSection title={res.helper ? '단골 추천 · 내가 자주 도운 이웃' : '단골 추천'} sub={res.helper ? '3번 이상 도운 이웃이 올린 봉사 요청' : '내 단골이 올린, 시간·지역이 맞는 도움 가능 공고'} icon="regular" list={res.regularPosts || []}
-                empty={res.helper ? '자주 도운 이웃이 올린 공고가 지금은 없어요' : '단골이 올린 공고가 지금은 없어요. 단골에게 바로 요청할 수도 있어요.'}
+              <RecSection title={res.helper ? '단골 추천 · 내가 자주 도운 이웃' : '내 단골 중에서'} sub={res.helper ? '3번 이상 도운 이웃이 올린 봉사 요청' : '내 단골이 올린, 시간·지역이 맞는 도움 가능 공고'} icon="regular" list={res.regularPosts || []}
+                empty={res.helper ? '자주 도운 이웃이 올린 공고가 지금은 없어요' : '이 도움을 올린 단골 공고가 아직 없어요'}
                 action={!res.helper && <button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav('/regular')}>단골에게 바로 요청하기</button>} />
-              <RecSection title="가까운 사람 추천" sub="단골이 아니어도 시간·지역이 잘 맞는 공고" icon="search" list={res.nearbyPosts || []}
-                empty={`지금 열린 공고가 없어요. ${res.helper ? '도움 가능' : '봉사 요청'} 공고를 올려 보세요.`}
-                action={<button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav(res.helper ? '/write/offer' : '/write/need')}>{res.helper ? '도움 가능 공고 올리기' : '봉사 요청 쓰기'}</button>} />
+              <RecSection title={res.helper ? '가까운 사람 추천' : '가까운 사람'} sub="단골이 아니어도 시간·지역이 잘 맞는 공고" icon="search" list={res.nearbyPosts || []}
+                empty={res.helper ? '지금 열린 공고가 없어요. 도움 가능 공고를 올려 보세요.' : '지금 열린 공고가 없어요'}
+                action={<button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => nav(res.helper ? '/write/offer' : '/write/need')}>{res.helper ? '도움 가능 공고 올리기' : '봉사 요청 공고 올리기'}</button>} />
               <div className="card item click" style={{ marginTop: 8 }} role="button" tabIndex={0} onClick={() => nav(`/public?q=${encodeURIComponent(asked)}`)}><div className="ic"><Ic n="building" s={20} /></div><div className="grow"><div className="b">공공 서비스도 찾아볼까요?</div><div className="mute2">근처에서 받을 수 있는 공공 서비스를 찾아요</div></div>›</div>
             </>
           )}
@@ -157,25 +158,31 @@ export function Public() {
   const [q, setQ] = useState(sp.get('q') || '');
   const [asked, setAsked] = useState(null);
   const [res, setRes] = useState(null);
-  const { toast } = useUi();
+  const askLocation = useLocationAsk();
+  /* B-67: 필요한 도움을 말하면 접속 위치 기준으로 안내한다. 위치는 공용 위치 도우미(B-59)로 그 순간에만 얻는다.
+     위치를 못 얻으면(허용 안 함·기기 미지원) 프로필 동네 기준 공공 서비스 DB 안내로 대신하고, 그 사실을 알려 준다. */
+  const [locNote, setLocNote] = useState(null);
   const ask = async (t) => {
-    setAsked(t); setRes({ loading: true });
-    try { setRes(await post('/ai/public-services', { question: t, area: me && me.area, ageGroup: me && me.ageGroup })); } catch { setRes(null); }
+    const pos = await askLocation('위치 기준 공공 서비스 안내', { quiet: true });
+    setAsked(t); setRes({ loading: true, near: !!pos });
+    setLocNote(pos ? null : `위치를 쓰지 않아 ${(me && me.area) || '내 동네'} 기준으로 찾았어요. 지금 계신 곳 기준으로 보려면 ‘내 위치로 찾기’를 눌러 주세요.`);
+    try {
+      if (pos) {
+        const r = await post('/ai/public-services/nearby', { question: t, lat: pos.lat, lng: pos.lng, area: me && me.area });
+        if (r && (r.services || []).length) return setRes({ ...r, near: r.usedLocation !== false });
+      }
+      setRes(await post('/ai/public-services', { question: t, area: me && me.area, ageGroup: me && me.ageGroup }));
+    } catch { setRes(null); }
   };
   /* U8: 내 위치로 찾기 — 위치는 동의할 때만 쓰고, 서버는 결과를 저장하지 않는다 */
   const nearby = (lat, lng) => post('/ai/public-services/nearby', { question: q.trim() || undefined, lat, lng, area: me && me.area });
-  const findNear = () => {
+  const findNear = async () => {
+    // 거절한 뒤 다시 누르면 위치가 필요한 기능임과 허용 방법을 안내한다(B-59)
+    const pos = await askLocation('내 위치로 공공 서비스 찾기');
+    if (!pos) return;
+    setLocNote(null);
     setAsked(q.trim() ? `${q.trim()} (내 위치 근처)` : '내 위치 근처 공공 서비스'); setRes({ loading: true, near: true });
-    const fallback = async (why) => {
-      if (why) toast(why);
-      try { setRes({ ...(await nearby(undefined, undefined)), near: true }); } catch { setRes(null); }
-    };
-    if (!navigator.geolocation) { fallback(`위치를 쓸 수 없어 ${(me && me.area) || '내 동네'} 기준으로 찾을게요`); return; }
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => { try { setRes({ ...(await nearby(pos.coords.latitude, pos.coords.longitude)), near: true }); } catch { setRes(null); } },
-      () => fallback(`위치 권한이 없어 ${(me && me.area) || '내 동네'} 기준으로 찾을게요`),
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 },
-    );
+    try { setRes({ ...(await nearby(pos.lat, pos.lng)), near: true }); } catch { setRes(null); }
   };
   useLoad(async () => { if (sp.get('q')) ask(sp.get('q')); return null; }, []);
   return (
@@ -183,7 +190,8 @@ export function Public() {
       <AskBox mic title="필요한 걸 말해 주세요" sub="AI가 공공 서비스 DB에서 맞는 서비스를 찾아 쉬운 말로 알려드려요" placeholder="예) 혼자 사는데 쓰러지면 걱정돼요" q={q} setQ={setQ} onAsk={ask}
         quick={['목욕을 도와줄 사람이 필요해요', '혼자 사는데 쓰러지면 걱정돼요', '요즘 깜빡깜빡해요']} />
       <button type="button" className="loc-btn" onClick={findNear}><Ic n="pin" s={20} /> 내 위치로 찾기 <span className="mod m4" style={{ marginLeft: 2 }}>AI</span></button>
-      <div className="mute2 center" style={{ marginTop: 6 }}>위치는 찾을 때 한 번만 쓰고 저장하지 않아요</div>
+      <div className="mute2 center" style={{ marginTop: 6 }}>질문과 위치는 찾을 때 한 번만 쓰고 저장하지 않아요</div>
+      {locNote && asked && <div className="notice" style={{ marginTop: 8 }}>{locNote}</div>}
       {asked && (
         <div className="ans">
           <div className="msg me" style={{ marginLeft: 'auto' }}>{asked}</div>

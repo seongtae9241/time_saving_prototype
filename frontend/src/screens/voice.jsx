@@ -13,9 +13,6 @@ import { PostCheck, mergeChecks } from './assist.jsx'; // LLM 추가 A(7.12) 빠
 export { useSpeechInput, speechSupported } from '../ui/VoiceInput.jsx';
 
 
-/* 말로 뽑힌 반복("매주 목요일" 같은 글자)을 서버가 받는 모양으로 바꾼다. 주마다 반복만 지원(4주), 격주·매달은 한 번만 올린다. */
-const isWeekly = (r) => typeof r === 'string' ? r.replace(/\s/g, '').startsWith('매주') : !!(r && r.weekly);
-const repeatBody = (r) => (isWeekly(r) ? { weekly: true, weeks: (r && r.weeks) || 4 } : undefined);
 export function getTts() { try { return localStorage.getItem('ts-tts') !== '0'; } catch { return true; } }
 export function setTts(v) { try { localStorage.setItem('ts-tts', v ? '1' : '0'); } catch { /* 무시 */ } }
 export function stopSpeak() { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch { /* 무시 */ } }
@@ -53,7 +50,10 @@ export function VoiceReq() {
   const [elder] = useLoad(() => (elderId ? api(`/org/elders/${elderId}`) : Promise.resolve(null)), [elderId]);
   const [tts, setTtsState] = useState(getTts());
   const [msgs, setMsgs] = useState([]); // {role:'user'|'assistant', text}
-  const [phase, setPhase] = useState('idle'); // idle | thinking | ask | card | block | emergency | posted
+  // B-02·B-14: 요청서를 만들기 전에 "새로운 사람 / 자주 만난 사람(단골)"을 먼저 묻는다(who). 미리 정해서 들어오면(?to=new) 건너뛴다
+  const [phase, setPhase] = useState(sp.get('to') === 'new' ? 'idle' : 'who'); // who | idle | thinking | ask | card | block | emergency | posted
+  const WHO_Q = '새로운 사람에게 부탁할까요, 자주 만난 사람, 단골에게 부탁할까요?';
+  const goRegular = () => { stopSpeak(); nav(elderId ? `/regular?elder=${elderId}` : '/regular'); };
   const [res, setRes] = useState(null);
   const [draft, setDraft] = useState(null);
   const [asks, setAsks] = useState(0);
@@ -71,13 +71,24 @@ export function VoiceReq() {
     const t = String(text || '').trim();
     if (!t) return;
     setTyped('');
+    if (phase === 'who') {
+      // 첫 질문의 답: "단골"·"자주 만난 사람"이면 단골에게 요청하기로, "새로운 사람"이면 요청서 만들기로
+      const short = t.replace(/\s/g, '');
+      if (/단골|자주만난|자주보는|아는사람|지난번그|저번에그/.test(short)) return goRegular();
+      if (short.length <= 14 && /새로운|새사람|새로|처음|아무나|모르는/.test(short)) {
+        setPhase('idle');
+        if (tts) { await speak('어떤 도움이 필요하세요?'); }
+        return;
+      }
+      // 고르지 않고 바로 필요한 도움을 말했으면 새로운 사람에게 올리는 요청서로 이어 간다
+    }
     const next = [...msgs, { role: 'user', text: t }];
     setMsgs(next);
     setPhase('thinking');
     let r;
     try {
       r = await post('/ai/post-chat', { type: 'NEED', messages: next, inputMode: 'voice', forElderId: elderId ? Number(elderId) : undefined });
-    } catch { setPhase(msgs.length ? 'ask' : 'idle'); return; }
+    } catch { setPhase(msgs.length ? 'ask' : phase === 'who' ? 'who' : 'idle'); return; }
     setRes(r);
     const withReply = r.reply ? [...next, { role: 'assistant', text: r.reply }] : next;
     setMsgs(withReply);
@@ -105,10 +116,12 @@ export function VoiceReq() {
       await say(r.reply);
       if (tts && sp2.mode === 'browser' && !r.intent?.match?.(/QUESTION|REGULAR/)) sp2.start();
     }
-  }, [msgs, elderId, say, tts, sp2]);
+  }, [msgs, elderId, say, tts, sp2, phase]); // eslint-disable-line react-hooks/exhaustive-deps
   sendRef.current = send;
 
   const reset = () => { stopSpeak(); sp2.stop(); setMsgs([]); setRes(null); setDraft(null); setAsks(0); setPhase('idle'); setTyped(''); setEditing(false); setChk([]); };
+  // 처음 들어오면 첫 질문을 소리로도 읽어 준다(소리 켜짐일 때)
+  useEffect(() => { if (phase === 'who' && tts) speak(WHO_Q); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const publish = () => run(async () => {
     const d = mergeChecks(draft, chk);
@@ -117,16 +130,16 @@ export function VoiceReq() {
     const body = {
       type: 'NEED', date: d.date, startHour: Number(d.startHour), endHour: Number(d.endHour), area: d.area || (elder ? elder.dong : me && me.area),
       categories: d.categories, estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), title: d.title || `${d.categories[0]} 도움`, detail: d.detail || '', note: d.caution ? `방문 시 주의: ${d.caution}` : (d.note || ''), caution: d.caution || undefined,
-      repeat: repeatBody(d.repeat), elderId: elderId ? Number(elderId) : undefined, inputMode: 'voice',
+      elderId: elderId ? Number(elderId) : undefined, inputMode: 'voice',
     };
     const p = await post('/posts', body);
     const first = Array.isArray(p) ? p[0] : p;
     setPhase('posted');
     refresh();
-    say(((p && p.createdCount) || 1) > 1 ? `요청서 ${p.createdCount}건을 올렸어요. 도와줄 이웃이 나타나면 알려 드릴게요.` : '요청서를 올렸어요. 도와줄 이웃이 나타나면 알려 드릴게요.');
-    const n = (p && p.createdCount) || (Array.isArray(p) ? p.length : 1);
-    toast(n > 1 ? `매주 반복으로 ${n}건을 올렸어요` : who ? `${who} 대신 공고를 올렸어요` : '공고를 올렸어요');
-    setRes((x) => ({ ...x, postedId: first && first.id }));
+    // B-06: 말에 "매주"가 있었어도 한 번만 올린다. 다음에는 다시 올리기에서 날짜만 고르면 된다고 알려 준다
+    say(d.repeatNotice ? '요청서를 한 번 올렸어요. 다음에는 다시 올리기에서 날짜만 고르면 같은 내용으로 올릴 수 있어요.' : '요청서를 올렸어요. 도와줄 이웃이 나타나면 알려 드릴게요.');
+    toast(who ? `${who} 대신 공고를 올렸어요` : '공고를 올렸어요');
+    setRes((x) => ({ ...x, postedId: first && first.id, repeatNotice: d.repeatNotice || null }));
   });
 
   // 되묻기가 3번을 넘으면 말 대신 큰 선택 버튼
@@ -196,6 +209,18 @@ export function VoiceReq() {
       {phase === 'ask' && intent === 'QUESTION' && <button className="btn soft vr-big" style={{ marginTop: 10 }} onClick={() => nav(`/public?q=${encodeURIComponent(msgs.filter((m) => m.role === 'user').map((m) => m.text).join(' '))}`)}>공공 서비스 안내 보러 가기</button>}
       {phase === 'ask' && intent === 'REGULAR_REQUEST' && <button className="btn soft vr-big" style={{ marginTop: 10 }} onClick={() => nav(elderId ? `/regular?elder=${elderId}` : '/regular')}>단골에게 바로 요청하기</button>}
 
+      {phase === 'who' && (
+        <div className="card" style={{ marginTop: 12 }}>
+          <div className="vr-say">누구에게 도움을 청할까요?</div>
+          <div className="vr-q" style={{ marginTop: 6 }}>새로운 사람에게 부탁할까요, 자주 만난 사람(단골)에게 부탁할까요?</div>
+          <div className="stack" style={{ marginTop: 12 }}>
+            <button className="btn vr-big" onClick={() => { stopSpeak(); setPhase('idle'); }}>새로운 사람에게 · 공고 올리기</button>
+            <button className="btn soft vr-big" onClick={goRegular}>자주 만난 단골에게 · 바로 요청</button>
+          </div>
+          <div className="mute2 center" style={{ marginTop: 8 }}>버튼을 누르거나 아래 마이크로 “새로운 사람”, “단골”이라고 말해도 돼요</div>
+        </div>
+      )}
+
       {choiceMode && (
         <div className="card" style={{ marginTop: 12 }}>
           <div className="vr-say">말 대신 눌러서 골라 주세요</div>
@@ -216,11 +241,11 @@ export function VoiceReq() {
               {field('time', '시간', `${hh(draft.startHour)} ~ ${hh(draft.endHour)}${draft.estHours ? ` (${draft.estHours}시간)` : ''}`)}
               {field('area', '장소', draft.area || (elder ? elder.dong : me && me.area))}
               {field('category', '도움 종류', (draft.categories || []).join(', ') || '고르지 않음')}
-              {draft.repeat && <div className="vr-f"><span className="vr-l">반복</span><span className="vr-v">{isWeekly(draft.repeat) ? `${draft.repeat} · 4주 동안 4건이 올라가요` : `${draft.repeat} 반복은 아직 안 돼요. 이번 한 번만 올려요`}{isWeekly(draft.repeat) && <button type="button" className="chip" style={{ marginLeft: 8 }} onClick={() => setDraft((d) => ({ ...d, repeat: null }))}>이번 한 번만</button>}</span></div>}
+              {draft.repeatNotice && <div className="vr-f"><span className="vr-l">반복</span><span className="vr-v">{draft.repeatNotice}</span></div>}
               {mergeChecks(draft, chk).detail && <div className="vr-f"><span className="vr-l">내용</span><span className="vr-v">{mergeChecks(draft, chk).detail}</span></div>}
               {mergeChecks(draft, chk).caution && <div className="vr-f"><span className="vr-l">방문 시 주의사항</span><span className="vr-v">{mergeChecks(draft, chk).caution}</span></div>}
               <div className="vr-f"><span className="vr-l">난이도</span><span className="vr-v">{diff ? `${lvName(diff.level)} ${dWeight.toFixed(1)}` : '-'}</span></div>
-              <div className="vr-f"><span className="vr-l">{who ? '대상 차감' : '예상 차감 시간'}</span><span className="vr-v">{who ? '없음 (기관 대상)' : `${fmt(deduct)}시간 (확정되면 보류, 끝나면 차감)`}</span></div>
+              <div className="vr-f"><span className="vr-l">{who ? '대상 차감' : '예상 차감 시간'}</span><span className="vr-v">{who ? '없음 (기관 대상)' : `${fmt(deduct)}시간 (예정 시간 기준 · 확정되면 보류, 끝나면 차감)`}</span></div>
               {diff && diff.reason && <div className="mute2" style={{ marginTop: 6 }}>근거: {diff.reason}</div>}
               {res.filter && res.filter.level === 'CAUTION' && <div className="notice" style={{ marginTop: 10 }}>주의: {res.filter.reason}</div>}
               <RuleNote source={res.source} />
@@ -245,6 +270,7 @@ export function VoiceReq() {
           <div className="done-ic" style={{ margin: '0 auto 12px' }}>✓</div>
           <div className="vr-title" style={{ textAlign: 'center' }}>요청서를 올렸어요</div>
           <p className="vr-say">도와줄 이웃이 요청하면 알림으로 알려 드려요.</p>
+          {res && res.repeatNotice && <div className="notice" style={{ marginBottom: 10 }}>매주 자동으로 올리지는 않아요. 다음에는 올린 공고의 ‘같은 내용으로 다시 올리기’에서 날짜만 고르면 돼요.</div>}
           {res && res.postedId && <button className="btn vr-big" onClick={() => nav(`/post/${res.postedId}`, { replace: true })}>올린 공고 보기</button>}
           <button className="btn ghost vr-big" style={{ marginTop: 8 }} onClick={() => nav(-1)}>처음 화면으로</button>
         </div>
@@ -260,7 +286,7 @@ export function VoiceReq() {
                 <Ic n="mic" s={44} />
               </button>
               <Wave on={sp2.listening} />
-              <div className="vr-hint">{sp2.transcribing ? '글자로 바꾸는 중…' : sp2.listening ? (sp2.mode === 'server' ? `녹음 중 ${sp2.seconds}초 · 다 말하면 아래 버튼을 눌러 주세요 (1분까지)` : '듣고 있어요… 말이 끝나면 잠깐 기다려 주세요') : phase === 'card' ? '고칠 내용을 말하려면 누르세요' : '누르고 말씀하세요'}</div>
+              <div className="vr-hint">{sp2.transcribing ? '글자로 바꾸는 중…' : sp2.listening ? (sp2.mode === 'server' ? `녹음 중 ${sp2.seconds}초 · 다 말하면 아래 버튼을 눌러 주세요 (1분까지)` : '듣고 있어요… 말이 끝나면 잠깐 기다려 주세요') : phase === 'card' ? '고칠 내용을 말하려면 누르세요' : phase === 'who' ? '누르고 “새로운 사람” 또는 “단골”이라고 말씀하세요' : '누르고 말씀하세요'}</div>
               {sp2.listening && <button className="btn soft vr-big" style={{ marginTop: 10 }} onClick={sp2.finish}>다 말했어요</button>}
             </div>
           ) : (
