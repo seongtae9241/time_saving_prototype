@@ -293,13 +293,22 @@ class FuncMeTest {
                 .andExpect(jsonPath("$.basisText", containsString("디지털 도움 3회")))
                 .andReturn().getResponse().getContentAsString();
         JsonNode recs = OM.readTree(body).get("recommends");
-        assertEquals(fit.id.longValue(), recs.get(0).get("id").asLong()); // 기록과 맞는 공고가 맨 위
-        String why = recs.get(0).get("why").asText();
+        // 다른 구역의 시연 공고가 함께 있을 수 있으니, 두 공고를 id 로 찾아 순서와 점수를 견준다
+        JsonNode fitRec = null, etcRec = null; int fitIdx = -1, etcIdx = -1;
+        for (int i = 0; i < recs.size(); i++) {
+            long id = recs.get(i).get("id").asLong();
+            if (id == fit.id) { fitRec = recs.get(i); fitIdx = i; }
+            if (id == etc.id) { etcRec = recs.get(i); etcIdx = i; }
+        }
+        assertNotNull(fitRec, "기록과 맞는 공고가 추천에 있어야 한다");
+        String why = fitRec.get("why").asText();
         assertTrue(why.contains("가장 많이 하신 디지털 도움(3회)"), why);
         assertTrue(why.contains("자주 활동하신 희망동(3회)"), why);
         assertTrue(why.contains("자주 활동하신 시간대(평일 오후)"), why);
-        assertTrue(recs.get(0).get("score").asInt() > recs.get(1).get("score").asInt());
-        assertEquals(etc.id.longValue(), recs.get(1).get("id").asLong());
+        if (etcRec != null) { // 기록과 안 맞는 공고는 뒤에, 점수도 낮게
+            assertTrue(fitIdx < etcIdx);
+            assertTrue(fitRec.get("score").asInt() > etcRec.get("score").asInt());
+        }
         // 플래너에도 같은 바탕과 설명 문장(규칙 모드)이 온다
         mvc.perform(get("/api/me/planner").header("Authorization", tok(vol))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.basis.topArea").value("희망동"))
