@@ -250,11 +250,22 @@ function ReportHandle({ r, onDone, t, onTriage }) {
       <p className="mute2" style={{ margin: 0 }}>{r.targetLabel || `${r.targetType} #${r.targetId}`} · 신고자 {r.reporter ? r.reporter.name : ''}{r.targetUser ? ` · 대상 ${r.targetUser.name}` : ''} · {dshort(r.createdAt)}</p>
       {r.content && <div className="thread" style={{ marginTop: 12 }}><div className="tm"><div className="bub">{r.content}</div></div></div>}
       {r.messageText && <div className="thread" style={{ marginTop: 8 }}><div className="tm"><div className="bub">신고된 메시지: {r.messageText}</div></div></div>}
+      {r.welfare ? (
+        <>
+          {/* D-02: 독거노인 이상 징후 접수는 제재 없이 접수 기록 확인용 */}
+          <div className="notice" style={{ marginTop: 12 }}>이상 징후(안부 확인) 접수예요. 제재 대상이 없고, 접수 때 담당자{r.manager ? `(${r.manager.name})` : ''}에게 알림이 갔어요. 운영자는 기록을 확인만 해요.</div>
+          <textarea className="in" style={{ marginTop: 10, minHeight: 70 }} placeholder="확인 메모 (접수한 사람에게 알림으로 가요 · 선택)" value={result} onChange={(e) => setResult(e.target.value)} />
+          <button className="btn" style={{ marginTop: 12 }} onClick={async () => { try { await post(`/admin/reports/${r.id}/handle`, { action: 'NONE', result }); onDone(); toast('접수 기록을 확인했어요'); } catch { /* 토스트 */ } }}>기록 확인</button>
+        </>
+      ) : (
+        <>
       <TriageBox t={t} onRefresh={onTriage} />
       <label className="f">처리</label>
       {ACTS.map(([k, l]) => <div key={k} className={'opt ' + (a === k ? 'on' : '')} role="button" tabIndex={0} onClick={() => setA(k)}><span className="rd" /><div>{l}</div></div>)}
       <textarea className="in" style={{ marginTop: 10, minHeight: 70 }} placeholder="처리 결과 (신고자에게 알림으로 가요)" value={result} onChange={(e) => setResult(e.target.value)} />
       <button className="btn" style={{ marginTop: 12 }} onClick={async () => { try { await post(`/admin/reports/${r.id}/handle`, { action: a, result: result || ACTS.find((x) => x[0] === a)[1] }); onDone(); toast('처리했어요. 신고자에게 결과를 알렸어요'); } catch { /* 토스트 */ } }}>처리하고 결과 알림 보내기</button>
+        </>
+      )}
     </>
   );
 }
@@ -266,12 +277,23 @@ export function ASafety() {
   const [tri, reloadTri] = useTriage();
   const noteOf = useAnomalyNotes();
   const ord = (r) => (tri[r.id] ? tri[r.id].order : 9999);
-  const open = (rps || []).filter((r) => r.status !== 'DONE').sort((a, b) => ord(a) - ord(b));
-  const done = (rps || []).filter((r) => r.status === 'DONE');
+  const open = (rps || []).filter((r) => r.status !== 'DONE' && !r.welfare).sort((a, b) => ord(a) - ord(b));
+  const done = (rps || []).filter((r) => r.status === 'DONE' && !r.welfare);
+  // D-02: 독거노인 이상 징후(안부 확인)는 제재 없는 접수 기록으로 따로 묶는다
+  const wf = (rps || []).filter((r) => r.welfare);
+  const handle = (r) => sheet(() => <ReportHandle r={r} t={tri[r.id]} onTriage={() => { closeSheet(); reloadTri(); }} onDone={() => { closeSheet(); reload(); reloadTri(); }} />);
   return (
     <Screen title="신고·점검" back={false}>
       <div className="sec-t" style={{ marginTop: 4 }}>신고 {open.length}건</div>
       {rps === undefined ? <Loading /> : open.length ? open.map((r) => <div key={r.id} className="card click" role="button" tabIndex={0} onClick={() => sheet(() => <ReportHandle r={r} t={tri[r.id]} onTriage={() => { closeSheet(); reloadTri(); }} onDone={() => { closeSheet(); reload(); reloadTri(); }} />)}><div className="between"><span className="b">{r.type}</span><span style={{ display: 'flex', gap: 4 }}><SevChip s={tri[r.id] && tri[r.id].severity} /><span className="st wait">{r.status === 'REVIEWING' ? '검토 중' : '접수'}</span></span></div><div className="mute2">{r.targetLabel || r.targetType} · {dshort(r.createdAt).split(' ')[0]}</div>{tri[r.id] && <div className="small muted" style={{ marginTop: 4 }}>{tri[r.id].summary}</div>}</div>) : <Empty>새 신고가 없어요</Empty>}
+      <div className="sec-t"><span>안부 확인 접수 {wf.filter((r) => r.status !== 'DONE').length}건</span><span className="mute2" style={{ fontWeight: 500 }}>제재 없음 · 기록 확인용</span></div>
+      {rps === undefined ? <Loading /> : wf.length ? wf.map((r) => (
+        <div key={r.id} className={'card' + (r.status !== 'DONE' ? ' click' : '')} role={r.status !== 'DONE' ? 'button' : undefined} tabIndex={r.status !== 'DONE' ? 0 : undefined} onClick={r.status !== 'DONE' ? () => handle(r) : undefined}>
+          <div className="between"><span className="b">{r.elder ? `${r.elder.displayName} · ${r.elder.dong || ''}` : r.targetLabel}</span><span style={{ display: 'flex', gap: 4 }}><span className="badge">접수 기록</span><span className={'st ' + (r.status === 'DONE' ? 'ok' : 'wait')}>{r.status === 'DONE' ? '확인함' : '확인 전'}</span></span></div>
+          <div className="mute2">접수 {r.reporter ? r.reporter.name : ''}{r.manager ? ` · 담당자 ${r.manager.name}에게 알림` : ''} · {dshort(r.createdAt)}</div>
+          {r.content && <div className="small muted" style={{ marginTop: 4 }}>{r.content}</div>}
+        </div>
+      )) : <Empty>안부 확인 접수가 없어요</Empty>}
       <div className="sec-t">이상 적립 패턴</div>
       {abs === undefined ? <Loading /> : (abs || []).length ? abs.map((x, i) => {
         const rqs = x.requests || [];

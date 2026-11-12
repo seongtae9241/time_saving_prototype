@@ -48,7 +48,9 @@ export function FlowBar({ r }) {
   return <div className="flow">{steps.map((s, i) => <div key={s} className={`${i <= ix ? 'on' : ''} ${i === ix ? 'cur' : ''}`}><span />{s}</div>)}</div>;
 }
 
-export function Avatar({ name, s = 44, elder, style }) {
+export function Avatar({ name, s = 44, elder, style, photo }) {
+  // B-12: 프로필 사진이 있으면 사진을, 없으면 이름 첫 글자를 보여 준다
+  if (photo) return <img className="avatar" src={photo} alt={name ? `${name} 님 사진` : '프로필 사진'} style={{ width: s, height: s, objectFit: 'cover', ...style }} />;
   return <div className="avatar" style={{ width: s, height: s, fontSize: Math.round(s * 0.38), ...(elder ? { background: '#E1ECFE', color: '#3A6FD8' } : {}), ...style }}>{(name || '?')[0]}</div>;
 }
 

@@ -13,6 +13,7 @@ import { MicButton } from '../ui/VoiceInput.jsx';
 import { ReportView } from './my.jsx';
 import { OrgBriefing, useCareSignals, SignalChip, SignalCard } from './opsai.jsx';
 import { ElderClasses } from './publicClass.jsx';
+import { DoorCardSheet } from './request.jsx'; // C-11 현관 QR 카드
 import { DIc } from '../ui/proto.jsx';
 import { SuggestLink } from '../ui/suggest.jsx';
 
@@ -164,6 +165,7 @@ export function EDetail() {
       {rep ? <ReportView rep={rep} who={elderName(e)} /> : <Empty>아직 만들어진 리포트가 없어요</Empty>}
       <div className="ml" style={{ marginTop: 14 }}>
         <div role="switch" aria-checked={!!e.reportConsent} tabIndex={0} onClick={() => run(async () => { await put(`/org/elders/${id}/consent`, { reportConsent: !e.reportConsent }); await reload(); toast(!e.reportConsent ? '공유 동의를 입력했어요' : '공유 동의를 철회했어요'); })}><div className="grow">리포트 공유 동의 (대상에게 확인 후 대신 입력)<span>{e.reportConsent ? '동의함' : '동의 안 함'}</span></div><span className={'toggle ' + (e.reportConsent ? 'on' : '')} /></div>
+        {!ended && <Mi t="현관 QR 카드" s={e.qrIssuedAt ? `${dshort(e.qrIssuedAt).split(' ')[0]} 발급 · 보기·인쇄·다시 발급` : '출력해 현관 안쪽에 붙여 두면 봉사자가 찍어 시작·종료를 기록해요'} i="qr" onClick={() => sheet(() => <DoorCardSheet elderId={id} name={elderName(e)} manage onClose={() => { closeSheet(); reload(); }} />)} />}
         {!ended && <Mi t="다른 담당자에게 이관" s="받는 담당자가 수락해야 넘어가요" i="users" onClick={transfer} />}
         {!ended && <div role="button" tabIndex={0} onClick={async () => {
           const n = myReqs.filter((r) => ACTIVE_ST.includes(r.status)).length;

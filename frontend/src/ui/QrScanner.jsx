@@ -4,14 +4,14 @@ import { Ic } from './bits.jsx';
 /*
  * 실제 QR 인식 + 6자리 번호 입력(항상 같이 보임).
  * 카메라(후면) 영상 → 브라우저 내장 BarcodeDetector, 없으면 jsQR 로 프레임을 읽는다.
- * QR 내용 형식: TS1|REQ|<요청 id>|<6자리 코드>
+ * QR 내용 형식: TS1|REQ|<요청 id>|<6자리 코드>(받는 분 화면, 30초마다 바뀜) 또는 TS1|ELD|<도움 대상 id>|<6자리 코드>(현관 QR 카드)
  * 인식되면 submit({code, method:'qr'}), 번호로 넣으면 submit({code, method:'code'}).
  * 영상은 화면에만 보이고 저장·전송하지 않는다.
  */
 export function qrText(kind, id, code) { return `TS1|${kind}|${id}|${code || ''}`; }
 
 export function parseQr(text) {
-  const m = /^TS1\|(REQ)\|(\d+)\|(\d{6})$/.exec(String(text || '').trim());
+  const m = /^TS1\|(REQ|ELD)\|(\d+)\|(\d{6})$/.exec(String(text || '').trim());
   return m ? { kind: m[1], id: Number(m[2]), code: m[3] } : null;
 }
 
@@ -23,7 +23,7 @@ const HINT = {
   nocam: '카메라를 찾을 수 없어요 · 아래 번호 6자리로 확인해요',
   error: '카메라를 켜지 못했어요 · 아래 번호 6자리로 확인해요',
   other: '다른 활동의 QR이에요. 맞는 QR을 찍어 주세요',
-  wrong: '번호가 맞지 않아요. 다시 찍어 주세요',
+  wrong: 'QR이 맞지 않아요. 지금 보이는 QR(30초마다 바뀜)이나 새 카드를 다시 찍어 주세요',
   sending: '확인하는 중…',
   ok: '확인됐어요',
 };
@@ -40,7 +40,7 @@ async function makeDetector() {
 }
 
 /**
- * props: kind('REQ'), id(대상 id), submit(body) → Promise(실패하면 throw), onDone(), codeLabel, foot(아래 작은 안내)
+ * props: kind('REQ' 요청 | 'ELD' 현관 카드), id(요청 id 또는 도움 대상 id), submit(body) → Promise(실패하면 throw), onDone(), codeLabel, foot(아래 작은 안내)
  */
 /** U9: QR을 처음 쓸 때 한 줄 설명(한 번 닫으면 다시 안 보임 · 브라우저에만 기억) */
 const QR_INTRO_KEY = 'ts-qr-intro-seen';
@@ -50,13 +50,13 @@ export function QrIntro() {
   return (
     <div className="qr-intro" role="note">
       <Ic n="qr" s={18} />
-      <span className="grow">QR은 <b>만났을 때와 끝날 때</b> 서로 확인하는 장치예요. 찍은 시간만큼 시간이 정확히 쌓여요.</span>
+      <span className="grow">QR은 <b>만났을 때와 끝날 때</b> 서로 확인하는 장치예요. 찍은 시각은 일지에 자동으로 들어가고, 시간은 미리 정한 <b>예정 시간 기준</b>으로 쌓여요.</span>
       <button type="button" onClick={() => { try { localStorage.setItem(QR_INTRO_KEY, '1'); } catch { /* 무시 */ } setShow(false); }}>알겠어요</button>
     </div>
   );
 }
 
-export default function QrScanner({ kind, id, submit, onDone, codeLabel = '번호 6자리', foot }) {
+export default function QrScanner({ kind, id, submit, onDone, codeLabel = '번호 6자리', foot, codeHint = 'QR이 안 찍히면 상대 화면의 번호 6자리를 넣어 주세요 (30초마다 바뀌어요)' }) {
   const [state, setState] = useState('starting');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -172,7 +172,7 @@ export default function QrScanner({ kind, id, submit, onDone, codeLabel = '번�
           onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} aria-label={`QR이 안 찍히면 ${codeLabel}`} />
         <button className="btn sm" style={{ width: 'auto', padding: '0 18px', flex: '0 0 auto' }} disabled={busy || code.length !== 6}>확인</button>
       </form>
-      <div className="mute2 center" style={{ marginTop: 6 }}>QR이 안 찍히면 상대 화면의 번호 6자리를 넣어 주세요{foot ? <><br />{foot}</> : null}</div>
+      <div className="mute2 center" style={{ marginTop: 6 }}>{codeHint}{foot ? <><br />{foot}</> : null}</div>
     </>
   );
 }

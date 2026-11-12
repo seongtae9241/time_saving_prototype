@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
 import { hmTxt, useMode } from '../ui/proto.jsx';
@@ -9,7 +9,7 @@ import { CATS, SHORT, W, LV, fmt, hh, dlabel, dshort, KIND_LABEL, lvName, lvWeig
 import { I } from '../ui/icons.js';
 import { useReport } from './common.jsx';
 import { FilterBox } from './ai.jsx';
-import QrScanner, { qrText, QrIntro } from '../ui/QrScanner.jsx';
+import QrScanner, { QrIntro } from '../ui/QrScanner.jsx';
 import { VoiceField, MicButton } from '../ui/VoiceInput.jsx';
 import { RegularButton } from '../ui/extras.jsx'; // U7 수동 단골(2026-11-09)
 import { CareMemo } from './insight.jsx';
@@ -41,18 +41,20 @@ function MgrRejectSheet({ r, onSubmit }) {
 }
 
 /* ---------- 공개 프로필 시트 (B-12, B-40, B-41) ---------- */
+/** 소개 카드·프로필의 얼굴 자리(B-12): 사진이 있으면 사진, 없으면 이름 첫 글자 */
+const Ph = ({ name, photo }) => (photo ? <img className="ph" src={photo} alt={`${name || ''} 님 사진`} style={{ objectFit: 'cover' }} /> : <div className="ph">{(name || '?')[0]}</div>);
+
 export function ProfileView({ p }) {
   if (!p) return <Loading />;
   return (
     <>
       <div className="row" style={{ gap: 14 }}>
-        <div className="intro" style={{ padding: 0, border: 0, background: 'none' }}><div className="ph">{(p.name || '?')[0]}</div></div>
+        <div className="intro" style={{ padding: 0, border: 0, background: 'none' }}><Ph name={p.name} photo={p.photoUrl} /></div>
         <div className="grow">
           <h2 style={{ margin: 0 }}>{p.name} <span className="mute2" style={{ fontWeight: 500, fontSize: 14 }}>{p.ageGroup}</span></h2>
           <div><Stars r={p.ratingAvg} /> <span className="mute2">· 활동 {p.ratingCount || 0}회</span></div>
           <div className="tags" style={{ marginTop: 6 }}>
             {p.crime && <span className="badge trust">✓ 범죄경력 확인</span>}
-            {p.eduDone && <span className="badge trust">✓ 교육 수료</span>}
             {(p.regularBadges || []).map((b, i) => <span key={i} className="badge">★ {typeof b === 'string' ? b : b.label || b.name} 단골</span>)}
           </div>
         </div>
@@ -65,7 +67,17 @@ export function ProfileView({ p }) {
 }
 function ProfileSheet({ id, onClose }) {
   const [p] = useLoad(() => api(`/users/${id}/profile`), [id]);
-  return <><ProfileView p={p} /><RegularButton volunteerId={id} style={{ marginTop: 14 }} /><button className="btn ghost" style={{ marginTop: 16 }} onClick={onClose}>닫기</button></>;
+  const { me } = useAuth();
+  const report = useReport();
+  return (
+    <>
+      <ProfileView p={p} />
+      <RegularButton volunteerId={id} style={{ marginTop: 14 }} />
+      <button className="btn ghost" style={{ marginTop: 16 }} onClick={onClose}>닫기</button>
+      {/* B-37: 활동 상대를 직접 신고 */}
+      {p && me && me.id !== p.id && <button className="au-demo" onClick={() => report({ targetType: 'USER', targetId: p.id, targetLabel: `활동 상대 · ${p.name} 님` })}>이 분 신고하기</button>}
+    </>
+  );
 }
 export function useProfileSheet() {
   const { sheet, closeSheet } = useUi();
@@ -213,47 +225,93 @@ function ScanSheet({ r, mode, onDone, onClose }) {
       <h2>{mode === 'in' ? '시작 QR 찍기' : '종료 QR 찍기'}</h2>
       <p className="muted" style={{ margin: 0 }}>{who}를 화면 네모 안에 맞춰 주세요.</p>
       <QrIntro />
-      <QrScanner kind="REQ" id={r.id} submit={submit} onDone={() => { onClose(); onDone(); }}
-        foot={r.elder ? '카드가 안 보이면 담당자에게 메시지로 알려 주세요' : '상대방이 휴대폰 화면 밝기를 높이면 잘 찍혀요'} />
+      <QrScanner kind={r.elder ? 'ELD' : 'REQ'} id={r.elder ? r.elder.id : r.id} submit={submit} onDone={() => { onClose(); onDone(); }}
+        codeHint={r.elder ? 'QR이 안 찍히면 카드에 적힌 번호 6자리를 넣어 주세요' : undefined}
+        foot={r.elder ? '카드가 안 보이거나 맞지 않으면 담당자에게 메시지로 알려 주세요' : '상대방이 휴대폰 화면 밝기를 높이면 잘 찍혀요'} />
       <button className="au-demo" disabled={busy} onClick={manual}>번호 없이 {mode === 'in' ? '시작' : '마치기'} (받는 분이 한 번 더 확인해요)</button>
       <button className="btn ghost" style={{ marginTop: 8 }} onClick={onClose}>닫기</button>
     </>
   );
 }
 
-/** 받는 쪽/담당자: 내 QR 보여주기 (체크 코드를 담은 QR) */
-function ShowQrSheet({ r, title, sub, onClose, onRefresh }) {
-  const [left, setLeft] = useState(30);
+/** 받는 쪽: 내 QR 보여주기 (B-51). QR·번호는 30초마다 바뀌어 서버에서 다시 받아 온다. 봉사자가 찍으면 저절로 닫힌다. */
+function ShowQrSheet({ r, title, sub, onClose }) {
+  const [q, setQ] = useState({ code: r.checkCode, qrText: r.qrText });
+  const [left, setLeft] = useState(r.qrLeftSec || 30);
+  const st0 = useRef(r.status);
+  const alive = useRef(true);
+  const load = useCallback(async () => {
+    try {
+      const x = await api(`/requests/${r.id}/qr`, { quiet: true });
+      if (!alive.current) return;
+      if (x.status !== st0.current) { onClose(true); return; }
+      setQ(x); setLeft(x.leftSec || 30);
+    } catch { /* 다음 차례에 다시 받는다 */ }
+  }, [r.id]); // eslint-disable-line
   useEffect(() => {
-    const t = setInterval(() => setLeft((x) => { if (x <= 1) { onRefresh && onRefresh(); return 30; } return x - 1; }), 1000);
-    return () => clearInterval(t);
-  }, []); // eslint-disable-line
+    alive.current = true;
+    load();
+    const t = setInterval(() => setLeft((x) => x - 1), 1000);
+    const p = setInterval(load, 5000);
+    return () => { alive.current = false; clearInterval(t); clearInterval(p); };
+  }, [load]);
+  useEffect(() => { if (left <= 0) load(); }, [left, load]);
   return (
     <>
       <h2>{title}</h2>
       <p className="muted" style={{ margin: 0 }}>{sub}</p>
       <div className="qr-show">
-        <div className="qr-box"><QrSvg text={r.qrText || qrText('REQ', r.id, r.checkCode)} size="min(220px,62vw)" /></div>
-        <div className="b" style={{ fontSize: 30, letterSpacing: 6 }}>{r.checkCode || '------'}</div>
-        <div className="qr-timer"><i style={{ width: `${(left / 30) * 100}%` }} /></div>
-        <div className="mute2">QR이 안 찍히면 위 번호 6자리를 불러 주세요</div>
+        <div className="qr-box">{q.qrText ? <QrSvg text={q.qrText} size="min(220px,62vw)" /> : <Loading />}</div>
+        <div className="b" style={{ fontSize: 30, letterSpacing: 6 }}>{q.code || '------'}</div>
+        <div className="qr-timer"><i style={{ width: `${(Math.max(0, left) / 30) * 100}%` }} /></div>
+        <div className="mute2 center">QR과 번호는 30초마다 새로 바뀌어요 · {Math.max(0, left)}초 남음<br />QR이 안 찍히면 위 번호 6자리를 불러 주세요</div>
       </div>
-      <button className="btn ghost" style={{ marginTop: 8 }} onClick={onClose}>닫기</button>
+      <button className="btn ghost" style={{ marginTop: 8 }} onClick={() => onClose(false)}>닫기</button>
     </>
   );
 }
 
-function SosSheet({ onClose, notify }) {
+/** 담당자: 도움 대상 현관 QR 카드 보기·인쇄·다시 발급 (C-11). 카드는 대상마다 하나이고 모든 활동에 같이 쓴다. */
+export function DoorCardSheet({ elderId, name, onClose, manage }) {
+  const { toast } = useUi();
+  const [c, reload] = useLoad(() => api(`/org/elders/${elderId}/qr-card`), [elderId]);
+  const [ask, setAsk] = useState(false);
+  const [busy, run] = useBusy();
+  return (
+    <>
+      <h2>현관 QR 카드</h2>
+      <p className="muted" style={{ margin: 0 }}>{name} 댁 현관 안쪽에 붙여 두는 카드예요. 봉사자가 도착할 때 한 번, 끝날 때 한 번 찍어요.</p>
+      {c === undefined ? <Loading /> : !c ? <Empty>카드를 불러오지 못했어요</Empty> : (
+        <>
+          <div className="qr-card"><div className="b" style={{ fontSize: 15 }}>시간 적금 · 활동 확인 카드</div><div className="qr-box" style={{ margin: '10px auto' }}><QrSvg text={c.qrText} size={160} /></div><div className="b" style={{ fontSize: 22, letterSpacing: 4 }}>{c.code}</div><div className="mute2">봉사자: 시작할 때 한 번, 끝날 때 한 번 찍어 주세요</div></div>
+          <div className="notice" style={{ marginTop: 10 }}>카드에는 주소·이름이 들어 있지 않아요. 이 대상의 모든 활동에서 같은 카드를 써요.{c.issuedAt ? ` (${dshort(c.issuedAt).split(' ')[0]} 발급)` : ''}</div>
+          {ask && <div className="alert warn"><Ic n="clock" s={20} /><div><b>카드를 다시 발급할까요?</b>지금 붙어 있는 카드는 바로 쓸 수 없게 돼요. 새 카드를 인쇄해 바꿔 붙여 주세요.{c.activeCount > 0 ? ` 진행 중인 일정 ${c.activeCount}건도 새 카드로 찍어야 해요.` : ''}</div></div>}
+          <div className="btns" style={{ marginTop: 12 }}>
+            <button className="btn ghost" onClick={ask ? () => setAsk(false) : onClose}>{ask ? '취소' : '닫기'}</button>
+            {ask
+              ? <button className="btn warn" disabled={busy} onClick={() => run(async () => { await post(`/org/elders/${elderId}/qr-card/reissue`); await reload(); setAsk(false); toast('새 카드를 발급했어요. 이전 카드는 쓸 수 없어요'); })}>다시 발급</button>
+              : <button className="btn" onClick={() => window.print()}>인쇄하기</button>}
+          </div>
+          {manage && !ask && <button className="au-demo" onClick={() => setAsk(true)}>카드를 잃어버렸거나 훼손됐나요? 다시 발급하기</button>}
+        </>
+      )}
+    </>
+  );
+}
+
+/** 긴급 시트 (B-36, 프로토타입 2026-11-12 sos): 응급은 사이트에서 처리하지 않고 119·112 전화로 직접 신고한다. */
+function SosSheet({ onClose, elder, onReport }) {
   return (
     <>
       <h2 style={{ color: '#E5484D' }}>긴급 상황인가요?</h2>
-      <p className="muted">받는 분이 쓰러졌거나 다쳤다면 바로 119에 전화해 주세요.</p>
+      <p className="muted">다쳤거나 위험하면 먼저 119·112에 전화해 주세요.</p>
       <div className="stack">
-        <a className="btn warn big-cta" href="tel:119"><Ic n="phone" s={20} /> 119 전화</a>
-        <button className="btn" onClick={notify}>담당자·운영자에게 긴급 알림 보내기</button>
+        <a className="btn warn big-cta" href="tel:119">📞 119 전화</a>
+        <a className="btn warn" href="tel:112">📞 112 전화</a>
+        <button className="btn" onClick={onReport}>운영자에게 신고 접수하기</button>
         <button className="btn ghost" onClick={onClose}>닫기</button>
       </div>
-      <div className="mute2" style={{ marginTop: 10 }}>긴급 알림은 이 활동의 메시지와 신고로 담당자와 운영자에게 가요.</div>
+      <div className="mute2" style={{ marginTop: 10 }}>신고는 운영자가 확인하고 처리해요. 급한 일은 119·112가 먼저예요.{elder ? ' 식사를 거르셨거나 몸 상태가 평소와 다르면 "이상 징후(안부 확인)"로 접수해 주세요. 담당자에게도 알림이 가요.' : ''}</div>
     </>
   );
 }
@@ -374,24 +432,19 @@ export function RequestDetail() {
   const ro = st === 'DONE' || !can(r, 'message', true);
   const msgs = r.messages || [];
   const scan = (mode) => sheet(() => <ScanSheet r={r} mode={mode} onClose={closeSheet} onDone={() => done(mode === 'in' ? '시작을 기록했어요. 받는 분에게 알렸어요' : '기록 완료! 일지를 써 주세요')} />);
-  const showQr = (k) => sheet(() => <ShowQrSheet r={r} title={k === 0 ? '시작 QR' : '종료 QR'} sub={`${v.name || '봉사자'} 님에게 이 화면을 보여 주세요.`} onClose={() => { closeSheet(); reload(); }} />);
-  const qrCard = () => sheet(() => (
-    <>
-      <h2>현관 QR 카드</h2>
-      <p className="muted" style={{ margin: 0 }}>{toName} 댁 현관 안쪽에 붙여 두는 카드예요. 봉사자가 도착·종료할 때 찍어요.</p>
-      <div className="qr-card"><div className="b" style={{ fontSize: 15 }}>시간 적금 · 활동 확인 카드</div><div className="qr-box" style={{ margin: '10px auto' }}><QrSvg text={r.qrText || qrText('REQ', r.id, r.checkCode)} size={160} /></div><div className="b" style={{ fontSize: 22, letterSpacing: 4 }}>{r.checkCode}</div><div className="mute2">봉사자: 시작할 때 한 번, 끝날 때 한 번 찍어 주세요</div></div>
-      <div className="notice" style={{ marginTop: 10 }}>카드에는 주소·이름이 들어 있지 않아요. 이 활동에서만 쓰는 번호예요.</div>
-      <div className="btns" style={{ marginTop: 12 }}><button className="btn ghost" onClick={closeSheet}>닫기</button><button className="btn" onClick={() => window.print()}>인쇄하기</button></div>
-    </>
-  ));
-  const sos = () => sheet(() => <SosSheet onClose={closeSheet} notify={async () => {
-    closeSheet();
-    try {
-      await post(`/requests/${r.id}/messages`, { text: '[긴급] 활동 중 긴급 상황이 생겼어요. 바로 확인해 주세요.' }, { quiet: true });
-      await post('/reports', { targetType: 'REQUEST', targetId: r.id, targetLabel: `긴급 · ${r.content}`, type: '긴급 상황', content: '활동 중 긴급 알림' }, { quiet: true });
-      toast('담당자와 운영자에게 긴급 알림을 보냈어요'); reload();
-    } catch { toast('긴급 알림을 보내지 못했어요. 119에 먼저 전화해 주세요'); }
-  }} />);
+  const showQr = (k) => sheet(() => <ShowQrSheet r={r} title={k === 0 ? '시작 QR' : '종료 QR'} sub={`${v.name || '봉사자'} 님에게 이 화면을 보여 주세요.`} onClose={(scanned) => { closeSheet(); reload(); if (scanned) toast(k === 0 ? `${v.name || '봉사자'} 님이 시작을 기록했어요` : '종료를 기록했어요'); }} />);
+  const qrCard = () => sheet(() => <DoorCardSheet elderId={r.elder.id} name={toName} onClose={closeSheet} />);
+  // B-36: 독거노인 활동의 봉사자·담당자는 이상 징후(안부 확인)를 접수할 수 있다
+  const canWelfare = !!r.elder && (iVol || mgr);
+  const reqTarget = { targetType: 'REQUEST', targetId: r.id, targetLabel: `${KIND_LABEL[r.kind] || '요청'} · ${r.content}` };
+  const welfare = () => report({ ...reqTarget, welfare: true, welfareFirst: true });
+  const sos = () => sheet(() => <SosSheet onClose={closeSheet} elder={canWelfare} onReport={() => report({ ...reqTarget, welfare: canWelfare, welfareFirst: canWelfare })} />);
+  // B-52: 늦는다고 알리기 (요청 메시지로 상대에게 알림이 간다)
+  const tellLate = () => run(async () => { await post(`/requests/${r.id}/messages`, { text: '조금 늦어요. 곧 도착할게요. 죄송해요!' }); await done('늦는다고 알렸어요'); });
+  const lateBtn = <button className="btn soft sm" style={{ marginTop: 8 }} disabled={busy} onClick={tellLate}><Ic n="msg" s={16} /> 늦는다고 알리기</button>;
+  const gap = r.gapMinutes != null && Math.abs(r.gapMinutes) >= 30
+    ? <div className="notice" style={{ marginTop: 8 }}>기록된 시간이 예정({r.hours}시간)보다 {Math.abs(r.gapMinutes)}분 {r.gapMinutes > 0 ? '길어요' : '짧아요'}. 적립은 예정 시간 기준이에요. {iVol ? '실제와 다르면 시간 조정을 요청할 수 있어요.' : '봉사자가 시간 조정을 요청하면 확인해 주세요.'}</div> : null;
+  const closedNote = r.autoClosed ? '종료 QR 기록이 없어 예정 종료 시각으로 자동 마감됐어요' : null;
 
   const k = st === 'IN_PROGRESS' ? 1 : st === 'CHECKED_OUT' ? 2 : 0;
   const checkInfo = r.checkInAt ? <>{tm(r.checkInAt)} 시작 <span className="qr-by">{checkByText(r.checkMethod)}</span></> : null;
@@ -433,12 +486,13 @@ export function RequestDetail() {
   } else if (['CONFIRMED', 'IN_PROGRESS', 'CHECKED_OUT'].includes(st) && iVol) {
     const end = Math.round(Number(r.hours) * 60);
     const to = r.elder ? '담당자' : `${toName} 님`;
-    const warn = k === 0 && late >= NS_MISS ? alertBox('bad', `시작 체크 없이 ${late}분이 지났어요`, `${to}에게 알림이 갈 수 있어요. 지금 도착했다면 시작 QR을 찍어 주세요. 지각으로 기록돼요.`)
-      : k === 0 && late >= NS_LATE ? <>{alertBox('warn', `약속 시간이 ${late}분 지났어요`, `늦어지면 미리 알려 주세요. ${NS_MISS}분이 지나도 시작 체크가 없으면 ${to}에게 알려요.`)}<button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => run(async () => { await post(`/requests/${r.id}/messages`, { text: '조금 늦어요. 곧 도착할게요. 죄송해요!' }); await done('늦는다고 알렸어요'); })}><Ic n="msg" s={16} /> 늦는다고 알리기</button></>
-        : k === 1 && late >= end ? alertBox('warn', `예정 종료 시각(${hh(Number(r.startHour) + Number(r.hours))})이 지났어요`, '끝났다면 종료 QR을 찍어 주세요.') : null;
+    const warn = k === 0 && late >= NS_MISS ? <>{alertBox('bad', `시작 기록 없이 ${late}분이 지났어요 (노쇼 의심)`, `${to}에게 노쇼 의심 알림이 갔어요. 지금 도착했다면 시작 QR을 찍어 주세요. 노쇼로 신고되면 패널티가 기록돼요.`)}{lateBtn}</>
+      : k === 0 && late >= NS_LATE ? <>{alertBox('warn', `약속 시간이 ${late}분 지났어요`, `${to}에게 지각 알림이 갔어요. ${NS_MISS}분이 지나도 시작 기록이 없으면 노쇼 의심으로 다시 알려요.`)}{lateBtn}</>
+      : k === 0 && late >= -60 ? lateBtn
+      : k === 1 && late >= end ? alertBox('warn', `예정 종료 시각(${hh(Number(r.startHour) + Number(r.hours))})이 지났어요`, '끝났다면 종료 QR을 찍어 주세요. 30분이 지나도 기록이 없으면 예정 종료 시각으로 자동 마감돼요.') : null;
     if (k === 0) action = <><BriefingCard id={r.id} />{warn}<QrStepsBar k={0} /><button className="btn big-cta" style={{ marginTop: 12 }} onClick={() => scan('in')}><Ic n="qr" s={22} /> 시작 QR 찍기</button><div className="mute2 center" style={{ marginTop: 8 }}>도착하면 {r.elder ? `${toName} 댁 현관의 QR 카드` : `${toName} 님 휴대폰의 QR`}를 찍어 주세요</div>{can(r, 'cancel', true) && <><button className="btn ghost sm" style={{ marginTop: 10 }} disabled={busy} onClick={() => reject('cancel', '일정 취소 사유', '취소했어요')}>일정 취소</button><div className="mute2 center" style={{ marginTop: 6 }}>일정 취소는 시작 24시간 전까지 무료예요. 그 뒤엔 경고가 쌓여요</div></>}</>;
     else if (k === 1) action = <>{warn}<QrStepsBar k={1} /><div className="chk on"><span className="dotp" /><div className="grow"><b>활동 중</b> · {checkInfo}<div className="mute2">예정 종료 {hh(Number(r.startHour) + Number(r.hours))} · 끝나면 QR을 한 번 더 찍어 주세요</div></div></div><div className="btns" style={{ marginTop: 10 }}><button className="btn warn" onClick={sos}><Ic n="bell" s={18} /> 긴급</button><button className="btn" onClick={() => scan('out')}><Ic n="qr" s={18} /> 종료 QR 찍기</button></div></>;
-    else action = <><QrStepsBar k={2} /><div className="chk"><span className="dotp" style={{ background: '#1F9D63', animation: 'none', boxShadow: 'none' }} /><div className="grow"><b>활동 끝</b> · {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))})<div className="mute2">{r.checkMethod === 'manual' ? '번호가 아닌 방법으로 기록돼 받는 분이 시간을 한 번 더 확인해요' : '기록된 시간이 일지에 자동으로 들어가요'}</div></div></div><button className="btn big-cta" style={{ marginTop: 10 }} onClick={() => nav(`/req/${r.id}/log`)}>활동 일지 쓰기</button></>;
+    else action = <><QrStepsBar k={2} /><div className="chk"><span className="dotp" style={{ background: '#1F9D63', animation: 'none', boxShadow: 'none' }} /><div className="grow"><b>활동 끝</b> · {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))})<div className="mute2">{closedNote || (r.checkMethod === 'manual' ? '번호가 아닌 방법으로 기록돼 받는 분이 시간을 한 번 더 확인해요' : '기록된 시간이 일지에 자동으로 들어가요')}</div></div></div>{gap}<button className="btn big-cta" style={{ marginTop: 10 }} onClick={() => nav(`/req/${r.id}/log`)}>활동 일지 쓰기</button></>;
   } else if (['CONFIRMED', 'IN_PROGRESS', 'CHECKED_OUT'].includes(st) && recv) {
     const noShow = k === 0 && late >= NS_MISS;
     const qrBtn = mgr
@@ -451,19 +505,20 @@ export function RequestDetail() {
         await done('취소했어요. 보류된 시간이 돌아왔어요');
       });
     }}>노쇼 신고·취소</button></div></>;
-    else if (k === 0) action = <>{late >= NS_LATE && alertBox('warn', `약속 시간이 ${late}분 지났어요`, `${v.name} 님이 아직 시작 QR을 찍지 않았어요. ${NS_MISS}분이 지나면 다시 알려 드려요.`)}<div className="card" style={{ marginTop: 16 }}><div className="row" style={{ gap: 12 }}><span className="qr-ic"><Ic n="qr" s={22} /></span><div className="grow"><div className="b">{v.name} 님이 도착하면 {mgr ? '현관 QR 카드를 찍어요' : '내 QR을 보여 주세요'}</div><div className="mute2">QR(또는 번호 {r.checkCode || '6자리'})을 찍어야 활동 시간이 기록돼요. 끝날 때도 한 번 더 찍어요</div></div></div></div>{qrBtn}{mgr && <button className="btn big-cta" style={{ marginTop: 12 }} onClick={() => run(async () => { await post(`/requests/${r.id}/messages`, { text: '방문 장소는 따로 안내드린 주소예요. 도착하시면 현관 안쪽 QR 카드를 찍어 주세요.' }); await done('방문 장소 안내를 보냈어요'); })}>방문 장소 안내 보내기</button>}{can(r, 'cancel', true) && <button className="btn ghost sm" style={{ marginTop: 10 }} disabled={busy} onClick={() => reject('cancel', '일정 취소 사유', '취소했어요')}>일정 취소</button>}</>;
+    else if (k === 0) action = <>{late >= NS_LATE && alertBox('warn', `약속 시간이 ${late}분 지났어요`, `${v.name} 님이 아직 시작 QR을 찍지 않았어요. ${NS_MISS}분이 지나면 다시 알려 드려요.`)}<div className="card" style={{ marginTop: 16 }}><div className="row" style={{ gap: 12 }}><span className="qr-ic"><Ic n="qr" s={22} /></span><div className="grow"><div className="b">{v.name} 님이 도착하면 {mgr ? '현관 QR 카드를 찍어요' : '내 QR을 보여 주세요'}</div><div className="mute2">{mgr ? '현관 카드의 QR(또는 카드 번호 6자리)' : 'QR(또는 화면의 번호 6자리 · 30초마다 바뀜)'}을 찍어야 시작·종료 시각이 기록돼요. 끝날 때도 한 번 더 찍어요</div></div></div></div>{qrBtn}{mgr && <button className="btn big-cta" style={{ marginTop: 12 }} onClick={() => run(async () => { await post(`/requests/${r.id}/messages`, { text: '방문 장소는 따로 안내드린 주소예요. 도착하시면 현관 안쪽 QR 카드를 찍어 주세요.' }); await done('방문 장소 안내를 보냈어요'); })}>방문 장소 안내 보내기</button>}{can(r, 'cancel', true) && <button className="btn ghost sm" style={{ marginTop: 10 }} disabled={busy} onClick={() => reject('cancel', '일정 취소 사유', '취소했어요')}>일정 취소</button>}</>;
     else if (k === 1) action = <><div className="chk on" style={{ marginTop: 16 }}><span className="dotp" /><div className="grow"><b>{v.name} 님 도착</b> · {checkInfo}<div className="mute2">끝나면 종료 QR을 {mgr ? '찍어요' : '보여 주세요'} · 예정 종료 {hh(Number(r.startHour) + Number(r.hours))}</div></div></div><div className="btns" style={{ marginTop: 10 }}><button className="btn warn" onClick={sos}><Ic n="bell" s={18} /> 긴급</button>{mgr ? <button className="btn" onClick={qrCard}><Ic n="qr" s={18} /> 현관 QR 카드</button> : <button className="btn" onClick={() => showQr(1)}><Ic n="qr" s={18} /> 내 QR 보여주기 (종료)</button>}</div></>;
-    else action = <div className="chk" style={{ marginTop: 16 }}><span className="dotp" style={{ background: '#1F9D63', animation: 'none', boxShadow: 'none' }} /><div className="grow"><b>활동 끝</b> · {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))})<div className="mute2">{v.name} 님이 일지를 올리면 확인해 주세요. 확인하면 시간이 정산돼요</div></div></div>;
+    else action = <><div className="chk" style={{ marginTop: 16 }}><span className="dotp" style={{ background: '#1F9D63', animation: 'none', boxShadow: 'none' }} /><div className="grow"><b>활동 끝</b> · {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))})<div className="mute2">{closedNote ? `${closedNote}. ` : ''}{v.name} 님이 일지를 올리면 확인해 주세요. 확인하면 시간이 정산돼요</div></div></div>{gap}</>;
   } else if (st === 'LOG_SUBMITTED' && recv) {
     const adj = r.adjust && r.adjust.status === 'PENDING';
     action = (
       <>
         <div className="ai" style={{ marginTop: 16 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div>{r.logPhotoUrl && <img src={r.logPhotoUrl} alt="활동 사진" style={{ width: '100%', borderRadius: 12, marginTop: 10 }} />}</div>
         <CareMemo text={r.careMemo} style={{ marginTop: 10 }} />
-        {r.checkInAt && <div className="mute2" style={{ marginTop: 6 }}>체크 기록 {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))}){r.checkMethod === 'manual' ? ' · 버튼으로 기록돼 시간을 한 번 더 확인해 주세요' : ''}</div>}
+        {r.checkInAt && <div className="mute2" style={{ marginTop: 6 }}>체크 기록 {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))}){r.checkMethod === 'manual' ? ' · 버튼으로 기록돼 시간을 한 번 더 확인해 주세요' : ''}{closedNote ? ` · ${closedNote}` : ''}</div>}
+        {gap}
         {adj && <div className="card" style={{ marginTop: 10 }}><div className="b">시간 조정 요청</div><div className="mute2">{v.name} 님이 실제 시간을 {r.adjust.hours}시간으로 바꿔 달라고 했어요 (예정 {r.hours}시간).</div><JudgeAssist kind="ADJUST" id={r.id} /><div className="btns" style={{ marginTop: 10 }}><button className="btn ghost sm" onClick={() => act('adjust/answer', { accept: false }, '시간 조정을 거절했어요')}>거절</button><button className="btn sm" onClick={() => act('adjust/answer', { accept: true }, '시간 조정을 반영했어요')}>반영하기</button></div></div>}
         <div className="sum" style={{ marginTop: 10 }}>
-          <div className="between"><span className="muted">예정 시간</span><b>{r.hours}시간</b></div>
+          <div className="between"><span className="muted">예정 시간 (정산 기준)</span><b>{r.hours}시간</b></div>
           <div className="between"><span className="muted">{mgr || r.elder ? `${toName} 차감` : '내 통장에서 차감'}</span><b className="cr minus">{mgr || r.elder ? '없음 (기관 대상)' : `−${fmt(Number(r.hours) * lvWeight(r.difficulty, r.weight))}시간`}</b></div>
           <div className="between"><span className="muted">{v.name} 님 적립</span><b className="cr plus">+{fmt(r.estEarn)}시간</b></div>
         </div>
@@ -514,7 +569,7 @@ export function RequestDetail() {
       {showIntro && v.name && (
         <div className="intro" style={{ marginTop: 14 }}>
           <div className="mute2" style={{ marginBottom: 10 }}>{st === 'VOL_ACCEPTED' ? `${v.name} 님이 수락했어요 · 소개 카드` : '봉사자'}</div>
-          <div className="row" style={{ gap: 14 }}><div className="ph">{v.name[0]}</div><div className="grow"><div className="b" style={{ fontSize: 18 }}>{v.name} <span className="mute2" style={{ fontWeight: 500 }}>{v.ageGroup}</span></div><div><Stars r={v.ratingAvg} /> <span className="mute2">· 활동 {v.ratingCount || 0}회</span></div><div className="tags" style={{ marginTop: 6 }}>{v.crime && <span className="badge trust">✓ 범죄경력 확인</span>}{v.eduDone && <span className="badge trust">✓ 교육 수료</span>}{v.isRegular && <span className="badge">★ {mgr ? `${toName} 단골` : '내 단골'}</span>}</div></div></div>
+          <div className="row" style={{ gap: 14 }}><Ph name={v.name} photo={v.photoUrl} /><div className="grow"><div className="b" style={{ fontSize: 18 }}>{v.name} <span className="mute2" style={{ fontWeight: 500 }}>{v.ageGroup}</span></div><div><Stars r={v.ratingAvg} /> <span className="mute2">· 활동 {v.ratingCount || 0}회</span></div><div className="tags" style={{ marginTop: 6 }}>{v.crime && <span className="badge trust">✓ 범죄경력 확인</span>}{v.isRegular && <span className="badge">★ {mgr ? `${toName} 단골` : '내 단골'}</span>}</div></div></div>
           {!iVol && <MatchWhy text={v.matchReason} style={{ marginTop: 12 }} />}
           {v.intro && <div className="small" style={{ marginTop: 12 }}>“{v.intro}”</div>}
           {v.experience && <div className="mute2" style={{ marginTop: 6 }}>{v.experience}</div>}
@@ -525,7 +580,7 @@ export function RequestDetail() {
       {!r.elder && !showIntro && !mgr && (() => {
         const o = iVol ? r.recipient : r.volunteer;
         if (!o) return null;
-        return <div className="card item click" style={{ marginTop: 14 }} role="button" tabIndex={0} onClick={() => profile(o.id)}><Avatar name={o.name} /><div className="grow"><div className="b">{o.name} {!iVol && v.isRegular && <span className="badge">★ 단골</span>}</div><div className="mute2">{iVol ? '도움 받는 분' : '봉사하는 분'}{!iVol && <> · <Stars r={v.ratingAvg} /></>}</div>{!iVol && <MatchWhy text={v.matchReason} style={{ marginTop: 6 }} />}</div>›</div>;
+        return <div className="card item click" style={{ marginTop: 14 }} role="button" tabIndex={0} onClick={() => profile(o.id)}><Avatar name={o.name} photo={o.photoUrl} /><div className="grow"><div className="b">{o.name} {!iVol && v.isRegular && <span className="badge">★ 단골</span>}</div><div className="mute2">{iVol ? '도움 받는 분' : '봉사하는 분'}{!iVol && <> · <Stars r={v.ratingAvg} /></>}</div>{!iVol && <MatchWhy text={v.matchReason} style={{ marginTop: 6 }} />}</div>›</div>;
       })()}
       <div className="card" style={{ marginTop: 10 }}>
         <div className="row" style={{ gap: 12 }}><CatIc k={r.category} size={44} /><div className="grow"><div className="b" style={{ fontSize: 16.5 }}>{r.content}</div><div className="mute2">{mgr ? `${toName} · ${r.elder ? r.elder.dong : ''}` : `${r.category} · ${diffText(r)}`}</div></div></div>
@@ -539,8 +594,12 @@ export function RequestDetail() {
         </dl>
       </div>
       {action}
+      {/* B-35 방문 중 안전: 사용자·담당자 모두에게 일정 확정부터 활동이 끝날 때까지 보인다 */}
+      {['CONFIRMED', 'IN_PROGRESS'].includes(st) && (
+        <div className="lock" style={{ marginTop: 12 }} role="note"><Ic n="shield" s={18} /><div><b>방문 중 안전 규칙</b><div style={{ marginTop: 4 }}>· 신체 접촉은 하지 않아요 (부축이 꼭 필요하면 먼저 여쭤보고 최소한으로)<br />· 방문 시간 외의 개인 연락, 연락처 교환·금전 요구는 금지예요<br />· 불편한 일이 있으면 아래 "신고하기"로 알려 주세요. 응급 상황은 119·112로 바로 전화해요</div></div></div>
+      )}
       {r.logText && !(st === 'LOG_SUBMITTED' && recv) && (
-        <div className="ai" style={{ marginTop: 14 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div></div>
+        <div className="ai" style={{ marginTop: 14 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div>{r.checkInAt && r.checkOutAt && <div className="mute2" style={{ marginTop: 6 }}>기록된 시각 {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))}){r.autoClosed ? ' · 종료는 예정 시각으로 자동 마감' : ''}</div>}</div>
       )}
       {!(st === 'LOG_SUBMITTED' && recv) && <CareMemo text={r.careMemo} style={{ marginTop: 10 }} />}
       {r.careMemo && <div className="mute2" style={{ marginTop: 6 }}>전달 메모는 쓴 봉사자·{r.elder ? '담당자' : '받는 분과 공유에 동의한 가족'}만 볼 수 있어요.</div>}
@@ -583,7 +642,13 @@ export function RequestDetail() {
           )}
         </>
       )}
-      <button className="au-demo" onClick={() => report({ targetType: 'REQUEST', targetId: r.id, targetLabel: `${KIND_LABEL[r.kind] || '요청'} · ${r.content}` })}>신고하기</button>
+      {canWelfare && ['CONFIRMED', 'IN_PROGRESS', 'CHECKED_OUT', 'LOG_SUBMITTED', 'DONE'].includes(st) && <button className="btn soft sm" style={{ marginTop: 14 }} onClick={welfare}><Ic n="bell" s={16} /> 이상 징후(안부 확인) 알리기</button>}
+      <button className="au-demo" onClick={() => report({ ...reqTarget, welfare: canWelfare })}>신고하기</button>
+      {(() => {
+        // B-37: 활동 상대를 대상으로 신고 (독거노인은 계정이 없어 대상이 아니다)
+        const o = iVol ? r.recipient : r.volunteer;
+        return o && o.id && role ? <button className="au-demo" onClick={() => report({ targetType: 'USER', targetId: o.id, targetLabel: `활동 상대 · ${o.name} 님` })}>활동 상대({o.name} 님) 신고하기</button> : null;
+      })()}
     </Screen>
   );
 }
@@ -630,9 +695,10 @@ export function LogWrite() {
         )}
       </div>
       <div className="sum" style={{ marginTop: 14 }}>
-        <div className="between"><span className="muted">활동 시간 (미리 정한 시간)</span><b>{r.hours}시간</b></div>
-        {mins != null && <div className="between"><span className="muted">체크 기록 {tm(r.checkInAt)}~{tm(r.checkOutAt)}</span><b>{durTxt(mins)}</b></div>}
-        {mins != null && Math.abs(mins - r.hours * 60) >= 30 && <div className="notice" style={{ marginTop: 6 }}>기록된 시간이 예정보다 {mins > r.hours * 60 ? '길어요' : '짧아요'}. 제출 후 시간 조정을 요청할 수 있어요.</div>}
+        <div className="between"><span className="muted">활동 시간 (미리 정한 예정 시간 · 적립 기준)</span><b>{r.hours}시간</b></div>
+        {mins != null && <div className="between"><span className="muted">기록된 시각 {tm(r.checkInAt)}~{tm(r.checkOutAt)} (자동 입력)</span><b>{durTxt(mins)}</b></div>}
+        {r.autoClosed && <div className="mute2" style={{ marginTop: 4 }}>종료 QR 기록이 없어 예정 종료 시각으로 자동 마감됐어요.</div>}
+        {mins != null && Math.abs(mins - r.hours * 60) >= 30 && <div className="notice" style={{ marginTop: 6 }}>기록된 시간이 예정보다 {mins > r.hours * 60 ? '길어요' : '짧아요'}. 적립은 예정 시간 기준이에요. 제출 후 시간 조정을 요청할 수 있어요.</div>}
         <div className="between"><span className="muted">예상 적립</span><b className="cr plus">+{fmt(r.estEarn)}시간</b></div>
       </div>
       <button className="btn big-cta" style={{ marginTop: 14 }} disabled={busy} onClick={() => run(async () => {
