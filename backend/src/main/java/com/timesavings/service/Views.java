@@ -174,6 +174,17 @@ public class Views {
         return brief;
     }
 
+    /** 기능 O-04: 봉사자가 특이사항을 볼 수 있는 요청 상태 — 일정이 확정된 뒤(확정·진행·일지·완료). 확정 전(요청·수락 대기)과 거절·취소된 건은 볼 수 없다. */
+    public static boolean issueVisible(ReqStatus s) { return s != null && (s.active() || s == ReqStatus.DONE); }
+
+    /** 기능 O-04: 볼 수 없는 사람에게는 특이사항(caution·baseCaution)을 빼고 cautionLocked=true 만 준다. */
+    private static Map<String, Object> lockIssue(Map<String, Object> brief, boolean open) {
+        if (brief == null) return null;
+        if (!open) { brief.put("caution", null); brief.remove("baseCaution"); }
+        brief.put("cautionLocked", !open);
+        return brief;
+    }
+
     public Map<String, Object> elderBrief(Elder e, boolean manager) {
         if (e == null) return null;
         // B-13: 봉사자에게는 별칭(가림)·동·주의사항까지만. 나이대와 별칭 원문은 담당자에게만.
@@ -205,11 +216,15 @@ public class Views {
         boolean manager = elder != null && viewer != null && viewer.id.equals(elder.managerId);
         double w = p.weight != null ? p.weight : Rules.weight(p.difficulty != null ? p.difficulty : Rules.maxLevel(p.categories));
         Double estEarn = p.type == PostType.NEED && p.estHours != null ? Rules.earn(p.estHours, w) : null;
+        // 기능 O-04: 관리 대상 특이사항(이슈 메모·방문 주의사항)은 담당자와 일정이 확정된 봉사자에게만 준다
+        boolean issueOpen = manager || (elder != null && viewer != null && requests.findByPostId(p.id).stream()
+                .anyMatch(r -> viewer.id.equals(r.volunteerId) && issueVisible(r.status)));
         Map<String, Object> m = map("id", p.id, "type", p.type, "ownerId", p.ownerId,
                 "ownerName", owner != null ? owner.name : (elder != null ? (manager ? elder.alias + " 님" : Rules.maskAlias(elder.alias)) : null),
                 "elderId", p.elderId, "elderDisplayName", elder == null ? null : (manager ? elder.alias + " 님" : Rules.maskAlias(elder.alias)),
-                "elderCaution", elder == null ? null : (p.issueNote != null && !p.issueNote.isBlank() ? p.issueNote : elder.caution),
-                "elderIssue", elder == null ? null : p.issueNote,
+                "elderCaution", elder == null || !issueOpen ? null : (p.issueNote != null && !p.issueNote.isBlank() ? p.issueNote : elder.caution),
+                "elderIssue", elder == null || !issueOpen ? null : p.issueNote,
+                "elderIssueLocked", elder != null && !issueOpen,
                 "date", p.date.toString(), "startHour", p.startHour, "endHour", p.endHour, "area", p.area,
                 "categories", p.categories, "title", p.title, "detail", p.detail, "note", p.note,
                 "estHours", p.estHours, "difficulty", p.difficulty, "difficultyReason", p.difficultyReason, "weight", w, "estEarn", estEarn,
@@ -313,7 +328,8 @@ public class Views {
                 "rejectReason", r.rejectReason,
                 "volunteer", vc,
                 "recipient", rec == null ? null : userBrief(rec),
-                "elder", withIssue(elderBrief(elder, manager), elder != null && post != null && post.elderId != null ? post.issueNote : null),
+                "elder", lockIssue(withIssue(elderBrief(elder, manager), elder != null && post != null && post.elderId != null ? post.issueNote : null),
+                        manager || ("VOLUNTEER".equals(role) && issueVisible(r.status))),
                 "sender", userBrief(sender),
                 "myRole", role,
                 "actions", actions(r, role, rated, viewer.id.equals(r.senderId)),

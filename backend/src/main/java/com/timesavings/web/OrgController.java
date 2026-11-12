@@ -104,7 +104,7 @@ public class OrgController {
         LifeReport latest = reports.findBySubjectTypeAndSubjectIdOrderByMonthDesc(SubjectType.ELDER, e.id).stream().findFirst().orElse(null);
         return Views.map("id", e.id, "alias", e.alias, "displayName", e.alias + " 님", "maskedName", Rules.maskAlias(e.alias),
                 "dong", e.dong, "ageGroup", e.ageGroup, "needs", e.needs, "caution", e.caution, "status", e.status,
-                "reportConsent", e.reportConsent, "serviceConsentAt", e.serviceConsentAt, "managerId", e.managerId, "createdAt", e.createdAt,
+                "reportConsent", e.reportConsent, "serviceConsentAt", e.serviceConsentAt, "serviceConsent", e.serviceConsentAt != null, "managerId", e.managerId, "createdAt", e.createdAt,
                 "qrIssuedAt", e.qrIssuedAt,
                 "regularCount", views.regularsOf(null, e.id).size(),
                 "activeCount", rs.stream().filter(r -> !r.status.terminal()).count(),
@@ -189,6 +189,8 @@ public class OrgController {
     public Map<String, Object> update(@CurrentUser User u, @PathVariable Long id, @RequestBody ElderBody b) {
         Elder e = myElder(u, id);
         apply(e, b);
+        // 기능 O-01 서비스 동의 여부: 동의 기록이 없는 예전 등록분은 수정할 때 "동의 받음"을 확인해 남길 수 있다(이미 있는 기록은 바꾸지 않는다)
+        if (Boolean.TRUE.equals(b.consent()) && e.serviceConsentAt == null) { e.serviceConsentAt = LocalDateTime.now(); e.serviceConsentBy = u.id; }
         return elderView(e);
     }
 
