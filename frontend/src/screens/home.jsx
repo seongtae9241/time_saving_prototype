@@ -150,12 +150,11 @@ export function evLook(e) {
 export function EvCard2({ e }) {
   const nav = useNavigate();
   const { ic, c } = evLook(e);
-  const left = e.capacity > 0 ? Math.max(0, e.capacity - (e.applied || 0)) : null;
   return (
     <div className="evc2 click" role="button" tabIndex={0} style={{ '--ec': c[0], '--ek': c[1] }} onClick={() => nav(`/news/${e.id}`)} onKeyDown={(ev) => { if (ev.key === 'Enter') nav(`/news/${e.id}`); }}>
       <div className="e2-top"><span className="e2-org">{e.orgName || '기관'}</span><span className="e2-ic"><DIc k={ic} size={46} /></span></div>
       <div className="e2-t">{e.title}</div><div className="e2-d">{e.date ? dlabel(e.date) : '날짜 미정'}{e.startHour != null ? ` ${ap(e.startHour)}` : ''}{e.area ? ` · ${e.area}` : ''}</div>
-      <div className="e2-f"><span className="e2-left">{left != null ? `남은 자리 ${left}` : '누구나'}</span><b>자세히 ›</b></div>
+      <div className="e2-f"><span className="e2-left">{e.capacity > 0 ? `정원 ${e.capacity}명` : '누구나'}</span><b>자세히 ›</b></div>
     </div>
   );
 }

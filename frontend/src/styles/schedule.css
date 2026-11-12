@@ -1,0 +1,32 @@
+/* 기능 O-11~O-13 돌봄 편성표. 색은 기존 상태 표시(.st go/ok/wait/end/no)와 같은 값을 쓴다. */
+.sch-nav{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.sch-nav b{flex:1 1 auto;text-align:center;font-size:16px}
+.sch-nav button{flex:0 0 auto;border:1.5px solid var(--line);background:#fff;border-radius:12px;min-height:44px;padding:0 12px;font:inherit;font-weight:700;font-size:13.5px;color:var(--ink);cursor:pointer}
+.sch-wrap{overflow-x:auto;margin:0 -4px;padding:0 4px 4px}
+.sch{width:100%;min-width:340px;border-collapse:separate;border-spacing:3px;table-layout:fixed}
+.sch th{font-size:11.5px;font-weight:700;color:var(--sub);padding:4px 0;text-align:center}
+.sch th.td-on{color:#5B8DEF}
+.sch th small{display:block;font-weight:500;font-size:10.5px;color:var(--mute)}
+.sch th.who{width:58px;text-align:left;font-size:12.5px;color:var(--ink);line-height:1.25;word-break:keep-all}
+.sch th.who small{font-size:10.5px}
+.sch td{padding:0;vertical-align:top}
+.sch-c{width:100%;min-height:58px;border:0;border-radius:10px;padding:3px 1px;font:inherit;font-size:10.5px;line-height:1.25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#F6F7F9;color:#8A919C}
+button.sch-c{cursor:pointer}
+.sch-c.past{opacity:.55}
+.sch-c.empty{background:#fff;border:1.5px dashed #D5DAE2;color:#8A919C;font-size:16px}
+.sch-c.gap{border-color:#D9731A;background:#FFF4E5;color:#D9731A;font-size:10.5px;font-weight:700}
+.sch-c.sel{border:2px solid #5B8DEF;background:#EAF0FF;color:#3A6FD8;font-size:15px;font-weight:800}
+.sch-i{display:block;width:100%;border:0;border-radius:8px;padding:3px 1px;font:inherit;font-size:10.5px;font-weight:700;line-height:1.2;cursor:pointer;text-align:center}
+.sch-i em{display:block;font-style:normal;font-weight:500;font-size:10px}
+.sch-i.CONFIRMED{background:#EAF0FF;color:#3A6FD8}
+.sch-i.PROGRESS{background:#E6F7EE;color:#1F9D63}
+.sch-i.PENDING{background:#FFF4E5;color:#D9731A}
+.sch-i.OPEN{background:#fff;color:#3A6FD8;box-shadow:inset 0 0 0 1.5px #5B8DEF}
+.sch-i.DONE{background:#F1F2F5;color:#5F6672}
+.sch-lg{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:8px;font-size:12px;color:var(--sub)}
+.sch-lg span{display:inline-flex;align-items:center;gap:4px}
+.sch-lg i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.sch-bar{position:sticky;bottom:0;z-index:5;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;margin-top:12px;box-shadow:0 -6px 18px rgba(20,20,40,.08)}
+.sch-row{border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:8px;background:#fff}
+.sch-row .row{gap:6px;margin-top:6px}
+.sch-row select{min-height:44px;padding:0 8px}

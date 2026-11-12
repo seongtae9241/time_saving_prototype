@@ -186,7 +186,7 @@ export function PostDetail() {
           <div className="small muted" style={{ marginTop: 4 }}>근거: {diffReason(p)}</div>
         </div>
       )}
-      {w.elder && <div className="lock" style={{ marginTop: 12 }}><Ic n="shield" s={18} /><div><b>방문 시 주의사항</b><br />{p.elderCaution || p.caution || '담당자가 따로 안내해요'}<div style={{ marginTop: 6, opacity: 0.85 }}>이름·주소·연락처는 보이지 않아요. 수락되면 담당자가 방문 장소를 따로 알려드려요.</div></div></div>}
+      {w.elder && <div className="lock" style={{ marginTop: 12 }}><Ic n="shield" s={18} /><div><b>방문 시 주의사항</b><br />{p.elderIssueLocked ? '특이사항은 일정이 확정된 봉사자에게만 보여요' : p.elderCaution || p.caution || '담당자가 따로 안내해요'}<div style={{ marginTop: 6, opacity: 0.85 }}>이름·주소·연락처는 보이지 않아요. 수락되면 담당자가 방문 장소를 따로 알려드려요.</div></div></div>}
       <div className="notice" style={{ marginTop: 12 }}>공고 1개에는 요청 1건만 수락돼요. 시간은 공고 범위 안에서 30분 단위, 최대 4시간이에요.</div>
       {mine || proxyMine ? (
         <>

@@ -21,7 +21,7 @@ function NewsCard({ n }) {
     <div className="card" style={{ marginTop: 10 }}>
       <div className="between"><span className="mute2">{n.orgName || '기관'}</span><span className={`st ${k}`}>{t}</span></div>
       <div className="b" style={{ fontSize: 16, marginTop: 4 }}>{n.title}</div>
-      <div className="mute2">{whenTxt}{n.place || n.area ? ` · ${n.place || n.area}` : ''}</div>
+      <div className="mute2">{whenTxt}{n.place || n.area ? ` · ${n.place || n.area}` : ''}{n.capacity ? ` · 정원 ${n.capacity}명` : ''}</div>
       {n.url && <div className="mute2" style={{ marginTop: 4, wordBreak: 'break-all' }}><Ic n="building" s={16} /> {host(n.url)} ↗</div>}
       {n.aiFound && <div className="mute2" style={{ marginTop: 4 }}>{n.notice || 'AI가 찾은 정보 · 신청 전 기관에 확인'}</div>}
       <div className="btns" style={{ marginTop: 10 }}>
@@ -91,7 +91,7 @@ export function EventDetail() {
         <div className="ev-b"><div className="between"><div className="ev-t" style={{ fontSize: 20 }}>{e.title}</div><span className="st go">담당자가 올림</span></div>{e.content && <div className="small muted" style={{ marginTop: 8, whiteSpace: 'pre-line' }}>{e.content}</div>}</div>
       </div>
       <div className="card" style={{ marginTop: 12 }}>
-        <dl className="kv"><dt>일시</dt><dd>{when(e)}</dd><dt>장소</dt><dd>{e.place || '-'}</dd><dt>신청</dt><dd>기관 페이지에서 신청</dd></dl>
+        <dl className="kv"><dt>일시</dt><dd>{when(e)}</dd><dt>장소</dt><dd>{e.place || '-'}</dd><dt>정원</dt><dd>{e.capacity ? `${e.capacity}명` : '제한 없음'}</dd><dt>신청</dt><dd>기관 페이지에서 신청</dd></dl>
       </div>
       {e.url && <LinkCard url={e.url} preview={e.preview} />}
       <div style={{ marginTop: 16 }}>
@@ -114,7 +114,7 @@ export function OEvents() {
       <div className="sec-t" style={{ marginTop: 0 }}><span>기관 소식 {(evs || []).length}</span><a role="button" tabIndex={0} onClick={() => nav('/o/events/new')}>+ 소식 올리기</a></div>
       <div className="mute2" style={{ margin: '-4px 0 4px' }}>우리 기관의 교실·모임·행사 소식을 올려요. 사용자의 동네 기관 소식에 함께 보이고, 신청은 기관 페이지 링크에서 받아요.</div>
       {evs === undefined ? <Loading /> : evs.map((e) => (
-        <div key={e.id} className="card item click" role="button" tabIndex={0} onClick={() => nav(`/news/${e.id}`)}><div className="ic"><Ic n="cal" s={20} /></div><div className="grow" style={{ minWidth: 0 }}><div className="b">{e.title}</div><div className="mute2">{e.date ? dlabel(e.date) : '날짜 미정'}{e.place ? ` · ${e.place}` : ''} · {e.url ? host(e.url) : '링크 없음'}</div></div><span className={'st ' + (e.status === 'OPEN' ? 'go' : 'end')}>{e.status === 'OPEN' ? '올림' : '내림'}</span></div>
+        <div key={e.id} className="card item click" role="button" tabIndex={0} onClick={() => nav(`/news/${e.id}`)}><div className="ic"><Ic n="cal" s={20} /></div><div className="grow" style={{ minWidth: 0 }}><div className="b">{e.title}</div><div className="mute2">{e.date ? dlabel(e.date) : '날짜 미정'}{e.place ? ` · ${e.place}` : ''}{e.capacity ? ` · 정원 ${e.capacity}명` : ''} · {e.url ? host(e.url) : '링크 없음'}</div></div><span className={'st ' + (e.status === 'OPEN' ? 'go' : 'end')}>{e.status === 'OPEN' ? '올림' : '내림'}</span></div>
       ))}
       {evs && !evs.length && <Empty>아직 올린 소식이 없어요</Empty>}
       <button className="btn soft" style={{ marginTop: 10 }} onClick={() => nav('/o/events/new')}><Ic n="plus" s={18} /> 교실·모임·행사 소식 올리기</button>
@@ -126,7 +126,7 @@ export function OEvents() {
 export function OEventNew() {
   const nav = useNavigate();
   const { toast } = useUi();
-  const [f, setF] = useState({ title: '', content: '', date: addDays(7), startHour: 14, place: '', url: '' });
+  const [f, setF] = useState({ title: '', content: '', date: addDays(7), startHour: 14, place: '', url: '', capacity: '' });
   const [pv, setPv] = useState(null);
   const [pvBusy, setPvBusy] = useState(false);
   const [busy, run] = useBusy();
@@ -145,7 +145,9 @@ export function OEventNew() {
   const submit = () => run(async () => {
     if (!f.title.trim()) return toast('제목을 적어 주세요');
     if (!f.url.trim()) return toast('기관 페이지 링크를 넣어 주세요. 신청은 그 페이지에서 받아요');
-    const body = { title: f.title.trim(), content: f.content, date: f.date || undefined, startHour: f.startHour, place: f.place, url: f.url.trim() };
+    const cap = String(f.capacity).trim();
+    if (cap && !(Number.isInteger(Number(cap)) && Number(cap) >= 1 && Number(cap) <= 9999)) return toast('정원은 1~9999 사이 숫자로 적어 주세요 (제한이 없으면 비워 두세요)');
+    const body = { title: f.title.trim(), content: f.content, date: f.date || undefined, startHour: f.startHour, place: f.place, url: f.url.trim(), capacity: cap ? Number(cap) : undefined };
     if (pv && pv.url) { body.ogTitle = pv.title || undefined; body.ogImage = pv.image || undefined; body.ogDesc = pv.description || undefined; }
     const e = await post('/events', body);
     toast('기관 소식을 올렸어요. 근처 사용자의 동네 기관 소식에 보여요');
@@ -153,7 +155,7 @@ export function OEventNew() {
   });
   return (
     <Screen title="기관 소식 올리기" noTabs>
-      <p className="su-p" style={{ marginTop: 0 }}>기관이 여는 교실·모임·행사를 제목·일시·장소와 기관 페이지 링크로 알려요. 자세한 내용과 신청은 기관 페이지에서 받아요.</p>
+      <p className="su-p" style={{ marginTop: 0 }}>기관이 여는 교실·모임·행사를 제목·일시·장소·정원과 신청 링크로 알려요. 자세한 내용과 신청은 기관 페이지에서 받아요.</p>
       <label className="f">기관 페이지 링크 (필수)</label>
       <div className="row"><input className="in grow" inputMode="url" placeholder="https://… 행사 안내 페이지" value={f.url} onChange={(e) => { set('url', e.target.value); setPv(null); }} aria-label="안내 링크" /><button type="button" className="btn soft sm" style={{ width: 'auto', padding: '0 14px', flex: '0 0 auto' }} disabled={pvBusy} onClick={fetchPreview}>{pvBusy ? '불러오는 중…' : '불러오기'}</button></div>
       <div className="mute2" style={{ marginTop: 6 }}>링크를 넣으면 그 페이지의 제목·사진을 가져와 카드로 보여 줘요.</div>
@@ -165,6 +167,7 @@ export function OEventNew() {
       <label className="f">시작 시각</label>
       <select className="in" value={f.startHour} onChange={(e) => set('startHour', +e.target.value)}>{Array.from({ length: 27 }, (_, i) => 8 + i * 0.5).map((h) => <option key={h} value={h}>{ap(h)}</option>)}</select>
       <label className="f">장소</label><input className="in" value={f.place} onChange={(e) => set('place', e.target.value)} placeholder="예) 행복동 주민센터 1층 다목적실" />
+      <label className="f">정원 <span className="mute2" style={{ fontWeight: 500 }}>(제한이 없으면 비워 두세요)</span></label><input className="in" inputMode="numeric" value={f.capacity} onChange={(e) => set('capacity', e.target.value.replace(/[^0-9]/g, '').slice(0, 4))} placeholder="예) 20" aria-label="정원(명)" />
       <div className="notice" style={{ marginTop: 12 }}>기관 행사는 시간 통장 적립·차감이 없어요. 올리면 근처 사용자의 "동네 기관 소식"에 AI가 찾은 소식과 함께 보여요.</div>
       <button className="btn big-cta" style={{ marginTop: 16 }} disabled={busy} onClick={submit}>올리기</button>
     </Screen>

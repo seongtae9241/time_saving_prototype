@@ -140,7 +140,7 @@ export function MemoToPosts() {
       if (!d.date) { next[i] = { ...d, error: '날짜를 골라 주세요' }; continue; }
       if (!(d.categories || []).length) { next[i] = { ...d, error: '카테고리를 골라 주세요' }; continue; }
       try {
-        const r = await post('/posts', { type: 'NEED', date: d.date, startHour: d.startHour, endHour: d.endHour, area: d.area, categories: d.categories, title: d.title, detail: d.detail, note: d.note || null, estHours: d.estHours, elderId: Number(sel) }, { quiet: true });
+        const r = await post('/posts', { type: 'NEED', date: d.date, startHour: d.startHour, endHour: d.endHour, area: d.area, categories: d.categories, title: d.title, detail: d.detail, note: null, elderIssue: d.note ? String(d.note).slice(0, 300) : undefined, estHours: d.estHours, elderId: Number(sel) }, { quiet: true });
         next[i] = { ...d, done: true, checked: false, error: null, createdCount: r.createdCount };
         ok += 1;
       } catch (e) { next[i] = { ...d, error: e.message }; }

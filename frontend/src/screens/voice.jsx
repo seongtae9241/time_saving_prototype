@@ -129,7 +129,8 @@ export function VoiceReq() {
     if (!d.categories || !d.categories.length) return toast('도움 종류를 골라 주세요');
     const body = {
       type: 'NEED', date: d.date, startHour: Number(d.startHour), endHour: Number(d.endHour), area: d.area || (elder ? elder.dong : me && me.area),
-      categories: d.categories, estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), title: d.title || `${d.categories[0]} 도움`, detail: d.detail || '', note: d.caution ? `방문 시 주의: ${d.caution}` : (d.note || ''), caution: d.caution || undefined,
+      categories: d.categories, estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), title: d.title || `${d.categories[0]} 도움`, detail: d.detail || '', note: elderId ? (d.note || '') : d.caution ? `방문 시 주의: ${d.caution}` : (d.note || ''), caution: d.caution || undefined,
+      ...(elderId && d.caution ? { elderIssue: String(d.caution).slice(0, 300) } : {}), // 기능 O-04: 대리 공고의 주의사항은 확정된 봉사자에게만
       elderId: elderId ? Number(elderId) : undefined, inputMode: 'voice',
     };
     const p = await post('/posts', body);
