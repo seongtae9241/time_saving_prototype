@@ -57,7 +57,8 @@ public class CommonController {
 
     @GetMapping("/notices")
     public List<Notice> notices() {
-        return notices.findAll().stream().sorted(Comparator.comparing((Notice n) -> n.createdAt).reversed()).toList();
+        return notices.findAll().stream().sorted(Comparator.comparing((Notice n) -> !Boolean.TRUE.equals(n.pinned)) // 기능 A-16: 고정 공지 먼저
+                .thenComparing(Comparator.comparing((Notice n) -> n.createdAt).reversed())).toList();
     }
 
     @GetMapping("/notices/{id}")

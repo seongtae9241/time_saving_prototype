@@ -5,6 +5,7 @@ import { SUG_ST } from '../ui/suggest.jsx';
 import { Ic, Mi, Spk, Mod, RuleNote, Loading, Empty, useLoad, useBusy, hbars } from '../ui/bits.jsx';
 import { useUi } from '../ui/ctx.jsx';
 import { api, post, put, del, openFile } from '../api.js';
+import { loadCats } from '../lib/cats.js'; // 기능 A-15 더한 카테고리 다시 읽기
 import { CATS, CC, SHORT, AREAS, fmt, dshort, arr, lvName, ro } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useLogout } from './my.jsx';
@@ -12,6 +13,7 @@ import { JudgeAssist } from '../ui/ActivityAi.jsx'; // 7.13 B-4
 import { INQ_ST } from './common.jsx';
 
 const VERIFY_KO = { NONE: '미제출', PENDING: '확인 중', APPROVED: '승인', REJECTED: '반려' };
+import { ReportMenu, ReportContext } from './adminReports.jsx'; // 기능명세서 운영자 리포트 진입 · 신고 관련 기록
 import { useTriage, TriageBox, SevChip, useAnomalyNotes, AnomalyNote, InquiryDraft, PersonaFromCases, PersonaDraftNote } from './opsai.jsx';
 
 function groupBars(rows) {
@@ -195,6 +197,7 @@ export function ADash() {
           </div>
         </div>
       )}
+      <ReportMenu />
       {monthly.length > 0 && <div className="card" style={{ marginTop: 12 }}><div className="between"><span className="b">수요 vs 공급 (주별 공고)</span><span className="legend"><i style={{ background: '#F59E4B' }} />봉사 요청<i style={{ background: '#5B8DEF', marginLeft: 8 }} />도움 가능</span></div>{groupBars(monthly)}</div>}
       <div className="card" style={{ marginTop: 12 }}><div className="b">지역별 매칭 성공률</div>{(x.matchRateByArea || []).length ? hbars(x.matchRateByArea.map((a) => [a.area, Number(a.rate) || 0]), '#5B8DEF') : <Empty>아직 데이터가 없어요</Empty>}<div className="mute2" style={{ marginTop: 8 }}>요청·제안 중 일정 확정까지 간 비율(%)이에요.</div></div>
       <AnalyticsCards a={an} />
@@ -297,6 +300,7 @@ function ReportHandle({ r, onDone, t, onTriage }) {
       ) : (
         <>
       <TriageBox t={t} onRefresh={onTriage} />
+      <ReportContext id={r.id} />
       <label className="f">처리</label>
       {ACTS.map(([k, l]) => <div key={k} className={'opt ' + (a === k ? 'on' : '')} role="button" tabIndex={0} onClick={() => setA(k)}><span className="rd" /><div>{l}</div></div>)}
       <textarea className="in" style={{ marginTop: 10, minHeight: 70 }} placeholder="처리 결과 (신고자에게 알림으로 가요)" value={result} onChange={(e) => setResult(e.target.value)} />
@@ -361,8 +365,11 @@ export function AManage() {
       <div className="ml">
         <Mi t="회원 관리" s="회원 목록·상세·정지·해제" i="users" onClick={() => nav('/a/members')} />
         <Mi t="담당자 계정" s="정지·해제 · 대상 대신 이관" i="building" onClick={() => nav('/a/managers')} />
+        <Mi t="담당자 계정 신청" s="신청·승인 내역 · 승인 취소" i="shield" onClick={() => nav('/a/mgr-apps')} />
         <Mi t="1:1 문의" s="답변 등록 · 처리 상태 변경" i="msg" onClick={() => nav('/a/inquiries')} />
-        <Mi t="공지사항" s="등록·수정·삭제" i="file" onClick={() => nav('/a/notices')} />
+        <Mi t="공지사항" s="등록·수정·고정·삭제" i="file" onClick={() => nav('/a/notices')} />
+        <Mi t="리포트" s="재정 추계 · 정책 시뮬레이션 · 봉사 리포트" i="chart" onClick={() => nav('/a/forecast')} />
+        <Mi t="대응 추천 · 특보 알림" s="모집 문구 초안 · 기상 특보 리포트와 전달" i="flag" onClick={() => nav('/a/weather')} />
         <Mi t="봉사 인증 항목 설정" s="신분증 · 범죄경력(선택)" i="shield" onClick={() => nav('/a/verify')} />
         <Mi t="카테고리 건의" s="사용자·담당자가 건의한 새 종류 · 답변" i="flag" onClick={() => nav('/a/suggest')} />
         <Mi t="공공 서비스 정보" s="AI 안내에 쓰는 DB" i="building" onClick={() => nav('/a/pub')} />
@@ -515,7 +522,8 @@ export function ANotices() {
       <button className="btn sm" onClick={() => sheet(() => <NoticeForm onDone={done} />)}><Ic h={I.plus} /> 새 공지</button>
       {list === undefined ? <Loading /> : (list || []).map((n) => (
         <div key={n.id} className="card item" style={{ marginTop: 8 }}>
-          <div className="grow"><div className="b">{n.title}</div><div className="mute2">{dshort(n.createdAt).split(' ')[0]}</div></div>
+          <div className="grow"><div className="b">{n.pinned && <span className="badge" style={{ marginRight: 6 }}>고정</span>}{n.title}</div><div className="mute2">{dshort(n.createdAt).split(' ')[0]}</div></div>
+          <a className="mute2" role="button" tabIndex={0} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }} onClick={async () => { try { await post(`/admin/notices/${n.id}/pin`, { pinned: !n.pinned }); reload(); toast(n.pinned ? '고정을 풀었어요' : '맨 위에 고정했어요'); } catch { /* 토스트 */ } }}>{n.pinned ? '고정 해제' : '고정'}</a>
           <a className="mute2" role="button" tabIndex={0} style={{ cursor: 'pointer' }} onClick={async () => { const full = await api(`/notices/${n.id}`); sheet(() => <NoticeForm n={full} onDone={done} />); }}>수정</a>
           <a className="mute2 danger" role="button" tabIndex={0} style={{ cursor: 'pointer' }} onClick={async () => { if (await confirm('공지를 지울까요?', n.title, '삭제', true)) { try { await del(`/admin/notices/${n.id}`); reload(); toast('지웠어요'); } catch { /* 토스트 */ } } }}>삭제</a>
         </div>
@@ -645,14 +653,26 @@ function SuggestAnswer({ g, onDone }) {
   const [status, setStatus] = useState(g.status === 'RECEIVED' ? 'REVIEWING' : g.status);
   const [answer, setAnswer] = useState((g.items[0] && g.items[0].answer) || '');
   const [busy, run] = useBusy();
+  const [level, setLevel] = useState('BASIC');
   return (
     <>
       <h2>{g.name} · {g.count}건</h2>
       <p className="mute2" style={{ margin: '0 0 8px' }}>같은 이름의 건의 {g.count}건에 한꺼번에 답해요. 건의한 사람 모두에게 알림이 가요.</p>
       <div className="tags">{Object.entries(SUG_ST).map(([k, v]) => <button key={k} type="button" className={'chip ' + (status === k ? 'on' : '')} aria-pressed={status === k} onClick={() => setStatus(k)}>{v[1]}</button>)}</div>
+      {status === 'ADOPTED' && (
+        <>
+          <label className="f">등급 (적립 가중치)</label>
+          <div className="tags">{[['BASIC', '기본 1.0'], ['EFFORT', '수고 1.2'], ['RESPONSIBLE', '책임 1.5']].map(([k, l]) => <button key={k} type="button" className={'chip ' + (level === k ? 'on' : '')} aria-pressed={level === k} onClick={() => setLevel(k)}>{l}</button>)}</div>
+          <div className="notice" style={{ marginTop: 8 }}>반영으로 보내면 ‘{g.name}’ 종류가 공고 카테고리에 더해져요. 답변을 비우면 안내 문장이 자동으로 가요.</div>
+        </>
+      )}
       <label className="f" htmlFor="sug-ans">답변</label>
       <textarea id="sug-ans" className="in" style={{ minHeight: 90 }} maxLength={500} value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="예) 비슷한 요청이 많아 다음 개편 때 검토할게요. 지금은 '가벼운 집안일'로 올려 주세요." />
-      <button className="btn" style={{ marginTop: 12 }} disabled={busy} onClick={() => run(async () => { await post(`/admin/category-suggestions/${g.items[0].id}/answer`, { status, answer }); toast('답변했어요. 건의자에게 알렸어요'); onDone(); })}>답변 보내기</button>
+      <button className="btn" style={{ marginTop: 12 }} disabled={busy} onClick={() => run(async () => {
+        if (status === 'ADOPTED') { await post(`/admin/category-suggestions/${g.items[0].id}/adopt`, { level, answer }); await loadCats(); toast(`'${g.name}' 종류를 카테고리에 더했어요. 건의자에게 알렸어요`); }
+        else { await post(`/admin/category-suggestions/${g.items[0].id}/answer`, { status, answer }); toast('답변했어요. 건의자에게 알렸어요'); }
+        onDone();
+      })}>{status === 'ADOPTED' ? '승인하고 카테고리에 더하기' : '답변 보내기'}</button>
     </>
   );
 }
@@ -663,7 +683,7 @@ export function ASuggest() {
   return (
     <Screen title="카테고리 건의" noTabs>
       <div className="stat2"><div><b>{d ? d.total : 0}건</b><span>전체 건의</span></div><div><b>{d ? d.waiting : 0}건</b><span>답변 기다리는 중</span></div></div>
-      <div className="notice" style={{ marginTop: 12 }}>{(d && d.note) || '카테고리 6종을 바꾸는 것은 운영자 결정 사항이에요.'}</div>
+      <div className="notice" style={{ marginTop: 12 }}>{(d && d.note) || "건의를 '반영'으로 답하면 공고 카테고리에 더해져요."}</div>
       {d === undefined ? <Loading /> : groups.length ? groups.map((g) => (
         <div key={g.key} className="card" style={{ marginTop: 10 }}>
           <div className="between"><span className="b" style={{ fontSize: 16 }}>{g.name} <span className="pill">{g.count}건</span></span><span className={`st ${(SUG_ST[g.status] || SUG_ST.RECEIVED)[0]}`}>{(SUG_ST[g.status] || SUG_ST.RECEIVED)[1]}</span></div>

@@ -24,6 +24,7 @@ import { ClassDetail, APublicClasses } from './screens/publicClass.jsx';
 import { GroupDetail, GroupNew } from './screens/group.jsx'; // 기능 U-10·U-11·O-07 단체 봉사
 import { Bundle } from './screens/bundle.jsx'; // 기능 U-12 빈 시간 묶음 추천
 import { RecurringList, RecurringNew } from './screens/recurring.jsx'; // 기능 U-09 정기 요청
+import { AForecast, ASim, AStats, ARecruit, AWeather, AMgrApps } from './screens/adminReports.jsx'; // 기능명세서 운영자 리포트
 
 /** 로그인·역할 확인 */
 function Guard({ roles, children }) {
@@ -138,6 +139,12 @@ function Shell() {
         <Route path="/a/suggest" element={g(<ASuggest />, A)} />
         <Route path="/a/persona" element={g(<APersona />, A)} />
         <Route path="/a/classes" element={g(<APublicClasses />, A)} />
+        <Route path="/a/forecast" element={g(<AForecast />, A)} />
+        <Route path="/a/sim" element={g(<ASim />, A)} />
+        <Route path="/a/stats" element={g(<AStats />, A)} />
+        <Route path="/a/recruit" element={g(<ARecruit />, A)} />
+        <Route path="/a/weather" element={g(<AWeather />, A)} />
+        <Route path="/a/mgr-apps" element={g(<AMgrApps />, A)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

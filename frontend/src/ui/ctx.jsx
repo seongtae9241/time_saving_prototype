@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { api, post, put, setToken, getToken, setErrorHandler, setUnauthorizedHandler } from '../api.js';
+import { loadCats } from '../lib/cats.js';
 
 /* ---------- 토스트 · 바텀시트 · 확인 시트 (프로토타입 toast / sheet / confirmSheet) ---------- */
 const UiCtx = createContext(null);
@@ -80,6 +81,7 @@ export function AuthProvider({ children }) {
     try {
       const m = await api('/me', { quiet: true });
       if (m && m.textSize) applyBig(String(m.textSize).toUpperCase() === 'BIG'); // B-55: 서버에 저장한 큰 글씨 설정을 접속할 때마다 적용
+      await loadCats(); // 기능 A-15: 운영자가 더한 카테고리
       setMe(m); return m;
     } catch (e) {
       if (e.status === 401) setMe(null);
