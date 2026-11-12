@@ -299,21 +299,21 @@ class Req41FixTest {
     void 기관_신청은_같은_IP에서_10분에_5번까지만_받는다() throws Exception {
         for (int i = 0; i < RateLimiter.MAX; i++)
             mvc.perform(multipart("/api/orgs/apply").file(new MockMultipartFile("proof", "p.pdf", "application/pdf", new byte[]{1}))
-                    .param("name", "기관" + i).param("managerName", "담당").header("X-Forwarded-For", "203.0.113.7")).andExpect(status().isOk());
+                    .param("name", "기관" + i).param("managerName", "담당").param("address", "행복구 미래로 1").header("X-Forwarded-For", "203.0.113.7")).andExpect(status().isOk());
         long before = orgs.count();
         mvc.perform(multipart("/api/orgs/apply").file(new MockMultipartFile("proof", "p.pdf", "application/pdf", new byte[]{1}))
-                        .param("name", "기관6").param("managerName", "담당").header("X-Forwarded-For", "203.0.113.7"))
+                        .param("name", "기관6").param("managerName", "담당").param("address", "행복구 미래로 1").header("X-Forwarded-For", "203.0.113.7"))
                 .andExpect(status().isTooManyRequests()).andExpect(jsonPath("$.code").value("TOO_MANY_REQUESTS"));
         String proof = orgs.findAll().stream().filter(o -> "기관0".equals(o.name)).findFirst().orElseThrow().proofFileUrl;
         mvc.perform(post("/api/orgs/apply").contentType(MediaType.APPLICATION_JSON).header("X-Forwarded-For", "203.0.113.7, 10.0.0.1")
-                .content("{\"name\":\"기관7\",\"managerName\":\"담당\",\"proofFileUrl\":\"" + proof + "\"}")).andExpect(status().isTooManyRequests());
+                .content("{\"name\":\"기관7\",\"managerName\":\"담당\",\"address\":\"행복구 미래로 1\",\"proofFileUrl\":\"" + proof + "\"}")).andExpect(status().isTooManyRequests());
         // 내용이 모자라 400 으로 돌아가는 신청은 세지 않는다(제한에 걸린 뒤에도 400)
         mvc.perform(post("/api/orgs/apply").contentType(MediaType.APPLICATION_JSON).header("X-Forwarded-For", "203.0.113.7")
-                .content("{\"name\":\"기관8\",\"managerName\":\"담당\"}")).andExpect(status().isBadRequest());
+                .content("{\"name\":\"기관8\",\"managerName\":\"담당\",\"address\":\"행복구 미래로 1\"}")).andExpect(status().isBadRequest());
         assertEquals(before, orgs.count(), "막힌 신청은 저장되지 않는다");
         // 다른 IP 는 된다
         mvc.perform(multipart("/api/orgs/apply").file(new MockMultipartFile("proof", "p.pdf", "application/pdf", new byte[]{1}))
-                .param("name", "다른 기관").param("managerName", "담당").header("X-Forwarded-For", "203.0.113.8")).andExpect(status().isOk());
+                .param("name", "다른 기관").param("managerName", "담당").param("address", "행복구 미래로 1").header("X-Forwarded-For", "203.0.113.8")).andExpect(status().isOk());
     }
 
     // ---------------- D-02 퇴출과 정지 ----------------

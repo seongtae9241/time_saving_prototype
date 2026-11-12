@@ -34,6 +34,8 @@ public class AdminReportService {
     private static long pct(long a, long total) { return total == 0 ? 0 : Math.round(a * 100.0 / total); }
 
     // ===================== A-02 봉사 유형 리포트 =====================
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private GroupService groups;
+
     public Map<String, Object> types() {
         LocalDate from = YearMonth.now().minusMonths(11).atDay(1);
         List<Request> done = requests.findAll().stream().filter(r -> r.status == ReqStatus.DONE && r.date != null && !r.date.isBefore(from) && r.category != null).toList();
@@ -50,6 +52,18 @@ public class AdminReportService {
             receivers.get(r.category).add(r.elderId != null ? "E" + r.elderId : "U" + r.recipientId);
             stat.get(r.category)[0]++;
             stat.get(r.category)[1] += r.hours;
+        }
+        // 단체 봉사(기능 U-10): 참석이 확인된 건도 봉사 횟수·시간·주는 사람에 넣는다(받는 쪽은 기관 하나로 센다)
+        int groupDone = 0;
+        if (groups != null) for (GroupService.Attended a : groups.attendedAll()) {
+            if (a.date() == null || a.date().isBefore(from) || a.category() == null) continue;
+            groupDone++;
+            gaveUsers.add(a.userId());
+            if (!givers.containsKey(a.category())) { givers.put(a.category(), new HashSet<>()); receivers.put(a.category(), new HashSet<>()); stat.put(a.category(), new double[2]); }
+            givers.get(a.category()).add(a.userId());
+            receivers.get(a.category()).add("G" + (a.orgName() == null ? a.groupPostId() : a.orgName()));
+            stat.get(a.category())[0]++;
+            stat.get(a.category())[1] += a.hours();
         }
         List<Map<String, Object>> cats = new ArrayList<>();
         for (String c : givers.keySet()) {
@@ -84,7 +98,8 @@ public class AdminReportService {
         Map<String, Object> facts = Views.map("categories", cats, "userTypes", typesList, "elders", elderCount, "members", total);
         Map<String, Object> out = new LinkedHashMap<>(facts);
         out.put("periodMonths", 12);
-        out.put("doneCount", done.size());
+        out.put("doneCount", done.size() + groupDone);
+        out.put("groupDoneCount", groupDone);
         out.put("interpretation", ai.interpret("카테고리별 주는 쪽·받는 쪽 비율과 사용자 유형 분포", facts, sb.toString().trim()));
         return out;
     }
@@ -125,8 +140,8 @@ public class AdminReportService {
         double growth = prev == 0 ? 1.0 : Math.max(0.5, Math.min(2.0, (double) recent / prev));
         growth = Math.round(growth * 100) / 100.0;
         List<Map<String, Object>> rows = new ArrayList<>();
-        for (String c : Rules.CATEGORIES) {
-            double base = hasSeason ? same.get(c) : all.get(c) / 4.0;
+        for (String c : all.keySet()) { // 기본 6종 + 운영자가 더한 카테고리(기능 A-15)
+            double base = hasSeason ? same.getOrDefault(c, 0) : all.get(c) / 4.0;
             rows.add(Views.map("category", c, "base", Math.round(base * 10) / 10.0, "expected", Math.round(base * growth)));
         }
         rows.sort((a, b) -> Long.compare((Long) b.get("expected"), (Long) a.get("expected")));

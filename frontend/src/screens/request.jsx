@@ -5,7 +5,7 @@ import { hmTxt, useMode } from '../ui/proto.jsx';
 import { Ic, Spk, Mod, TBar, CatIc, Avatar, AuthImg, Stars, StTag, FlowBar, Loading, Empty, AiLoading, RuleNote, QrSvg, Upload, useLoad, useBusy, postWho, postCats, diffText } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
-import { CATS, SHORT, W, LV, fmt, hh, dlabel, dshort, KIND_LABEL, lvName, lvWeight, addDays } from '../lib/format.js';
+import { CATS, SHORT, W, LV, fmt, hh, dlabel, dshort, KIND_LABEL, lvName, lvWeight, addDays, todayISO } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useReport } from './common.jsx';
 import { FilterBox } from './ai.jsx';
@@ -52,7 +52,7 @@ export function ProfileView({ p }) {
         <div className="intro" style={{ padding: 0, border: 0, background: 'none' }}><Ph name={p.name} photo={p.photoUrl} /></div>
         <div className="grow">
           <h2 style={{ margin: 0 }}>{p.name} <span className="mute2" style={{ fontWeight: 500, fontSize: 14 }}>{p.ageGroup}</span></h2>
-          <div><Stars r={p.ratingAvg} /> <span className="mute2">· 활동 {p.ratingCount || 0}회</span></div>
+          <div>{Number(p.ratingAvg) > 0 ? <><Stars r={p.ratingAvg} /> <span className="mute2">· 평가 {p.ratingCount || 0}건{p.helpCount != null ? ` · 봉사 ${p.helpCount}회` : ''}</span></> : <span className="mute2">평가가 더 모이면 보여요{p.helpCount != null ? ` · 봉사 ${p.helpCount}회` : ''}</span>}</div>
           <div className="tags" style={{ marginTop: 6 }}>
             {p.eduDone && <span className="badge trust">✓ 안전 교육</span>}{/* 기능 U-34 */}
             {p.crime && <span className="badge trust">✓ 범죄경력 확인</span>}
@@ -99,12 +99,19 @@ export function ReqForm() {
   const isProp = kind === 'PROPOSAL';
   const lo = p ? Number(p.startHour) : 9, hi = p ? Number(p.endHour) : 20;
   const cats = p ? postCats(p) : CATS.map((c) => c.k);
-  const [f, setF] = useState({ s: null, h: 1, cat: null, content: '', memo: '', date: addDays(1) });
+  // 편성표 추천(기능 O-12)에서 넘어오면 날짜·시작 시각·활동 시간·도움 종류를 미리 채운다
+  const qDate = /^\d{4}-\d{2}-\d{2}$/.test(sp.get('date') || '') && sp.get('date') > todayISO() ? sp.get('date') : null;
+  const qS = sp.get('s') != null && sp.get('s') !== '' && !Number.isNaN(Number(sp.get('s'))) ? Number(sp.get('s')) : null;
+  const qH = Number(sp.get('h')) >= 0.5 && Number(sp.get('h')) <= 4 ? Number(sp.get('h')) : null;
+  const qCat = sp.get('cat');
+  const [f, setF] = useState({ s: null, h: 1, cat: null, content: '', memo: '', date: qDate || addDays(1) });
   const [ai, setAi] = useState(null);
   const [busy, run] = useBusy();
   useEffect(() => {
     if (postId && !p) return;
-    setF((x) => ({ ...x, s: x.s ?? lo, h: Math.min(1, hi - lo) || 0.5, cat: x.cat || cats[0], content: x.content || (p && p.type === 'NEED' ? p.title || '' : '') }));
+    const s0 = qS != null ? Math.min(Math.max(qS, lo), hi - 0.5) : lo;
+    const h0 = qH != null ? Math.max(0.5, Math.min(qH, hi - s0)) : Math.min(1, hi - lo) || 0.5;
+    setF((x) => ({ ...x, s: x.s ?? s0, h: x.s == null ? h0 : x.h, cat: x.cat || (qCat && cats.includes(qCat) ? qCat : cats[0]), content: x.content || (p && p.type === 'NEED' ? p.title || '' : '') }));
   }, [p]); // eslint-disable-line
   if ((postId && p === undefined) || f.s == null) return <Screen title="요청" noTabs><Loading /></Screen>;
   if (postId && !p) return <Screen title="요청" noTabs><Empty>공고를 찾을 수 없어요</Empty></Screen>;
@@ -137,6 +144,7 @@ export function ReqForm() {
     }
   });
   const dates = Array.from({ length: 7 }, (_, i) => addDays(i + 1));
+  if (qDate && !dates.includes(qDate)) dates.push(qDate);
   return (
     <Screen title={isProp ? '봉사 제안' : kind === 'REGULAR' ? '단골에게 요청' : '봉사 요청 보내기'} noTabs>
       <div className="row" style={{ gap: 10 }}>
@@ -144,6 +152,7 @@ export function ReqForm() {
         <div className="grow"><div className="b">{w.name}{kind === 'REGULAR' && <> <span className="badge">단골</span></>}</div><div className="mute2">{p ? `${dlabel(p.date)} ${hh(p.startHour)}~${hh(p.endHour)} 공고` : '공고 없이 바로 요청'}</div></div>
       </div>
       {elderId && <div className="lock" style={{ marginTop: 12 }}><Ic n="users" s={18} /><div><b>{elder ? elder.alias + ' 님' : ''}</b> 대신 요청해요. 알림·메시지는 담당자가 받아요.</div></div>}
+      {(qDate || qS != null) && <div className="notice" style={{ marginTop: 10 }}>편성표에서 고른 {p ? '시간' : '날짜·시간'}을 넣어 두었어요. 확인하고 보내 주세요.{p && qDate && qDate !== String(p.date).slice(0, 10) ? ` 이 공고의 날짜는 ${dlabel(p.date)}이에요.` : ''}</div>}
       {kind === 'REGULAR' && <><label className="f">날짜</label><div className="tags">{dates.map((d) => <button key={d} className={'chip ' + (f.date === d ? 'on' : '')} onClick={() => setF({ ...f, date: d })}>{dlabel(d)}</button>)}</div></>}
       <label className="f">시작 시간 {p && <span className="mute2" style={{ fontWeight: 500 }}>(공고 범위 {hh(lo)}~{hh(hi)})</span>}</label>
       <div className="tp">{starts.map((t) => <button key={t} className={f.s === t ? 'on' : ''} onClick={() => setF({ ...f, s: t, h: t + f.h > hi ? Math.max(0.5, hi - t) : f.h })}>{hh(t)}</button>)}</div>
@@ -588,7 +597,7 @@ export function RequestDetail() {
       {showIntro && v.name && (
         <div className="intro" style={{ marginTop: 14 }}>
           <div className="mute2" style={{ marginBottom: 10 }}>{st === 'VOL_ACCEPTED' ? `${v.name} 님이 수락했어요 · 소개 카드` : '봉사자'}</div>
-          <div className="row" style={{ gap: 14 }}><Ph name={v.name} photo={v.photoUrl} /><div className="grow"><div className="b" style={{ fontSize: 18 }}>{v.name} <span className="mute2" style={{ fontWeight: 500 }}>{v.ageGroup}</span></div><div><Stars r={v.ratingAvg} /> <span className="mute2">· 활동 {v.ratingCount || 0}회</span></div><div className="tags" style={{ marginTop: 6 }}>{v.crime && <span className="badge trust">✓ 범죄경력 확인</span>}{v.isRegular && <span className="badge">★ {mgr ? `${toName} 단골` : '내 단골'}</span>}</div></div></div>
+          <div className="row" style={{ gap: 14 }}><Ph name={v.name} photo={v.photoUrl} /><div className="grow"><div className="b" style={{ fontSize: 18 }}>{v.name} <span className="mute2" style={{ fontWeight: 500 }}>{v.ageGroup}</span></div><div>{Number(v.ratingAvg) > 0 ? <><Stars r={v.ratingAvg} /> <span className="mute2">· 평가 {v.ratingCount || 0}건</span></> : <span className="mute2">평가가 더 모이면 보여요</span>}</div><div className="tags" style={{ marginTop: 6 }}>{v.crime && <span className="badge trust">✓ 범죄경력 확인</span>}{v.isRegular && <span className="badge">★ {mgr ? `${toName} 단골` : '내 단골'}</span>}</div></div></div>
           {!iVol && <MatchWhy text={v.matchReason} style={{ marginTop: 12 }} />}
           {v.intro && <div className="small" style={{ marginTop: 12 }}>“{v.intro}”</div>}
           {v.experience && <div className="mute2" style={{ marginTop: 6 }}>{v.experience}</div>}
@@ -708,7 +717,7 @@ export function LogWrite() {
           {rule === 'RECEIPT'
             ? <Upload label={have1 && !photo ? '영수증 사진 다시 올리기' : '영수증 사진 올리기'} accept="image/*" style={{ minHeight: 80 }} onUploaded={setPhoto} />
             : <div className="btns"><Upload label="하기 전 사진" accept="image/*" style={{ minHeight: 80 }} onUploaded={setPhoto} /><Upload label="한 뒤 사진" accept="image/*" style={{ minHeight: 80 }} onUploaded={setPhoto2} /></div>}
-          <div className="notice" style={{ marginTop: 8 }}>사람 얼굴이나 개인정보(이름·주소·전화번호·카드 번호)가 보이지 않게 찍어 주세요. 사진은 {r.elder ? '담당자' : '받는 분'}와 운영자만 볼 수 있어요.</div>
+          <div className="notice" style={{ marginTop: 8 }}>사람 얼굴이나 개인정보(이름·주소·전화번호·카드 번호)가 보이지 않게 찍어 주세요. 사진은 {r.elder ? '담당자와' : '받는 분과'} 운영자만 볼 수 있어요.</div>
         </>
       ) : (
         <>

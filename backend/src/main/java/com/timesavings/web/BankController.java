@@ -101,6 +101,9 @@ public class BankController {
         return out;
     }
 
+    /** 단체 봉사(기능 U-10) 집계 — 생성자를 바꾸지 않으려고 필드 주입 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private GroupService groups;
+
     /**
      * 41판 B-46: 월별 봉사·도움 받은 횟수 요약(완료된 활동, 최근 months 개월, 오래된 달부터).
      * [{month, helpCount(봉사), helpHours, receivedCount(도움 받음), receivedHours}]
@@ -122,9 +125,17 @@ public class BankController {
             v[gave ? 0 : 2]++;
             v[gave ? 1 : 3] += r.hours;
         }
+        // 단체 봉사(기능 U-10): 참석이 확인된 건도 봉사 횟수·시간에 넣는다
+        int groupCount = 0;
+        if (groups != null) for (GroupService.Attended a : groups.attendedBy(u.id)) {
+            help++; groupCount++;
+            double[] v = by.get(YearMonth.from(a.date()).toString());
+            if (v == null) continue;
+            v[0]++; v[1] += a.hours();
+        }
         List<Map<String, Object>> rows = new ArrayList<>();
         by.forEach((m, v) -> rows.add(Views.map("month", m, "helpCount", (int) v[0], "helpHours", v[1], "receivedCount", (int) v[2], "receivedHours", v[3])));
-        return Views.map("months", rows, "totalHelpCount", help, "totalReceivedCount", received);
+        return Views.map("months", rows, "totalHelpCount", help, "totalReceivedCount", received, "groupHelpCount", groupCount);
     }
 
     private static java.time.LocalDate day(String s, String name) {
@@ -160,17 +171,33 @@ public class BankController {
             items.add(Views.map("date", r.date.toString(), "category", r.category, "hours", h, "earned", r.earned,
                     "recipient", noti.recipientLabel(r, false), "elder", r.elderId != null));
         }
+        // 단체 봉사(기능 U-10): 기관 담당자가 참석을 확인해 적립된 건도 확인서에 넣는다
+        int groupCount = 0;
+        if (groups != null) for (GroupService.Attended a : groups.attendedBy(u.id)) {
+            java.time.LocalDate d = a.doneAt() != null ? a.doneAt().toLocalDate() : a.date();
+            if ((f != null && d.isBefore(f)) || (t != null && d.isAfter(t))) continue;
+            groupCount++;
+            total += a.hours();
+            earned += a.earned();
+            byCat.computeIfAbsent(a.category(), k -> new double[2]);
+            byCat.get(a.category())[0]++;
+            byCat.get(a.category())[1] += a.hours();
+            items.add(Views.map("date", a.date().toString(), "category", a.category(), "hours", a.hours(), "earned", a.earned(),
+                    "recipient", (a.orgName() == null ? "기관" : a.orgName()) + " (단체 봉사)", "elder", false, "group", true));
+        }
+        items.sort(Comparator.comparing((Map<String, Object> m) -> (String) m.get("date")));
+        int count = done.size() + groupCount;
         List<Map<String, Object>> cats = new ArrayList<>();
         byCat.forEach((k, v) -> cats.add(Views.map("category", k, "count", (int) v[0], "hours", v[1])));
         cats.sort(Comparator.comparingInt((Map<String, Object> c) -> -(int) c.get("count")));
         String period = f != null || t != null ? (f == null ? "처음" : f.toString()) + " ~ " + (t == null ? java.time.LocalDate.now().toString() : t.toString())
-                : done.isEmpty() ? null : done.get(0).date + " ~ " + done.get(done.size() - 1).date;
+                : items.isEmpty() ? null : items.get(0).get("date") + " ~ " + items.get(items.size() - 1).get("date");
         Map<String, Object> out = Views.map("name", u.name, "accountNo", BankService.accountNo(u.id), "period", period,
                 "from", f == null ? null : f.toString(), "to", t == null ? null : t.toString(),
-                "totalHours", total, "totalEarned", earned, "count", done.size(), "elderCount", elderCount,
+                "totalHours", total, "totalEarned", earned, "count", count, "groupCount", groupCount, "elderCount", elderCount,
                 "byCategory", cats, "items", items, "issuedAt", java.time.LocalDate.now().toString());
-        Map<String, Object> facts = Views.map("period", period, "count", done.size(), "totalHours", total, "elderCount", elderCount, "byCategory", cats);
-        Map<String, Object> s = done.isEmpty() ? Views.map("text", null, "source", "rule") : certAi.summary(facts, certRuleText(period, done.size(), total, elderCount, cats));
+        Map<String, Object> facts = Views.map("period", period, "count", count, "totalHours", total, "elderCount", elderCount, "byCategory", cats);
+        Map<String, Object> s = count == 0 ? Views.map("text", null, "source", "rule") : certAi.summary(facts, certRuleText(period, count, total, elderCount, cats));
         out.put("summary", s.get("text"));
         out.put("summarySource", s.get("source"));
         return out;

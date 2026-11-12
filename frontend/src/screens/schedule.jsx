@@ -18,12 +18,23 @@ const keyOf = (elderId, date) => `${elderId}|${date}`;
 function SuggestSheet({ cell, onPost, onClose }) {
   const nav = useNavigate();
   const [r] = useLoad(() => post('/org/schedule/suggest', { elderId: cell.elderId, date: cell.date, startHour: cell.startHour, hours: cell.hours, category: cell.category }), []);
-  const go = (c) => { onClose(); nav(c.action === 'REQUEST' ? `/req/new?post=${c.offerPostId}&elder=${cell.elderId}` : `/regular?elder=${cell.elderId}`); };
-  const Cand = ({ c }) => (
+  // 고른 칸의 날짜·시간·도움 종류·대상을 요청 화면에 미리 채워 넘긴다(다른 요일 후보는 그 요일 날짜로)
+  const go = (c, date) => {
+    const sl = (r && r.slot) || cell;
+    const q = new URLSearchParams({ elder: cell.elderId, date: date || sl.date || cell.date });
+    if (sl.startHour != null) q.set('s', sl.startHour);
+    if (sl.hours != null) q.set('h', sl.hours);
+    if (sl.category) q.set('cat', sl.category);
+    onClose();
+    nav(c.action === 'REQUEST' ? `/req/new?post=${c.offerPostId}&${q}` : `/req/new?to=${c.volunteerId}&${q}`);
+  };
+  const Cand = ({ c, date }) => (
     <div className="sch-row">
       <div className="between"><span className="b">{c.name} {c.regular && <span className="st ok">단골</span>} {c.sameDong && <span className="st go">같은 동</span>}</span>{c.ratingCount > 0 && <span className="mute2">★ {c.ratingAvg}</span>}</div>
       <div className="small" style={{ marginTop: 4 }}>{c.reason}</div>
-      <button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => go(c)}>{c.action === 'REQUEST' ? '이 봉사자 공고에 요청하러 가기 ›' : '단골 요청하러 가기 ›'}</button>
+      {c.action === 'POST'
+        ? <div className="mute2" style={{ marginTop: 6 }}>공고도 단골도 아니라 바로 요청할 수는 없어요. 아래 "이 칸에 공고 올리기"로 올려 두면 볼 수 있어요.</div>
+        : <button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => go(c, date)}>{c.action === 'REQUEST' ? '이 봉사자 공고에 요청하러 가기 ›' : '단골 요청하러 가기 ›'}</button>}
     </div>
   );
   return (
@@ -42,10 +53,11 @@ function SuggestSheet({ cell, onPost, onClose }) {
           {r.alternatives.map((a) => (
             <div key={a.date}>
               <div className="small b" style={{ marginTop: 8 }}>{a.label}({a.dow}) · {a.count}명</div>
-              {a.candidates.map((c) => <Cand key={c.volunteerId} c={c} />)}
+              {a.candidates.map((c) => <Cand key={c.volunteerId} c={c} date={a.date} />)}
             </div>
           ))}
           <button className="btn" style={{ marginTop: 12 }} onClick={() => onPost(r.postDraft)}>이 칸에 공고 올리기</button>
+          <button className="btn ghost sm" style={{ marginTop: 8 }} onClick={() => { const sl = r.slot || {}; onClose(); nav(`/recurring/new?elder=${cell.elderId}&start=${sl.date || cell.date}${sl.startHour != null ? `&s=${sl.startHour}&h=${sl.hours || 1}` : ''}${sl.category ? `&cat=${encodeURIComponent(sl.category)}` : ''}`); }}>매주 이 요일이면 정기 요청으로 등록 ›</button>
           <div className="mute2" style={{ marginTop: 8 }}>{r.notice}</div>
         </>
       )}
@@ -138,6 +150,7 @@ export function OSchedule() {
             {(data.filter || []).map((e) => <button key={e.elderId} role="tab" aria-selected={String(e.elderId) === elderId} className={'chip ' + (String(e.elderId) === elderId ? 'on' : '')} onClick={() => go({ elder: String(e.elderId) })}>{e.displayName}</button>)}
             {!data.thisWeek && <button className="chip" onClick={() => go({ week: '' })}>이번 주로</button>}
           </div>
+          {elderId && <div className="mute2" style={{ marginBottom: 8 }}>매주 같은 요일에 필요한 도움은 → <button type="button" className="linkbtn" onClick={() => nav(`/recurring?elder=${elderId}`)}>이 대상의 정기 요청 관리</button></div>}
           {!data.elders.length ? <Empty>담당 대상이 없어요</Empty> : (
             <div className="sch-wrap">
               <table className="sch" aria-label="주간 돌봄 편성표">

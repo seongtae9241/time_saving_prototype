@@ -107,12 +107,22 @@ export function RecurringList() {
   const [sp] = useSearchParams();
   const elderId = sp.get('elder');
   const [list, reload] = useLoad(() => api(`/recurring${elderId ? `?elderId=${elderId}` : ''}`), [elderId]);
+  const { me } = useAuth();
+  const org = me && me.role === 'ORG';
+  // 담당자가 대상을 고르지 않고 들어오면(마이 › 대상 정기 요청) 담당 대상 전체의 정기 요청을 보고, 등록할 대상을 고른다
+  const [elders] = useLoad(() => (org && !elderId ? api('/org/elders', { quiet: true }).catch(() => []) : Promise.resolve([])), [org, elderId]);
+  const pickable = (elders || []).filter((e) => e.status !== 'ENDED');
   const live = (list || []).filter((r) => r.status === 'ACTIVE' || r.status === 'PAUSED');
   const past = (list || []).filter((r) => !live.includes(r));
   return (
-    <Screen title={elderId ? '대상 정기 요청' : '내 정기 요청'} noTabs>
+    <Screen title={elderId || org ? '대상 정기 요청' : '내 정기 요청'} noTabs>
       <p className="su-p" style={{ marginTop: 0 }}>매주 같은 요일·시간에 필요한 도움을 정해 두면, 회차마다 공고가 자동으로 올라가요. 봉사 제안의 수락·거절은 회차마다 직접 해요.</p>
-      <button className="btn soft" onClick={() => nav(`/recurring/new${elderId ? `?elder=${elderId}` : ''}`)}>+ 정기 요청 등록하기</button>
+      {org && !elderId ? (
+        <>
+          <label className="f" style={{ marginTop: 0 }}>누구 대신 등록할까요?</label>
+          <div className="tags">{pickable.length ? pickable.map((e) => <button key={e.id} className="chip" onClick={() => nav(`/recurring/new?elder=${e.id}`)}>+ {e.alias} 님</button>) : <span className="mute2">담당 대상이 없어요</span>}</div>
+        </>
+      ) : <button className="btn soft" onClick={() => nav(`/recurring/new${elderId ? `?elder=${elderId}` : ''}`)}>+ 정기 요청 등록하기</button>}
       {list === undefined ? <Loading /> : (
         <>
           <div className="sec-t"><span>진행 중 <span style={{ color: 'var(--brand)' }}>{live.length}</span>개</span></div>
@@ -135,17 +145,24 @@ export function RecurringNew() {
   const { toast } = useUi();
   const [busy, run] = useBusy();
   // 대화형·말로 요청하기 초안에서 넘어온 값(매주라고 말했을 때) 또는 지난 공고에서 넘어온 값
-  const d0 = (loc.state && loc.state.draft) || {};
+  const d0 = { ...((loc.state && loc.state.draft) || {}) };
   const [elder] = useLoad(() => (elderId ? api(`/org/elders/${elderId}`) : Promise.resolve(null)), [elderId]);
   const [links] = useLoad(() => (elderId || !me || me.role !== 'USER' ? Promise.resolve([]) : api('/family', { quiet: true }).catch(() => [])), [elderId]);
   const linked = (links || []).filter((f) => f.status === 'ACCEPTED' && f.user);
+  // 편성표(기능 O-12)에서 넘어오면 고른 칸의 날짜(→ 요일)·시간·도움 종류를 미리 채운다
+  const qStart = /^\d{4}-\d{2}-\d{2}$/.test(sp.get('start') || '') && sp.get('start') > todayISO() ? sp.get('start') : null;
+  const qS = sp.get('s') && !Number.isNaN(Number(sp.get('s'))) ? Math.min(19.5, Math.max(8, Number(sp.get('s')))) : null;
+  const qH = Number(sp.get('h')) >= 0.5 && Number(sp.get('h')) <= 4 ? Number(sp.get('h')) : 1;
+  if (qStart && !d0.date) d0.date = qStart;
+  if (qS != null && d0.startHour == null) { d0.startHour = qS; d0.endHour = Math.min(20, qS + qH); }
+  if (sp.get('cat') && !d0.categories && CATS.some((c) => c.k === sp.get('cat'))) d0.categories = [sp.get('cat')];
   const start0 = d0.date && d0.date > todayISO() ? d0.date : addDays(1);
   const [f, setF] = useState({
     weekday: (d0.repeat && d0.repeat.weekday) || isoDow(start0), startDate: start0, weeks: 4,
     startHour: d0.startHour != null ? Number(d0.startHour) : 10, endHour: d0.endHour != null ? Number(d0.endHour) : 12,
     estHours: d0.estHours != null ? Number(d0.estHours) : null,
     area: d0.area || '', categories: d0.categories || [], title: d0.title || '', detail: d0.detail || '', note: d0.note || '',
-    forUserId: (loc.state && loc.state.forUserId) || null, elderIssue: null,
+    forUserId: (loc.state && loc.state.forUserId) || null, elderIssue: d0.elderIssue || null, // 기능 O-04: 대화에서 넘어온 주의사항은 이슈 칸으로
   });
   if (!me || (elderId && elder === undefined)) return <Screen title="정기 요청 등록" noTabs><Loading /></Screen>;
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }));

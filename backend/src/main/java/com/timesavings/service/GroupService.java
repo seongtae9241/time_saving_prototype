@@ -34,6 +34,10 @@ public class GroupService {
     public static final int MIN_PEOPLE = 2, MAX_PEOPLE = 50;
     public static final double WEIGHT = 1.0;
     private static final String NEED_ID = "신분증 인증이 끝난 뒤 참여할 수 있어요";
+    private static final String NEED_EDU = "첫 활동 교육(안전 교육)을 마친 뒤 참여할 수 있어요. 마이 › 봉사 인증에서 첫 활동 연습을 끝까지 해 주세요";
+
+    /** 기능 U-34: 봉사 자격 검사(신분증 + 첫 활동 교육 필수 설정)는 1:1 과 같이 VolunteerGate 한 곳에서 한다. */
+    @org.springframework.beans.factory.annotation.Autowired private VolunteerGate gate;
 
     private final GroupPostRepo posts;
     private final GroupParticipantRepo parts;
@@ -87,6 +91,7 @@ public class GroupService {
             if (me.status != UserStatus.ACTIVE) throw ApiException.forbidden("지금은 공고를 올릴 수 없는 계정이에요");
             if (RECRUIT.equals(kind)) throw ApiException.forbidden("단체 모집 공고는 기관 담당자만 올릴 수 있어요. 함께 봉사할 단체가 있으면 '단체 봉사 가능' 공고로 올려 주세요");
             if (me.idStatus != VerifyStatus.APPROVED) throw ApiException.bad("ID_NOT_VERIFIED", "신분증 인증이 끝나야 단체 봉사 공고를 올릴 수 있어요");
+            if (!me.eduDone && gate.eduRequired()) throw ApiException.bad("EDU_REQUIRED", "첫 활동 교육(안전 교육)을 마쳐야 단체 봉사 공고를 올릴 수 있어요. 마이 › 봉사 인증에서 첫 활동 연습을 끝까지 해 주세요");
         } else if (!isOrg(me)) throw ApiException.forbidden("단체 공고를 올릴 수 없는 계정이에요");
         int cap = c.capacity() == null ? 0 : c.capacity();
         if (cap < MIN_PEOPLE) throw ApiException.bad("INVALID_CAPACITY", "단체 공고는 2명 이상이어야 해요. 혼자 하는 봉사는 일반 공고로 올려 주세요");
@@ -147,14 +152,19 @@ public class GroupService {
         if (past(g)) return "날짜가 지난 단체 공고예요";
         if (mine(g, u) != null) return "이미 참여 신청했어요";
         if (u.idStatus != VerifyStatus.APPROVED) return NEED_ID;
+        if (!u.eduDone && gate.eduRequired()) return NEED_EDU;
         if (active(g).size() >= g.capacity) return "모집 인원이 다 찼어요";
         return null;
     }
 
+    /** 인원을 세고 바꾸는 동안 공고 행을 잠근다(트랜잭션이 끝날 때 풀린다). 뒤에 온 신청은 기다렸다가 인원을 다시 센다. */
+    private GroupPost locked(Long id) { return posts.findForUpdate(id).orElseThrow(() -> ApiException.notFound("단체 공고를 찾을 수 없어요")); }
+
     public GroupParticipant join(User me, Long id) {
-        GroupPost g = get(id);
+        GroupPost g = locked(id);
         String why = joinBlock(g, me);
         if (NEED_ID.equals(why)) throw ApiException.bad("ID_NOT_VERIFIED", why);
+        if (NEED_EDU.equals(why)) throw ApiException.bad("EDU_REQUIRED", why);
         if (why != null) throw ApiException.conflict("CANNOT_JOIN", why);
         // 같은 시간에 이미 참여하기로 한 다른 단체 봉사가 있으면 막는다
         for (GroupParticipant p : parts.findByUserId(me.id)) {
@@ -221,7 +231,7 @@ public class GroupService {
 
     // ---------------- 참석 확인·완료 → 개인별 적립 ----------------
     public Map<String, Object> complete(User me, Long id, List<Long> attended) {
-        GroupPost g = get(id);
+        GroupPost g = locked(id); // 두 담당자가 동시에 완료를 눌러 두 번 적립되는 것도 막는다
         if (!confirmSide(g, me)) {
             if (OFFER.equals(g.kind) && g.hostOrgId == null) throw ApiException.conflict("NOT_HOSTED", "아직 이 단체 봉사를 받기로 한 기관이 없어요");
             throw ApiException.forbidden(RECRUIT.equals(g.kind) ? "공고를 올린 기관의 담당자만 참석을 확인할 수 있어요" : "단체 봉사를 받은 기관의 담당자만 참석을 확인할 수 있어요");
@@ -345,7 +355,40 @@ public class GroupService {
         return out;
     }
 
-    /** GET /api/me/planner 응답에 그 달의 단체 일정을 더한다(달력에 같이 보이게). 목표 계산(goal)은 건드리지 않는다. */
+    /** 참석이 확인돼 적립된 단체 봉사 한 건(확인서·월별 리포트·횟수 요약·목표·운영자 통계가 1:1 완료 활동과 함께 센다). */
+    public record Attended(Long groupPostId, Long userId, LocalDate date, String category, double hours, double earned, String title, String orgName, String area, LocalDateTime doneAt) {}
+
+    private Attended attendedOf(GroupParticipant p, GroupPost g) {
+        String org = RECRUIT.equals(g.kind) ? orgName(g.orgId) : orgName(g.hostOrgId);
+        return new Attended(g.id, p.userId, g.date, g.category, g.hours, p.earned == null ? 0 : p.earned, g.title, org, g.area, g.doneAt);
+    }
+
+    /** 한 사람이 참석 확인을 받은 단체 봉사(날짜순). */
+    @Transactional(readOnly = true)
+    public List<Attended> attendedBy(Long userId) {
+        List<Attended> out = new ArrayList<>();
+        for (GroupParticipant p : parts.findByUserId(userId)) {
+            if (!"ATTENDED".equals(p.status)) continue;
+            posts.findById(p.groupPostId).ifPresent(g -> out.add(attendedOf(p, g)));
+        }
+        out.sort(Comparator.comparing(Attended::date));
+        return out;
+    }
+
+    /** 모든 사람의 참석 확인된 단체 봉사(운영자 통계용). 한 사람 한 번 참석 = 한 건. */
+    @Transactional(readOnly = true)
+    public List<Attended> attendedAll() {
+        Map<Long, GroupPost> byId = new HashMap<>();
+        posts.findAll().forEach(g -> byId.put(g.id, g));
+        List<Attended> out = new ArrayList<>();
+        for (GroupParticipant p : parts.findAll()) {
+            GroupPost g = byId.get(p.groupPostId);
+            if (g != null && "ATTENDED".equals(p.status)) out.add(attendedOf(p, g));
+        }
+        return out;
+    }
+
+    /** GET /api/me/planner 응답에 그 달의 단체 일정을 더한다(달력에 같이 보이게). 목표의 '확정' 시간에는 PlannerService 가 schedule() 로 더한다. */
     @SuppressWarnings("unchecked")
     public void addToPlanner(User me, Map<String, Object> planner) {
         if (planner == null || !(planner.get("items") instanceof List<?> raw) || !(planner.get("month") instanceof String month)) return;

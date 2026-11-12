@@ -383,7 +383,7 @@ export function WriteNeed() {
               const base = tidyFix ? { ...m.res.draft, title: tidyFix.title || m.res.draft.title, detail: tidyFix.detail || m.res.draft.detail, caution: tidyFix.caution || m.res.draft.caution } : m.res.draft;
               const md = mergeChecks(base, chk);
               // 기능 U-09: "매주"라고 했으면 정리한 내용을 그대로 들고 정기 요청 등록 화면으로 간다(등록은 거기서 사용자가 누른다)
-              const toRecurring = () => nav(`/recurring/new${elderId ? `?elder=${elderId}` : ''}`, { state: { draft: { ...md, title: (tidyFix && tidyFix.title) || md.title, note: md.caution ? `방문 시 주의: ${md.caution}` : md.note }, forUserId: familyMode && famUser ? famUser.id : null } });
+              const toRecurring = () => nav(`/recurring/new${elderId ? `?elder=${elderId}` : ''}`, { state: { draft: { ...md, title: (tidyFix && tidyFix.title) || md.title, note: elderId ? md.note : md.caution ? `방문 시 주의: ${md.caution}` : md.note, ...(elderId && md.caution ? { elderIssue: String(md.caution).slice(0, 300) } : {}) }, forUserId: familyMode && famUser ? famUser.id : null } });
               return <div className="mrow" key={i}><Bot /><div className="mcol wide"><DraftCard r={{ ...m.res, draft: md }} elderId={elderId} forName={family ? who : null} onReset={reset} onPost={() => publish(m.res)} posting={posting} onRecurring={toRecurring}
                 check={<PostCheck draft={base} elderId={elderId} onChange={setChk} />} /></div></div>;
             }

@@ -370,7 +370,7 @@ export function AManage() {
         <Mi t="공지사항" s="등록·수정·고정·삭제" i="file" onClick={() => nav('/a/notices')} />
         <Mi t="리포트" s="재정 추계 · 정책 시뮬레이션 · 봉사 리포트" i="chart" onClick={() => nav('/a/forecast')} />
         <Mi t="대응 추천 · 특보 알림" s="모집 문구 초안 · 기상 특보 리포트와 전달" i="flag" onClick={() => nav('/a/weather')} />
-        <Mi t="봉사 인증 항목 설정" s="신분증 · 범죄경력(선택)" i="shield" onClick={() => nav('/a/verify')} />
+        <Mi t="봉사 인증 항목 설정" s="신분증 · 첫 활동 교육 · 범죄경력(선택)" i="shield" onClick={() => nav('/a/verify')} />
         <Mi t="카테고리 건의" s="사용자·담당자가 건의한 새 종류 · 답변" i="flag" onClick={() => nav('/a/suggest')} />
         <Mi t="공공 서비스 정보" s="AI 안내에 쓰는 DB" i="building" onClick={() => nav('/a/pub')} />
         <Mi t="기관 클래스" s="공공기관 강좌 · CSV 가져오기 · AI 다시 찾기" i="cap" onClick={() => nav('/a/classes')} />

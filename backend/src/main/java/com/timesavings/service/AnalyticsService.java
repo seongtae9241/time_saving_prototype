@@ -70,14 +70,14 @@ public class AnalyticsService {
         for (Post p : posts) {
             if (p.status == PostStatus.DELETED || p.createdAt == null || p.createdAt.isBefore(since)) continue;
             for (String c : p.categories) {
-                int[] v = m.get(c);
+                int[] v = statRow(m, c);
                 if (v == null) continue;
                 if (p.type == PostType.NEED) v[0]++; else v[2]++;
             }
         }
         for (Request r : reqs) {
             if (r.createdAt == null || r.createdAt.isBefore(since)) continue;
-            int[] v = m.get(r.category);
+            int[] v = statRow(m, r.category);
             if (v == null) continue;
             if (r.kind != Kind.PROPOSAL) v[1]++;
             boolean accepted = r.status == ReqStatus.VOL_ACCEPTED || r.status.active() || r.status == ReqStatus.DONE || r.status == ReqStatus.NOSHOW;
@@ -94,6 +94,14 @@ public class AnalyticsService {
         return out;
     }
 
+    /** 기능 A-15: 운영자가 승인해 더한 카테고리도 자기 이름으로 집계한다(기본 6종 뒤에 줄이 생긴다). 카테고리가 아닌 값은 세지 않는다. */
+    private static int[] statRow(Map<String, int[]> m, String cat) {
+        if (cat == null) return null;
+        int[] v = m.get(cat);
+        if (v == null && Rules.isCategory(cat)) { v = new int[4]; m.put(cat, v); }
+        return v;
+    }
+
     private static boolean accepted(Request r) {
         return r.status == ReqStatus.VOL_ACCEPTED || r.status.active() || r.status == ReqStatus.DONE || r.status == ReqStatus.NOSHOW;
     }
@@ -101,7 +109,9 @@ public class AnalyticsService {
     /** 묶음 키(지역·계절) → 카테고리 → [수요, 공급]. 수요·공급 뜻은 {@link #supplyDemand} 와 같다. */
     private static void add(Map<String, Map<String, int[]>> m, String key, String cat, int demand, int supply) {
         if (key == null || key.isBlank() || cat == null || !Rules.isCategory(cat)) return;
-        int[] v = m.computeIfAbsent(key, k -> { Map<String, int[]> c = new LinkedHashMap<>(); for (String x : Rules.CATEGORIES) c.put(x, new int[2]); return c; }).get(cat);
+        // 기능 A-15: 더한 카테고리는 기본 6종 뒤에 자기 줄을 만든다(예전에는 여기서 null 이 나와 통계 화면이 깨졌다)
+        int[] v = m.computeIfAbsent(key, k -> { Map<String, int[]> c = new LinkedHashMap<>(); for (String x : Rules.CATEGORIES) c.put(x, new int[2]); return c; })
+                .computeIfAbsent(cat, k -> new int[2]);
         v[0] += demand; v[1] += supply;
     }
 
@@ -160,6 +170,8 @@ public class AnalyticsService {
         return out;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private GroupService groups;
+
     public Map<String, Object> analytics() {
         List<Request> all = requests.findAll();
         Map<Long, User> userMap = new HashMap<>();
@@ -178,6 +190,13 @@ public class AnalyticsService {
             if (va != null) volAge.computeIfAbsent(va, k -> new HashMap<>()).merge(r.category, 1, Integer::sum);
         }
 
+        // 단체 봉사(기능 U-10): 참석이 확인된 건도 봉사자 나이대별·월별 봉사 횟수에 넣는다
+        List<GroupService.Attended> grp = groups == null ? List.of()
+                : groups.attendedAll().stream().filter(a -> a.date() != null && !a.date().isBefore(from) && a.category() != null).toList();
+        for (GroupService.Attended a : grp) {
+            String va = Optional.ofNullable(userMap.get(a.userId())).map(u -> u.ageGroup).orElse(null);
+            if (va != null) volAge.computeIfAbsent(va, k -> new HashMap<>()).merge(a.category(), 1, Integer::sum);
+        }
         List<Map<String, Object>> monthly = new ArrayList<>();
         Map<String, Map<String, Integer>> seasons = new LinkedHashMap<>();
         for (int i = 11; i >= 0; i--) {
@@ -185,6 +204,7 @@ public class AnalyticsService {
             Map<String, Integer> cnt = new LinkedHashMap<>();
             for (String c : Rules.CATEGORIES) cnt.put(c, 0);
             done.stream().filter(r -> YearMonth.from(r.date).equals(ym)).forEach(r -> cnt.merge(r.category, 1, Integer::sum));
+            grp.stream().filter(a -> YearMonth.from(a.date()).equals(ym)).forEach(a -> cnt.merge(a.category(), 1, Integer::sum));
             int total = cnt.values().stream().mapToInt(Integer::intValue).sum();
             List<Map<String, Object>> top = topCats(cnt, 1);
             monthly.add(Views.map("month", ym.toString(), "season", season(ym.getMonthValue()), "total", total, "counts", cnt,

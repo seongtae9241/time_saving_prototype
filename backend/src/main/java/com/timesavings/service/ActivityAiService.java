@@ -97,6 +97,10 @@ public class ActivityAiService {
         String dong = e != null ? e.dong : p != null && p.area != null ? p.area : rec != null ? rec.area : null;
         String caution = e != null ? e.caution
                 : p != null && p.type == PostType.NEED && rec != null && rec.id.equals(p.ownerId) ? p.note : null;
+        // 기능 O-04: 담당자가 그 공고에만 적은 이슈 메모(관리 대상 특이사항)도 확정된 봉사자의 브리핑에 넣는다
+        // (브리핑은 일정이 확정된 봉사자만 볼 수 있다 — briefing() 의 확인 참고)
+        String issue = e != null && p != null && e.id.equals(p.elderId) && p.issueNote != null && !p.issueNote.isBlank() ? p.issueNote.trim() : null;
+        if (issue != null) caution = caution == null || caution.isBlank() ? issue : caution.contains(issue) ? caution : caution.trim() + " / " + issue;
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("alias", alias);
         m.put("dong", dong);

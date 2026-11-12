@@ -249,6 +249,8 @@ public class TimePlanService {
     }
 
     // ===================== 기능 U-25 월별 리포트 =====================
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private GroupService groups;
+
     /** 그 달(활동 날짜 기준)에 완료된 활동 집계: 봉사(give)·도움 받음(receive)의 횟수·시간·카테고리별 횟수·가장 많이 한 도움. */
     public Map<String, Object> monthStats(Long userId, YearMonth ym) {
         Map<String, Object> out = new LinkedHashMap<>();
@@ -264,6 +266,15 @@ public class TimePlanService {
                 amount += r.earned == null ? 0 : r.earned;
                 double[] v = cats.computeIfAbsent(r.category, k -> new double[2]);
                 v[0]++; v[1] += hoursOf(r);
+            }
+            // 단체 봉사(기능 U-10): 참석이 확인된 건도 그 달의 봉사에 넣는다
+            if (give && groups != null) for (GroupService.Attended a : groups.attendedBy(userId)) {
+                if (!YearMonth.from(a.date()).equals(ym)) continue;
+                count++;
+                hours += a.hours();
+                amount += a.earned();
+                double[] v = cats.computeIfAbsent(a.category(), k -> new double[2]);
+                v[0]++; v[1] += a.hours();
             }
             List<Map<String, Object>> by = new ArrayList<>();
             cats.forEach((k, v) -> by.add(Views.map("category", k, "count", (int) v[0], "hours", r1(v[1]))));

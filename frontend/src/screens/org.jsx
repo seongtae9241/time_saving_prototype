@@ -202,6 +202,7 @@ export function EDetail() {
       <SignalCard s={sigs[e.id]} who={elderName(e)} />
       {!ended && <div className="qa" style={{ marginTop: 16 }}>{[['공고 대신 등록', 'chat', '#EE8424', () => nav(`/write/need?elder=${id}`)], ['봉사 공고에 요청', 'search', '#5B8DEF', () => nav(`/board?elder=${id}`)], ['단골에게 요청', 'heart', '#E2557F', () => nav(`/regular?elder=${id}`)], ['메모 쓰기', 'pen', '#3A6FD8', focusMemo]].map(([t, i, c, f]) => <button key={t} onClick={f}><span style={{ background: `${c}14`, color: c }}><Ic n={i} s={22} /></span>{t}</button>)}</div>}
       {!ended && <button className="btn soft sm" style={{ marginTop: 10 }} onClick={repost}>↻ 지난 요청 다시 올리기</button>}
+      {!ended && <button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => nav(`/recurring?elder=${id}`)}><Ic n="clock" s={16} /> 정기 요청 (매주 같은 요일) 등록·관리</button>}
       {!ended && <button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => nav(`/voice?elder=${id}`)}><Ic h={I.mic} /> 말로 공고 만들기</button>}
       {!ended && <button className="btn soft sm" style={{ marginTop: 8 }} onClick={() => nav(`/o/memo-posts?elder=${id}`)}><Ic n="spark" s={16} /> 통화 메모로 공고 여러 건 만들기</button>}
       <div className="card" style={{ marginTop: 14 }}>
@@ -399,6 +400,9 @@ export function OMy() {
       <div className="row" style={{ gap: 14 }}><div className="avatar lg" style={{ background: '#E1ECFE', color: '#3A6FD8' }}>{me ? me.name[0] : ''}</div><div className="grow"><div className="b" style={{ fontSize: 20 }}>{me && me.name}</div><div className="mute2">{me && (me.orgName || (me.org && me.org.name))} · 담당자 계정</div></div></div>
       <div className="ml" style={{ marginTop: 16 }}>
         <Mi t="기관 정보" s={me && (me.orgName || (me.org && me.org.name)) || '기관'} i="building" onClick={() => toast(`${(me && (me.orgName || (me.org && me.org.name))) || '기관'} · 담당자 ${me && me.name}`)} />
+        <Mi t="돌봄 편성표" s="주간 일정 · 빈 칸 추천 · 공고 한꺼번에 올리기" i="cal" onClick={() => nav('/o/schedule', { replace: true })} />
+        <Mi t="대상 정기 요청" s="매주 같은 요일·시간으로 대신 등록한 요청 · 일시정지·해지" i="clock" onClick={() => nav('/recurring')} />
+        <Mi t="단체 봉사 공고" s="단체 모집 · 봉사 가능한 단체 받기 · 참석 확인" i="users" onClick={() => nav('/board?tab=group')} />
         <Mi t="기관 소식 운영" s="기관 행사·교실·모임 올리기" i="cal" onClick={() => nav('/o/events')} />
         <Mi t="카테고리 건의" s="6가지 종류에 없는 도움을 운영자에게 건의" i="flag" onClick={() => nav('/my/suggest')} />
         <Mi t="알림" s="대상 관련 알림을 대신 받아요" i="bell" onClick={() => nav('/notif')} />

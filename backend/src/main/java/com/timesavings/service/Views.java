@@ -51,7 +51,26 @@ public class Views {
     }
 
     // ---------------- 평가·단골 ----------------
+    /**
+     * 기능 U-18 "평가는 상대에게 공개되지 않음": 평가가 몇 건 안 되면 평균 별점·칭찬이 곧 그 한두 건이라 누가 무엇을 줬는지 드러난다.
+     * 그래서 공개 평가가 이 수보다 적으면 평균 별점과 자주 받은 칭찬을 보여 주지 않는다("평가가 더 모이면 보여요").
+     */
+    public static final int MIN_PUBLIC_RATINGS = 3;
+
+    /** 화면에 보이는 평균 별점 [평균, 건수]. 공개 평가가 MIN_PUBLIC_RATINGS 건 미만이면 [0, 0](아직 보여 주지 않음). */
     public double[] rating(Long userId) {
+        double[] raw = ratingRaw(userId);
+        return raw[1] < MIN_PUBLIC_RATINGS ? new double[]{0, 0} : raw;
+    }
+
+    /** 평가가 있지만 아직 모자라 가려 둔 상태인가(화면 안내용). */
+    public boolean ratingPending(Long userId) {
+        double n = ratingRaw(userId)[1];
+        return n > 0 && n < MIN_PUBLIC_RATINGS;
+    }
+
+    /** 가리지 않은 평균 [평균, 건수] — 운영자 화면에서만 쓴다. */
+    public double[] ratingRaw(Long userId) {
         List<Rating> list = ratings.findByTargetUserId(userId).stream().filter(r -> !r.isPrivate).toList();
         if (list.isEmpty()) return new double[]{0, 0};
         double avg = list.stream().mapToInt(r -> r.stars).average().orElse(0);
@@ -59,6 +78,7 @@ public class Views {
     }
 
     public List<String> topTags(Long userId, int n) {
+        if (ratingRaw(userId)[1] < MIN_PUBLIC_RATINGS) return List.of(); // 평가가 모자라면 칭찬도 가린다(기능 U-18)
         Map<String, Long> c = ratings.findByTargetUserId(userId).stream().filter(r -> !r.isPrivate)
                 .flatMap(r -> r.tags.stream()).collect(Collectors.groupingBy(t -> t, Collectors.counting()));
         return c.entrySet().stream().sorted(Map.Entry.<String, Long>comparingByValue().reversed()).limit(n).map(Map.Entry::getKey).toList();
@@ -163,7 +183,7 @@ public class Views {
         return map("id", v.id, "name", v.name, "ageGroup", v.ageGroup, "photoUrl", v.photoUrl,
                 "ratingAvg", r[0], "ratingCount", (int) r[1], "intro", v.intro, "experience", v.experience,
                 "tags", topTags(v.id, 3), "crime", v.crimeStatus == VerifyStatus.APPROVED,
-                "isRegular", isRegular);
+                "isRegular", isRegular, "ratingPending", ratingPending(v.id));
     }
 
     /** 공고에 적은 "관리 대상 이슈"가 있으면 그 요청에서는 그것을 주의사항으로 보여 준다(대상 기본 주의사항은 baseCaution 으로 남김). */

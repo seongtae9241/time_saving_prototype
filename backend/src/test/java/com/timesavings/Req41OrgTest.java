@@ -104,23 +104,23 @@ class Req41OrgTest {
     void C01_기관_신청은_재직_증빙이_있어야_하고_운영자가_열어_볼_수_있다() throws Exception {
         // 증빙 없이 JSON 으로 신청 → 막힘
         mvc.perform(post("/api/orgs/apply").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"미래동 주민센터\",\"managerName\":\"김담당\",\"memo\":\"재직증명서: 나중에\"}"))
+                        .content("{\"name\":\"미래동 주민센터\",\"managerName\":\"김담당\",\"address\":\"행복구 미래로 1\",\"memo\":\"재직증명서: 나중에\"}"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("PROOF_REQUIRED"));
         // 없는 파일 주소 → 막힘
         mvc.perform(post("/api/orgs/apply").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"미래동 주민센터\",\"managerName\":\"김담당\",\"proofFileUrl\":\"/api/files/00000000000000000000000000000000.pdf\"}"))
+                        .content("{\"name\":\"미래동 주민센터\",\"managerName\":\"김담당\",\"address\":\"행복구 미래로 1\",\"proofFileUrl\":\"/api/files/00000000000000000000000000000000.pdf\"}"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("PROOF_REQUIRED"));
         // 파일 없이 폼으로 신청 → 막힘
-        mvc.perform(multipart("/api/orgs/apply").param("name", "미래동 주민센터").param("managerName", "김담당"))
+        mvc.perform(multipart("/api/orgs/apply").param("name", "미래동 주민센터").param("managerName", "김담당").param("address", "행복구 미래로 1"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("PROOF_REQUIRED"));
         // 사진·PDF 가 아닌 파일 → 막힘
         mvc.perform(multipart("/api/orgs/apply").file(new MockMultipartFile("proof", "proof.exe", "application/octet-stream", new byte[]{1}))
-                        .param("name", "미래동 주민센터").param("managerName", "김담당"))
+                        .param("name", "미래동 주민센터").param("managerName", "김담당").param("address", "행복구 미래로 1"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("FILE_TYPE"));
         long before = orgs.count();
         // 로그인 없이 신청과 증빙을 한 번에
         mvc.perform(multipart("/api/orgs/apply").file(new MockMultipartFile("proof", "재직증명서.pdf", "application/pdf", "%PDF-1.4 test".getBytes(StandardCharsets.UTF_8)))
-                        .param("name", "미래동 주민센터").param("orgType", "주민센터").param("managerName", "김담당").param("managerPhone", "02-000-0000"))
+                        .param("name", "미래동 주민센터").param("orgType", "주민센터").param("managerName", "김담당").param("address", "행복구 미래로 1").param("managerPhone", "02-000-0000"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("PENDING"));
         assertEquals(before + 1, orgs.count());
         Organization o = orgs.findAll().stream().filter(x -> "미래동 주민센터".equals(x.name)).findFirst().orElseThrow();
@@ -136,7 +136,7 @@ class Req41OrgTest {
         mvc.perform(get(o.proofFileUrl).header("Authorization", tok(usr))).andExpect(status().isForbidden());
         // 올린 주소로 JSON 신청도 된다
         mvc.perform(post("/api/orgs/apply").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"희망동 복지관\",\"managerName\":\"이담당\",\"proofFileUrl\":\"" + o.proofFileUrl + "\"}"))
+                        .content("{\"name\":\"희망동 복지관\",\"managerName\":\"이담당\",\"address\":\"행복구 미래로 1\",\"proofFileUrl\":\"" + o.proofFileUrl + "\"}"))
                 .andExpect(status().isOk());
     }
 

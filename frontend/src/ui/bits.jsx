@@ -35,7 +35,8 @@ export function TBar({ s, e, ss, se }) {
     </>
   );
 }
-export const Stars = ({ r }) => <><span className="stars">★</span> <b>{Number(r || 0).toFixed(1)}</b></>;
+// 기능 U-18: 평가가 3건 미만이면 서버가 평균을 주지 않는다(0) → 숫자 대신 "평가 모으는 중"
+export const Stars = ({ r }) => (Number(r) > 0 ? <><span className="stars">★</span> <b>{Number(r).toFixed(1)}</b></> : <span className="mute2">평가 모으는 중</span>);
 export const StTag = ({ st }) => { const v = ST[st] || ['end', st]; return <span className={`st ${v[0]}`}>{v[1]}</span>; };
 
 export function FlowBar({ r }) {

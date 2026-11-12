@@ -160,6 +160,17 @@ public class CareScheduleService {
 
     /** 그 칸에 넣을 수 있는 후보(코드). 점수 높은 순. */
     List<Map<String, Object>> candidates(Elder e, LocalDate date, double start, double hours, String category, List<Request> allReqs) {
+        return candidates(e, date, start, hours, category, allReqs, true);
+    }
+
+    /** 봉사 자격(신분증 + 첫 활동 교육 필수 설정) — 생성자를 바꾸지 않으려고 필드 주입 */
+    @org.springframework.beans.factory.annotation.Autowired private VolunteerGate gate;
+
+    /**
+     * 순서: 단골 → 그 시간에 봉사 가능 공고를 올린 봉사자 → 같은 동 봉사자(neighbors 가 true 일 때). 같은 묶음 안에서는 점수 높은 순.
+     * 같은 동 봉사자는 공고도 단골도 아니라 바로 요청할 수 없어 action 이 "POST"(공고를 올려 기다리기)다.
+     */
+    List<Map<String, Object>> candidates(Elder e, LocalDate date, double start, double hours, String category, List<Request> allReqs, boolean neighbors) {
         Map<Long, Post> offers = new LinkedHashMap<>(); // 그 요일·시간에 열려 있는 봉사 가능 공고(봉사자별 한 건)
         for (Post p : posts.findByStatus(PostStatus.OPEN)) {
             if (p.type != PostType.OFFER || p.ownerId == null || !p.date.equals(date)) continue;
@@ -170,10 +181,12 @@ public class CareScheduleService {
         Set<Long> regulars = views.regularsOf(null, e.id).stream().map(m -> (Long) m.get("id")).collect(Collectors.toCollection(LinkedHashSet::new));
         Set<Long> pool = new LinkedHashSet<>(regulars);
         pool.addAll(offers.keySet());
+        if (neighbors && e.dong != null) for (User n : users.findAll()) if (e.dong.equals(n.area) && n.role == Role.USER) pool.add(n.id); // 기능 O-12: 같은 동 봉사자
         List<Map<String, Object>> out = new ArrayList<>();
         for (Long vid : pool) {
             User v = users.findById(vid).orElse(null);
             if (v == null || v.status != UserStatus.ACTIVE || v.role != Role.USER || v.idStatus != VerifyStatus.APPROVED) continue;
+            if (gate.block(v, false) != null) continue; // 봉사 자격 없음(첫 활동 교육 필수인데 미이수 등)
             if (blocks.existsByElderIdAndVolunteerId(e.id, vid)) continue; // 받지 않기 목록
             boolean busy = allReqs.stream().anyMatch(r -> vid.equals(r.volunteerId) && !r.status.terminal() && r.date.equals(date)
                     && overlaps(r.startHour, r.hours, start, hours));
@@ -188,16 +201,19 @@ public class CareScheduleService {
             else if (doneWith > 0) facts.add("이 대상을 " + doneWith + "회 도움");
             if (sameDong) facts.add("같은 동(" + e.dong + ")");
             if (offer != null) facts.add("그 시간에 봉사 가능 공고(" + hhmm(offer.startHour) + "~" + hhmm(offer.endHour) + ")");
-            else facts.add("그 시간 공고는 없지만 단골이라 직접 요청할 수 있어요");
+            else if (regular) facts.add("그 시간 공고는 없지만 단골이라 직접 요청할 수 있어요");
+            else facts.add("그 시간 공고는 없어요. 이 칸에 공고를 올리면 볼 수 있어요");
+            int tier = regular ? 0 : offer != null ? 1 : 2;
             if (rt[1] > 0) facts.add("평가 " + rt[0]);
             double score = (regular ? 50 : 0) + Math.min(15, doneWith * 3) + (sameDong ? 20 : 0) + (offer != null ? 30 : 0) + rt[0] * 2;
             out.add(Views.map("volunteerId", vid, "name", v.name, "area", v.area, "ratingAvg", rt[0], "ratingCount", (int) rt[1],
                     "regular", regular, "doneCount", doneWith, "sameDong", sameDong, "timeFit", offer != null,
                     "offerPostId", offer == null ? null : offer.id, "offerStartHour", offer == null ? null : offer.startHour,
                     "offerEndHour", offer == null ? null : offer.endHour,
-                    "action", offer != null ? "REQUEST" : "REGULAR", "facts", facts, "score", Math.round(score * 10) / 10.0));
+                    "action", offer != null ? "REQUEST" : regular ? "REGULAR" : "POST", "tier", tier, "facts", facts, "score", Math.round(score * 10) / 10.0));
         }
-        out.sort(Comparator.comparingDouble((Map<String, Object> m) -> -((Number) m.get("score")).doubleValue())
+        out.sort(Comparator.comparingInt((Map<String, Object> m) -> (Integer) m.get("tier"))
+                .thenComparingDouble(m -> -((Number) m.get("score")).doubleValue())
                 .thenComparing(m -> (Long) m.get("volunteerId")));
         return out.size() > MAX_CANDIDATES ? new ArrayList<>(out.subList(0, MAX_CANDIDATES)) : out;
     }
@@ -226,14 +242,16 @@ public class CareScheduleService {
 
         // 다른 요일 대안: 그날 이 대상에게 겹치는 일정이 없고 후보가 있는 날(가까운 날 먼저, 최대 3일)
         List<Map<String, Object>> alts = new ArrayList<>();
-        if (cands.isEmpty()) {
+        long direct = cands.stream().filter(m -> !"POST".equals(m.get("action"))).count(); // 바로 요청할 수 있는 후보(단골·그 시간 공고)
+        long nearby = cands.size() - direct;                                                // 같은 동이지만 공고를 올려야 하는 후보
+        if (direct == 0) {
             List<LocalDate> near = new ArrayList<>();
             for (int k = 1; k <= 6; k++) { near.add(c.date().plusDays(k)); near.add(c.date().minusDays(k)); }
             for (LocalDate d : near) {
                 if (d.isBefore(today) || alts.size() >= 3) continue;
                 boolean taken = mineReqs.stream().anyMatch(r -> r.date.equals(d) && onBoard(r) && overlaps(r.startHour, r.hours, start, hours));
                 if (taken) continue;
-                List<Map<String, Object>> cs = candidates(e, d, start, hours, cat, all);
+                List<Map<String, Object>> cs = candidates(e, d, start, hours, cat, all, false); // 다른 요일은 바로 요청할 수 있는 후보만
                 if (cs.isEmpty()) continue;
                 alts.add(Views.map("date", d.toString(), "dow", dow(d), "label", d.getMonthValue() + "/" + d.getDayOfMonth(),
                         "count", cs.size(), "candidates", cs));
@@ -244,10 +262,11 @@ public class CareScheduleService {
                 "endHour", Math.min(24, start + hours), "category", cat);
 
         String rule;
-        if (!cands.isEmpty()) rule = slot + "에 맞는 봉사자 " + cands.size() + "명을 찾았어요. 요청은 골라서 직접 보내 주세요.";
-        else if (!alts.isEmpty()) rule = slot + "에는 맞는 봉사자가 없어요. " + alts.stream().map(a -> a.get("dow") + "요일(" + a.get("label") + ") " + a.get("count") + "명")
-                .collect(Collectors.joining(", ")) + "은 가능해요. 요일을 바꾸거나 공고를 올려 보세요.";
-        else rule = slot + "에는 맞는 봉사자가 없고 가까운 다른 요일에도 없어요. 공고를 올려 봉사자를 기다려 보세요.";
+        String nearText = nearby > 0 ? " 같은 동 봉사자 " + nearby + "명은 이 칸에 공고를 올리면 볼 수 있어요." : "";
+        if (direct > 0) rule = slot + "에 맞는 봉사자 " + direct + "명을 찾았어요. 요청은 골라서 직접 보내 주세요." + nearText;
+        else if (!alts.isEmpty()) rule = slot + "에는 바로 요청할 수 있는 봉사자가 없어요. " + alts.stream().map(a -> a.get("dow") + "요일(" + a.get("label") + ") " + a.get("count") + "명")
+                .collect(Collectors.joining(", ")) + "은 가능해요. 요일을 바꾸거나 공고를 올려 보세요." + nearText;
+        else rule = slot + "에는 바로 요청할 수 있는 봉사자가 없고 가까운 다른 요일에도 없어요. 공고를 올려 봉사자를 기다려 보세요." + nearText;
 
         List<List<String>> facts = new ArrayList<>();
         for (Map<String, Object> m : cands) { @SuppressWarnings("unchecked") List<String> f = (List<String>) m.get("facts"); facts.add(f); }

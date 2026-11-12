@@ -152,7 +152,8 @@ export function VoiceReq() {
     const r = await post('/recurring', {
       weekday: (d.repeat && d.repeat.weekday) || undefined, startDate: d.date, weeks, startHour: Number(d.startHour), endHour: Number(d.endHour),
       estHours: Number(d.estHours) || (Number(d.endHour) - Number(d.startHour)), area: d.area || (elder ? elder.dong : me && me.area), categories: d.categories,
-      title: d.title || `${d.categories[0]} 도움`, detail: d.detail || '', note: d.caution ? `방문 시 주의: ${d.caution}` : (d.note || ''),
+      title: d.title || `${d.categories[0]} 도움`, detail: d.detail || '', note: elderId ? (d.note || '') : d.caution ? `방문 시 주의: ${d.caution}` : (d.note || ''),
+      ...(elderId && d.caution ? { elderIssue: String(d.caution).slice(0, 300) } : {}), // 기능 O-04: 대리 정기 요청의 주의사항도 확정된 봉사자에게만
       elderId: elderId ? Number(elderId) : undefined,
     });
     setPhase('posted');

@@ -173,6 +173,9 @@ public class PlannerService {
         return (sameArea ? 3 : 0) + (catMatch ? 2 : 0) + (slotMatch ? 2 : 0);
     }
 
+    /** 단체 봉사 일정(생성자를 바꾸지 않으려고 필드 주입) */
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private GroupService groups;
+
     @Transactional(readOnly = true)
     public Map<String, Object> planner(User u, String month) {
         if (u.role != Role.USER) throw ApiException.forbidden("사용자 계정만 볼 수 있어요");
@@ -193,6 +196,8 @@ public class PlannerService {
                     "category", r.category, "title", r.content, "who", whoOf(r, u), "amount", give ? earn : r.hours,
                     "requestId", r.id, "status", r.status));
         }
+        // 단체 봉사(기능 U-10): 참여 신청했거나 참석이 확인된 단체 봉사의 (예상) 적립 시간도 이번 달 목표의 확정으로 센다
+        if (groups != null) for (Map<String, Object> g : groups.schedule(u, ym)) confirmed += ((Number) g.get("amount")).doubleValue();
         // 내 계획(추천 봉사에서 고른 공고) — 열려 있고 날짜가 안 지난 것만
         List<PlannerPick> myPicks = picks.findByUserId(u.id);
         Set<Long> pickIds = new HashSet<>();
@@ -280,6 +285,14 @@ public class PlannerService {
             items.add(Views.map("kind", "plan", "date", p.date.toString(), "startHour", ps, "endHour", ps + ph, "hours", ph,
                     "category", p.categories.isEmpty() ? null : p.categories.get(0), "title", p.title, "who", card.get("ownerName"),
                     "amount", card.get("estEarn") == null ? 0 : ((Number) card.get("estEarn")).doubleValue(), "postId", p.id, "planSource", pk.planSource));
+        }
+        // 단체 봉사(기능 U-10) 일정도 주 보기에 (봉사하기 쪽 일정)
+        if (!"recv".equals(m) && groups != null) {
+            for (YearMonth gm : new LinkedHashSet<>(List.of(YearMonth.from(from), YearMonth.from(to))))
+                for (Map<String, Object> g : groups.schedule(u, gm)) {
+                    LocalDate gd = LocalDate.parse((String) g.get("date"));
+                    if (!gd.isBefore(from) && !gd.isAfter(to)) items.add(g);
+                }
         }
         items.sort(Comparator.comparing((Map<String, Object> x) -> (String) x.get("date")).thenComparing(x -> ((Number) (x.get("startHour") == null ? 0 : x.get("startHour"))).doubleValue()));
         List<Map<String, Object>> days = new ArrayList<>();

@@ -43,6 +43,7 @@ public class AdminController {
     private final EduService eduSvc;
     private final Views views;
     @org.springframework.beans.factory.annotation.Autowired private RequestService reqSvc;
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private GroupService groups;
 
     public AdminController(UserRepo users, OrganizationRepo orgs, ElderRepo elders, ElderTransferRepo transfers, RequestRepo requests,
                            PostRepo posts, LedgerRepo ledger, MessageRepo messages, DifficultyAppealRepo appeals, ReportRepo reports,
@@ -78,11 +79,15 @@ public class AdminController {
         List<Post> allPosts = posts.findAll();
         List<Ledger> led = ledger.findAll();
         YearMonth now = YearMonth.now();
+        // 단체 봉사(기능 U-10): 참석이 확인된 한 사람 한 번을 활동 한 건으로 함께 센다
+        List<GroupService.Attended> grp = groups == null ? List.of() : groups.attendedAll();
         List<Map<String, Object>> monthly = new ArrayList<>();
         for (int i = 5; i >= 0; i--) {
             YearMonth m = now.minusMonths(i);
+            long groupActs = grp.stream().filter(a -> YearMonth.from(a.date()).equals(m)).count();
             monthly.add(Views.map("month", m.toString(),
-                    "activities", all.stream().filter(r -> r.status == ReqStatus.DONE && YearMonth.from(r.date).equals(m)).count(),
+                    "groupActivities", groupActs,
+                    "activities", groupActs + all.stream().filter(r -> r.status == ReqStatus.DONE && YearMonth.from(r.date).equals(m)).count(),
                     "elderUsage", all.stream().filter(r -> r.status == ReqStatus.DONE && r.elderId != null && YearMonth.from(r.date).equals(m)).count(),
                     "supply", allPosts.stream().filter(p -> p.type == PostType.OFFER && YearMonth.from(p.createdAt).equals(m)).count(),
                     "demand", allPosts.stream().filter(p -> p.type == PostType.NEED && YearMonth.from(p.createdAt).equals(m)).count(),
@@ -119,7 +124,7 @@ public class AdminController {
         long volunteers = users.findAll().stream().filter(u -> u.role == Role.USER && u.idStatus == VerifyStatus.APPROVED).count();
         return Views.map(
                 "supply", cur.get("supply"), "demand", cur.get("demand"), "elderUsage", cur.get("elderUsage"),
-                "kpi", Views.map("activities", cur.get("activities"), "prevActivities", prev.get("activities"),
+                "kpi", Views.map("activities", cur.get("activities"), "prevActivities", prev.get("activities"), "groupActivities", cur.get("groupActivities"),
                         "matchRate", tot == 0 ? 0 : Math.round(mat * 100.0 / tot), "elderUsage", cur.get("elderUsage"), "prevElderUsage", prev.get("elderUsage")),
                 "matchRateByArea", rate,
                 "timeBalance", Views.map("issued", issued, "consumed", consumed, "elderFree", elderFree,
@@ -421,7 +426,7 @@ public class AdminController {
         Map<String, Object> m = userRow(u, all);
         m.put("intro", u.intro);
         m.put("categories", u.categories);
-        double[] r = views.rating(u.id);
+        double[] r = views.ratingRaw(u.id); // 운영자는 건수가 적어도 그대로 본다
         m.put("ratingAvg", r[0]);
         m.put("ratingCount", (int) r[1]);
         m.put("recentRequests", all.stream().filter(x -> u.id.equals(x.volunteerId) || u.id.equals(x.recipientId))

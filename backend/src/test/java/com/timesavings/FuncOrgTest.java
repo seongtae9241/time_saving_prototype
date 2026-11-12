@@ -166,7 +166,13 @@ class FuncOrgTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.slot.category").value("동행")).andExpect(jsonPath("$.slot.startHour").value(10.0)).andExpect(jsonPath("$.slot.hours").value(1.0))
                 .andExpect(jsonPath("$.pattern.weeks").value(3))
-                .andExpect(jsonPath("$.candidates.length()").value(2))
+                // 단골(v1) → 그 시간 공고(v2) → 같은 동 봉사자(v5·usr: 공고도 단골도 아니라 바로 요청은 못 하고 공고 올리기 안내). 받지 않기(v3)·겹침(v4)은 빠진다
+                .andExpect(jsonPath("$.candidates.length()").value(4))
+                .andExpect(jsonPath("$.candidates[2].action").value("POST")).andExpect(jsonPath("$.candidates[3].action").value("POST"))
+                .andExpect(jsonPath("$.candidates[2].sameDong").value(true)).andExpect(jsonPath("$.candidates[2].regular").value(false))
+                .andExpect(jsonPath("$.candidates[2].reason", containsString("공고를 올리면")))
+                .andExpect(jsonPath("$.candidates[*].volunteerId", not(hasItem(v3.id.intValue())))).andExpect(jsonPath("$.candidates[*].volunteerId", not(hasItem(v4.id.intValue()))))
+                .andExpect(jsonPath("$.message", containsString("같은 동 봉사자 2명")))
                 .andExpect(jsonPath("$.candidates[0].volunteerId").value(v1.id)).andExpect(jsonPath("$.candidates[0].regular").value(true))
                 .andExpect(jsonPath("$.candidates[0].sameDong").value(true)).andExpect(jsonPath("$.candidates[0].doneCount").value(3))
                 .andExpect(jsonPath("$.candidates[0].action").value("REGULAR")).andExpect(jsonPath("$.candidates[0].reason", containsString("단골")))
@@ -193,7 +199,9 @@ class FuncOrgTest {
         mvc.perform(post("/api/org/schedule/suggest").header("Authorization", tok(mgr)).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"elderId\":" + e.id + ",\"date\":\"" + tue + "\",\"startHour\":10,\"hours\":1.5,\"category\":\"동행\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.candidates.length()").value(0))
+                // 바로 요청할 수 있는 후보(단골·그 시간 공고)는 없고, 같은 동 봉사자만 공고 올리기 안내로 나온다
+                .andExpect(jsonPath("$.candidates[?(@.action != 'POST')]").isEmpty())
+                .andExpect(jsonPath("$.candidates[?(@.action == 'POST')]").isNotEmpty())
                 .andExpect(jsonPath("$.alternatives.length()").value(1)).andExpect(jsonPath("$.alternatives[0].date").value(tue.plusDays(2).toString()))
                 .andExpect(jsonPath("$.alternatives[0].dow").value("목")).andExpect(jsonPath("$.alternatives[0].count").value(1))
                 .andExpect(jsonPath("$.alternatives[0].candidates[0].volunteerId").value(v2.id))
@@ -203,7 +211,7 @@ class FuncOrgTest {
         // 다른 요일에도 없으면 공고 올리기만 제안
         mvc.perform(post("/api/org/schedule/suggest").header("Authorization", tok(mgr)).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"elderId\":" + e.id + ",\"date\":\"" + tue + "\",\"startHour\":10,\"hours\":1,\"category\":\"생활 정리\"}"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.candidates.length()").value(0)).andExpect(jsonPath("$.alternatives.length()").value(0))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.candidates[?(@.action != 'POST')]").isEmpty()).andExpect(jsonPath("$.alternatives.length()").value(0))
                 .andExpect(jsonPath("$.message", containsString("공고를 올려")));
     }
 

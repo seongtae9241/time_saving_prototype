@@ -38,6 +38,8 @@ public class RecurringController {
     public record Body(Integer weekday, LocalDate startDate, LocalDate endDate, Integer weeks, Double startHour, Double endHour, Double estHours,
                        String area, List<String> categories, String title, String detail, String note, Long elderId, Long forUserId, String elderIssue) {}
 
+    static final String CAUTION_MARK = "방문 시 주의:";
+
     private static String cleanIssue(Body b) {
         if (b.elderIssue() == null || b.elderIssue().isBlank()) return null;
         String t = b.elderIssue().trim();
@@ -63,8 +65,24 @@ public class RecurringController {
     @PostMapping
     public Map<String, Object> create(@CurrentUser User u, @RequestBody Body b) {
         if (b == null) throw ApiException.bad("INVALID", "정기 요청 내용을 다시 확인해 주세요");
+        // 기능 O-04: 대리 정기 요청의 주의사항("방문 시 주의: …")은 공개 칸(note)에 두지 않고 관리 대상 이슈 칸으로 옮긴다
+        // (회차 공고의 note 는 공고를 보는 누구에게나 나가고, 이슈는 확정된 봉사자에게만 보인다)
+        String note = b.note(), issue = cleanIssue(b);
+        if (b.elderId() != null && note != null) {
+            int at = note.indexOf(CAUTION_MARK);
+            if (at >= 0) {
+                String moved = note.substring(at + CAUTION_MARK.length()).trim();
+                note = note.substring(0, at).trim();
+                if (note.isEmpty()) note = null;
+                if (!moved.isEmpty()) {
+                    String joined = issue == null ? moved : issue.contains(moved) ? issue : issue + " / " + moved;
+                    issue = cleanIssue(new Body(null, null, null, null, null, null, null, null, null, null, null, null, b.elderId(), null,
+                            joined.length() > 300 ? joined.substring(0, 300) : joined));
+                }
+            }
+        }
         RecurringService.Created c = svc.create(u, new RecurringService.Cmd(b.weekday(), b.startDate(), b.endDate(), b.weeks(), b.startHour(), b.endHour(),
-                b.estHours(), b.area(), b.categories(), b.title(), b.detail(), b.note(), b.elderId(), b.forUserId(), cleanIssue(b)), LocalDateTime.now());
+                b.estHours(), b.area(), b.categories(), b.title(), b.detail(), note, b.elderId(), b.forUserId(), issue), LocalDateTime.now());
         return withPosts(svc.view(c.rule(), u, LocalDate.now()), c.posts(), u);
     }
 

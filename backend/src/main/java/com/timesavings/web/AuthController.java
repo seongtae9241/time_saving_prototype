@@ -313,7 +313,7 @@ public class AuthController {
                                             @RequestParam(required = false) String managerName, @RequestParam(required = false) String managerPhone,
                                             @RequestParam(required = false) String managerEmail, @RequestParam(required = false) String memo,
                                             @RequestParam(value = "proof", required = false) MultipartFile proof, HttpServletRequest req) {
-        checkOrgApply(name, managerName);
+        checkOrgApply(name, managerName, address);
         if (proof == null || proof.isEmpty()) throw ApiException.bad("PROOF_REQUIRED", "재직 증빙(재직증명서) 파일을 올려 주세요");
         // 파일을 저장하기 직전에 센다: 같은 IP 가 10분에 5번을 넘기면 429(내용이 모자라 400 으로 돌아간 신청은 세지 않는다)
         limiter.check("org-apply", RateLimiter.clientIp(req));
@@ -325,7 +325,7 @@ public class AuthController {
 
     @PostMapping(value = "/orgs/apply", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> orgApply(@RequestBody OrgApplyBody b, HttpServletRequest req) {
-        checkOrgApply(b.name(), b.managerName());
+        checkOrgApply(b.name(), b.managerName(), b.address());
         String url = b.proofFileUrl() == null ? "" : b.proofFileUrl().trim();
         if (!url.startsWith("/api/files/")) throw ApiException.bad("PROOF_REQUIRED", "재직 증빙(재직증명서) 파일을 올려 주세요");
         try { files.path(url.substring("/api/files/".length())); }
@@ -334,9 +334,11 @@ public class AuthController {
         return saveOrgApply(b);
     }
 
-    private static void checkOrgApply(String name, String managerName) {
+    private static void checkOrgApply(String name, String managerName, String address) {
         if (name == null || name.isBlank() || managerName == null || managerName.isBlank())
             throw ApiException.bad("INVALID_INPUT", "기관 이름과 담당자 이름을 적어 주세요");
+        // 기능 C-03: 기관 주소는 화면뿐 아니라 서버에서도 필수(직접 호출로 주소 없는 신청이 들어오지 않게)
+        if (address == null || address.isBlank()) throw ApiException.bad("ADDRESS_REQUIRED", "기관 주소를 적어 주세요");
     }
 
     private Map<String, Object> saveOrgApply(OrgApplyBody b) {
@@ -358,7 +360,7 @@ public class AuthController {
                 "personality", u.personality, "categories", u.categories, "timeSlots", u.timeSlots, "photoUrl", u.photoUrl,
                 "ratingAvg", r[0], "ratingCount", (int) r[1], "tags", views.topTags(u.id, 5),
                 "crime", u.crimeStatus == VerifyStatus.APPROVED, "idVerified", u.idStatus == VerifyStatus.APPROVED, "eduDone", u.eduDone,
-                "regularBadges", views.regularBadges(u.id, viewer.id), "helpCount", helped);
+                "regularBadges", views.regularBadges(u.id, viewer.id), "helpCount", helped, "ratingPending", views.ratingPending(u.id));
     }
 
     // ---------------- 파일 ----------------

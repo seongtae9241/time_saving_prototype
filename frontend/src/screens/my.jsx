@@ -118,6 +118,7 @@ export function My() {
   const [fam] = useLoad(() => api('/family', { quiet: true }), []);
   const [posts] = useLoad(() => api('/posts/mine', { quiet: true }), []);
   const [alerts] = useLoad(() => api('/interest-alerts', { quiet: true }), []);
+  const [sum] = useLoad(() => api('/my/activity-summary?months=1', { quiet: true }).catch(() => null), []); // 단체 봉사까지 센 횟수
   const { sheet, closeSheet } = useUi();
   if (!me) return <Screen title="마이" back={false}><Loading /></Screen>;
   const v = me.verify || { idStatus: me.idStatus, crimeStatus: me.crimeStatus };
@@ -140,14 +141,15 @@ export function My() {
           </div>
         </div>
       </div>
-      <div className="kpis" style={{ marginTop: 16 }}><div><b>{d.filter((r) => r.myRole === 'VOLUNTEER').length}회</b><span>봉사</span></div><div><b>{d.filter((r) => r.myRole === 'RECIPIENT').length}회</b><span>도움 받음</span></div><div><b>{me.ratingAvg ? Number(me.ratingAvg).toFixed(1) : '-'}</b><span>받은 평가</span></div></div>
+      <div className="kpis" style={{ marginTop: 16 }}><div><b>{sum ? sum.totalHelpCount : d.filter((r) => r.myRole === 'VOLUNTEER').length}회</b><span>봉사</span></div><div><b>{sum ? sum.totalReceivedCount : d.filter((r) => r.myRole === 'RECIPIENT').length}회</b><span>도움 받음</span></div><div><b>{me.ratingAvg ? Number(me.ratingAvg).toFixed(1) : '-'}</b><span>받은 평가</span></div></div>
       <div className="card item click" style={{ marginTop: 10 }} role="button" tabIndex={0} onClick={() => nav('/bank', { replace: true })}><div className="ic"><Ic n="wallet" s={20} /></div><div className="grow"><div className="b">시간 통장 {fmt(me.balance)}시간{me.accountNo ? <span className="mute2" style={{ fontWeight: 500 }}> · {me.accountNo}</span> : null}</div><div className="mute2">{last ? `최근: ${last.label} ${last.amount > 0 ? '+' : '−'}${fmt(Math.abs(last.amount))}` : '아직 내역이 없어요'}</div></div>›</div>
       <div className="sec-t">활동</div>
       <div className="ml">
         <Mi t="프로필 관리" s="소개·활동 지역·가능한 시간대·잘하는 도움" i="user" onClick={() => nav('/my/profile')} />
         <Mi t="봉사 인증" s={`신분증 · 첫 활동 교육${me.eduDone ? '(이수)' : v.eduRequired ? '(필수 · 아직 안 했어요)' : ''} · 범죄경력 회보서(선택)`} i="shield" onClick={() => nav('/my/verify')} />
         <Mi t="내 공고" s={`올린 공고 ${(posts || []).length}개`} i="list" onClick={() => nav('/act?seg=posts')} />
-        <Mi t="내 활동" s="도움 받은 활동 · 봉사한 활동 · 월별 횟수" i="cal" onClick={() => nav('/act')} />
+        <Mi t="내 정기 요청" s="매주 같은 요일·시간 도움 · 다음 회차 · 일시정지·해지" i="clock" onClick={() => nav('/recurring')} />
+        <Mi t="내 활동" s="도움 받은 활동 · 봉사한 활동(단체 봉사 포함) · 월별 횟수" i="cal" onClick={() => nav('/act')} />
         <Mi t="단골 관리" s={badges.length ? `받은 단골 배지 ${badges.length}개 · 등록·해지` : '내 단골 · 받은 단골 배지 · 등록·해지'} i="star" onClick={() => sheet(<RegularSheet refresh={refresh} onClose={closeSheet} />)} />
         <Mi t="봉사 확인서 발급" s="기간을 골라 PDF 파일로 받아요" i="file" onClick={() => nav('/my/cert')} />
         <Mi t="AI 분석" s="내 활동·평가 습관 분석 · 봉사 플랜" i="chart" onClick={() => nav('/my/insight')} />
