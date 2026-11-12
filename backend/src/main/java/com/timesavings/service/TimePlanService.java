@@ -155,6 +155,8 @@ public class TimePlanService {
         Double nowYears = useYearly <= 0 ? null : r1(balance / useYearly);
         Double years = useYearly <= 0 ? null : r1(Math.min(MAX_AGE - startAge, saved / useYearly));
         Integer endAge = years == null ? null : (int) Math.floor(startAge + years + 1e-9);
+        // 1년이 안 되면 달 수로 보여 준다
+        Integer helpMonths = useMonthly <= 0 ? null : (int) Math.floor(Math.min((MAX_AGE - startAge) * 12.0, saved / useMonthly) + 1e-9);
         double needTotal = r1(targetYears * useYearly);
         double shortfall = r1(Math.max(0, needTotal - saved));
         // 모으는 기간이 남았으면 그 기간에, 이미 받는 나이면 받는 기간에 나눠 모은다
@@ -167,8 +169,9 @@ public class TimePlanService {
             rows.add(Views.map("category", e.getKey(), "hoursPerMonth", e.getValue(), "weight", w, "costPerMonth", r1(e.getValue() * w),
                     "totalHours", years == null ? null : r1(e.getValue() * 12 * years)));
         }
+        rows.sort(Comparator.comparingDouble((Map<String, Object> m) -> -(double) m.get("costPerMonth"))); // 많이 쓰는 도움부터
         return Views.map("age", age, "startAge", startAge, "saveYears", saveYears, "balance", balance, "earnRate", rate,
-                "useMonthly", useMonthly, "useYearly", useYearly, "saved", saved, "nowYears", nowYears, "years", years, "endAge", endAge,
+                "useMonthly", useMonthly, "useYearly", useYearly, "saved", saved, "nowYears", nowYears, "years", years, "helpMonths", helpMonths, "endAge", endAge,
                 "targetAge", targetAge, "needTotal", needTotal, "shortfall", shortfall, "goalMonthly", goalMonthly,
                 "goalExtra", r1(Math.max(0, goalMonthly - rate)), "onTrack", onTrack, "rows", rows);
     }
@@ -185,7 +188,7 @@ public class TimePlanService {
         if (saveYears > 0) sb.append("이대로면 ").append(p.get("startAge")).append("세에 ").append(n((double) p.get("saved"))).append("시간이 돼요. ");
         if (p.get("years") == null) sb.append("받고 싶은 도움이 정해지면 얼마나 받을 수 있는지 계산해 드려요.");
         else sb.append(pat.usedDefault() ? "보통 " : "비슷한 분들처럼 ").append(helps).append("씩 받으면 ")
-                .append(saveYears > 0 ? p.get("startAge") + "세부터 " : "지금부터 ").append("약 ").append(n((double) p.get("years"))).append("년 동안 도움을 받을 수 있어요.");
+                .append(saveYears > 0 ? p.get("startAge") + "세부터 " : "지금부터 ").append("약 ").append((double) p.get("years") < 1 ? p.get("helpMonths") + "개월" : n((double) p.get("years")) + "년").append(" 동안 도움을 받을 수 있어요.");
         String goal;
         if (p.get("years") == null) goal = "한 달에 1시간부터 모아 보세요.";
         else if (Boolean.TRUE.equals(p.get("onTrack")))

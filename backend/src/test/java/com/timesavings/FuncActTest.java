@@ -230,6 +230,7 @@ class FuncActTest {
 
     // ---------------- 기능 U-24 시간 플랜 ----------------
     @Test
+    @SuppressWarnings("unchecked")
     void 시간_플랜_계산은_가중치를_넣어_몇_년_받을_수_있는지와_적립_목표를_낸다() {
         Map<String, Double> pat = new LinkedHashMap<>();
         pat.put("동행", 2.0); pat.put("말동무·정서", 1.0); // 한 달 2×1.5 + 1×1.0 = 4시간, 한 해 48시간
@@ -250,6 +251,9 @@ class FuncActTest {
         assertEquals(0, now.get("saveYears"));
         assertEquals(2.0, now.get("years"));
         assertEquals(77, now.get("endAge"));
+        assertEquals(24, now.get("helpMonths"));
+        // 많이 쓰는 도움부터: 동행(월 3시간 차감) → 말동무(월 1시간)
+        assertEquals("동행", ((List<Map<String, Object>>) now.get("rows")).get(0).get("category"));
         // 충분히 모으는 사람
         assertEquals(true, TimePlanService.compute(50, 70, 0, 5, pat).get("onTrack"));
     }
