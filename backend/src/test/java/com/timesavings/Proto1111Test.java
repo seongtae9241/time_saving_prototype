@@ -283,12 +283,12 @@ class Proto1111Test {
     @Test
     void 인증_항목_설정은_운영자만_바꾸고_휴대폰_인증은_항상_필수() throws Exception {
         mvc.perform(get("/api/verify-items").header("Authorization", tok(me))).andExpect(status().isOk())
-                .andExpect(jsonPath("$.items", hasSize(5))).andExpect(jsonPath("$.items[4].on").value(false));
-        String body = "{\"items\":[{\"key\":\"phone\",\"on\":false,\"required\":false},{\"key\":\"orientation\",\"on\":true,\"required\":true},{\"key\":\"crime\",\"on\":false,\"required\":true}]}";
+                .andExpect(jsonPath("$.items", hasSize(3))).andExpect(jsonPath("$.items[2].required").value(false));
+        String body = "{\"items\":[{\"key\":\"phone\",\"on\":false,\"required\":false},{\"key\":\"id\",\"on\":true,\"required\":true},{\"key\":\"crime\",\"on\":false,\"required\":true}]}";
         mvc.perform(put("/api/admin/verify-items").header("Authorization", tok(me)).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isForbidden());
         mvc.perform(put("/api/admin/verify-items").header("Authorization", tok(admin)).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].on").value(true)).andExpect(jsonPath("$.items[0].required").value(true))
-                .andExpect(jsonPath("$.items[4].on").value(true)).andExpect(jsonPath("$.items[4].required").value(true))
-                .andExpect(jsonPath("$.items[3].on").value(false)).andExpect(jsonPath("$.items[3].required").value(false));
+                .andExpect(jsonPath("$.items[1].on").value(true)).andExpect(jsonPath("$.items[1].required").value(true))
+                .andExpect(jsonPath("$.items[2].on").value(false)).andExpect(jsonPath("$.items[2].required").value(false));
     }
 }

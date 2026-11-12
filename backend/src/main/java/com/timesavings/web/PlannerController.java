@@ -171,10 +171,8 @@ public class PlannerController {
     /** key, 이름, 설명, 기본 켜짐, 기본 필수, 잠금(끄거나 선택으로 바꿀 수 없음) */
     private static final Object[][] VERIFY_DEFAULT = {
             {"phone", "휴대폰 본인인증", "가입할 때 · 필수", true, true, true},
-            {"id", "신분증 확인", "운영자가 사진 확인", true, true, false},
-            {"edu", "안전 교육 이수", "첫 활동 교육(규칙 카드 · 퀴즈 · AI 역할극)", true, true, false},
-            {"crime", "범죄경력 회보서", "내면 신뢰 배지 · 기관 대상 방문은 필수로", true, false, false},
-            {"orientation", "대면 오리엔테이션", "기관에서 1회 · 선택", false, false, false},
+            {"id", "신분증 인증", "운영자가 확인하고 승인 · 필수", true, true, false},
+            {"crime", "범죄경력 회보서", "내면 신뢰 배지 · 선택", true, false, false},
     };
 
     private List<Map<String, Object>> verifyItems() {
