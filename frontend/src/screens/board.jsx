@@ -14,6 +14,7 @@ import { FixTips } from './assist.jsx';
 import { DIc, useMode } from '../ui/proto.jsx';
 import { useLocationAsk } from '../ui/location.jsx';
 import { useRepost } from '../ui/repost.jsx';
+import { BoardSeg, GroupBoard } from './group.jsx'; // 기능 U-10 단체 공고 탭
 
 const DATES = [['all', '전체 날짜'], ['today', '오늘'], ['week', '이번 주'], ['next', '다음 주']]; // + 날짜 고르기(pick)
 const SLOTS = [['all', '시간대'], ['am', '오전'], ['pm', '오후'], ['eve', '저녁']];
@@ -88,8 +89,10 @@ export function Board() {
   ));
   const dtLabel = dt === 'pick' && pickDate ? dlabel(pickDate) : (DATES.find((d) => d[0] === dt) || DATES[0])[1];
   const eName = elder ? elder.alias + ' 님' : '';
+  if (!elderId && sp.get('tab') === 'group') return <GroupBoard />; // 기능 U-10: 단체 공고 탭(1:1 공고와 분리)
   return (
     <Screen title={elderId ? `${eName} 대신 요청` : '공고'} tab={me && me.role === 'ORG' ? '/o/elders' : '/board'} noTabs={!!elderId} back={elderId ? true : false}>
+      {!elderId && isUser && <BoardSeg />}
       {elderId ? (
         <><div className="lock"><Ic n="users" s={18} /><div><b>{eName}</b>({elder ? elder.dong : ''}) 대신 요청할 도움 가능 공고를 골라요. 대상 시간은 차감되지 않아요.</div></div><div style={{ height: 12 }} /></>
       ) : (

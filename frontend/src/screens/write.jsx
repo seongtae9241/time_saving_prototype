@@ -30,6 +30,7 @@ export function Write() {
       </div>
       <div className="ml" style={{ marginTop: 12 }}>
         <div role="button" tabIndex={0} onClick={() => nav('/write/need/manual')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/write/need/manual'); }}><Ic n="pen" s={20} /><div className="grow">봉사 요청 직접 적기<span>AI 없이 칸을 직접 채워요 (수동)</span></div>›</div>
+        <div role="button" tabIndex={0} onClick={() => nav('/group/new')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/group/new'); }}><Ic n="users" s={20} /><div className="grow">단체로 봉사하기<span>동아리·모임처럼 2명 이상이 함께 봉사할 때 (단체 공고)</span></div>›</div>
         <div role="button" tabIndex={0} onClick={() => nav('/voice')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/voice'); }}><Ic n="mic" s={20} /><div className="grow">말로 요청하기<span>마이크를 누르고 말하면 큰 글씨 요청서로 만들어 드려요</span></div>›</div>
       </div>
       {past.length > 0 && <><div className="sec-t">지난 공고 다시 올리기</div><div className="mute2" style={{ margin: '-4px 0 8px' }}>누르면 같은 내용으로 불러와요. 날짜만 고르면 돼요.</div></>}

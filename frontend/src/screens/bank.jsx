@@ -8,6 +8,7 @@ import { fmt, dshort, ACTIVE_ST, PAST_ST } from '../lib/format.js';
 import { needsMe } from './home.jsx';
 import { MonthNote } from '../ui/ActivityAi.jsx'; // 7.13 B-6
 import { DIc, CalIcon, HmBig, hmTxt, useMode } from '../ui/proto.jsx';
+import { MyGroups } from './group.jsx'; // 기능 U-10: 내 활동에 단체 봉사
 
 /* ---------- 내 활동 (B-46): 마이 안 화면. 도움 받은 활동 / 봉사한 활동 토글 + 월별 횟수 요약 (프로토타입 2026-11-12) ---------- */
 export function Act() {
@@ -38,6 +39,7 @@ export function Act() {
       </div>
       <div className="chips" style={{ marginBottom: 6 }}>{segs.map(([k, t, n]) => <button key={k} className={'chip ' + (seg === k ? 'on' : '')} onClick={() => setSp({ seg: k }, { replace: true })}>{t} {n}</button>)}</div>
       {reqs === undefined ? <Loading /> : body ? (body.length ? body.map((r) => <ReqRow key={r.id} r={r} />) : <Empty>없어요</Empty>) : (mine.length ? mine.map((p) => <PostCard key={p.id} p={{ ...p, mine: true }} />) : <Empty>올린 {give ? '도움 가능' : '봉사 요청'} 공고가 없어요</Empty>)}
+      {give && <MyGroups />}
       {months.length > 0 && (
         <div className="card" style={{ marginTop: 14 }}>
           <div className="between"><span className="b">월별 횟수 요약</span><span className="legend"><i style={{ background: '#6DB3A0' }} />봉사<i style={{ background: '#EE9A7E', marginLeft: 8 }} />도움 받음</span></div>
