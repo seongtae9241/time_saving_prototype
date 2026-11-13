@@ -23,8 +23,10 @@ public class Views {
     private final PostRepo posts;
     private final MessageRepo messages;
     private final RegularMarkRepo marks;
+    private final OrganizationRepo orgs;
 
-    public Views(UserRepo users, ElderRepo elders, RatingRepo ratings, RequestRepo requests, PostRepo posts, MessageRepo messages, RegularMarkRepo marks) {
+    public Views(UserRepo users, ElderRepo elders, RatingRepo ratings, RequestRepo requests, PostRepo posts, MessageRepo messages, RegularMarkRepo marks, OrganizationRepo orgs) {
+        this.orgs = orgs;
         this.marks = marks;
         this.users = users;
         this.elders = elders;
@@ -257,6 +259,14 @@ public class Views {
                     "crime", owner.crimeStatus == VerifyStatus.APPROVED, "intro", owner.intro, "photoUrl", owner.photoUrl));
         } else {
             m.put("owner", null);
+        }
+        // 공고 상세의 '담당자' 칸: 관리 대상 공고는 담당 기관과 담당자 이름을 보여 준다(연락처는 주지 않는다)
+        if (elder != null && elder.managerId != null) {
+            User mgr = users.findById(elder.managerId).orElse(null);
+            Organization org = mgr == null || mgr.orgId == null ? null : orgs.findById(mgr.orgId).orElse(null);
+            m.put("manager", mgr == null ? null : map("name", mgr.name, "orgName", org == null ? null : org.name, "orgType", org == null ? null : org.orgType));
+        } else {
+            m.put("manager", null);
         }
         boolean mine = viewer != null && (viewer.id.equals(p.ownerId) || manager);
         m.put("mine", mine);

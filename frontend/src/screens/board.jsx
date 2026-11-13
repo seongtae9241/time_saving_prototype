@@ -181,7 +181,9 @@ export function PostDetail() {
         <div className="notice" style={{ marginTop: 12 }}><Ic n="repeat" s={15} /> <b>{p.repeatRule}</b> 정기 요청의 회차 공고예요. 이 공고에도 요청 1건만 수락돼요.{(mine || proxyMine) && <> <a role="button" tabIndex={0} style={{ color: 'var(--brand)', fontWeight: 700 }} onClick={() => nav(p.elderId ? `/recurring?elder=${p.elderId}` : '/recurring')}>정기 요청 관리 ›</a></>}</div>
       )}
       {mine && <FixTips p={p} />}
-      <div className="card" style={{ marginTop: 16 }}>
+      {/* 공고 상세 순서(대표 지시 2026-11-13, 프로토타입 1113): 시간 → 필요한 도움 → 내용 → 담당자 → 봉사 특이사항 및 요청사항(요청자·담당자) */}
+      <label className="f">시간</label>
+      <div className="card">
         <div className="mute2">{offer ? '봉사할 수 있는 시간' : '도움이 필요한 시간'}</div>
         <div className="b" style={{ fontSize: 20, marginTop: 2 }}>{dlabel(p.date)} {hh(p.startHour)} ~ {hh(p.endHour)}</div>
         <TBar s={p.startHour} e={p.endHour} />
@@ -189,8 +191,31 @@ export function PostDetail() {
       </div>
       <label className="f">{offer ? '할 수 있는 도움' : '필요한 도움'}</label>
       <Cats list={postCats(p)} />
-      <label className="f">{offer ? '한마디' : '내용'}</label>
-      <div className="card">{offer ? (p.note || p.title || p.detail) : <><b>{p.title}</b>{p.detail && <div className="muted" style={{ marginTop: 4 }}>{p.detail}</div>}{p.note && <div className="mute2" style={{ marginTop: 4 }}>{p.note}</div>}</>}</div>
+      <label className="f">내용</label>
+      <div className="card">{offer ? (p.title || p.detail || p.note || '내용이 없어요') : <><b>{p.title}</b>{p.detail && <div className="muted" style={{ marginTop: 4 }}>{p.detail}</div>}</>}</div>
+      {w.elder && (
+        <>
+          <label className="f">담당자</label>
+          <div className="card">
+            <div className="b">{p.manager ? [p.manager.orgName, p.manager.name && `${p.manager.name} 담당자`].filter(Boolean).join(' · ') : '기관 담당자'}</div>
+            <div className="mute2" style={{ marginTop: 4 }}>기관에 등록된 분이라 담당자가 대신 요청하고 확인해요. 이름·주소·연락처는 수락 후 담당자가 알려드려요.</div>
+          </div>
+        </>
+      )}
+      <label className="f">봉사 특이사항 및 요청사항</label>
+      <div className="spc">
+        {(() => {
+          // 요청자(도움 가능 공고는 봉사자)가 적은 한마디. 도움 가능 공고에서 내용 칸에 이미 보인 글은 되풀이하지 않는다
+          const body = offer ? (p.title || p.detail || p.note) : null;
+          const memo = p.note && p.note !== body ? p.note : null;
+          return <div><span className="sp-w">{offer ? '봉사자' : '요청자'}</span><div className="grow">{memo || <span className="mute2">따로 적은 내용이 없어요</span>}</div></div>;
+        })()}
+        {w.elder && (
+          <div><span className="sp-w org">담당자</span><div className="grow">
+            {p.elderIssueLocked ? <span className="mute2">특이사항은 일정이 확정된 봉사자에게만 보여요</span> : (p.elderCaution || p.caution || <span className="mute2">따로 적은 내용이 없어요</span>)}
+          </div></div>
+        )}
+      </div>
       {!offer && (
         <div className="ai" style={{ marginTop: 12 }}>
           <div className="ah"><Spk />난이도 제안<Mod n={2} /></div>
@@ -204,7 +229,6 @@ export function PostDetail() {
         const lo = Math.min(...ws), hi = Math.max(...ws);
         return <div className="notice" style={{ marginTop: 12 }}>예상 적립: 1시간 도우면 <b>+{lo.toFixed(1)}{hi > lo ? `~${hi.toFixed(1)}` : ''}시간</b> (요청받은 시간 × 도움 종류 가중치)</div>;
       })()}
-      {w.elder && <div className="lock" style={{ marginTop: 12 }}><Ic n="shield" s={18} /><div><b>방문 시 주의사항</b><br />{p.elderIssueLocked ? '특이사항은 일정이 확정된 봉사자에게만 보여요' : p.elderCaution || p.caution || '담당자가 따로 안내해요'}<div style={{ marginTop: 6, opacity: 0.85 }}>이름·주소·연락처는 보이지 않아요. 수락되면 담당자가 방문 장소를 따로 알려드려요.</div></div></div>}
       <div className="notice" style={{ marginTop: 12 }}>공고 1개에는 요청 1건만 수락돼요. 시간은 공고 범위 안에서 30분 단위, 최대 4시간이에요.</div>
       {mine || proxyMine ? (
         <>
