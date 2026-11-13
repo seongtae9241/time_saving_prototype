@@ -11,7 +11,7 @@ public final class EduContent {
     public record Quiz(String q, List<String> options, int answer, String explain, int card) {}
 
     public static final List<Card> RULES = List.of(
-            new Card("clock", "도운 시간만큼\n통장에 쌓여요", "1시간을 도우면 1시간이 쌓여요. 동행처럼 책임이 큰 일은 1.5배, 장보기처럼 수고가 드는 일은 1.2배예요.", "예) 병원 동행 2시간 → +3.0시간", false),
+            new Card("clock", "도운 시간만큼\n통장에 쌓여요", "1시간을 도우면 1시간이 쌓여요. 장보기·집안일처럼 수고가 드는 일은 1.2배예요.", "예) 병원 동행 2시간 → +2.0시간", false),
             new Card("check", "도착하면 QR,\n끝나면 QR", "받는 분 화면이나 인쇄 카드의 QR을 찍어야 활동 시간이 재져요.", "QR이 안 찍히면 받는 분 화면의 번호 6자리를 입력해요", false),
             new Card("pen", "끝나면\n일지 한 줄", "무엇을 했는지 한 줄만 적으면 AI가 다듬어 줘요. 받는 분이 확인해야 시간이 들어와요.", "예) 행복마트에서 쌀 10kg, 반찬거리 장보기", false),
             new Card("shield", "할 수 없는 일이\n있어요", "목욕·기저귀·파스 붙이기 같은 신체 돌봄, 약 먹이기, 돈과 카드 관리는 봉사로 하지 않아요.", "부탁받으면 정중히 거절하고, 담당자나 공공 서비스로 안내해요", false),

@@ -227,7 +227,7 @@ public class ActivityAi {
     public Map<String, Object> monthNote(Map<String, Object> numbers, Collection<Double> allowed, String ruleText, String ruleSuggestion) {
         Optional<JsonNode> j = ask("""
                 시간은행 사용자의 이번 달 시간 통장 결산을 한 줄로 설명한다. 숫자는 주어진 집계에 있는 것만 그대로 쓰고 계산·반올림하지 않는다.
-                text: 한 문장(예: "이번 달 6.5시간 쌓았어요. 동행이 1.5배라 많이 늘었어요"). suggestion: 다음 달 한 가지 제안 한 문장(부담 없게).
+                text: 한 문장(예: "이번 달 6.5시간 쌓았어요. 장보기가 1.2배라 조금 더 늘었어요"). suggestion: 다음 달 한 가지 제안 한 문장(부담 없게).
                 출력: {"text":"...","suggestion":"..."}
                 """, "집계(JSON): " + json(numbers), 300);
         Map<String, Object> m = new LinkedHashMap<>();

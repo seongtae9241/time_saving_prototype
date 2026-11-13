@@ -5,11 +5,12 @@ export const CATS = [
   { k: '생활 정리', w: 1.0, lv: '기본', code: 'BASIC' },
   { k: '장보기·심부름', w: 1.2, lv: '수고', code: 'EFFORT' },
   { k: '가벼운 집안일', w: 1.2, lv: '수고', code: 'EFFORT' },
-  { k: '동행', w: 1.5, lv: '책임', code: 'RESPONSIBLE' },
+  { k: '동행', w: 1.0, lv: '기본', code: 'BASIC' }, // 2026-11-13 대표 결정(계약서 7.21): 책임 1.5 를 없애고 동행도 기본 1.0
 ];
 export const CAT_KEYS = CATS.map((c) => c.k);
 export const W = (k) => (CATS.find((c) => c.k === k) || { w: 1 }).w;
 export const LV = (k) => (CATS.find((c) => c.k === k) || { lv: '기본' }).lv;
+// RESPONSIBLE(책임 1.5)은 2026-11-13 전에 쌓인 기록을 보여 줄 때만 쓴다. 새로 고를 수 있는 등급은 기본·수고 두 가지.
 export const LEVEL = { BASIC: ['기본', 1.0], EFFORT: ['수고', 1.2], RESPONSIBLE: ['책임', 1.5] };
 export const lvName = (code) => (LEVEL[code] || [code || '기본'])[0];
 export const lvWeight = (code, w) => (w != null ? Number(w) : (LEVEL[code] || [0, 1])[1]);

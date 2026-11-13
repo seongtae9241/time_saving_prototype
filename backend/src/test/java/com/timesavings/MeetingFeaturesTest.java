@@ -178,14 +178,14 @@ class MeetingFeaturesTest {
 
     @Test
     void 봉사_플랜_기간은_가중치를_반영해_코드가_계산() {
-        // 동행 월 2회 2시간: 1회 3.0(2×1.5), 주 1.5 → 10시간이면 6주
-        Map<String, Object> a = PersonalInsightService.compute(10.0, List.of(new PlanItem("동행", 0.5, 2.0)));
+        // 동행 월 2회 3시간: 1회 3.0(3×1.0, 7.21 동행은 기본), 주 1.5 → 10시간이면 6주
+        Map<String, Object> a = PersonalInsightService.compute(10.0, List.of(new PlanItem("동행", 0.5, 3.0)));
         assertEquals(1.5, a.get("weeklyCost"));
         assertEquals(6, a.get("weeks"));
         // 말동무 주 2회 1시간: 주 2.0 → 5주
         assertEquals(5, PersonalInsightService.compute(10.0, List.of(new PlanItem("말동무·정서", 2.0, 1.0))).get("weeks"));
         // 조합: 주 3.5 → 20시간이면 5주
-        Map<String, Object> c = PersonalInsightService.compute(20.0, List.of(new PlanItem("동행", 0.5, 2.0), new PlanItem("말동무·정서", 2.0, 1.0)));
+        Map<String, Object> c = PersonalInsightService.compute(20.0, List.of(new PlanItem("동행", 0.5, 3.0), new PlanItem("말동무·정서", 2.0, 1.0)));
         assertEquals(3.5, c.get("weeklyCost"));
         assertEquals(5, c.get("weeks"));
         assertEquals(1.2, PersonalInsightService.compute(48.0, List.of(new PlanItem("장보기·심부름", 1.0, 2.5))).get("plans") instanceof List<?> l
@@ -204,7 +204,7 @@ class MeetingFeaturesTest {
                 .andExpect(jsonPath("$.ifUnlocked.weeks").value(4)).andExpect(jsonPath("$.source").value("rule"))
                 .andExpect(jsonPath("$.candidates.length()").value(3));
         mvc.perform(post("/api/me/care-plan").header("Authorization", tok(rec)).contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"plans\":[{\"category\":\"동행\",\"perWeek\":0.5,\"hours\":2}]}"))
+                        .content("{\"plans\":[{\"category\":\"동행\",\"perWeek\":0.5,\"hours\":3}]}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.weeks").value(13)).andExpect(jsonPath("$.text").isNotEmpty());
         mvc.perform(post("/api/me/care-plan").header("Authorization", tok(rec)).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"plans\":[{\"category\":\"기타\",\"perWeek\":1,\"hours\":1}]}")).andExpect(status().isBadRequest());

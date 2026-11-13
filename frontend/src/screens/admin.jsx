@@ -668,7 +668,7 @@ function SuggestAnswer({ g, onDone }) {
       {status === 'ADOPTED' && (
         <>
           <label className="f">등급 (적립 가중치)</label>
-          <div className="tags">{[['BASIC', '기본 1.0'], ['EFFORT', '수고 1.2'], ['RESPONSIBLE', '책임 1.5']].map(([k, l]) => <button key={k} type="button" className={'chip ' + (level === k ? 'on' : '')} aria-pressed={level === k} onClick={() => setLevel(k)}>{l}</button>)}</div>
+          <div className="tags">{[['BASIC', '기본 1.0'], ['EFFORT', '수고 1.2']].map(([k, l]) => <button key={k} type="button" className={'chip ' + (level === k ? 'on' : '')} aria-pressed={level === k} onClick={() => setLevel(k)}>{l}</button>)}</div>
           <div className="notice" style={{ marginTop: 8 }}>반영으로 보내면 ‘{g.name}’ 종류가 공고 카테고리에 더해져요. 답변을 비우면 안내 문장이 자동으로 가요.</div>
         </>
       )}

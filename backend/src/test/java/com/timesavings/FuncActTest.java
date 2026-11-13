@@ -207,11 +207,11 @@ class FuncActTest {
                 List.of("동행"), "도와드려요", null, null, null, false, null, null, null, null)).get(0);
         Request held = reqs.create(rec, new RequestService.CreateCmd(Kind.REQUEST, p.id, null, null, day, 13.0, 2.0, "동행", "병원 동행", null));
         reqs.accept(vol, held.id);
-        reqs.accept(rec, held.id); // 확정 → 2시간 × 1.5 = 3시간 묶임
+        reqs.accept(rec, held.id); // 확정 → 2시간 × 1.0 = 2시간 묶임(7.21: 동행은 기본)
         JsonNode b = json(mvc.perform(get("/api/bank").header("Authorization", tok(rec))).andExpect(status().isOk()));
-        assertEquals(3.0, b.path("hold").asDouble());
+        assertEquals(2.0, b.path("hold").asDouble());
         assertEquals(29.0, b.path("balance").asDouble());
-        assertEquals(26.0, b.path("available").asDouble());
+        assertEquals(27.0, b.path("available").asDouble());
         assertEquals(30.0, b.path("totalEarned").asDouble());
         assertEquals(1.0, b.path("totalUsed").asDouble());
         JsonNode m = b.path("months");
@@ -233,7 +233,7 @@ class FuncActTest {
     @SuppressWarnings("unchecked")
     void 시간_플랜_계산은_가중치를_넣어_몇_년_받을_수_있는지와_적립_목표를_낸다() {
         Map<String, Double> pat = new LinkedHashMap<>();
-        pat.put("동행", 2.0); pat.put("말동무·정서", 1.0); // 한 달 2×1.5 + 1×1.0 = 4시간, 한 해 48시간
+        pat.put("동행", 3.0); pat.put("말동무·정서", 1.0); // 한 달 3×1.0 + 1×1.0 = 4시간, 한 해 48시간 (7.21: 동행은 기본 1.0)
         Map<String, Object> p = TimePlanService.compute(50, 70, 24, 2, pat);
         assertEquals(4.0, p.get("useMonthly"));
         assertEquals(48.0, p.get("useYearly"));
@@ -298,7 +298,7 @@ class FuncActTest {
         assertEquals(Map.of("동행", 2.0, "말동무·정서", 0.4), pat.monthlyHours());
         JsonNode d = json(mvc.perform(get("/api/me/time-plan").header("Authorization", tok(rec))).andExpect(status().isOk()));
         assertTrue(d.path("notice").isNull());
-        assertEquals(3.4, d.path("useMonthly").asDouble()); // 2×1.5 + 0.4×1.0
+        assertEquals(2.4, d.path("useMonthly").asDouble()); // 2×1.0 + 0.4×1.0 (7.21: 동행은 기본)
         assertEquals(2, d.path("rows").size());
         // 이름 같은 개인 정보는 응답에 없다
         assertFalse(d.toString().contains("q0"));

@@ -431,7 +431,7 @@ public class ActivityAiService {
                 + (topCat != null ? "잘하시는 " : "") + suggestCat + "(×" + w2 + ")" + com.timesavings.ai.InsightAi.josa(suggestCat, "을", "를") + (topSlot != null ? " " + topSlot + "에 " : " ") + "한 달 " + perMonth + "번(" + n(avgH) + "시간씩) 하면 채울 수 있어요.";
         List<String> ruleTips = new ArrayList<>();
         if (!s.canUseSelf()) ruleTips.add("직접 적립 10시간을 먼저 채우면 내 시간을 쓸 수 있어요");
-        if (w2 < 1.5) ruleTips.add("동행(×1.5)을 섞으면 같은 시간에 더 많이 쌓여요");
+        if (w2 < 1.2) ruleTips.add("장보기·집안일(×1.2)을 섞으면 같은 시간에 더 많이 쌓여요");
         ruleTips.add("관심 알림을 켜 두면 맞는 공고를 놓치지 않아요");
 
         String fp = Views.json(plan) + "|" + done.size() + "|" + cand.stream().map(p -> p.id).toList();
@@ -514,7 +514,7 @@ public class ActivityAiService {
         }
         String sug;
         if (earned <= 0) sug = "다음 달엔 가까운 말동무 공고로 1시간부터 시작해 보세요.";
-        else if (cats.stream().noneMatch(c -> ((Number) c.get("weight")).doubleValue() > 1.0)) sug = "다음 달엔 장보기(1.2배)나 동행(1.5배)도 한 번 해 보세요.";
+        else if (cats.stream().noneMatch(c -> ((Number) c.get("weight")).doubleValue() > 1.0)) sug = "다음 달엔 장보기나 가벼운 집안일(1.2배)도 한 번 해 보세요.";
         else {
             String top = cats.stream().max(Comparator.comparingDouble(c -> ((Number) c.get("earned")).doubleValue())).map(c -> (String) c.get("category")).orElse("봉사");
             sug = "다음 달에도 " + top + " 한 번 더 이어 가 보세요.";
@@ -524,7 +524,7 @@ public class ActivityAiService {
 
     @SuppressWarnings("unchecked")
     static Set<Double> allowedNumbers(Map<String, Object> nm, YearMonth ym) {
-        Set<Double> s = new HashSet<>(List.of(1.0, 1.2, 1.5, (double) ym.getMonthValue(), (double) ym.getYear(), (double) ym.plusMonths(1).getMonthValue()));
+        Set<Double> s = new HashSet<>(List.of(1.0, 1.2, (double) ym.getMonthValue(), (double) ym.getYear(), (double) ym.plusMonths(1).getMonthValue()));
         for (String k : List.of("earned", "used", "giftIn", "bonus", "topBonus", "topBonusWeight")) if (nm.get(k) instanceof Number x) s.add(x.doubleValue());
         for (Map<String, Object> c : (List<Map<String, Object>>) nm.get("byCategory"))
             for (Object v : c.values()) if (v instanceof Number x) s.add(x.doubleValue());

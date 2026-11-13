@@ -44,7 +44,7 @@ export function VoiceCard() {
 
 /* ===== 2026-11-11 역할별 정리판: 홈 (프로토타입 SCREENS.u_home 최종) ===== */
 const WD = ['일', '월', '화', '수', '목', '금', '토'];
-const KC = { give: '#6DB3A0', recv: '#EE9A7E', ev: '#8DB4F7' };
+const KC = { give: '#6DB3A0', recv: '#6F9CF0', ev: '#E3B25A' };
 
 /** 큰 통장 카드 (프로토타입 bankCard) */
 function BankCard({ me }) {

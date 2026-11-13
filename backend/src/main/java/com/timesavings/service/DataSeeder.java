@@ -396,7 +396,7 @@ public class DataSeeder implements ApplicationRunner {
         Post p4 = post(PostType.NEED, null, E.get("e2"), p(11, 14), 14, 17, "희망동", List.of("장보기·심부름"), "일주일치 장보기", "쌀, 반찬거리. 무거운 것 위주", null, 1.5, PostStatus.OPEN, now.minusHours(26));
         p4.difficultyReason = "장보기·심부름은 기본 수고 등급, 무거운 짐(신체 부담) → 수고 등급(×1.2)을 제안해요.";
         Post p6 = post(PostType.NEED, null, E.get("e1"), p(11, 18), 9, 13, "행복동", List.of("동행"), "정형외과 재진 동행", "햇살정형외과 진료 후 약국 들르기", "장소: 햇살정형외과", 2.5, PostStatus.OPEN, now.minusHours(5));
-        p6.difficultyReason = "동행은 기본 책임 등급 → 책임 등급(×1.5)을 제안해요.";
+        p6.difficultyReason = "신체 부담·위험·전문성이 낮아 기본 등급(×1.0)을 제안해요.";
         Post p7 = post(PostType.OFFER, yujin, null, p(11, 14), 13, 17, "행복동", List.of("디지털 도움", "말동무·정서", "장보기·심부름"), "디지털·말벗 도와드려요", null, "금요일 오후 비어요", null, PostStatus.OPEN, now.minusDays(1));
         Post p8 = post(PostType.NEED, yujin, null, p(11, 16), 10, 14, "행복동", List.of("생활 정리"), "이사 후 옷장 정리", "혼자 하기엔 양이 많아요", null, 2.0, PostStatus.OPEN, now.minusDays(1).plusHours(2));
         // 기능 U-12 빈 시간 묶음 추천 시연용: 같은 날(p5 와 같은 날) 겹치지 않는 도움 요청 2건을 더 둔다

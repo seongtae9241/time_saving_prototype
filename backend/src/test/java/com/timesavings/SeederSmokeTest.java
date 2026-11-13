@@ -28,7 +28,7 @@ class SeederSmokeTest {
         BankService.Summary s = bank.summary(users.findByLoginId("yujin").orElseThrow().id);
         assertTrue(s.canUseSelf());
         assertTrue(users.findByLoginId("youngho").isEmpty()); // 1:1 클래스 선생님 데모 계정 삭제(2026-11-10)
-        assertEquals(24.5, s.balance()); // 동네 클래스 수강 기록(−1.5) 시드 삭제 후(2026-11-10). (프로토타입 표시값은 23.5)
+        assertEquals(20.5, s.balance()); // 2026-11-13 동행이 기본 1.0 이 되어 24.5 → 20.5(계약서 7.21). 동네 클래스 수강 기록(−1.5) 시드 삭제 후(2026-11-10). (프로토타입 표시값은 23.5)
         for (String id : new String[]{"bok", "mom", "sky", "mikyung", "doyun"})
             assertTrue(bank.summary(users.findByLoginId(id).orElseThrow().id).balance() >= 0, id);
     }

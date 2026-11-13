@@ -40,7 +40,7 @@ class RuleEngineTest {
 
     @Test
     void 난이도_제안() {
-        assertEquals(Level.RESPONSIBLE, RuleEngine.difficulty("정형외과 진료 동행", List.of("동행")).level());
+        assertEquals(Level.BASIC, RuleEngine.difficulty("정형외과 진료 동행", List.of("동행")).level()); // 7.21: 책임 등급이 없어져 동행도 기본
         assertEquals(Level.EFFORT, RuleEngine.difficulty("쌀 20kg 4층까지 계단으로", List.of("생활 정리")).level());
         assertEquals(Level.BASIC, RuleEngine.difficulty("영상통화 설정", List.of("디지털 도움")).level());
         // 가중치는 규칙으로: 카테고리 기본 등급보다 낮아지지 않음

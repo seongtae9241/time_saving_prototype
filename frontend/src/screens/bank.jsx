@@ -42,12 +42,12 @@ export function Act() {
       {give && <MyGroups />}
       {months.length > 0 && (
         <div className="card" style={{ marginTop: 14 }}>
-          <div className="between"><span className="b">월별 횟수 요약</span><span className="legend"><i style={{ background: '#6DB3A0' }} />봉사<i style={{ background: '#EE9A7E', marginLeft: 8 }} />도움 받음</span></div>
+          <div className="between"><span className="b">월별 횟수 요약</span><span className="legend"><i style={{ background: '#6DB3A0' }} />봉사<i style={{ background: '#6F9CF0', marginLeft: 8 }} />도움 받음</span></div>
           <table className="small" style={{ width: '100%', marginTop: 10, borderCollapse: 'collapse', textAlign: 'center' }}>
             <thead><tr className="mute2"><th scope="col" style={{ textAlign: 'left', fontWeight: 500, padding: '4px 0' }}>달</th>{months.map((m) => <th key={m.month} scope="col" style={{ fontWeight: 500 }}>{monthLabel(m.month)}</th>)}</tr></thead>
             <tbody>
               <tr><th scope="row" style={{ textAlign: 'left', fontWeight: give ? 800 : 500, padding: '6px 0', color: '#3F8A75' }}>봉사</th>{months.map((m) => <td key={m.month} style={{ fontWeight: give ? 800 : 500 }}>{m.helpCount}회</td>)}</tr>
-              <tr><th scope="row" style={{ textAlign: 'left', fontWeight: give ? 500 : 800, padding: '6px 0', color: '#B55E1C' }}>도움 받음</th>{months.map((m) => <td key={m.month} style={{ fontWeight: give ? 500 : 800 }}>{m.receivedCount}회</td>)}</tr>
+              <tr><th scope="row" style={{ textAlign: 'left', fontWeight: give ? 500 : 800, padding: '6px 0', color: '#3A6FD8' }}>도움 받음</th>{months.map((m) => <td key={m.month} style={{ fontWeight: give ? 500 : 800 }}>{m.receivedCount}회</td>)}</tr>
             </tbody>
           </table>
           <div className="mute2" style={{ marginTop: 8 }}>완료된 활동만 세요 · 지금까지 봉사 {sum.totalHelpCount}회 · 도움 받음 {sum.totalReceivedCount}회</div>
@@ -97,7 +97,7 @@ export function Bank() {
   const rule = () => sheet(() => (
     <>
       <h2>시간 통장 규칙</h2>
-      <div className="ml">{[['통장 번호', '가입할 때 정해지는 내 고유 번호예요. 바뀌지 않아요'], ['적립', '예정 시간(요청·공고에 정한 시간) × 난이도 (기본 1.0 / 수고 1.2 / 책임 1.5), 0.5 단위. 실제와 다르면 시간 조정을 요청해요'], ['사용', '10시간 이상 적립한 뒤부터 (선물받은 시간 제외)'], ['보류·차감', '요청이 확정되면 예정 시간 기준으로 보류하고, 활동이 완료되면 예정 시간 기준으로 차감해요 (난이도 가중치 포함)'], ['선물', '연결된 가족에게만. 양도·매매·상속 불가, 돈으로 바꿀 수 없어요'], ['기관 대상', '받는 쪽 차감 없이 봉사자만 적립']].map(([a, c]) => <div key={a}><div className="grow"><b>{a}</b><span>{c}</span></div></div>)}</div>
+      <div className="ml">{[['통장 번호', '가입할 때 정해지는 내 고유 번호예요. 바뀌지 않아요'], ['적립', '예정 시간(요청·공고에 정한 시간) × 난이도 (기본 1.0 / 수고 1.2), 0.5 단위. 실제와 다르면 시간 조정을 요청해요'], ['사용', '10시간 이상 적립한 뒤부터 (선물받은 시간 제외)'], ['보류·차감', '요청이 확정되면 예정 시간 기준으로 보류하고, 활동이 완료되면 예정 시간 기준으로 차감해요 (난이도 가중치 포함)'], ['선물', '연결된 가족에게만. 양도·매매·상속 불가, 돈으로 바꿀 수 없어요'], ['기관 대상', '받는 쪽 차감 없이 봉사자만 적립']].map(([a, c]) => <div key={a}><div className="grow"><b>{a}</b><span>{c}</span></div></div>)}</div>
       <button className="btn ghost" style={{ marginTop: 12 }} onClick={closeSheet}>닫기</button>
     </>
   ));
@@ -109,7 +109,7 @@ export function Bank() {
   const bk = b || { balance: 0, hold: 0, entries: [], monthly: [] };
   const entries = bk.entries || [];
   const monthSum = Object.fromEntries((bk.months || []).map((m) => [m.month, m]));
-  const lvOf = (w) => (Number(w) >= 1.5 ? '책임' : Number(w) >= 1.2 ? '수고' : '기본');
+  const lvOf = (w) => (Number(w) >= 1.5 ? '책임' : Number(w) >= 1.2 ? '수고' : '기본'); // '책임'은 2026-11-13 전 기록 표시용
   const mkOf = (l) => String(l.createdAt).slice(0, 7);
   const ms = [...new Set(entries.map(mkOf))]; // 최신 달부터
   const curM = ms.includes(ledM) ? ledM : ms[0];

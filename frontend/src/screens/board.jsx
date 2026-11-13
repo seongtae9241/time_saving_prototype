@@ -147,7 +147,6 @@ export function Board() {
 function diffReason(p) {
   if (p.difficultyReason) return p.difficultyReason;
   const c = postCats(p);
-  if (c.includes('동행')) return '병원 이동·안전 책임이 있어 책임 등급';
   if (c.includes('장보기·심부름') || c.includes('가벼운 집안일')) return '무거운 짐(신체 부담)이 있어 수고 등급';
   return '신체 부담·위험이 적어 기본 등급';
 }

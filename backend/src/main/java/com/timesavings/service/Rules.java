@@ -7,26 +7,34 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-/** 계약서 3.1 카테고리·난이도·적립 규칙. 서버가 강제한다. */
+/** 계약서 3.1 카테고리·난이도·적립 규칙. 서버가 강제한다. 2026-11-13 대표 결정(계약서 7.21): 등급은 기본 1.0·수고 1.2 두 단계만 쓴다. */
 public final class Rules {
     private Rules() {}
 
     public static final List<String> CATEGORIES = List.of("말동무·정서", "디지털 도움", "생활 정리", "장보기·심부름", "가벼운 집안일", "동행");
     private static final Map<String, Level> CAT_LEVEL = Map.of(
             "말동무·정서", Level.BASIC, "디지털 도움", Level.BASIC, "생활 정리", Level.BASIC,
-            "장보기·심부름", Level.EFFORT, "가벼운 집안일", Level.EFFORT, "동행", Level.RESPONSIBLE);
+            "장보기·심부름", Level.EFFORT, "가벼운 집안일", Level.EFFORT, "동행", Level.BASIC);
 
+    /** 새 공고·요청·이의 신청·AI 제안·카테고리 승인에서 고를 수 있는 등급(7.21). RESPONSIBLE 은 예전 기록에만 남는다. */
+    public static final List<Level> SELECTABLE = List.of(Level.BASIC, Level.EFFORT);
+
+    /** 예전 등급을 지금 쓰는 등급으로: RESPONSIBLE(책임 1.5) → EFFORT(수고 1.2). 나머지는 그대로(null 은 null). */
+    public static Level current(Level l) { return l == Level.RESPONSIBLE ? Level.EFFORT : l; }
+
+    /** 가중치. RESPONSIBLE 1.5 는 2026-11-13 전에 쌓인 기록을 보여 주고 다시 셈할 때만 쓴다(새로 정해지지 않는다). */
     public static double weight(Level l) {
         return switch (l) { case BASIC -> 1.0; case EFFORT -> 1.2; case RESPONSIBLE -> 1.5; };
     }
 
+    /** 등급 이름. "책임"은 예전 기록 표시용. */
     public static String levelKo(Level l) {
         return switch (l) { case BASIC -> "기본"; case EFFORT -> "수고"; case RESPONSIBLE -> "책임"; };
     }
 
     /** 기능 A-15: 운영자가 건의를 승인해 더한 카테고리(이름 → 등급). 서버가 뜰 때와 승인할 때 CategoryRegistry 가 채운다. 기본 6종은 그대로다. */
     private static final Map<String, Level> EXTRA_LEVEL = new java.util.concurrent.ConcurrentHashMap<>();
-    public static void putExtraCategory(String name, Level level) { if (name != null && !CAT_LEVEL.containsKey(name)) EXTRA_LEVEL.put(name, level == null ? Level.BASIC : level); }
+    public static void putExtraCategory(String name, Level level) { if (name != null && !CAT_LEVEL.containsKey(name)) EXTRA_LEVEL.put(name, level == null ? Level.BASIC : current(level)); }
     public static void clearExtraCategories() { EXTRA_LEVEL.clear(); }
     public static Map<String, Level> extraCategories() { return new java.util.TreeMap<>(EXTRA_LEVEL); }
 

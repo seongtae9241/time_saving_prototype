@@ -187,14 +187,14 @@ public class AiClient {
         String source = "rule";
         Optional<JsonNode> ai = askJson("""
                 너는 이웃 돌봄 활동의 난이도를 제안한다. 요소: physical(신체 부담), responsibility(책임), risk(위험), expertise(전문성), travel(이동), access(접근성) 각각 0~2.
-                등급: BASIC(기본), EFFORT(수고), RESPONSIBLE(책임). 카테고리 기본 등급보다 낮게 제안하지 않는다(동행=RESPONSIBLE, 장보기·심부름/가벼운 집안일=EFFORT, 나머지=BASIC).
-                출력: {"level":"BASIC|EFFORT|RESPONSIBLE","reason":"근거 1~2문장","factors":{"physical":0,"responsibility":0,"risk":0,"expertise":0,"travel":0,"access":0}}
+                등급: BASIC(기본 1.0), EFFORT(수고 1.2) 두 가지뿐이다. 카테고리 기본 등급보다 낮게 제안하지 않는다(장보기·심부름/가벼운 집안일=EFFORT, 동행을 포함한 나머지=BASIC). 책임 요소만으로는 등급을 올리지 않는다.
+                출력: {"level":"BASIC|EFFORT","reason":"근거 1~2문장","factors":{"physical":0,"responsibility":0,"risk":0,"expertise":0,"travel":0,"access":0}}
                 """, "카테고리: " + cs + "\n요청 내용: " + text, 300);
         if (ai.isPresent()) {
             try {
                 Level l = Level.valueOf(ai.get().path("level").asText());
                 Level base = cs.isEmpty() ? Level.BASIC : Rules.maxLevel(cs);
-                level = Rules.max(base, l);
+                level = Rules.current(Rules.max(base, l)); // 예전 등급(RESPONSIBLE)이 와도 수고로 받는다(7.21)
                 if (!ai.get().path("reason").asText().isBlank()) reason = ai.get().path("reason").asText();
                 Map<String, Integer> f = new LinkedHashMap<>();
                 for (String k : List.of("physical", "responsibility", "risk", "expertise", "travel", "access"))

@@ -273,7 +273,10 @@ public class AdminController {
         a.adminNote = b.note();
         double diff = 0;
         if (Boolean.TRUE.equals(b.accept())) {
-            Level lv = b.resultLevel() != null ? b.resultLevel() : a.requestedLevel;
+            Level asked = b.resultLevel() != null ? b.resultLevel() : a.requestedLevel;
+            Level lv = Rules.current(asked); // 7.21: 책임 등급(1.5)으로는 더 올리지 않는다. 예전 신청은 수고까지만
+            if (asked == Level.RESPONSIBLE && lv.ordinal() <= r.difficulty.ordinal())
+                throw ApiException.bad("INVALID_LEVEL", "책임 등급(1.5)은 2026-11-13부터 쓰지 않아요. 지금 등급보다 올릴 수 없으니 반려로 답해 주세요");
             double hours = "ACCEPTED".equals(r.adjustStatus) && r.adjustHours != null ? r.adjustHours : r.hours;
             double newEarn = Rules.earn(hours, lv);
             diff = Rules.round05(newEarn - (r.earned == null ? 0 : r.earned));

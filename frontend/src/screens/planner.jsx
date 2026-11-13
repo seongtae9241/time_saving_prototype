@@ -11,7 +11,7 @@ import { DIc, Ring, hmTxt, useMode } from '../ui/proto.jsx';
 import { AskBox } from './ai.jsx';
 
 const WD = ['일', '월', '화', '수', '목', '금', '토'];
-const KC = { give: '#6DB3A0', recv: '#EE9A7E', event: '#8DB4F7', plan: '#6DB3A0' };
+const KC = { give: '#6DB3A0', recv: '#6F9CF0', event: '#E3B25A', plan: '#6DB3A0' };
 const PLAN_RING = { boxShadow: '0 0 0 2px #fff,0 0 0 3.5px #6DB3A0' };
 const pad = (n) => String(n).padStart(2, '0');
 const ymOf = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
@@ -94,7 +94,7 @@ function GoalSheet({ plan, onSave, onClose }) {
             </div>
           ))}
         </div>
-        <div className="mute2" style={{ marginTop: 8 }}>받을 때는 가중치(기본 1.0 · 수고 1.2 · 책임 1.5)만큼 시간이 빠져요.</div>
+        <div className="mute2" style={{ marginTop: 8 }}>받을 때는 가중치(기본 1.0 · 수고 1.2)만큼 시간이 빠져요.</div>
       </div>
       <div className="btns" style={{ marginTop: 12 }}><button className="btn ghost" onClick={onClose}>취소</button><button className="btn" onClick={() => onSave(f)}>저장</button></div>
     </>
@@ -147,7 +147,7 @@ export function Planner() {
   const legend = (
     <div className="cal-lg">{give
       ? <><span><i style={{ background: '#6DB3A0' }} />봉사할 일정</span><span><i style={{ background: '#6DB3A0', ...PLAN_RING }} />AI 계획</span></>
-      : <span><i style={{ background: '#EE9A7E' }} />도움 받을 일정</span>}</div>
+      : <span><i style={{ background: '#6F9CF0' }} />도움 받을 일정</span>}</div>
   );
   const iso = (n) => `${d.month}-${pad(n)}`;
   const curSel = sel && sel.startsWith(d.month) ? sel : (d.today.startsWith(d.month) ? d.today : iso(1));
@@ -186,7 +186,7 @@ export function Planner() {
           <div className="life">
             <div className="life-bar"><span className="lb1" style={{ flex: p.startAge - p.age }} /><span className="lb2" style={{ flex: Math.max(1, p.endAge - p.startAge) }} /></div>
             <div className="life-l"><span>지금 {p.age}세</span><span>{p.startAge}세</span><span>{p.endAge}세{p.endAge >= p.maxAge ? '+' : ''}</span></div>
-            <div className="life-s"><div><i style={{ background: '#6DB3A0' }} />모으기 <b>{Math.round(p.saved)}시간</b></div><div><i style={{ background: '#EE9A7E' }} />쓰기 <b>약 {Math.round(p.lastYears)}년</b></div></div>
+            <div className="life-s"><div><i style={{ background: '#6DB3A0' }} />모으기 <b>{Math.round(p.saved)}시간</b></div><div><i style={{ background: '#6F9CF0' }} />쓰기 <b>약 {Math.round(p.lastYears)}년</b></div></div>
             <div className="ptext" style={{ marginTop: 12, boxShadow: 'none', background: '#F4F6FA' }}><div className="mute2" style={{ marginBottom: 6 }}><span className="mod m1">플랜 설명 AI</span> 숫자는 시스템이 계산하고, 설명 문장만 AI가 써요</div><p style={{ margin: 0 }}><Spk /> {life.text}</p><RuleNote source={life.source} /></div>
           </div>
           <div className="sum" style={{ marginTop: 12 }}>
@@ -326,7 +326,7 @@ export function Planner() {
                 ))}
               </div>
             )}
-            <div className="pt-tip">💡 {plans.length ? '계획은 내 달력에만 보여요. 제안을 보내고 상대가 수락해야 확정돼요.' : '동행(1.5배)을 하나 섞으면 같은 시간에 더 많이 쌓여요.'}</div>
+            <div className="pt-tip">💡 {plans.length ? '계획은 내 달력에만 보여요. 제안을 보내고 상대가 수락해야 확정돼요.' : '장보기(1.2배)를 하나 섞으면 같은 시간에 더 많이 쌓여요.'}</div>
             <RuleNote source={d.source} />
           </div>
           <div className="sec-t"><span>추천 봉사 <span className="mute2" style={{ fontWeight: 500 }}>빈 시간에 맞는 것만</span></span><span className="mute2" style={{ fontWeight: 600 }}>{picked.length}개 선택</span></div>

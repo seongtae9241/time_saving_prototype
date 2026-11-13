@@ -160,10 +160,10 @@ class Proto1111Test {
     @Test
     void 생애_플랜_계산은_가중치를_넣고_상속은_없다() {
         Map<String, Double> needs = new LinkedHashMap<>();
-        needs.put("동행", 2.0); needs.put("장보기·심부름", 2.0); needs.put("말동무·정서", 1.0);
+        needs.put("동행", 3.0); needs.put("장보기·심부름", 2.0); needs.put("말동무·정서", 1.0);
         Map<String, Object> p = PlannerService.lifeCompute(23.5, 56, 72, 4, needs);
         assertEquals(791.5, (double) p.get("saved"), 1e-9);           // 23.5 + 4×12×16
-        assertEquals(6.4, (double) p.get("useMonthly"), 1e-9);        // 2×1.5 + 2×1.2 + 1×1.0
+        assertEquals(6.4, (double) p.get("useMonthly"), 1e-9);        // 3×1.0 + 2×1.2 + 1×1.0 (7.21: 동행은 기본 1.0)
         assertEquals(76.8, (double) p.get("useYearly"), 1e-9);
         assertEquals(10.3, (double) p.get("lastYears"), 1e-9);
         assertEquals(82, p.get("endAge"));
@@ -186,7 +186,7 @@ class Proto1111Test {
         mvc.perform(get("/api/me/life-plan").header("Authorization", tok(me))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.saved").value(false)).andExpect(jsonPath("$.plan.balance").value(23.5)).andExpect(jsonPath("$.source").value("rule"));
         mvc.perform(post("/api/me/life-plan").header("Authorization", tok(me)).contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"age\":56,\"startAge\":72,\"monthlyHours\":4,\"needs\":{\"동행\":2,\"장보기·심부름\":2,\"말동무·정서\":1},\"save\":true}"))
+                        .content("{\"age\":56,\"startAge\":72,\"monthlyHours\":4,\"needs\":{\"동행\":3,\"장보기·심부름\":2,\"말동무·정서\":1},\"save\":true}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.plan.endAge").value(82)).andExpect(jsonPath("$.saved").value(true));
         mvc.perform(get("/api/me/life-plan").header("Authorization", tok(me))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.saved").value(true)).andExpect(jsonPath("$.plan.startAge").value(72)).andExpect(jsonPath("$.plan.saved").value(791.5));

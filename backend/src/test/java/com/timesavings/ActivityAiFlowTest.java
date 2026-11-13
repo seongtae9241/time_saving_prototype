@@ -183,10 +183,10 @@ class ActivityAiFlowTest {
                 List.of("말동무·정서"), "말벗해 주세요", null, null, 1.0, false, null, null, null, null));
         Map<String, Object> g = svc.goalPlan(vol, new ActivityAiService.GoalCmd("동행", 1.0, 2.0, 5, 10, null));
         Map<?, ?> plan = (Map<?, ?>) g.get("plan");
-        assertEquals(780.0, plan.get("totalNeeded"));
-        assertEquals(6.5, plan.get("monthlyTarget"));
+        assertEquals(520.0, plan.get("totalNeeded")); // 동행은 기본 1.0(7.21): 2시간 × 52주 × 5년
+        assertEquals(4.5, plan.get("monthlyTarget"));
         assertFalse(((List<?>) g.get("posts")).isEmpty());
-        assertTrue(g.get("text").toString().contains("6.5시간씩"));
+        assertTrue(g.get("text").toString().contains("4.5시간씩"));
         assertEquals("rule", g.get("source"));
     }
 }

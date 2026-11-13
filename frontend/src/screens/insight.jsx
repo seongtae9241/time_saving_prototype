@@ -175,7 +175,7 @@ export function CarePlan() {
               <span className="rd" /><div className="grow"><div className="b">{c.plans.map((p) => `${SHORT[p.category] || p.category} ${freqTxt(p.perWeek)} ${fmt(p.hours)}시간`).join(' + ')}</div><div className="mute2">한 주 {fmt(c.weeklyCost)}시간 · {c.weeks == null ? '-' : c.span}</div></div>
             </div>
           ))}
-          <div className="mute2" style={{ margin: '12px 2px' }}>기간은 시스템이 가중치(기본 1.0 · 수고 1.2 · 책임 1.5, 0.5 단위)를 넣어 계산해요. 실제 차감은 활동 시간에 따라 달라질 수 있어요.</div>
+          <div className="mute2" style={{ margin: '12px 2px' }}>기간은 시스템이 가중치(기본 1.0 · 수고 1.2, 0.5 단위)를 넣어 계산해요. 실제 차감은 활동 시간에 따라 달라질 수 있어요.</div>
         </>
       )}
       </>}

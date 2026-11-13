@@ -67,7 +67,7 @@
 - 목록형 칸(`categories`, `needs`, `tags`, `timeSlots` …)은 JSON 배열로 주고받는다(DB에는 쉼표로 이은 글자).
 - enum은 이름 그대로 문자열(예: `"VOL_ACCEPTED"`). 값 목록은 `docs/산출물/ERD.md` 4장.
 - 카테고리: 기본 6종(말동무·디지털·생활 정리·장보기·집안일·동행 — `Rules.CATEGORIES`) + 운영자가 더한 것. `GET /api/categories`로 받는다.
-- 난이도 등급 `BASIC`/`EFFORT`/`RESPONSIBLE` = 가중치 1.0/1.2/1.5. 적립 = 시간 × 가중치.
+- 난이도 등급 `BASIC`/`EFFORT` = 가중치 1.0/1.2. 적립 = 시간 × 가중치. (2026-11-13 결정: 기본 1.0·수고 1.2만 — `RESPONSIBLE` 1.5는 그 전 기록의 응답에만 나오고, 요청 본문에 `RESPONSIBLE`을 보내면 `EFFORT`로 받는다)
 
 ### 1.6 AI 응답의 `source`
 - AI가 문장을 만드는 API는 응답에 `source: "ai" | "rule"`을 넣는다. AI 키가 없거나 실패하면 같은 모양으로 **규칙 문장**(`rule`)이 온다. `ai`일 때는 `provider`(예: gemini)도 함께 올 수 있다.

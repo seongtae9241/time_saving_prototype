@@ -117,7 +117,7 @@ public class PostService {
         Level lv = d.level();
         String reason = d.reason();
         if (c.difficulty() != null) { // 화면에서 AI 제안을 받아 확정한 등급(카테고리 기본 등급보다 낮출 수 없음)
-            lv = Rules.max(base, c.difficulty());
+            lv = Rules.max(base, Rules.current(c.difficulty())); // 책임 등급으로 들어오면 수고로 받는다(7.21)
             if (c.difficultyReason() != null && !c.difficultyReason().isBlank()) reason = c.difficultyReason();
         }
         p.difficulty = lv;

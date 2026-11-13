@@ -219,7 +219,7 @@ class Req41ActivityTest {
         reqs.submitLog(vol, r.id, "병원에 함께 다녀옴", null, null, false);
         assertEquals(ReqStatus.LOG_SUBMITTED, r.status);
         reqs.confirm(rec, r.id);
-        assertEquals(3.0, r.earned); // 적립은 예정 시간(2시간 × 1.5) 기준 그대로
+        assertEquals(2.0, r.earned); // 적립은 예정 시간(2시간 × 1.0) 기준 그대로
     }
 
     @Test

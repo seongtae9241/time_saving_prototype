@@ -82,7 +82,7 @@ class FlowIntegrationTest {
         Request r = request(rec, p, 14, 2, "동행", null);
         Request r2 = request(other, p, 15, 1, "장보기·심부름", null);
         assertEquals(ReqStatus.SENT, r.status);
-        assertEquals(3.0, r.estEarn);
+        assertEquals(2.0, r.estEarn); // 동행 2시간 × 1.0 (7.21)
         assertNotNull(r.deadlineAt);
 
         reqs.accept(vol, r.id);                       // 봉사자 수락
@@ -93,7 +93,7 @@ class FlowIntegrationTest {
 
         reqs.accept(rec, r.id);                       // 받는 사람 최종 수락
         assertEquals(ReqStatus.CONFIRMED, r.status);
-        assertEquals(3.0, bank.summary(rec.id).hold()); // 보류
+        assertEquals(2.0, bank.summary(rec.id).hold()); // 보류
         assertEquals(6, r.checkCode.length());
 
         assertThrows(ApiException.class, () -> reqs.checkIn(vol, r.id, "000000x", null));
@@ -108,12 +108,12 @@ class FlowIntegrationTest {
 
         reqs.confirm(rec, r.id);
         assertEquals(ReqStatus.DONE, r.status);
-        assertEquals(3.0, r.earned);
-        assertEquals(3.0, sum(vol, LedgerType.EARN));
-        assertEquals(-3.0, sum(rec, LedgerType.USE));
+        assertEquals(2.0, r.earned);
+        assertEquals(2.0, sum(vol, LedgerType.EARN));
+        assertEquals(-2.0, sum(rec, LedgerType.USE));
         BankService.Summary s = bank.summary(rec.id);
         assertEquals(0.0, s.hold());
-        assertEquals(17.0, s.balance());
+        assertEquals(18.0, s.balance());
 
         reqs.rate(rec, r.id, 5, List.of("친절해요", "용돈 감사"), null);
         assertThrows(ApiException.class, () -> reqs.rate(rec, r.id, 4, List.of(), null)); // 한 번만
@@ -142,7 +142,7 @@ class FlowIntegrationTest {
         reqs.checkOut(vol, r.id, reqs.codeFor(r), null);
         reqs.submitLog(vol, r.id, "진료 동행", null, null, false);
         reqs.confirm(mgr, r.id);                      // 담당자 대신 확인
-        assertEquals(3.0, sum(vol, LedgerType.EARN));
+        assertEquals(2.0, sum(vol, LedgerType.EARN));
         assertEquals(0, ledger.findByRequestId(r.id).stream().filter(l -> l.type == LedgerType.USE || l.type == LedgerType.HOLD).count());
         assertThrows(ApiException.class, () -> reqs.rate(vol, r.id, 5, List.of(), null)); // 독거노인은 평가 안 함
     }
@@ -154,8 +154,8 @@ class FlowIntegrationTest {
         ApiException e = assertThrows(ApiException.class, () -> request(newbie, p, 14, 1, "동행", null));
         assertEquals("SELF_USE_LOCKED", e.code);
         bank.add(newbie.id, LedgerType.GIFT_IN, 2.0, null, null, null, "선물");
-        Request r = request(newbie, p, 14, 1, "동행", null); // 선물 2시간으로 1.5시간 요청 가능
-        assertEquals(1.5, r.estEarn);
+        Request r = request(newbie, p, 14, 1, "동행", null); // 선물 2시간으로 1시간 요청 가능
+        assertEquals(1.0, r.estEarn);
         User poor = user("poor", Role.USER, 10);
         bank.add(poor.id, LedgerType.USE, -9.5, null, null, null, "사용");
         assertEquals("INSUFFICIENT_BALANCE", assertThrows(ApiException.class, () -> request(poor, p, 13, 2, "동행", null)).code);

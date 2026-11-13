@@ -169,7 +169,7 @@ public class RequestService {
         RuleEngine.FilterResult f = RuleEngine.filter(text);
         if (f.level() == FilterLevel.BLOCK) throw ApiException.bad("FORBIDDEN_REQUEST", f.reason());
         Level lv = RuleEngine.difficulty(text, List.of(cat)).level();
-        if (post != null && post.type == PostType.NEED && post.difficulty != null) lv = Rules.max(lv, post.difficulty);
+        if (post != null && post.type == PostType.NEED && post.difficulty != null) lv = Rules.max(lv, Rules.current(post.difficulty)); // 예전 공고의 책임 등급은 수고로(7.21)
         r.difficulty = lv;
         r.weight = Rules.weight(lv);
         r.estEarn = Rules.earn(hours, r.weight);
@@ -300,9 +300,19 @@ public class RequestService {
 
     private void releaseHold(Request r) {
         if (r.recipientId == null) return;
-        boolean held = bank.entries(r.recipientId).stream().anyMatch(l -> r.id.equals(l.requestId) && l.type == LedgerType.HOLD);
-        boolean released = bank.entries(r.recipientId).stream().anyMatch(l -> r.id.equals(l.requestId) && l.type == LedgerType.RELEASE);
-        if (held && !released) bank.add(r.recipientId, LedgerType.RELEASE, r.estEarn, r.hours, r.weight, r.id, r.category + " 보류 해제");
+        double held = heldNow(r);
+        if (held > 0) bank.add(r.recipientId, LedgerType.RELEASE, held, r.hours, r.weight, r.id, r.category + " 보류 해제");
+    }
+
+    /** 이 요청으로 지금 묶여 있는 시간(보류 − 이미 푼 만큼). 가중치 전환(7.21) 때 먼저 푼 차이도 여기서 빠진다. */
+    private double heldNow(Request r) {
+        double h = 0;
+        for (Ledger l : bank.entries(r.recipientId)) {
+            if (!r.id.equals(l.requestId)) continue;
+            if (l.type == LedgerType.HOLD) h += l.amount;
+            else if (l.type == LedgerType.RELEASE) h -= l.amount;
+        }
+        return h > 1e-9 ? h : 0;
     }
 
     // ======================= 취소·노쇼 (B-25) =======================
@@ -638,6 +648,7 @@ public class RequestService {
         Request r = get(id);
         requireVolunteer(requireRole(r, me));
         requireStatus(r, ReqStatus.DONE);
+        requested = Rules.current(requested); // 7.21: 책임 등급은 더 고를 수 없다. 들어오면 수고로 받는다
         if (requested == null || requested.ordinal() <= r.difficulty.ordinal())
             throw ApiException.bad("INVALID_LEVEL", "지금 등급(" + Rules.levelKo(r.difficulty) + ")보다 높은 등급을 골라 주세요");
         if (reason == null || reason.isBlank()) throw ApiException.bad("REASON_REQUIRED", "이유를 적어 주세요");

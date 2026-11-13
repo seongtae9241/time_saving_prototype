@@ -22,16 +22,18 @@ class RulesTest {
 
     @Test
     void 적립은_시간_곱하기_가중치() {
-        assertEquals(3.0, Rules.earn(2, Level.RESPONSIBLE));   // 동행 2시간 → 3.0
+        assertEquals(2.0, Rules.earn(2, Rules.categoryLevel("동행"))); // 동행 2시간 → 2.0 (7.21: 동행은 기본 1.0)
+        assertEquals(3.0, Rules.earn(2, Level.RESPONSIBLE));   // 예전 기록(책임 1.5)을 다시 셈할 때만
         assertEquals(2.0, Rules.earn(1.5, Level.EFFORT));      // 장보기 1.5시간 → 1.8 → 2.0
         assertEquals(1.5, Rules.earn(1.5, Level.BASIC));
-        assertEquals(4.0, Rules.earn(2.5, Level.RESPONSIBLE)); // 3.75 → 4.0
+        assertEquals(3.0, Rules.earn(2.5, Level.EFFORT));      // 3.0
         assertEquals(0.5, Rules.earn(0.5, Level.EFFORT));      // 0.6 → 0.5
     }
 
     @Test
     void 복합_요청은_최고_등급() {
-        assertEquals(Level.RESPONSIBLE, Rules.maxLevel(List.of("디지털 도움", "동행")));
+        assertEquals(Level.BASIC, Rules.maxLevel(List.of("디지털 도움", "동행")));
+        assertEquals(Level.EFFORT, Rules.maxLevel(List.of("동행", "가벼운 집안일")));
         assertEquals(Level.EFFORT, Rules.maxLevel(List.of("말동무·정서", "장보기·심부름")));
         assertEquals(Level.BASIC, Rules.maxLevel(List.of("말동무·정서", "생활 정리")));
         assertThrows(ApiException.class, () -> Rules.maxLevel(List.of("목욕")));

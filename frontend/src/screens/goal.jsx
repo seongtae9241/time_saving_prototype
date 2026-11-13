@@ -69,7 +69,7 @@ export function GoalPlan() {
             <RuleNote source={res.source} />
           </div>
           {(res.posts || []).length > 0 && <><div className="sec-t">근처 봉사 공고</div>{res.posts.map((x) => <PostCard key={x.id} p={x} />)}</>}
-          <div className="mute2" style={{ margin: '12px 2px' }}>필요한 시간은 가중치(기본 1.0 · 수고 1.2 · 책임 1.5, 0.5 단위)를 넣어 시스템이 계산해요. 제도·가중치가 바뀌면 달라질 수 있어요.</div>
+          <div className="mute2" style={{ margin: '12px 2px' }}>필요한 시간은 가중치(기본 1.0 · 수고 1.2, 0.5 단위)를 넣어 시스템이 계산해요. 제도·가중치가 바뀌면 달라질 수 있어요.</div>
         </div>
       )}
     </>

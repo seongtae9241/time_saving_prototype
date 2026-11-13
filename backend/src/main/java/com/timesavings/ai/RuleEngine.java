@@ -83,19 +83,20 @@ public final class RuleEngine {
         f.put("access", access);
         int other = f.get("physical") + f.get("risk") + f.get("expertise") + f.get("travel") + f.get("access");
         Level calc = Level.BASIC;
-        if (resp >= 2 || (resp >= 1 && other >= 2)) calc = Level.RESPONSIBLE;
-        else if ((f.get("physical") >= 1 && (access >= 1 || f.get("physical") >= 2)) || other >= 3) calc = Level.EFFORT;
+        // 2026-11-13(계약서 7.21): 책임 등급(1.5)이 없어졌다. 책임 요소만으로는 등급이 오르지 않고, 다른 부담이 함께 있으면 수고까지만 오른다.
+        boolean respUp = resp >= 1 && other >= 2;
+        if (respUp || (f.get("physical") >= 1 && (access >= 1 || f.get("physical") >= 2)) || other >= 3) calc = Level.EFFORT;
         Level level = Rules.max(base, calc);
 
         List<String> why = new ArrayList<>();
         if (base != Level.BASIC) why.add(Rules.josa(String.join("·", cats.stream().filter(c -> Rules.categoryLevel(c) == base).toList()), "은", "는") + " 기본 " + Rules.levelKo(base) + " 등급");
         if (f.get("physical") > 0) why.add("무거운 짐 등 신체 부담");
-        if (resp > 0 && base != Level.RESPONSIBLE) why.add("병원·기관 동행 등 책임");
+        if (respUp) why.add("병원·기관 동행 등 책임");
         if (f.get("risk") > 0) why.add("도구·반려동물 등 위험 요소");
         if (f.get("expertise") > 0) why.add("서류·기기 설정 등 전문성");
         if (f.get("travel") > 0) why.add("이동 거리");
         if (access > 0) why.add("계단 등 접근성");
-        String reason = why.isEmpty() ? "특별한 부담 요소가 없는 기본 활동이에요." :
+        String reason = why.isEmpty() ? (resp > 0 ? "신체 부담·위험·전문성이 낮아 기본 등급(×1.0)을 제안해요." : "특별한 부담 요소가 없는 기본 활동이에요.") :
                 String.join(", ", why) + " → " + Rules.levelKo(level) + " 등급(×" + Rules.weight(level) + ")을 제안해요.";
         return new DifficultyResult(level, reason, f);
     }

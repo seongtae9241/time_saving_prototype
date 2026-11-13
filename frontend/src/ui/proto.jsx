@@ -45,7 +45,7 @@ export function Ring({ v, max, c = '#6DB3A0' }) {
 }
 
 /* ---------- 도움 받기 / 봉사하기 전역 모드 ---------- */
-export const MODE = { recv: { label: '도움 받기', color: '#EE9A7E' }, give: { label: '봉사하기', color: '#6DB3A0' } };
+export const MODE = { recv: { label: '도움 받기', color: '#6F9CF0' }, give: { label: '봉사하기', color: '#6DB3A0' } };
 const MODE_KEY = 'ts-mode';
 function readMode() {
   try {

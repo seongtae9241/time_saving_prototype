@@ -376,14 +376,14 @@ function AdjustSheet({ r, onDone }) {
 }
 
 function AppealSheet({ r, onDone }) {
-  const [lv, setLv] = useState(r.difficulty === 'BASIC' ? 'EFFORT' : 'RESPONSIBLE');
+  const [lv, setLv] = useState('EFFORT'); // 7.21: 올릴 수 있는 등급은 수고 1.2 하나(책임 1.5 는 없어졌어요)
   const [reason, setReason] = useState('');
   const { toast } = useUi();
   return (
     <>
       <h2>난이도 이의 신청</h2>
       <p className="muted">지금 등급: {diffText(r)}. 실제로 더 힘들었다면 운영자가 검토해 조정해요.</p>
-      {[['BASIC', '기본 1.0'], ['EFFORT', '수고 1.2'], ['RESPONSIBLE', '책임 1.5']].filter(([k]) => k !== r.difficulty).map(([k, l]) => <div key={k} className={'opt ' + (lv === k ? 'on' : '')} role="button" tabIndex={0} onClick={() => setLv(k)}><span className="rd" /><div>{l}로 조정 요청</div></div>)}
+      {[['EFFORT', '수고 1.2']].map(([k, l]) => <div key={k} className={'opt ' + (lv === k ? 'on' : '')} role="button" tabIndex={0} onClick={() => setLv(k)}><span className="rd" /><div>{l}로 조정 요청</div></div>)}
       <textarea className="in" style={{ marginTop: 10 }} placeholder="예) 쌀 20kg와 생수 2묶음을 4층까지 날랐어요" value={reason} onChange={(e) => setReason(e.target.value)} />
       <button className="btn" style={{ marginTop: 12 }} onClick={async () => {
         if (!reason.trim()) return toast('사유를 적어 주세요');
@@ -567,7 +567,7 @@ export function RequestDetail() {
         {!r.rated && !(iVol && r.elder) && <button className="btn big-cta" style={{ marginTop: 12 }} onClick={() => (mgr ? sheet(() => <RateSheetOrg r={r} onDone={() => { closeSheet(); done(); }} />) : nav(`/req/${r.id}/rate`))}>{mgr ? '대신 평가하기' : '평가하기'}</button>}
         {r.rated && <div className="mute2 center" style={{ marginTop: 10 }}>평가를 남겼어요</div>}
         {role === 'RECIPIENT' && !r.elder && v.id && <RegularButton volunteerId={v.id} style={{ marginTop: 10 }} />}
-        {iVol && <button className="btn ghost" style={{ marginTop: 10 }} onClick={() => sheet(() => <AppealSheet r={r} onDone={() => { closeSheet(); reload(); }} />)}>난이도 이의 신청</button>}
+        {iVol && r.difficulty === 'BASIC' && <button className="btn ghost" style={{ marginTop: 10 }} onClick={() => sheet(() => <AppealSheet r={r} onDone={() => { closeSheet(); reload(); }} />)}>난이도 이의 신청</button>}
       </>
     );
   } else if (['REJECTED', 'DECLINED', 'EXPIRED', 'CANCELLED', 'NOSHOW'].includes(st)) {

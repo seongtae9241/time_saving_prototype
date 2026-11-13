@@ -203,7 +203,7 @@ public class InsightAi {
     public Map<String, Object> carePlan(Map<String, Object> summary, List<Map<String, Object>> candidates, String ruleText) {
         Optional<JsonNode> j = ask("""
                 시간은행 사용자가 남은 시간으로 앞으로 도움을 어떻게 받을 수 있는지 설명한다. 기간·횟수 숫자는 주어진 값만 쓰고 계산하지 않는다.
-                후보 조합(candidates) 중 사용자 상황에 맞는 1~2개를 골라 이유를 쉬운 존댓말 2~3문장으로 쓴다. 가중치(동행 1.5배 등) 때문에 빨리 줄어드는 점을 알려 준다.
+                후보 조합(candidates) 중 사용자 상황에 맞는 1~2개를 골라 이유를 쉬운 존댓말 2~3문장으로 쓴다. 가중치(장보기·집안일 1.2배) 때문에 빨리 줄어드는 점이 있으면 알려 준다. 가중치는 기본 1.0과 수고 1.2 두 가지뿐이다.
                 본인 사용 조건(직접 적립 10시간 이상)이 아직이면 그 점을 먼저 말한다.
                 출력: {"text":"...","pick":[후보 번호(0부터)]}
                 """, "상황(JSON): " + json(summary) + "\n후보(JSON): " + json(candidates), 500);

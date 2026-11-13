@@ -62,7 +62,7 @@ public class CategoryRegistry {
     public List<Map<String, Object>> list() {
         List<Map<String, Object>> out = new ArrayList<>();
         for (String c : Rules.CATEGORIES) out.add(row(c, Rules.categoryLevel(c), false));
-        saved().forEach((name, lv) -> { if (Rules.CATEGORIES.contains(name)) return; Level l; try { l = Level.valueOf(lv); } catch (IllegalArgumentException e) { l = Level.BASIC; } out.add(row(name, l, true)); });
+        saved().forEach((name, lv) -> { if (Rules.CATEGORIES.contains(name)) return; Level l; try { l = Rules.current(Level.valueOf(lv)); } catch (IllegalArgumentException e) { l = Level.BASIC; } out.add(row(name, l, true)); });
         return out;
     }
 
@@ -71,7 +71,7 @@ public class CategoryRegistry {
         if (name.length() < 2 || name.length() > 20) throw ApiException.bad("INVALID_NAME", "카테고리 이름은 2~20자로 적어 주세요");
         if (name.contains(",") || name.contains("|")) throw ApiException.bad("INVALID_NAME", "카테고리 이름에 쉼표나 | 는 쓸 수 없어요");
         if (Rules.CATEGORIES.contains(name)) throw ApiException.bad("CATEGORY_EXISTS", "이미 있는 종류예요");
-        Level lv = level == null ? Level.BASIC : level;
+        Level lv = level == null ? Level.BASIC : Rules.current(level); // 7.21: 기본·수고만
         Map<String, String> m = saved();
         m.put(name, lv.name());
         save(m);

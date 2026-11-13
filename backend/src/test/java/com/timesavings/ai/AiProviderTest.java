@@ -65,7 +65,7 @@ class AiProviderTest {
         Map<String, Object> r = ai.difficulty("병원 같이 가 주세요", java.util.List.of("동행"), 2.0);
         assertEquals("rule", r.get("source"));
         assertNull(r.get("provider"));
-        assertEquals("RESPONSIBLE", r.get("level"));
+        assertEquals("BASIC", r.get("level")); // 동행은 기본 등급(7.21)
         g.server().verify();
     }
 

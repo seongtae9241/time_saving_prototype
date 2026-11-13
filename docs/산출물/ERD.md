@@ -542,7 +542,7 @@ erDiagram
 | detail | VARCHAR(1000) | | | |
 | note | VARCHAR(500) | | 공개 메모(누구에게나 보임) | |
 | est_hours | DOUBLE | | 예상 활동 시간(NEED) | |
-| difficulty | VARCHAR(12) | | `BASIC·EFFORT·RESPONSIBLE` | |
+| difficulty | VARCHAR(12) | | `BASIC·EFFORT·RESPONSIBLE` (2026-11-13 결정: 기본 1.0·수고 1.2만 — `RESPONSIBLE`은 그 전 기록에만 남는다) | |
 | difficulty_reason | VARCHAR(300) | | | |
 | weight | DOUBLE | | 가중치 | |
 | repeat_rule | VARCHAR(50) | | 정기 요청 회차면 "매주 목요일" | |
@@ -964,7 +964,7 @@ erDiagram
 | TransferStatus | `PENDING, ACCEPTED, REJECTED, ADMIN` | elder_transfers.status |
 | PostType | `OFFER, NEED` | posts.type |
 | PostStatus | `OPEN, MATCHED, CLOSED, DELETED` | posts.status |
-| Level | `BASIC, EFFORT, RESPONSIBLE` (가중치 1.0·1.2·1.5) | posts.difficulty, requests.difficulty, difficulty_appeals |
+| Level | `BASIC, EFFORT, RESPONSIBLE` (가중치 1.0·1.2·1.5 — 2026-11-13 결정: 기본 1.0·수고 1.2만. `RESPONSIBLE` 1.5는 그 전 기록 표시용으로만 남고 새로 저장되지 않는다) | posts.difficulty, requests.difficulty, difficulty_appeals |
 | Kind | `REQUEST, PROPOSAL, REGULAR` | requests.kind |
 | ReqStatus | `SENT, VOL_ACCEPTED, CONFIRMED, IN_PROGRESS, CHECKED_OUT, LOG_SUBMITTED, DONE, REJECTED, DECLINED, EXPIRED, CANCELLED, NOSHOW` | requests.status |
 | LedgerType | `EARN, HOLD, RELEASE, USE, GIFT_OUT, GIFT_IN, ADJUST, REFUND` (+ 더 안 쓰는 `CLASS_FEE, CLASS_EARN, POOL`) | ledger.type |

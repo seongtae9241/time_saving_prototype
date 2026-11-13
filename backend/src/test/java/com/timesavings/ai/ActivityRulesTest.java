@@ -87,14 +87,14 @@ class ActivityRulesTest {
 
     @Test
     void 목표_플랜_계산은_가중치를_넣어_월_목표를_정한다() {
-        // 동행(×1.5) 주 1회 2시간을 5년 → 1회 3시간 × 52주 × 5년 = 780시간, 지금 20시간 → 760시간 / 120개월 = 6.33 → 0.5 단위 올림 6.5
+        // 동행(기본 ×1.0, 7.21) 주 1회 2시간을 5년 → 1회 2시간 × 52주 × 5년 = 520시간, 지금 20시간 → 500시간 / 120개월 = 4.17 → 0.5 단위 올림 4.5
         Map<String, Object> p = ActivityAiService.goalCompute(new GoalCmd("동행", 1.0, 2.0, 5, 10, null), 20, null);
-        assertEquals(1.5, p.get("weight"));
-        assertEquals(3.0, p.get("perSession"));
-        assertEquals(780.0, p.get("totalNeeded"));
-        assertEquals(760.0, p.get("remaining"));
+        assertEquals(1.0, p.get("weight"));
+        assertEquals(2.0, p.get("perSession"));
+        assertEquals(520.0, p.get("totalNeeded"));
+        assertEquals(500.0, p.get("remaining"));
         assertEquals(120, p.get("months"));
-        assertEquals(6.5, p.get("monthlyTarget"));
+        assertEquals(4.5, p.get("monthlyTarget"));
         // 나이로 입력: 지금 60대(65살로 어림) → 75살부터면 10년 뒤
         Map<String, Object> q = ActivityAiService.goalCompute(new GoalCmd("말동무·정서", 0.5, 1.0, 2, null, 75), 0, ActivityAiService.ageOf("60대"));
         assertEquals(10, q.get("yearsLater"));

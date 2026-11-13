@@ -137,7 +137,7 @@ public class TimePlanService {
     /**
      * 시간 플랜 계산(순수 함수 — 테스트 대상).
      * 모으기: 잔액 + 적립 속도 × 12 × (도움 받기 시작 나이 − 지금 나이).
-     * 쓰기: 비슷한 사람들의 카테고리별 한 달 시간 × 가중치(기본 1.0 · 수고 1.2 · 책임 1.5)의 합.
+     * 쓰기: 비슷한 사람들의 카테고리별 한 달 시간 × 가중치(기본 1.0 · 수고 1.2)의 합.
      * years = 모은 시간 ÷ 한 해 사용량, goalMonthly = 목표 나이(90세)까지 받으려면 한 달에 모아야 하는 시간(0.5 단위 올림).
      */
     public static Map<String, Object> compute(int age, int startAge, double balance, double rate, Map<String, Double> monthlyHours) {
@@ -206,7 +206,7 @@ public class TimePlanService {
 
     /** AI 문장에 쓸 수 있는 숫자: 계산 결과에 있는 숫자와 가중치·고정 기준값만. */
     static Set<Double> allowed(Object facts) {
-        Set<Double> s = new HashSet<>(List.of(1.0, 1.2, 1.5, 12.0, (double) MIN_PEERS, (double) TARGET_AGE, (double) SENIOR_AGE));
+        Set<Double> s = new HashSet<>(List.of(1.0, 1.2, 12.0, (double) MIN_PEERS, (double) TARGET_AGE, (double) SENIOR_AGE));
         numbers(facts, s);
         return s;
     }

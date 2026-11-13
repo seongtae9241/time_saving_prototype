@@ -50,7 +50,7 @@ public class PlannerService {
     /**
      * 생애 플랜 계산(순수 함수 — 테스트 대상).
      * 모으기: 지금 잔액 + 한 달 monthly 시간 × 12 × (startAge − age).
-     * 쓰기: 받고 싶은 도움의 한 달 시간 × 가중치(기본 1.0 / 수고 1.2 / 책임 1.5)를 더해 한 해 사용량으로.
+     * 쓰기: 받고 싶은 도움의 한 달 시간 × 가중치(기본 1.0 / 수고 1.2)를 더해 한 해 사용량으로.
      * endAge = startAge + 모은 시간 ÷ 한 해 사용량 (95세까지만 본다).
      */
     public static Map<String, Object> lifeCompute(double balance, int age, int startAge, double monthly, Map<String, Double> needs) {
@@ -96,7 +96,7 @@ public class PlannerService {
                 + ((int) p.get("endAge") >= MAX_AGE ? " 이후" : "") + "까지 도움을 받을 수 있어요. ";
         return Boolean.TRUE.equals(p.get("okTo90"))
                 ? base + "지금 속도면 충분해요. 남는 시간은 가족에게 선물할 수 있어요(상속은 안 돼요)."
-                : base + "90세까지 쓰려면 " + n((double) p.get("need90")) + "시간이 더 필요해요. 한 달 봉사를 " + n((double) p.get("need90Monthly")) + "시간으로 늘리거나 동행(×1.5)을 섞어 보세요.";
+                : base + "90세까지 쓰려면 " + n((double) p.get("need90")) + "시간이 더 필요해요. 한 달 봉사를 " + n((double) p.get("need90Monthly")) + "시간으로 늘리거나 장보기·집안일(×1.2)을 섞어 보세요.";
     }
 
     private static String n(double v) { return Rules.fmtHours(v); }
@@ -415,7 +415,7 @@ public class PlannerService {
             if ((boolean) o[7]) why.add("자주 활동하신 시간대(" + topSlot + ")예요");
             else if ((boolean) o[4]) why.add("가능 시간(" + slotOf(p.date, p.startHour) + ")과 맞아요");
             double w = ((Number) card.get("weight")).doubleValue();
-            if (w > 1.0) why.add((w >= 1.5 ? "책임 " : "수고 ") + w + "배");
+            if (w > 1.0) why.add("수고 " + w + "배");
             card.put("why", String.join(" · ", why));
             card.put("score", o[1]);
             card.put("whyBasis", Views.map("category", o[6], "area", o[5], "slot", o[7])); // 기록(많이 한 것)과 맞은 항목

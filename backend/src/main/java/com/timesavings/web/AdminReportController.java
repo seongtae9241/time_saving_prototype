@@ -128,7 +128,7 @@ public class AdminReportController {
     @Transactional
     public Map<String, Object> adopt(@CurrentUser User admin, @PathVariable Long id, @RequestBody(required = false) AdoptBody b) {
         CategorySuggestion s = suggestions.findById(id).orElseThrow(() -> ApiException.notFound("건의를 찾을 수 없어요"));
-        Level lv = b == null || b.level() == null ? Level.BASIC : b.level();
+        Level lv = b == null || b.level() == null ? Level.BASIC : Rules.current(b.level()); // 7.21: 기본·수고만
         Map<String, Object> cat = categories.add(s.name, lv);
         String ans = b == null || b.answer() == null || b.answer().isBlank()
                 ? "건의해 주신 '" + s.name + "' 종류를 공고 카테고리에 더했어요(" + Rules.levelKo(lv) + " 등급). 이제 공고를 올릴 때 고를 수 있어요." : b.answer().trim();

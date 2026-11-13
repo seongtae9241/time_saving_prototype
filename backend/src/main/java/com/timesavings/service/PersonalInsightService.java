@@ -138,7 +138,7 @@ public class PersonalInsightService {
         return "약 " + Math.round(weeks / WEEKS_PER_MONTH * 10) / 10.0 + "개월(" + weeks + "주)";
     }
 
-    /** 가중치(기본 1.0·수고 1.2·책임 1.5)를 반영한 기간 계산. usable 은 지금 쓸 수 있는 시간. */
+    /** 가중치(기본 1.0·수고 1.2)를 반영한 기간 계산. usable 은 지금 쓸 수 있는 시간. */
     public static Map<String, Object> compute(double usable, List<PlanItem> plans) {
         double weekly = 0;
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -192,7 +192,7 @@ public class PersonalInsightService {
         String ruleText = (s.canUseSelf() ? "" : "직접 적립한 시간이 " + Rules.fmtHours(BankService.SELF_USE_MIN) + "시간이 되어야 내 시간을 쓸 수 있어요(" + Rules.fmtHours(need) + "시간 더 필요). ")
                 + "지금 쓸 수 있는 " + Rules.fmtHours(s.usable()) + "시간으로 " + describe(plans) + "이면 한 주에 " + result.get("weeklyCost") + "시간씩 줄어 "
                 + result.get("span") + " 받을 수 있어요."
-                + (plans.stream().anyMatch(p -> "동행".equals(p.category())) ? " 동행은 책임 등급이라 1시간에 1.5시간씩 빠져요." : "")
+                + (plans.stream().anyMatch(p -> Rules.categoryLevel(p.category()) == Level.EFFORT) ? " 장보기·집안일 같은 수고 등급 도움은 1시간에 1.2시간씩 빠져요." : "")
                 + (ifUnlocked != null && ifUnlocked.get("weeks") != null ? " 조건을 채우면 잔액 " + Rules.fmtHours(s.available()) + "시간으로 " + ifUnlocked.get("span") + "이에요." : "");
         Map<String, Object> summary = Views.map("usable", s.usable(), "available", s.available(), "balance", s.balance(), "hold", s.hold(),
                 "earnedSelf", s.earnedSelf(), "canUseSelf", s.canUseSelf(), "selfUseMin", BankService.SELF_USE_MIN, "needToUnlock", need,
@@ -200,6 +200,6 @@ public class PersonalInsightService {
         Map<String, Object> text = insight.carePlan(summary, candidates, ruleText);
         return Views.map("summary", summary, "result", result, "ifUnlocked", ifUnlocked, "candidates", candidates,
                 "text", text.get("text"), "pick", text.get("pick"), "source", text.get("source"), "provider", text.get("provider"),
-                "weights", Views.map("BASIC", 1.0, "EFFORT", 1.2, "RESPONSIBLE", 1.5));
+                "weights", Views.map("BASIC", 1.0, "EFFORT", 1.2));
     }
 }
