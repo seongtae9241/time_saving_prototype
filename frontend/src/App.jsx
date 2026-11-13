@@ -10,9 +10,10 @@ import { Act, Bank, Gift } from './screens/bank.jsx';
 import { My, ProfileEdit, Verify, Family, FamReport, AlertSet, NotiSet, Cert, InfoEdit, Withdraw, Suggest } from './screens/my.jsx';
 import { Recommend, Public } from './screens/ai.jsx';
 import { VoiceReq } from './screens/voice.jsx';
-import { OHome, OElders, EDetail, EForm, OReqs, OReport, OMy } from './screens/org.jsx';
+import { OElders, EDetail, EForm, OReport, OMy } from './screens/org.jsx';
+import { OHome, OReqs } from './screens/orgPc.jsx'; // 담당자 PC 틀(5판): 폭 901px 이상이면 PC 홈·요청 보드, 좁으면 기존 모바일 화면
 import { News, EventDetail, OEvents, OEventNew } from './screens/news.jsx';
-import { OSchedule } from './screens/schedule.jsx'; // 기능 O-11~O-13 돌봄 편성표
+import { OSchedule } from './screens/schedulePc.jsx'; // 기능 O-11~O-13 돌봄 편성표 (PC: 일/주/월 캘린더, 좁으면 기존 표)
 import { Edu, EduCard, EduQuiz, EduRp, EduRpRes } from './screens/edu.jsx';
 import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANotices, APub, APersona, AVerify, ASuggest } from './screens/admin.jsx';
 import { MyInsight, CarePlan, MyReport, FamRecentReport } from './screens/insight.jsx';

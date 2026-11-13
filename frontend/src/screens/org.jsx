@@ -35,7 +35,7 @@ function ElderCard({ e, sig }) {
 }
 
 /** 대상 고르기 시트 → 콜백 */
-function useElderPick() {
+export function useElderPick() {
   const { sheet, closeSheet } = useUi();
   return (title, elders, onPick) => sheet(() => (
     <>

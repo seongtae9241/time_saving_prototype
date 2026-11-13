@@ -1,0 +1,230 @@
+/* 담당자(ORG) PC 틀 — 프로토타입 5판(2026-11-13 기관운영자-PC-5) 값을 옮긴 것.
+   모든 규칙은 .pcw(틀) 또는 body.pcw-on(틀이 떠 있을 때의 시트·토스트) 안에만 걸어 사용자·운영자 화면에 새지 않게 한다. */
+body.pcw-on{background:#F3F5F8;letter-spacing:-.1px;
+  --brand:#4FAE96;--pri:#4FAE96;--pri-2:#2F8069;--pri-soft:#E2F3EC}
+body.pcw-on #app{max-width:none!important;background:#F3F5F8}
+.pcw{--acc:#4FAE96;--acc-s:#E2F3EC;--acc-k:#2F8069;--ai-bg:#F2FAF6;--ai-bd:#CFEBDF;--band:#3E9E85;
+  --ink:#1F2633;--sub:#5B6576;--mute:#9AA3B2;--line:#EEF1F5;--bd:#E3E8EF;--red:#E5655B;--red-s:#FDECEA;
+  flex:1 1 auto;min-height:0;height:100%;display:flex;background:#F3F5F8;color:#1F2633;font-size:14px;line-height:1.5}
+.pcw button{font-family:inherit}
+
+/* ---------- 왼쪽 메뉴 236px ---------- */
+.pcw-nav{width:236px;flex:none;background:#fff;border-right:1px solid #ECEFF3;padding:20px 16px;display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:none}
+.pcw-nav .pfl{padding:0 4px 14px;border-bottom:1px solid #EEF1F5;margin-bottom:6px}
+.pcw-nav .pf-top{display:flex;align-items:center;gap:8px;font-size:15px;margin-bottom:16px}
+.pcw-nav .pf-lg{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:var(--acc-s);color:var(--acc-k)}
+.pcw-nav .pf-lg svg{width:18px;height:18px}
+.pcw-nav .pf-card{display:flex;align-items:center;gap:12px;width:100%;padding:12px;border-radius:18px;background:#F7F9FB;border:1px solid #EEF1F5;text-align:left;cursor:pointer;color:inherit}
+.pcw-nav .pf-card:hover{border-color:var(--acc)}
+.pcw-nav .pf-av{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:19px;font-weight:900;background:var(--acc-s);color:var(--acc-k)}
+.pcw-nav .pf-o{font-size:12px;color:#9AA3B2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcw-nav .pf-n{font-size:16px;font-weight:800}.pcw-nav .pf-n small{font-size:12px;font-weight:600;color:#9AA3B2;margin-left:2px}
+.pcw-nav .pf-rows{margin-top:10px;display:grid;gap:2px}
+.pcw-nav .pf-rows button{display:flex;justify-content:space-between;width:100%;border:0;background:none;padding:6px 8px;border-radius:10px;font-size:13px;color:#4A5262;cursor:pointer}
+.pcw-nav .pf-rows button:hover{background:var(--acc-s)}
+.pcw-nav .pf-rows span{color:#8A94A6}.pcw-nav .pf-rows b{color:#1F2633;font-weight:800}
+.pcw-nav .nv-card{margin-top:4px;display:flex;flex-direction:column;flex:1}
+.pcw-nav .gp{color:#A3ACBA;font-size:11.5px;font-weight:700;padding:12px 10px 4px;letter-spacing:.2px}
+.pcw-nav .nv{display:flex;width:100%;align-items:center;gap:11px;padding:10px 12px;border:0;border-radius:12px;background:transparent;color:#5B6576;font-weight:600;font-size:14.5px;margin-bottom:2px;text-align:left;cursor:pointer;transition:background .12s,color .12s}
+.pcw-nav .nv:hover{background:var(--acc-s);color:var(--acc-k)}
+.pcw-nav .nv.on{background:var(--acc-s);color:var(--acc-k);font-weight:800}
+.pcw-nav .nv .ni{width:20px;height:20px;flex:none;display:grid;place-items:center}
+.pcw-nav .nv .ni svg{width:19px;height:19px}
+.pcw-nav .nv-foot{margin-top:auto;padding-top:12px}
+.pcw-nav .nv-foot .nv{color:#9AA3B2}
+
+/* ---------- 위 막대 64px (역할 색) · 본문 ---------- */
+.pcw-main{flex:1;display:flex;flex-direction:column;min-width:0}
+.pcw .mtop{height:64px;flex:none;display:flex;align-items:center;gap:12px;padding:0 32px;background:var(--band)}
+.pcw .mtop h1{font-size:21px;letter-spacing:-.4px;margin:0;flex:1;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:800}
+.pcw .mtop .mu{color:rgba(255,255,255,.75);font-size:12px;white-space:nowrap}
+.pcw .mtop .ic{width:38px;height:38px;border:0;border-radius:12px;display:grid;place-items:center;position:relative;background:rgba(255,255,255,.18);color:#fff;cursor:pointer;flex:none}
+.pcw .mtop .ic svg{width:19px;height:19px}
+.pcw .mtop .ic .dot{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:#E5655B}
+.pcw .mtop .prof{display:flex;align-items:center;gap:8px;border:0;padding:3px 14px 3px 3px;border-radius:999px;background:rgba(255,255,255,.92);font-weight:600;font-size:13px;color:#1F2633;cursor:pointer;flex:none}
+.pcw .mtop .prof i{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:13px;background:var(--acc-s);color:var(--acc-k)}
+.pcw .mbd{flex:1;overflow-y:auto;padding:22px 32px 40px;display:flex;flex-direction:column}
+.pcw .mbd>*{flex:none}
+
+/* 아직 PC용으로 다시 짜지 않은 화면: 모바일 본문을 가운데 흰 카드(최대 폭 760px)에 담는다 */
+.pcw .pcw-col.bd{flex:none;overflow:visible;width:100%;max-width:760px;margin:0 auto;padding:22px 26px 28px;background:#fff;border:1px solid #EDF0F4;border-radius:22px;box-shadow:0 6px 22px rgba(40,60,90,.06);animation:none}
+.pcw .pcw-col .card{background:#F7F9FB}
+.pcw .pcw-col .sec-t{margin-top:26px}
+.pcw .pcw-col .btn{box-shadow:none}
+.pcw .pcw-col .chat-dock{margin:0 -26px;padding:12px 26px 14px}
+
+/* ---------- 공통 부품 ---------- */
+.pcw .pnl{background:#fff;border:1px solid #EDF0F4;border-radius:22px;padding:20px 22px;box-shadow:0 6px 22px rgba(40,60,90,.06);min-width:0}
+.pcw .pnl.wide{margin-top:18px}
+.pcw .pbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 12px;border-radius:12px;font-weight:700;font-size:13px;white-space:nowrap;cursor:pointer;border:1px solid var(--bd);background:rgba(255,255,255,.8);color:#1F2633}
+.pcw .pbtn.pri{background:var(--acc);color:#fff;border-color:transparent}
+.pcw .pbtn.sec2{background:#F1F4F8;border-color:transparent}
+.pcw .pbtn[disabled]{opacity:.6;cursor:default}
+.pcw .pbtn svg{width:15px;height:15px}
+.pcw .mu{color:#9AA3B2;font-size:12px}
+.pcw .sp{flex:1}
+.pcw .prw{display:flex;align-items:center;gap:10px}
+.pcw .pchips{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;min-width:0;flex:1 1 200px}
+.pcw .pchip{display:inline-flex;align-items:center;gap:4px;padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid var(--bd);font-size:13px;font-weight:600;color:#5B6576;white-space:nowrap;cursor:pointer;flex:none}
+.pcw .pchip.on{background:var(--acc-s);color:var(--acc-k);border-color:transparent;font-weight:800}
+.pcw .cseg{display:flex;gap:2px;padding:3px;border-radius:12px;background:#EEF1F5;margin-right:10px;flex:none}
+.pcw .cseg button{height:32px;padding:0 14px;border:0;background:none;border-radius:9px;font-size:13px;font-weight:700;color:#7C8696;white-space:nowrap;cursor:pointer}
+.pcw .cseg button.on{background:#fff;color:var(--acc-k);box-shadow:0 1px 3px rgba(40,60,90,.08)}
+.pcw .stag{flex:none;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pcw .avc{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;flex:none}
+.pcw .cpill{display:inline-flex;align-items:center;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;border:1px solid}
+.pcw .pempty{text-align:center;color:#9AA3B2;padding:22px 0;font-size:13px}
+.pcw .ai{background:var(--ai-bg);border:1px solid var(--ai-bd);border-radius:22px;padding:18px 20px;box-shadow:0 6px 22px rgba(40,60,90,.06)}
+
+/* ---------- 홈 ---------- */
+.pcw .hb-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;color:#1F2633;margin:0 0 18px;flex-wrap:wrap}
+.pcw .hb-hi{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.pcw .hb-hi b{background:var(--acc-s);color:var(--acc-k);padding:0 8px;border-radius:8px}
+.pcw .hb-sub{font-size:13.5px;color:#6B7585;margin-top:6px}
+.pcw .hb-kpi{display:flex;gap:10px;flex-wrap:wrap}
+.pcw .hk{display:flex;align-items:center;gap:10px;min-width:150px;padding:12px 16px;border-radius:16px;background:#fff;border:1px solid #ECEFF3;color:#1F2633;box-shadow:0 4px 14px rgba(40,60,90,.05);cursor:pointer;text-align:left}
+.pcw .hk:hover{border-color:var(--acc)}
+.pcw .hk-i{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--acc-s);color:var(--acc-k);flex:none}
+.pcw .hk-i svg{width:20px;height:20px}
+.pcw .hk span{display:block;font-size:12px;color:#8A94A6}
+.pcw .hk b{font-size:23px;font-weight:800;letter-spacing:-.5px}
+.pcw .hb-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:stretch}
+.pcw .nbar{display:flex;align-items:center;gap:10px;width:100%;border:0;padding:10px 16px;border-radius:999px;background:var(--band);color:#fff;font-size:13.5px;cursor:pointer;margin-bottom:6px;text-align:left}
+.pcw .nb-ic{width:22px;height:22px;display:grid;place-items:center;flex:none}.pcw .nb-ic svg{width:18px;height:18px}
+.pcw .nbar b{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcw .nb-r{font-size:12px;opacity:.85;white-space:nowrap}
+.pcw .pg2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.pcw .psec{padding-top:16px;min-width:0}
+.pcw .pg2 .psec:nth-child(odd){border-right:1px solid #EEF1F5;padding-right:24px}.pcw .pg2 .psec:nth-child(even){padding-left:24px}
+.pcw .ps-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px}
+.pcw .ps-h b{font-size:16px;letter-spacing:-.3px}
+.pcw .ps-h b .cnt{display:inline-grid;place-items:center;min-width:24px;height:22px;padding:0 7px;margin-left:4px;border-radius:999px;background:var(--acc-s);color:var(--acc-k);font-size:12.5px;font-weight:800;vertical-align:2px}
+.pcw .ps-a{font-size:12px;font-weight:700;color:#6B7585;border:1px solid #E3E8EF;border-radius:999px;padding:4px 11px;background:#fff;cursor:pointer;white-space:nowrap}
+.pcw .ps-a:hover{border-color:var(--band);color:var(--band)}
+.pcw .hrow{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:13px 2px;border-bottom:1px solid #F1F3F6;cursor:pointer;min-width:0;text-align:left;color:inherit}
+.pcw .hrow:hover .hr-t{color:var(--band)}
+.pcw .hr-t{flex:1;min-width:0;font-size:14.5px;font-weight:700;color:#2A3140;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcw .hr-t small{display:block;font-size:12px;font-weight:500;color:#9AA3B2;overflow:hidden;text-overflow:ellipsis}
+.pcw .hr-d{font-size:12px;color:#9AA3B2;flex:none}
+.pcw .hr-n{min-width:30px;height:26px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.pcw .hr-i{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--acc-s);color:var(--acc-k)}
+.pcw .hr-i svg{width:18px;height:18px}
+.pcw .pmore{margin-top:8px;border:0;background:none;font-size:12.5px;font-weight:700;color:var(--acc-k);padding:6px 2px;cursor:pointer}
+.pcw .dstrip{display:flex;align-items:center;gap:4px;margin:10px 0 12px}
+.pcw .ds-m{font-size:13px;color:#6B7585;margin-right:8px;white-space:nowrap}.pcw .ds-m b{font-size:34px;color:var(--band);letter-spacing:-1px}
+.pcw .dstrip button{flex:1;border:0;background:none;padding:6px 0;border-radius:12px;display:flex;flex-direction:column;align-items:center;color:#9AA3B2;cursor:pointer}
+.pcw .dstrip button b{font-size:16px;color:#4A5262}.pcw .dstrip button span{font-size:11px}
+.pcw .dstrip button.on{background:var(--band);color:#fff}.pcw .dstrip button.on b{color:#fff}
+.pcw .slist{max-height:260px;overflow-y:auto;scrollbar-width:none}
+.pcw .srow{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:8px 0;cursor:pointer;font-size:13px;text-align:left;color:inherit}
+.pcw .s-tm{flex:none;font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;min-width:58px;text-align:center}
+.pcw .s-t{flex:1;font-weight:700;color:#2A3140;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcw .s-v{font-size:12px;color:#9AA3B2;white-space:nowrap}.pcw .s-v em{font-style:normal;color:#C25E48;font-weight:700}
+.pcw .ai.brief{margin-top:18px}
+
+/* ---------- 요청 관리 보드 ---------- */
+.pcw .kb{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:14px;overflow-x:auto;padding-bottom:6px;align-items:start}
+.pcw .kcol{background:#F6F8FB;border-radius:20px;padding:10px;border:1px solid #EDF0F4;min-height:300px}
+.pcw .kc-h{display:flex;align-items:center;gap:8px;padding:4px 6px 10px}.pcw .kc-h b{font-size:14px}.pcw .kc-h span{font-size:12px;font-weight:800;color:#9AA3B2;background:#fff;border-radius:999px;padding:1px 8px}
+.pcw .kcard{display:block;width:100%;text-align:left;color:inherit;background:#fff;border-radius:16px;padding:12px;margin-bottom:10px;border:1px solid #EDF0F4;cursor:pointer;box-shadow:0 2px 8px rgba(40,60,90,.04);transition:box-shadow .12s,transform .12s}
+.pcw .kcard:hover{box-shadow:0 10px 24px rgba(40,60,90,.1);transform:translateY(-1px)}
+.pcw .kc-top{display:flex;align-items:center;gap:9px}.pcw .kc-top b{display:block;font-size:14px}.pcw .kc-top small{font-size:11.5px;color:#9AA3B2}
+.pcw .kc-top>div{flex:1;min-width:0}
+.pcw .kc-tags{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 8px}
+.pcw .kc-m{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#6B7585}
+.pcw .kc-m span,.pcw .kc-i{display:flex;align-items:center;gap:6px}.pcw .kc-m svg,.pcw .kc-i svg{width:14px;height:14px;flex:none;color:#A3ACBA}
+.pcw .kc-i{font-size:12px;color:#8A6A2E;background:#FFF8E8;border-radius:10px;padding:6px 8px;margin-top:8px;line-height:1.4}
+.pcw .kc-f{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #EEF1F5}
+.pcw .kc-v{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#4A5262;white-space:nowrap}.pcw .kc-v .avc{width:24px;height:24px;font-size:11px}
+.pcw .kc-w{font-size:11px;color:#9AA3B2;text-align:right}
+.pcw .kc-w.do{color:#C25E48;font-weight:800}
+.pcw .kc-empty{font-size:12px;color:#B4BCC8;text-align:center;padding:20px 0}
+.pcw .kc-more{display:block;width:100%;border:0;background:none;font-size:12px;font-weight:700;color:var(--acc-k);padding:6px 0;cursor:pointer}
+.pcw .tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.pcw .tbl th{background:#F6F8FB;color:#7C8696;font-weight:700;font-size:12.5px;text-align:left;padding:10px 12px;white-space:nowrap}
+.pcw .tbl td{padding:12px;border-bottom:1px solid #EEF1F5;vertical-align:middle}
+.pcw .tbl tbody tr{cursor:pointer}
+.pcw .tbl tbody tr:hover td{background:var(--acc-s)}
+
+/* ---------- 돌봄 편성표 캘린더 ---------- */
+.pcw .g21c{display:grid;grid-template-columns:3fr 1fr;gap:18px;align-items:start}
+.pcw .ccal{padding:12px 14px 14px}
+.pcw .cw-hd{display:grid;grid-template-columns:60px repeat(var(--cols),minmax(0,1fr));border-bottom:1px solid #EEF1F5;padding-bottom:8px}
+.pcw .cw-d{display:flex;align-items:baseline;justify-content:center;gap:6px;border:0;background:none;cursor:pointer;padding:4px 0;border-radius:10px}
+.pcw .cw-d span{font-size:12.5px;color:#9AA3B2;font-weight:700}.pcw .cw-d b{font-size:18px;color:#2A3140}
+.pcw .cw-d:hover{background:#F4F6FA}
+.pcw .cw-d.today b{background:var(--acc);color:#fff;border-radius:999px;min-width:30px;height:30px;display:inline-grid;place-items:center;font-size:15px}
+.pcw .cw-d.today span{color:var(--acc-k)}
+.pcw .cw-bd{display:grid;grid-template-columns:60px repeat(var(--cols),minmax(0,1fr));padding-top:6px}
+.pcw .ct-h{position:relative;font-size:11px;color:#A3ACBA}.pcw .ct-h span{position:absolute;top:-7px;right:10px}
+.pcw .cw-col{position:relative;border-left:1px solid #EEF1F5}
+.pcw .cw-col.today{background:rgba(79,174,150,.035)}
+.pcw .cw-cell{position:absolute;left:0;right:0;border-top:1px dashed #EEF1F5}
+.pcw .cev{position:absolute;border-radius:12px;border:1px solid;padding:7px 9px;overflow:hidden;display:flex;flex-direction:column;gap:2px;cursor:pointer;box-shadow:inset 3px 0 0 var(--ca);word-break:keep-all;text-align:left;color:inherit;font-family:inherit}
+.pcw .cev:hover{box-shadow:inset 3px 0 0 var(--ca),0 6px 16px rgba(40,60,90,.1);z-index:2}
+.pcw .ce-t{font-size:12.5px;font-weight:800;color:#1F2633;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex-shrink:0}
+.pcw .ce-s{font-size:11.5px;color:#6B7585;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.pcw .ce-alt{font-size:12px;line-height:1.45;margin-top:2px;color:#5B6576}
+.pcw .cev.gap .ce-alt{color:#B05A47}
+.pcw .ce-foot,.pcw .ce-tags{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:auto}
+.pcw .ce-v{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;color:#4A5262;background:rgba(255,255,255,.75);border-radius:999px;padding:2px 8px 2px 2px}
+.pcw .ce-av{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--ca);color:#fff;font-size:10px;font-weight:800}
+.pcw .ce-tag{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.75);color:#6B7585}
+.pcw .ce-tag.g{background:#E2F3EC;color:#2F8069}.pcw .ce-tag.r{background:#fff;color:#C25E48}.pcw .ce-tag.a{background:#FFF4DC;color:#A6760C}
+.pcw .cev.gap{background:repeating-linear-gradient(135deg,#FFF5F2 0 8px,#FDECE6 8px 16px);border:1.5px dashed #EFA898;box-shadow:none}
+.pcw .cev.gap .ce-t{color:#B05A47}
+.pcw .cev.gap.sel{border-style:solid;border-color:#D9705A;box-shadow:0 0 0 3px rgba(217,112,90,.15)}
+.pcw .cev.open{background:#fff!important;border-style:dashed}
+.pcw .cev.done{background:#F6F7F9!important;border-color:#E3E8EF!important;--ca:#B4BCC8!important}
+.pcw .cev.done .ce-t{color:#6B7585}
+.pcw .cev.narrow{padding:6px 7px}
+.pcw .cev.narrow .ce-t{font-size:11.5px}
+.pcw .cev.narrow .ce-s{font-size:10.5px}
+.pcw .cev.narrow .ce-foot,.pcw .cev.narrow .ce-tags{display:none}
+.pcw .cev.short .ce-foot,.pcw .cev.short .ce-tags,.pcw .cev.short .ce-alt{display:none}
+.pcw .cev.short .ce-t{-webkit-line-clamp:1}
+.pcw .cnow{position:absolute;left:-1px;right:0;height:0;border-top:2px solid #D9705A;z-index:3;pointer-events:none}
+.pcw .cnow i{position:absolute;left:-5px;top:-6px;width:10px;height:10px;border-radius:50%;background:#D9705A}
+.pcw .cnow span{position:absolute;right:4px;top:-18px;font-size:10.5px;font-weight:800;color:#C25E48;background:#fff;padding:0 4px;border-radius:6px}
+.pcw .cday-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.pcw .cday-tabs button{border:0;padding:7px 12px;border-radius:999px;font-size:13px;font-weight:700;color:#6B7585;background:#F4F6FA;cursor:pointer}
+.pcw .cday-tabs button.on{background:var(--acc-s);color:var(--acc-k)}
+.pcw .cm-hd{display:grid;grid-template-columns:repeat(7,1fr);font-size:12px;font-weight:700;color:#9AA3B2;text-align:center;padding:4px 0 8px}
+.pcw .cm-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.pcw .cm-c{min-height:92px;border-radius:12px;background:rgba(255,255,255,.7);border:1px solid #EEF1F5;padding:6px;display:flex;flex-direction:column;gap:3px;cursor:pointer;min-width:0;text-align:left;color:inherit;font-family:inherit}
+.pcw .cm-c:hover{border-color:var(--acc)}
+.pcw .cm-c.off{background:none;border:0;cursor:default}
+.pcw .cm-c.we{background:#FAFBFC}.pcw .cm-c.we .cm-n{color:#B4BCC8}
+.pcw .cm-n{font-size:12.5px;font-weight:800;color:#4A5262;margin:0 0 2px 2px}
+.pcw .cm-c.today{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-s)}
+.pcw .cm-c.today .cm-n{color:#fff;background:var(--acc);border-radius:999px;width:22px;height:22px;display:grid;place-items:center;margin:0}
+.pcw .cm-e{font-size:11px;font-weight:700;color:#2A3140;padding:3px 6px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:inset 2px 0 0 var(--ca)}
+.pcw .cm-e.gap{background:#FFF1EC;color:#B05A47;border:1px dashed #EFA898;box-shadow:none}
+.pcw .cm-more{font-size:11px;color:#9AA3B2;padding-left:4px}
+.pcw .cleg{display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;font-size:12px;color:#9AA3B2}
+.pcw .cleg i{display:inline-block;width:12px;height:12px;border-radius:4px;border:1px solid;margin-right:5px;vertical-align:-1px}
+.pcw .cleg i.g{background:#FFF5F2;border:1.5px dashed #EFA898}
+.pcw .sp-box{margin-top:14px}
+.pcw .sp-box:first-child{margin-top:0}
+.pcw .sp-box>b{font-size:16px;letter-spacing:-.3px}
+.pcw .dayrow{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px}
+.pcw .dayrow>b{width:44px;flex:none}
+.pcw .dayrow .db{flex:1;display:flex;gap:2px;height:10px;border-radius:999px;overflow:hidden;background:#EEF1F5}
+.pcw .dayrow .db i{display:block}
+.pcw .dayrow>span:last-child{width:62px;text-align:right;color:#6B7585;font-size:12px;flex:none}
+.pcw .gaprow{display:block;width:100%;text-align:left;border:1px dashed #EFA898;background:#FFF8F5;border-radius:14px;padding:10px 12px;margin-top:8px;cursor:pointer;color:inherit;font-size:13px}
+.pcw .gaprow.sel{border-style:solid;border-color:#D9705A}
+.pcw .gaprow b{display:block;color:#B05A47}
+.pcw .gaprow span{color:#8A94A6;font-size:12px}
+.pcw .sch-wrap{margin:0}
+
+/* ---------- 시트(창)·토스트: PC 틀이 떠 있을 때는 가운데 창으로 ---------- */
+body.pcw-on .ov{align-items:center;background:rgba(31,38,51,.28)}
+body.pcw-on .sheet{max-width:560px;border-radius:24px;border:1px solid #E3E8EF;padding:22px 24px 24px;max-height:86vh}
+body.pcw-on .sheet .grab{display:none}
+body.pcw-on .toast{bottom:30px;background:rgba(31,38,51,.9);border-radius:999px;padding:11px 18px}
+
+/* ---------- 폭이 좁을 때(901~1180px): 두 칸을 한 칸으로 ---------- */
+@media (max-width:1180px){
+  .pcw .hb-grid,.pcw .g21c{grid-template-columns:minmax(0,1fr)}
+  .pcw .mbd{padding:18px 20px 32px}.pcw .mtop{padding:0 20px}
+}

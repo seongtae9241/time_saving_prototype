@@ -5,6 +5,7 @@ import { Ic } from './bits.jsx';
 import { useAuth, useUi } from './ctx.jsx';
 import { DIc, MODE, useMode } from './proto.jsx';
 import { api } from '../api.js';
+import { PcShell, usePc } from './PcFrame.jsx'; // 담당자 PC 틀(5판, 계약서 7.22)
 
 export const ROLES = {
   USER: { label: '사용자', color: '#5B8DEF', tabs: [['/u/home', '홈', 'home'], ['/board', '공고', 'search'], ['/bank', '시간 통장', 'wallet'], ['/planner', '플래너', 'cal'], ['/my', '마이', 'user']] },
@@ -80,7 +81,7 @@ function NoticeTicker() {
 /**
  * 프로토타입 render()의 화면 틀: 헤더(뒤로·제목·알림 벨·역할 칩) + 본문 + 역할별 아래 탭
  */
-export default function Screen({ title = '', noHeader, noTabs, noBell, cls = '', tab, back, children, bodyRef }) {
+export default function Screen({ title = '', noHeader, noTabs, noBell, cls = '', tab, back, wide, children, bodyRef }) {
   const { me, unread } = useAuth();
   const nav = useNavigate();
   const loc = useLocation();
@@ -96,6 +97,9 @@ export default function Screen({ title = '', noHeader, noTabs, noBell, cls = '',
   useEffect(() => { if (bd.current) bd.current.scrollTop = 0; }, [loc.pathname]); // eslint-disable-line
   const active = tab || loc.pathname;
   const showTabs = R && !noTabs;
+  const pc = usePc();
+  // 담당자 + 폭 901px 이상: 모바일 틀 대신 PC 틀(왼쪽 메뉴·위 막대). 좁으면 아래 모바일 틀 그대로.
+  if (pc) return <PcShell title={title} wide={wide} cls={cls} canBack={canBack} bodyRef={bd} onDemo={demo}>{children}</PcShell>;
   return (
     <>
       {!noHeader && (

@@ -15,7 +15,7 @@ const DUR = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
 const keyOf = (elderId, date) => `${elderId}|${date}`;
 
 /** 빈 칸 하나의 추천(기능 O-12). 후보·순서는 서버가 찾고 요청은 보내지 않는다. 담당자가 눌러 요청 화면으로 간다. */
-function SuggestSheet({ cell, onPost, onClose }) {
+export function SuggestSheet({ cell, onPost, onClose }) {
   const nav = useNavigate();
   const [r] = useLoad(() => post('/org/schedule/suggest', { elderId: cell.elderId, date: cell.date, startHour: cell.startHour, hours: cell.hours, category: cell.category }), []);
   // 고른 칸의 날짜·시간·도움 종류·대상을 요청 화면에 미리 채워 넘긴다(다른 요일 후보는 그 요일 날짜로)
@@ -66,7 +66,7 @@ function SuggestSheet({ cell, onPost, onClose }) {
 }
 
 /** 고른 빈 칸들에 대리 공고를 한꺼번에(기능 O-13). 칸마다 도움 종류·시간을 정하고, 실패한 칸은 이유를 보여 준다. */
-function BulkSheet({ cells, onDone }) {
+export function BulkSheet({ cells, onDone }) {
   const { toast } = useUi();
   const [rows, setRows] = useState(cells.map((c) => ({ ...c, category: c.category || '', startHour: c.startHour ?? 10, hours: c.hours ?? 1 })));
   const [detail, setDetail] = useState('');
@@ -112,7 +112,8 @@ function BulkSheet({ cells, onDone }) {
   );
 }
 
-export function OSchedule() {
+/** 편성표(표) 본문: 주 이동·대상 필터·표·빈 칸 고르기·빈 일정 목록. 모바일 화면과 PC "편성표" 보기가 함께 쓴다. */
+export function ScheduleBody() {
   const nav = useNavigate();
   const { sheet, closeSheet } = useUi();
   const [sp, setSp] = useSearchParams();
@@ -123,7 +124,7 @@ export function OSchedule() {
   if (elderId) q.set('elderId', elderId);
   const [data, reload] = useLoad(() => api(`/org/schedule${q.toString() ? `?${q}` : ''}`), [week, elderId]);
   const [sel, setSel] = useState({});
-  const go = (o) => { const n = {}; const w = o.week !== undefined ? o.week : week; const e = o.elder !== undefined ? o.elder : elderId; if (w) n.week = w; if (e) n.elder = e; setSel({}); setSp(n, { replace: true }); };
+  const go = (o) => { const n = {}; const w = o.week !== undefined ? o.week : week; const e = o.elder !== undefined ? o.elder : elderId; if (w) n.week = w; if (e) n.elder = e; if (sp.get('view')) n.view = sp.get('view'); setSel({}); setSp(n, { replace: true }); };
   const cellInfo = (row, c) => {
     const d = (data.days || []).find((x) => x.date === c.date) || {};
     const g = c.gap || {};
@@ -137,7 +138,7 @@ export function OSchedule() {
   ((data && data.elders) || []).forEach((row) => row.cells.forEach((c) => { if (c.gap) gaps.push({ row, c }); }));
   const cnt = (data && data.counts) || {};
   return (
-    <Screen title="돌봄 편성표" back={false}>
+    <>
       {data === undefined ? <Loading /> : !data ? <Empty>편성표를 불러오지 못했어요</Empty> : (
         <>
           <div className="sch-nav">
@@ -204,6 +205,10 @@ export function OSchedule() {
           <div className="notice" style={{ marginTop: 14 }}>추천은 후보만 보여 줘요. 요청과 공고는 담당자가 눌러야 보내져요.</div>
         </>
       )}
-    </Screen>
+    </>
   );
+}
+
+export function OSchedule() {
+  return <Screen title="돌봄 편성표" back={false}><ScheduleBody /></Screen>;
 }
