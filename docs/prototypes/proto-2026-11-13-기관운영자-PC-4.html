@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>시간 적금 · 기관 담당자·운영자 (PC)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--brand:#5B8DEF;--pri-soft:#EEF3FF;--fill:#F6F7F9;--line:#F0F1F4;--ink:#1B1D22;--sub:#5F6672;--mute:#9AA1AC;
+--give:#6DB3A0;--give-s:#E9F6F1;--recv:#6F9CF0;--recv-s:#E8F0FE;--org:#4FAE96;--org-s:#E6F4F0;--admin:#E0A23E;--admin-s:#FCF3E3;
+--red:#E5655B;--red-s:#FDECEA;--amber:#D9962B;--amber-s:#FCF3E3;--acc:var(--give);--acc-s:var(--give-s)}
+*{box-sizing:border-box}
+body{margin:0;background:#E7EAF0;font-family:Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+input,textarea,select{font:inherit;color:inherit}
+/* 상단 시연 도구 */
+.tool{position:sticky;top:0;z-index:50;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;padding:10px 16px;background:#fff;border-bottom:1px solid #DDE1E8}
+.tool b{font-size:13px;margin-right:4px}
+.tool .rl{padding:6px 12px;border-radius:8px;background:var(--fill);font-size:13px;font-weight:600;color:var(--sub)}
+.tool .rl.on{background:var(--ink);color:#fff}
+.tool select{padding:6px 8px;border:1px solid #DDE1E8;border-radius:8px;background:#fff;font-size:13px;max-width:260px}
+.tool .sid{font-size:12px;color:var(--mute);font-family:ui-monospace,Menlo,monospace}
+.stage{display:flex;justify-content:center;padding:24px 16px 48px}
+/* 폰 프레임 */
+.phone{width:390px;height:844px;background:#fff;border-radius:40px;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(20,30,60,.18);border:8px solid #1B1D22}
+@media (max-width:430px){.stage{padding:0}.phone{width:100%;height:calc(100vh - 54px);border-radius:0;border:0}}
+.hd{flex:none;height:56px;display:flex;align-items:center;gap:8px;padding:0 16px;background:#fff;border-bottom:1px solid var(--line)}
+.hd h1{font-size:20px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd h2{font-size:17px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:18px;position:relative}
+.hd .ic .dot{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--red)}
+.tg{display:flex;background:var(--fill);border-radius:999px;padding:3px;flex:none}
+.tg button{padding:6px 11px;border-radius:999px;font-size:13px;font-weight:700;color:var(--mute)}
+.tg button.on.g{background:var(--give);color:#fff}
+.tg button.on.r{background:var(--recv);color:#fff}
+.bd{flex:1;overflow-y:auto;padding:16px 16px 24px;background:#fff;position:relative}
+.bd.gray{background:var(--fill)}
+.tb{flex:none;height:64px;display:flex;border-top:1px solid var(--line);background:#fff}
+.tb button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;color:var(--mute);font-weight:600}
+.tb button i{font-style:normal;font-size:19px;filter:grayscale(1);opacity:.55}
+.tb button.on{color:var(--ink)}
+.tb button.on i{filter:none;opacity:1}
+/* 공통 요소 */
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.gray .card{border-color:transparent}
+.card.tap{cursor:pointer}
+.card.tap:active{background:var(--fill)}
+.sec{font-size:16px;font-weight:700;margin:20px 0 10px;display:flex;align-items:center;justify-content:space-between}
+.sec:first-child{margin-top:0}
+.sec a,.lk{font-size:13px;color:var(--sub);font-weight:500;cursor:pointer}
+.row{display:flex;align-items:center;gap:10px}
+.sp{flex:1}
+.mu{color:var(--mute);font-size:12px}
+.su{color:var(--sub);font-size:13px}
+.t{font-weight:700;font-size:15px}
+.big{font-size:28px;font-weight:800;letter-spacing:-.5px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:48px;padding:0 18px;border-radius:12px;font-weight:700;font-size:15px}
+.btn.pri{background:var(--acc);color:#fff}
+.btn.sec2{background:var(--fill);color:var(--ink)}
+.btn.line{border:1px solid #DDE1E8;background:#fff}
+.btn.red{background:var(--red-s);color:var(--red)}
+.btn.sm{height:36px;padding:0 12px;font-size:13px;border-radius:10px}
+.btn.w{width:100%}
+.btns{display:flex;gap:8px}.btns .btn{flex:1}
+.sticky{position:sticky;bottom:-24px;margin:16px -16px -24px;padding:12px 16px 16px;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff 22%)}
+.gray .sticky{background:linear-gradient(to bottom,rgba(246,247,249,0),var(--fill) 22%)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:6px 11px;border-radius:999px;background:var(--fill);font-size:13px;font-weight:600;color:var(--sub);white-space:nowrap}
+button.chip.on,.chip.on{background:var(--ink);color:#fff}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:var(--fill);color:var(--sub);white-space:nowrap}
+.tag.g{background:var(--give-s);color:#3E8C77}.tag.b{background:var(--recv-s);color:#3F6FCB}.tag.r{background:var(--red-s);color:var(--red)}.tag.a{background:var(--amber-s);color:#A8701A}.tag.k{background:var(--ink);color:#fff}
+.seg{display:flex;background:var(--fill);border-radius:12px;padding:4px;margin-bottom:14px}
+.seg button{flex:1;height:36px;border-radius:9px;font-weight:700;font-size:13px;color:var(--mute)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--acc-s);color:var(--ink);flex:none;font-size:15px}
+.av.s{width:32px;height:32px;font-size:13px}
+.av.l{width:56px;height:56px;font-size:20px}
+.fld{margin-bottom:14px}
+.fld label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:var(--sub)}
+.in{width:100%;height:48px;border:1px solid #DDE1E8;border-radius:12px;padding:0 14px;background:#fff;outline:none}
+.in:focus{border-color:var(--acc)}
+textarea.in{height:96px;padding:12px 14px;resize:none}
+.li{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.li:last-child{border-bottom:0}
+.li .ar{color:var(--mute)}
+.kv{display:flex;justify-content:space-between;padding:7px 0;font-size:14px}
+.kv span:first-child{color:var(--sub)}
+.kv b{font-weight:700}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.note{background:var(--fill);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--sub)}
+.warn{background:var(--amber-s);border-radius:12px;padding:12px 14px;font-size:13px;color:#8A5B12}
+.danger{background:var(--red-s);border-radius:12px;padding:12px 14px;font-size:13px;color:#B5443B}
+.empty{text-align:center;color:var(--mute);padding:28px 0;font-size:13px}
+.sw{width:44px;height:26px;border-radius:13px;background:#D7DBE2;position:relative;flex:none;transition:.2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw.on{background:var(--acc)}.sw.on::after{left:21px}
+.hs{display:flex;gap:10px;overflow-x:auto;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
+.hs::-webkit-scrollbar{display:none}
+.hs>*{flex:none}
+.bar{height:8px;border-radius:4px;background:var(--fill);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:4px}
+.dotr{width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block}
+/* AI 카드: 항상 같은 모양 */
+.ai{border-radius:16px;padding:16px;margin-bottom:12px;background:linear-gradient(135deg,#F3F0FF 0%,#EEF3FF 100%);border:1px solid #E2DCFB}
+.ai-h{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px;color:#5B48C8;margin-bottom:8px}
+.ai-r{margin-top:10px;padding-top:10px;border-top:1px dashed #D6CEF7;font-size:12px;color:#7A6DB8}
+.ai .card{border-color:#E7E2FB}
+.ai-btn{background:#6B57D6!important;color:#fff!important}
+.ld{display:flex;align-items:center;gap:10px;color:#5B48C8;font-weight:600;font-size:13px}
+.ld i{width:16px;height:16px;border:2px solid #CFC6F5;border-top-color:#6B57D6;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* 단계 바 */
+.steps{display:flex;gap:4px;margin:4px 0 6px}
+.steps i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.steps i.on{background:var(--acc)}
+.stl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mute)}
+.stl span.on{color:var(--ink);font-weight:700}
+/* 채팅 */
+.chat{display:flex;flex-direction:column;gap:8px}
+.msg{max-width:80%;padding:10px 13px;border-radius:16px;font-size:14px;background:var(--fill);align-self:flex-start;border-top-left-radius:4px}
+.msg.me{align-self:flex-end;background:var(--acc);color:#fff;border-radius:16px;border-top-right-radius:4px}
+.msg.bot{background:#F1EEFF}
+/* 달력 */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.cal .w{font-size:11px;color:var(--mute);padding:4px 0}
+.cal button{height:40px;border-radius:10px;font-size:13px;position:relative}
+.cal button.on{background:var(--ink);color:#fff;font-weight:700}
+.cal button.td{font-weight:800;color:var(--acc)}
+.cal button.on.td{color:#fff}
+.cal button .d{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--acc)}
+/* 시트 */
+.ov{position:absolute;inset:0;background:rgba(15,20,30,.45);display:flex;align-items:flex-end;z-index:30;animation:fi .15s}
+.sh{background:#fff;width:100%;border-radius:22px 22px 0 0;padding:10px 20px 24px;max-height:86%;overflow-y:auto;animation:su .2s}
+.sh .gr{width:40px;height:4px;border-radius:2px;background:#DDE1E8;margin:0 auto 14px}
+.sh h3{margin:0 0 14px;font-size:18px}
+@keyframes su{from{transform:translateY(40px);opacity:.6}}
+@keyframes fi{from{opacity:0}}
+.toast{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);background:rgba(27,29,34,.92);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;z-index:40;white-space:nowrap;animation:fi .2s}
+/* 표 */
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;color:var(--sub);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--fill);white-space:nowrap}
+.tbl td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr.sel td{background:#FFF8EA}
+.tbl tr.ck{cursor:pointer}
+/* 편성표 */
+.grid{display:grid;grid-template-columns:62px repeat(5,1fr);gap:3px;font-size:10.5px}
+.grid .h{text-align:center;color:var(--sub);font-weight:700;padding:4px 0}
+.grid .n{font-weight:700;font-size:12px;display:flex;flex-direction:column;justify-content:center}
+.grid .c{border-radius:8px;min-height:54px;padding:4px;display:flex;flex-direction:column;gap:1px}
+.grid .c.f{background:var(--org-s)}
+.grid .c.x{background:var(--red-s);cursor:pointer;border:1px dashed #F0A79F}
+.grid .c.e{background:var(--fill)}
+.grid .c b{font-size:10.5px}
+/* 운영자 웹 */
+.desk{width:1240px;max-width:100%;height:800px;background:#fff;border-radius:16px;overflow:hidden;display:flex;box-shadow:0 20px 60px rgba(20,30,60,.16);position:relative}
+.nav{width:220px;flex:none;background:#1F232B;color:#C9CED8;padding:20px 12px;overflow-y:auto}
+.nav .lg{color:#fff;font-weight:800;font-size:17px;padding:0 10px 18px}
+.nav .lg small{display:block;font-weight:500;font-size:12px;color:#8C93A1}
+.nav button{display:flex;width:100%;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;font-size:14px;color:#C9CED8;text-align:left}
+.nav button.on{background:#333946;color:#fff;font-weight:700}
+.nav .gp{font-size:11px;color:#6E7584;padding:14px 10px 6px;font-weight:700}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--fill)}
+.mtop{height:60px;flex:none;display:flex;align-items:center;padding:0 28px;background:#fff;border-bottom:1px solid var(--line);gap:12px}
+.mtop h1{font-size:19px;margin:0;flex:1}
+.mbd{flex:1;overflow-y:auto;padding:24px 28px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.g21{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}
+.desk .card{margin-bottom:16px}
+.kpi .mu{font-size:13px}.kpi .big{margin-top:4px}
+.hbar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:13px}
+.hbar span:first-child{width:96px;color:var(--sub);flex:none}
+.hbar .bar{flex:1;height:12px}
+.hbar b{width:44px;text-align:right}
+@media (max-width:900px){.desk{flex-direction:column;height:auto}.nav{width:100%;display:flex;flex-wrap:wrap;gap:4px}.nav .gp,.nav .lg{display:none}.nav button{width:auto}.g2,.g3,.g4,.g21{grid-template-columns:1fr}}
+.split{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+.lrow{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;cursor:pointer}
+.lrow:hover{background:var(--fill)}.lrow.on{background:var(--acc-s)}
+.dov{position:absolute;inset:0;background:rgba(15,20,30,.35);z-index:30;display:flex;justify-content:flex-end;animation:fi .15s}
+.dov.c{align-items:center;justify-content:center}.dov.t{background:rgba(15,20,30,.08);align-items:flex-start}
+.drw{width:480px;max-width:100%;height:100%;background:#fff;padding:24px;overflow-y:auto;display:flex;flex-direction:column;animation:sl .2s}
+.drw .dbody{flex:1}.drw .ic,.mdl .ic{width:34px;height:34px;border-radius:10px;background:var(--fill)}
+.dfoot{display:flex;gap:8px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--line);margin-top:16px}
+.mdl{width:820px;max-width:94%;max-height:86%;background:#fff;border-radius:18px;padding:24px;overflow-y:auto}
+.pop{margin:62px 150px 0 0;width:420px;background:#fff;border-radius:16px;box-shadow:0 16px 40px rgba(0,0,0,.18);padding:6px 18px 10px;max-height:70%;overflow-y:auto}
+@keyframes sl{from{transform:translateX(40px);opacity:.6}}
+.mtop .ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:17px;position:relative;background:var(--fill)}
+.mtop .ic .dot{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--red)}
+.prof{display:flex;align-items:center;gap:8px;padding:3px 12px 3px 3px;border-radius:999px;background:var(--fill);font-weight:600;font-size:13px}
+.grid.pc{grid-template-columns:96px repeat(5,1fr);gap:5px;font-size:12px}
+.grid.pc .c{min-height:60px;padding:7px 8px;border-radius:10px}.grid.pc .c b{font-size:12.5px}.grid.pc .n{font-size:13px}
+.grid.mini{grid-template-columns:64px repeat(5,1fr)}.grid.mini .c{min-height:30px;padding:5px 7px}
+.grid .c.sel{outline:2px solid var(--red);outline-offset:1px}
+.desk .sec{margin:4px 0 10px}
+.tbl tr.ck:hover td{background:var(--fill)}
+@media (max-width:900px){.split{grid-template-columns:1fr!important}.pop{margin:62px 8px 0}}
+.kv span{white-space:nowrap;flex:none;margin-right:12px}
+</style>
+</head>
+<body>
+<div class="tool">
+  <b>시간 적금</b>
+  <a class="rl" href="시간적금_사용자.html" style="text-decoration:none">사용자 (모바일) ↗</a>
+  <button class="rl" data-role="org">기관 담당자</button>
+  <button class="rl" data-role="admin">운영자</button>
+  <select id="jump"></select>
+  <span class="sid" id="sid"></span>
+</div>
+<div class="stage" id="stage"></div>
+<script>
+/* ================= 기본 데이터 ================= */
+const CATS=[
+ {k:'말동무·정서',w:1.0,lv:'기본',ic:'💬'},{k:'디지털 도움',w:1.0,lv:'기본',ic:'📱'},{k:'생활 정리',w:1.0,lv:'기본',ic:'🧺'},
+ {k:'장보기·심부름',w:1.2,lv:'수고',ic:'🛒',ph:'영수증'},{k:'가벼운 집안일',w:1.2,lv:'수고',ic:'🧹',ph:'작업 전후'},{k:'동행',w:1.0,lv:'기본',ic:'🚶'}];
+const cw=k=>CATS.find(c=>c.k===k)||CATS[0];
+const ME={n:'손유진',age:28,ag:'20대',dong:'행복동',rate:4.9,give:14,recv:5,bal:23.5,hold:2.0,earn:43.0,used:17.5,gift:2.0};
+const P={
+ hn:{n:'김하늘',ag:'20대',dong:'행복동',rate:4.9,bd:['교육 수료','신원 확인'],cnt:12},
+ mk:{n:'최미경',ag:'60대',dong:'행복동',rate:4.8,bd:['교육 수료'],cnt:31},
+ dy:{n:'이도윤',ag:'30대',dong:'희망동',rate:4.7,bd:['신원 확인'],cnt:7},
+ sj:{n:'박서준',ag:'30대',dong:'행복동',rate:4.6,bd:['교육 수료'],cnt:4},
+ bn:{n:'김복남',ag:'70대',dong:'행복동',rate:5.0,bd:[],cnt:9},
+ js:{n:'정○순',ag:'80대',dong:'행복동',rate:4.9,bd:[],cnt:6},
+ hj:{n:'한○자',ag:'70대',dong:'행복동',rate:4.8,bd:[],cnt:3},
+ lr:{n:'이○례',ag:'80대',dong:'행복동',rate:5.0,bd:[],cnt:2,org:'행복요양원'},
+ ph:{n:'박○호',ag:'70대',dong:'희망동',rate:4.7,bd:[],cnt:1},
+};
+const DANGOL={hn:{how:'자동 3회',cnt:3,last:'11/03'},mk:{how:'직접',cnt:2,last:'11/06'},bn:{how:'자동 4회',cnt:4,last:'11/03'}};
+const BYME={bn:{how:'자동 4회',cnt:4},js:{how:'직접',cnt:2}};
+const OFFERS=[ // 봉사 가능 공고 (봉사받기 모드에서 보임)
+ {id:'o1',p:'hn',t:'병원 동행이나 휴대폰 설정 도와드려요',cats:['동행','디지털 도움'],d:'11/14 (토)',tm:'13:00~17:00',s:13,e:17,km:0.6,txt:'주말 오후에 시간이 많아요. 병원 접수, 키오스크, 휴대폰 사진 옮기기 등 편하게 말씀해 주세요.'},
+ {id:'o2',p:'mk',t:'매주 금요일 오전 말동무 해 드려요',cats:['말동무·정서','생활 정리'],d:'매주 금',tm:'10:00~13:00',s:10,e:13,km:0.3,txt:'이야기 나누고 산책하는 걸 좋아해요. 옷장 정리도 같이 할 수 있어요.',rep:true},
+ {id:'o3',p:'dy',t:'일요일 오전 장보기·집안일 가능',cats:['장보기·심부름','가벼운 집안일'],d:'11/15 (일)',tm:'09:00~12:00',s:9,e:12,km:1.4,txt:'차가 있어서 무거운 장보기도 괜찮아요.'},
+ {id:'o4',p:'sj',t:'평일 저녁 스마트폰 알려 드려요',cats:['디지털 도움'],d:'평일',tm:'19:00~21:00',s:19,e:21,km:0.9,txt:'퇴근 후 1시간 정도 가능해요. 영상통화, 은행 앱 말고 일반 앱 위주로요.'},
+];
+const NEEDS=[ // 도움 요청 공고 (봉사하기 모드에서 보임)
+ {id:'n1',p:'bn',t:'쌀 10kg이랑 장 좀 봐 주세요',cats:['장보기·심부름'],d:'11/14 (토)',tm:'14:00~16:00',s:14,e:16,h:2,km:0.4,txt:'무릎이 안 좋아서 무거운 걸 못 들어요. 마트는 걸어서 10분이에요.'},
+ {id:'n2',p:'lr',t:'오후에 말동무 해 주실 분',cats:['말동무·정서'],d:'11/14 (토)',tm:'16:30~17:30',s:16.5,e:17.5,h:1,km:0.7,txt:'행복요양원 담당자가 대신 올린 공고예요. 옛날이야기 듣는 걸 좋아하세요.',org:'행복요양원'},
+ {id:'n3',p:'js',t:'냉장고 정리 같이 해 주세요',cats:['생활 정리'],d:'11/16 (월)',tm:'10:00~12:00',s:10,e:12,h:2,km:0.5,txt:'유통기한 지난 것 골라내고 칸 정리를 하고 싶어요.'},
+ {id:'n4',p:'ph',t:'베란다 화분 옮기기',cats:['가벼운 집안일'],d:'11/15 (일)',tm:'15:00~16:00',s:15,e:16,h:1,km:1.1,txt:'겨울이라 화분 6개를 안으로 들여야 해요.'},
+ {id:'n5',p:'hj',t:'손주랑 영상통화 하는 법',cats:['디지털 도움'],d:'11/14 (토)',tm:'18:30~19:30',s:18.5,e:19.5,h:1,km:0.6,txt:'휴대폰을 새로 바꿨는데 영상통화를 못 하겠어요.'},
+];
+const GROUPS=[
+ {id:'g1',host:'행복요양원',kind:'기관',t:'어르신 생신잔치 보조',d:'11/22 (일)',tm:'13:00~16:00',place:'행복요양원 2층 강당',todo:'상차림, 어르신 이동 돕기, 사진 촬영',max:8,cur:5,bring:'편한 신발',h:3.0,cat:'말동무·정서',mode:'give'},
+ {id:'g2',host:'희망복지관',kind:'기관',t:'김장 나눔 봉사',d:'11/29 (일)',tm:'09:00~13:00',place:'희망복지관 마당',todo:'배추 절이기, 속 넣기, 포장',max:20,cur:12,bring:'고무장갑, 앞치마',h:4.8,cat:'가벼운 집안일',mode:'give'},
+ {id:'g3',host:'한빛대 봉사동아리',kind:'동아리',t:'토요일 오후 디지털·말동무 봉사',d:'매주 토',tm:'14:00~17:00',place:'행복동·희망동',todo:'휴대폰 설정, 말동무, 산책',max:4,cur:4,bring:'',h:3.0,cat:'디지털 도움',mode:'recv'},
+];
+const EVENTS=[
+ {org:'희망복지관',kind:'교실',t:'어르신 스마트폰 교실',d:'11/18 (수) 14:00',km:0.8},
+ {org:'행복동 주민센터',kind:'행사',t:'동네 김장 나눔 잔치',d:'11/21 (토) 10:00',km:0.3},
+ {org:'행복요양원',kind:'모임',t:'가족과 함께하는 음악회',d:'11/25 (수) 15:00',km:0.7},
+ {org:'행복구립도서관',kind:'모집',t:'그림책 읽어 주기 모임',d:'12/02 (수) 11:00',km:1.2},
+];
+// 활동: me = 'give'(내가 봉사) / 'recv'(내가 받음). st: 0요청 1수락 2확정 3진행 4일지확인 5완료
+const ACTS=[
+ {id:'a1',me:'give',p:'bn',cat:'장보기·심부름',d:'11/14 (토)',tm:'14:00~16:00',h:2,place:'행복동',st:0,memo:'쌀 10kg, 대파, 두부'},
+ {id:'a2',me:'give',p:'hj',cat:'디지털 도움',d:'11/12 (목) 오늘',tm:'19:00~20:00',h:1,place:'행복동',st:2,memo:'영상통화 설정'},
+ {id:'a3',me:'give',p:'js',cat:'생활 정리',d:'11/10 (화)',tm:'10:00~12:00',h:2,place:'행복동',st:4,memo:'옷장 정리'},
+ {id:'a4',me:'give',p:'bn',cat:'동행',d:'11/03 (화)',tm:'10:00~12:00',h:2,place:'행복동 → 행복내과',st:5,memo:'정기 검진'},
+ {id:'b1',me:'recv',p:'hn',cat:'동행',d:'11/14 (토)',tm:'13:00~15:00',h:2,place:'행복동 → 서울정형외과',st:1,memo:'무릎 검진, 접수 도움'},
+ {id:'b2',me:'recv',p:'mk',cat:'말동무·정서',d:'11/13 (금)',tm:'10:00~12:00',h:2,place:'행복동',st:2,memo:'산책'},
+ {id:'b3',me:'recv',p:'dy',cat:'가벼운 집안일',d:'11/08 (일)',tm:'09:00~10:30',h:1.5,place:'행복동',st:4,memo:'분리수거, 화장실 청소 거들기',log:'분리수거를 하고 화장실 청소를 함께 했어요. 세제가 거의 떨어져서 다음에 사 두시면 좋겠어요.'},
+ {id:'b4',me:'recv',p:'mk',cat:'말동무·정서',d:'11/06 (금)',tm:'10:00~12:00',h:2,place:'행복동',st:5,memo:''},
+];
+const STN=['요청','수락','확정','진행 중','일지 확인','완료'];
+const HIST=[
+ {d:'11/06',t:'최미경 님 말동무 받음',f:'2.0시간 × 1.0',v:-2.0,b:23.5},
+ {d:'11/03',t:'김복남 님 병원 동행',f:'2.0시간 × 1.5',v:3.0,b:25.5},
+ {d:'10/30',t:'한○자 님 디지털 도움',f:'1.0시간 × 1.0',v:1.0,b:22.5},
+ {d:'10/27',t:'엄마(이순자)에게 선물',f:'시간 선물',v:-2.0,b:21.5},
+ {d:'10/25',t:'김복남 님 장보기',f:'1.5시간 × 1.2',v:1.8,b:23.5},
+ {d:'10/18',t:'정○순 님 생활 정리',f:'2.0시간 × 1.0',v:2.0,b:21.7},
+];
+const MONTHS=[['6월',3.5,1.0],['7월',5.0,2.0],['8월',4.2,0],['9월',6.0,3.0],['10월',5.8,4.0],['11월',3.0,2.0]];
+const FAMILY=[{n:'이순자',rel:'엄마',st:'연결됨',share:true},{n:'손민호',rel:'동생',st:'대기',share:false}];
+const NOTI_U=[
+ {ic:'🙋',t:'김복남 님이 장보기를 요청했어요',tm:'10분 전',go:['U-POST-10','a1'],new:1},
+ {ic:'✅',t:'김하늘 님이 병원 동행을 수락했어요. 최종 수락해 주세요',tm:'1시간 전',go:['U-POST-10','b1'],new:1},
+ {ic:'⏰',t:'오늘 19:00 한○자 님 디지털 도움이 있어요',tm:'3시간 전',go:['U-POST-10','a2'],new:1},
+ {ic:'📝',t:'이도윤 님이 일지를 보냈어요. 확인해 주세요',tm:'어제',go:['U-POST-10','b3']},
+ {ic:'⏳',t:'김복남 님 병원 동행으로 3.0시간이 적립됐어요',tm:'11/03',go:['U-BANK-02']},
+ {ic:'💬',t:'문의에 답변이 달렸어요',tm:'11/01',go:['U-MY-08']},
+];
+const ELDERS=[
+ {id:'e1',n:'이순례',age:82,dong:'행복동',home:'혼자',needs:['말동무·정서','동행'],month:1,prev:3,dg:1,pri:'높음',caution:'귀가 어두우셔서 천천히 크게 말씀해 주세요. 계단 이용이 어려워요.',consent:true},
+ {id:'e2',n:'정말순',age:85,dong:'행복동',home:'혼자',needs:['생활 정리','장보기·심부름'],month:4,prev:4,dg:2,pri:'보통',caution:'당뇨가 있으셔서 단 음식은 사지 않아요.',consent:true},
+ {id:'e3',n:'한영자',age:77,dong:'희망동',home:'배우자와',needs:['디지털 도움'],month:2,prev:2,dg:1,pri:'낮음',caution:'오전 11시 이후 방문을 원하세요.',consent:true},
+ {id:'e4',n:'오덕수',age:88,dong:'희망동',home:'혼자',needs:['동행','장보기·심부름'],month:1,prev:3,dg:0,pri:'높음',caution:'지팡이를 쓰세요. 병원 동행 시 휠체어 대여 필요할 수 있어요.',consent:true},
+];
+const DAYS=['월 11/9','화 11/10','수 11/11','목 11/12','금 11/13'];
+// 편성표: [elder][day*2+ampm] = null | {c,v,dg} | {gap,alt,altP}
+const SCHED={
+ e1:{6:{c:'말동무',v:'최미경',dg:1},3:{gap:'동행 (병원)',alt:'수요일로 옮기면 김하늘 님 가능',altP:'김하늘',altWhy:'수요일 오후 가능 · 같은 동 · 동행 8회'}},
+ e2:{0:{c:'생활 정리',v:'최미경',dg:1},5:{c:'장보기',v:'이도윤'}},
+ e3:{9:{c:'디지털',v:'김하늘',dg:1},2:{gap:'디지털 도움',alt:'박서준 님이 같은 시간 가능',altP:'박서준',altWhy:'같은 동 · 화요일 오전 휴무 · 디지털 도움 4회',same:true}},
+ e4:{1:{gap:'동행 (복지관)',alt:'가능한 분이 없어요. 공고로 올리는 걸 추천해요',altP:null,altWhy:'희망동 월요일 오후 봉사 가능자 0명'},7:{c:'장보기',v:'이도윤'}},
+};
+const REQS=[ // 기관 대리 요청
+ {id:'r1',e:'e1',cat:'동행',d:'11/17 (화)',tm:'14:00~16:00',v:'hn',st:0,issue:'귀가 어두우세요. 진료 내용을 메모해 주시면 좋아요.',what:'봉사 제안 도착'},
+ {id:'r2',e:'e2',cat:'장보기·심부름',d:'11/18 (수)',tm:'15:00~16:00',v:'dy',st:1,issue:'당뇨식, 단 음식 제외',what:'대신 최종 수락 필요'},
+ {id:'r3',e:'e4',cat:'장보기·심부름',d:'11/12 (목)',tm:'10:00~11:00',v:'dy',st:4,issue:'지팡이 사용',what:'일지 확인 필요',log:'우유, 두부, 계란을 사 드렸어요. 어르신이 아침을 거르셨다고 하셔서 빵도 같이 사 드렸어요. 지난주에도 식사를 거르셨다고 하셨어요.'},
+ {id:'r4',e:'e3',cat:'디지털 도움',d:'11/13 (금)',tm:'14:00~15:00',v:'hn',st:2,issue:'오전 방문 불가',what:'확정'},
+];
+/* ================= 상태와 이동 ================= */
+const st={stack:[{id:'S-01'}],mode:'give',f:{},ai:{},seg:{},sheet:null,toast:null,role:'user'};
+const S={};
+const cur=()=>st.stack[st.stack.length-1];
+function go(id,p){st.stack.push({id,p});st.sheet=null;render(true)}
+function rep(id,p){st.stack[st.stack.length-1]={id,p};st.sheet=null;render(true)}
+function tab(id,p){st.stack=[{id,p}];st.sheet=null;render(true)}
+function back(){if(st.stack.length>1)st.stack.pop();st.sheet=null;render(true)}
+function sheet(n,p){st.sheet={n,p};render()}
+function close(){st.sheet=null;render()}
+let tt;function toast(m){st.toast=m;render();clearTimeout(tt);tt=setTimeout(()=>{st.toast=null;render()},1800)}
+function aiRun(k,ms){st.ai[k]='load';render();setTimeout(()=>{st.ai[k]='done';render()},ms||900)}
+const F=(k,d)=>st.f[k]===undefined?d:st.f[k];
+const SG=(k,d)=>st.seg[k]||d;
+/* ================= 작은 부품 ================= */
+const G=(id,p)=>`data-go="${id}"${p!==undefined?` data-p="${p}"`:''}`;
+const A=(a,v)=>`data-act="${a}"${v!==undefined?` data-v="${v}"`:''}`;
+const seg=(k,opts,d)=>{const c=SG(k,d||opts[0]);return `<div class="seg">${opts.map(o=>`<button class="${c===o?'on':''}" data-seg="${k}|${o}">${o}</button>`).join('')}</div>`};
+const chip=(l,on,act)=>`<button class="chip ${on?'on':''}" ${act||''}>${l}</button>`;
+const fchips=(k,opts,d)=>`<div class="chips">${opts.map(o=>chip(o,F(k,d)===o,A('f',k+'='+o))).join('')}</div>`;
+const mchips=(k,opts,d)=>{const a=F(k,d||[]);return `<div class="chips">${opts.map(o=>chip(o,a.includes(o),A('fm',k+'='+o))).join('')}</div>`};
+const sw=(k,d)=>`<button class="sw ${F(k,d)?'on':''}" ${A('ft',k)}></button>`;
+const tags=cs=>cs.map(c=>`<span class="tag">${cw(c).ic} ${c}</span>`).join(' ');
+const kv=(k,v)=>`<div class="kv"><span>${k}</span><b>${v}</b></div>`;
+const av=(n,c)=>`<div class="av ${c||''}">${n[0]}</div>`;
+const h1=v=>(Math.round(v*10)/10).toFixed(1);
+const ai=(title,body,why)=>`<div class="ai"><div class="ai-h">✨ ${title}</div>${body}${why?`<div class="ai-r">근거 · ${why}</div>`:''}</div>`;
+const aiLoad=t=>`<div class="ai"><div class="ld"><i></i>${t||'AI가 분석하고 있어요'}</div></div>`;
+const aiGate=(k,btn,res,loadTxt)=>st.ai[k]==='done'?res():st.ai[k]==='load'?aiLoad(loadTxt):btn;
+const steps=s=>`<div class="steps">${STN.map((x,i)=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="stl">${STN.map((x,i)=>`<span class="${i===s?'on':''}">${x}</span>`).join('')}</div>`;
+const fld=(l,inner)=>`<div class="fld"><label>${l}</label>${inner}</div>`;
+const inp=(ph,v)=>`<input class="in" placeholder="${ph||''}" value="${v||''}">`;
+const ta=(ph,v)=>`<textarea class="in" placeholder="${ph||''}">${v||''}</textarea>`;
+const li=(l,go,right)=>`<div class="li" ${go}><span class="sp">${l}</span>${right||''}<span class="ar">›</span></div>`;
+const pcard=(k,extra)=>{const p=P[k];return `<div class="row">${av(p.n)}<div class="sp"><div class="t">${p.n} <span class="mu">${p.ag} · ${p.dong}</span></div><div class="mu">★ ${p.rate} · 함께한 활동 ${p.cnt}회 ${DANGOL[k]?'· <span class="tag g">단골</span>':''} ${p.org?`<span class="tag a">${p.org}</span>`:''}</div></div>${extra||''}</div>${p.bd&&p.bd.length?`<div class="chips" style="margin-top:8px">${p.bd.map(b=>`<span class="tag b">✓ ${b}</span>`).join('')}</div>`:''}`};
+function qrSvg(seed){let x=seed||7;const r=()=>(x=(x*9301+49297)%233280)/233280;const n=21,s=8;let o='';
+ const fp=(cx,cy)=>`<rect x="${cx*s}" y="${cy*s}" width="${7*s}" height="${7*s}" fill="#1B1D22"/><rect x="${(cx+1)*s}" y="${(cy+1)*s}" width="${5*s}" height="${5*s}" fill="#fff"/><rect x="${(cx+2)*s}" y="${(cy+2)*s}" width="${3*s}" height="${3*s}" fill="#1B1D22"/>`;
+ for(let i=0;i<n;i++)for(let j=0;j<n;j++){if((i<8&&j<8)||(i<8&&j>12)||(i>12&&j<8))continue;if(r()>.52)o+=`<rect x="${j*s}" y="${i*s}" width="${s}" height="${s}" fill="#1B1D22"/>`}
+ return `<svg viewBox="0 0 ${n*s} ${n*s}" width="200" height="200">${o}${fp(0,0)}${fp(14,0)}${fp(0,14)}</svg>`}
+</script>
+
+<script>
+function D(id,m,f){S[id]=Object.assign({id},m,{f})}
+const act=id=>ACTS.find(a=>a.id===id);const calc=(h,c)=>h1(h*cw(c).w);
+/* ================= 기관 담당자 (PC) ================= */
+const EL=id=>ELDERS.find(e=>e.id===id);
+const gaps=()=>Object.values(SCHED).reduce((s,o)=>s+Object.values(o).filter(c=>c.gap&&!c.done).length,0);
+const todo=()=>REQS.filter(r=>[0,1,4].includes(r.st));
+const slot=k=>DAYS[Math.floor(k/2)].split(' ')[0]+' '+(k%2?'오후':'오전');
+const todoTxt=r=>r.st===0?'봉사 제안 도착':r.st===1?'봉사자 수락 · 대신 최종 수락 필요':'일지 도착 · 확인 필요';
+const OV='<!--OV-->';
+const drawer=(title,body,foot,close)=>`${OV}<div class="dov" ${close||A('back')}><div class="drw"><div class="row" style="margin-bottom:18px"><h3 class="sp" style="margin:0;font-size:19px">${title}</h3><button class="ic" ${close||A('back')}>✕</button></div><div class="dbody">${body}</div>${foot?`<div class="dfoot">${foot}</div>`:''}</div></div>`;
+const modal=(title,body,foot)=>`${OV}<div class="dov c" ${A('back')}><div class="mdl"><div class="row" style="margin-bottom:16px"><h3 class="sp" style="margin:0;font-size:19px">${title}</h3><button class="ic" ${A('back')}>✕</button></div>${body}${foot?`<div class="dfoot">${foot}</div>`:''}</div></div>`;
+const NOTI_O=[['🙋','김하늘 님이 이순례 님 병원 동행을 제안했어요','10분 전','O-POST-03','r1',1],['✅','이도윤 님이 정말순 님 장보기를 수락했어요','1시간 전','O-POST-03','r2',1],['📝','오덕수 님 장보기 일지가 도착했어요','2시간 전','O-POST-03','r3',1],['❄️','[기상 특보] 한파주의보 · 행복구 전역 (11/12~14)','오늘 06:00','O-ALERT-01','wx1',1],['📨','[운영자 안내] 한파주의보 대비 안내가 왔어요','오늘 08:10','O-ALERT-01','al1',1],['👤','담당자 계정이 승인됐어요','10/02','O-HOME-03','',0]];
+
+/* 편성표 표 (홈 미니 / 편성표 공용) */
+function schedGrid(L,mini){const sel=F('gsel','');return `<div class="grid ${mini?'mini':'pc'}"><div></div>${DAYS.map(d=>`<div class="h">${d}</div>`).join('')}
+ ${L.map(e=>{let r='';['오전','오후'].forEach((ap,a)=>{r+=`<div class="n">${a?'':e.n}<span class="mu" style="font-weight:500">${ap}</span></div>`;for(let d=0;d<5;d++){const k=d*2+a;const c=(SCHED[e.id]||{})[k];
+  if(!c){r+=`<div class="c e"></div>`;continue}
+  if(c.gap&&c.done){r+=`<div class="c f"><b>${c.gap.split(' ')[0]}</b>${mini?'':`<span>${c.done}</span>`}</div>`;continue}
+  if(c.gap){r+=`<div class="c x ${sel===e.id+'|'+k?'sel':''}" ${mini?G('O-SCHED-01'):A('f','gsel='+e.id+'|'+k)}><b><span class="dotr"></span> ${c.gap.split(' ')[0]}</b>${mini?'':`<span style="color:#7A6DB8">✨ ${c.altP||'공고'}</span>`}</div>`;continue}
+  r+=`<div class="c f"><b>${c.c}</b>${mini?'':`<span>${c.v}${c.dg?' 💚 단골':''}</span>`}</div>`}});return r}).join('')}</div>`}
+
+/* 홈 */
+function orgHome(){const T=todo();const top=[['e4','일지에 "식사를 거르셨다" 2회 · 활동 3회 → 1회'],['e1','활동 3회 → 1회 · 말동무 요청 취소 2회'],['e2','일지에 "다리가 붓는다" 1회']];
+ return `${F('alert',true)?`<div class="danger row" style="margin-bottom:16px;padding:14px 18px"><span style="font-size:22px">❄️</span><div class="sp"><b>❄️ 기상 특보 · 한파주의보 11/12~14 행복구 전역</b><div>📨 운영자 안내: 혼자 사는 관리 대상 3분께 안부 전화를 권해요. 동행 일정은 실내 대기로 바꿔 주세요.</div></div><button class="btn line sm" ${G('O-ALERT-01','wx1')}>기상 특보</button><button class="btn line sm" ${G('O-ALERT-01','al1')}>운영자 안내</button><button class="btn line sm" ${A('gof','O-CARE-01|ep=혼자 사는 분')}>혼자 사는 분 보기</button><button class="btn sec2 sm" ${A('f','alert=')}>닫기</button></div>`:''}
+ <div class="g4">${[['관리 대상',ELDERS.length+'명','우선순위 높음 2명','O-CARE-01'],['이번 주 돌봄','9건','완료 7건 · 예정 2건','O-SCHED-01'],['처리할 일',T.length+'건','대신 수락 · 일지 확인','O-POST-01'],['편성 빈칸',gaps()+'개','✨ 대안 있음 2개','O-SCHED-01']].map(x=>`<div class="card kpi tap" ${G(x[3])}><div class="mu">${x[0]}</div><div class="big">${x[1]}</div><div class="mu">${x[2]}</div></div>`).join('')}</div>
+ <div class="g21"><div>
+ <div class="card"><div class="row" style="margin-bottom:10px"><b class="sp">오늘 처리할 일</b><span class="lk" ${G('O-POST-01')}>요청 관리 ›</span></div>
+ <table class="tbl"><tr><th>관리 대상</th><th>내용</th><th>봉사자</th><th>일시</th><th style="width:190px"></th></tr>
+ ${T.map(r=>`<tr><td><b>${EL(r.e).n}</b></td><td>${cw(r.cat).ic} ${r.cat}<div class="mu">${todoTxt(r)}</div></td><td>${P[r.v].n}</td><td>${r.d}<div class="mu">${r.tm}</div></td><td>${r.st===0?`<div class="row" style="gap:6px"><button class="btn sec2 sm" ${A('oadv',r.id+'|-1')}>대신 거절</button><button class="btn pri sm" ${A('oadv',r.id+'|1')}>대신 수락</button></div>`:`<button class="btn pri sm" ${G('O-POST-03',r.id)}>${r.st===1?'전화 확인 후 수락':'일지 확인'}</button>`}</td></tr>`).join('')||'<tr><td colspan="5"><div class="empty">오늘 할 일을 다 처리했어요</div></td></tr>'}</table></div>
+ <div class="card"><div class="row" style="margin-bottom:10px"><b class="sp">이번 주 편성</b><span class="lk" ${G('O-SCHED-01')}>편성표 열기 ›</span></div>${schedGrid(ELDERS,true)}</div>
+ </div><div>
+ ${ai('먼저 안부를 물어볼 분',top.map(([id,w],i)=>`<div class="lrow" style="padding:9px 6px" ${G('O-RPT-02',id)}><b style="width:16px">${i+1}</b><div class="sp"><b>${EL(id).n}</b> <span class="mu">${EL(id).age}세</span><div class="mu">${w}</div></div><span class="ar">›</span></div>`).join(''),'최근 4주 일지 12건 · 요청·취소 기록')}
+ <div class="card"><b>최근 도착한 일지</b>${[['r3','오덕수','11/12 장보기','"아침을 거르셨다고 하셔서 빵도 사 드렸어요"'],['','이순례','11/12 말동무','"옛날 시장 이야기를 즐겁게 하셨어요"']].map(x=>`<div class="lrow" style="padding:10px 6px" ${x[0]?G('O-POST-03',x[0]):''}><div class="sp"><b>${x[1]}</b> <span class="mu">${x[2]}</span><div class="su">${x[3]}</div></div></div>`).join('')}</div>
+ </div></div>`}
+D('O-HOME-01',{n:'홈',r:'org',nav:'O-HOME-01'},()=>orgHome());
+D('O-HOME-02',{n:'홈',r:'org',nav:'O-HOME-01',under:'O-HOME-01'},()=>orgHome()+`${OV}<div class="dov t" ${A('back')}><div class="pop"><div class="row" style="padding:10px 0"><b class="sp">알림</b><span class="lk" ${A('toast','모두 읽었어요')}>모두 읽음</span></div>${NOTI_O.map(n=>`<div class="li" ${G(n[3],n[4]||undefined)}><div class="av s" style="background:var(--fill)">${n[0]}</div><div class="sp"><div style="font-weight:${n[5]?700:500}">${n[1]}</div><div class="mu">${n[2]}</div></div>${n[5]?'<span class="dotr"></span>':''}</div>`).join('')}</div></div>`);
+D('O-HOME-03',{n:'홈',r:'org',nav:'O-HOME-01',under:'O-HOME-01'},()=>orgHome()+drawer('담당자 정보',`<div class="row" style="margin-bottom:16px">${av('박지현','l')}<div><div class="t" style="font-size:18px">박지현</div><div class="mu">사회복지사 · 010-****-1234</div></div></div>
+ <div class="card">${kv('소속 기관','행복요양원')}${kv('기관 종류','요양원')}${kv('주소','서울 행복구 행복동')}${kv('승인일','2026.10.02')}</div>
+ <div class="card" style="padding:0 16px">${[['새 제안·수락 알림','on1',true],['일지 도착 알림','on2',true],['운영자 특보','on3',true]].map(x=>`<div class="li" style="cursor:default"><span class="sp">${x[0]}</span>${sw(x[1],x[2])}</div>`).join('')}</div>
+ <div class="card" style="padding:0 16px">${li('공지사항',A('toast','공지사항을 열어요'))}${li('비밀번호 변경',A('toast','비밀번호 변경'))}</div>`,`<button class="btn sec2" ${A('logout')}>로그아웃</button>`));
+
+/* 관리 대상: 목록 + 상세 한 화면 */
+function carePage(sel){const fp=F('ep','전체');const L=ELDERS.filter(e=>fp==='전체'||e.dong===fp||(fp==='우선순위 높음'&&e.pri==='높음')||(fp==='혼자 사는 분'&&e.home==='혼자'));const e=EL(sel)||L[0]||ELDERS[0];
+ return `<div class="split"><div class="card" style="padding:14px"><input class="in" placeholder="🔍 이름 검색" style="height:40px;margin-bottom:10px">
+ <div class="chips" style="margin-bottom:10px">${['전체','행복동','희망동','우선순위 높음','혼자 사는 분'].map(x=>chip(x,fp===x,A('f','ep='+x))).join('')}</div>
+ ${L.map(x=>`<div class="lrow ${x.id===e.id?'on':''}" ${A('rep','O-CARE-02|'+x.id)}>${av(x.n,'s')}<div class="sp"><b>${x.n}</b> <span class="mu">${x.age}세 · ${x.dong} · ${x.home}</span><div class="mu">이번 달 ${x.month}회 · 단골 ${x.dg}명</div></div>${x.pri==='높음'?'<span class="tag r">우선</span>':''}</div>`).join('')||'<div class="empty">조건에 맞는 분이 없어요</div>'}
+ <button class="btn pri w sm" style="margin-top:12px" ${G('O-CARE-03')}>+ 관리 대상 등록</button></div>
+ <div>${careDetail(e)}</div></div>`}
+function careDetail(e){const sc=SCHED[e.id]||{};const dgs=['최미경','김하늘'].slice(0,e.dg);
+ return `<div class="card"><div class="row">${av(e.n,'l')}<div class="sp"><div class="t" style="font-size:20px">${e.n} <span class="mu" style="font-size:14px">${e.age}세 · ${e.dong} · ${e.home}</span> ${e.pri==='높음'?'<span class="tag r">우선</span>':''}</div><div style="margin-top:6px">${tags(e.needs)} <span class="tag g">리포트 공유 동의 ✓</span></div></div>
+ <button class="btn line sm" ${G('O-CARE-03',e.id)}>정보 수정</button><button class="btn line sm" ${G('O-POST-04',e.id)}>도움 찾기</button><button class="btn pri sm" ${G('O-POST-02',e.id)}>대신 요청 올리기</button></div></div>
+ <div class="g2"><div class="warn" style="margin-bottom:16px">⚠️ <b>방문 주의사항</b><div style="margin-top:4px">${e.caution}</div></div>
+ <div class="card"><b>단골 봉사자</b><div class="row" style="margin-top:8px;gap:14px">${dgs.length?dgs.map(n=>`<div class="row" style="gap:6px">${av(n,'s')}<b>${n}</b><span class="tag g">단골</span></div>`).join(''):'<span class="mu">아직 없어요. 같은 봉사자와 3번 함께하면 자동으로 단골이 돼요.</span>'}</div></div></div>
+ <div class="card"><div class="row" style="margin-bottom:10px"><b class="sp">이번 주 돌봄</b><span class="lk" ${A('gof','O-SCHED-01|se='+e.id)}>편성표에서 보기 ›</span></div><div class="g4" style="grid-template-columns:repeat(5,1fr);gap:8px">${DAYS.map((d,i)=>{const it=[0,1].map(a=>sc[i*2+a]).filter(Boolean);return `<div style="background:var(--fill);border-radius:10px;padding:10px;min-height:70px"><div class="mu" style="font-weight:700">${d}</div>${it.map(c=>c.gap&&!c.done?`<div style="color:var(--red);font-weight:700;font-size:12px">● ${c.gap.split(' ')[0]} 빈칸</div>`:`<div style="font-size:12px"><b>${c.c||c.gap.split(' ')[0]}</b> ${c.v||c.done}</div>`).join('')}</div>`}).join('')}</div></div>
+ <div class="g2"><div class="card"><b>받은 도움 기록</b><table class="tbl" style="margin-top:8px"><tr><th>날짜</th><th>도움</th><th>일지 요약</th></tr>${[['11/12','장보기','아침을 거르셨다고 하셔서 빵도 사 드림'],['11/05','말동무','옛날 시장 이야기를 즐겁게 하심'],['10/29','동행','정형외과 진료, 다음 진료 11/17']].map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>
+ <div class="card"><b>담당자 메모</b> <span class="mu">봉사자에게 안 보여요</span>${[['11/08','따님이 다음 달부터 주 1회 방문 예정'],['10/20','보청기 수리 맡김 (11월 말 찾기)']].map(m=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><span class="mu">${m[0]}</span> ${m[1]}</div>`).join('')}<div class="row" style="margin-top:10px"><input class="in sp" style="height:40px" placeholder="메모 남기기"><button class="btn pri sm" ${A('toast','메모를 남겼어요')}>추가</button></div></div></div>`}
+D('O-CARE-01',{n:'관리 대상',r:'org',nav:'O-CARE-01'},()=>carePage());
+D('O-CARE-02',{n:'관리 대상',r:'org',nav:'O-CARE-01'},p=>carePage(p||'e1'));
+D('O-CARE-03',{n:'관리 대상',r:'org',nav:'O-CARE-01',under:'O-CARE-01'},p=>{const e=EL(p);return carePage(p)+drawer(e?e.n+' 님 정보 수정':'관리 대상 등록',`${fld('이름',inp('',e?e.n:''))}<div class="mu" style="margin:-8px 0 14px">봉사자에게는 "이○례"처럼 가려서 보여요.</div>
+ <div class="row">${fld('나이',inp('',e?e.age:''))}${fld('동',inp('',e?e.dong:''))}</div>${fld('가구 형태',fchips('ehh',['혼자','배우자와','자녀와','기타'],e?e.home:'혼자'))}
+ ${fld('필요한 도움',mchips('eneed',CATS.map(c=>c.k),e?e.needs:[]))}${fld('방문 주의사항',ta('예: 귀가 어두우세요',e?e.caution:''))}
+ <div class="card"><div class="row">${sw('econs',!!e)}<span>본인(또는 보호자)이 서비스 이용과 리포트에 동의했어요</span></div></div>
+ <div class="note">🔒 주소와 연락처는 앱에 저장하지 않아요. 확정된 봉사자에게만 담당자가 따로 알려요.</div>`,`<button class="btn sec2" ${A('back')}>취소</button><button class="btn pri" ${A('done','저장했어요|back')}>저장</button>`)});
+
+/* 돌봄 편성표: 표 + 오른쪽 대안 패널 */
+function schedPage(){const fe=F('se','전체');const L=ELDERS.filter(e=>fe==='전체'||e.id===fe);
+ const G2=Object.entries(SCHED).flatMap(([id,o])=>Object.entries(o).filter(([k,c])=>c.gap&&!c.done).map(([k,c])=>({id,k,c})));
+ const sel=F('gsel','');const [sid,sk]=sel.split('|');const sc=sid&&SCHED[sid]&&SCHED[sid][sk];
+ return `<div class="row" style="margin-bottom:14px;gap:12px"><button class="btn line sm">‹</button><b style="font-size:16px">11/9 ~ 11/13</b><button class="btn line sm">›</button>
+ <div class="chips" style="margin-left:12px">${chip('전체',fe==='전체',A('f','se=전체'))}${ELDERS.map(e=>chip(e.n,fe===e.id,A('f','se='+e.id))).join('')}</div><span class="sp"></span>
+ <button class="btn pri sm" ${G('O-SCHED-02')} ${G2.length?'':'disabled style="opacity:.5"'}>빈칸 ${G2.length}개 한꺼번에 공고 올리기</button></div>
+ <div class="g21" style="grid-template-columns:2.2fr 1fr"><div class="card">${schedGrid(L)}<div class="row mu" style="gap:14px;margin-top:12px"><span>🟩 채워짐</span><span>💚 단골</span><span><span class="dotr"></span> 빈칸 (누르면 오른쪽에 대안)</span></div></div>
+ <div>${sc&&!sc.done?`<div class="card" style="border:2px solid #F0A79F"><div class="row"><b class="sp" style="font-size:16px">${EL(sid).n} 님 · ${slot(sk)}</b><button class="ic" ${A('f','gsel=')}>✕</button></div><div class="row" style="margin:6px 0 12px"><span class="tag r">빈칸</span><span class="su">${sc.gap} · ${EL(sid).dong}</span></div>
+ ${ai(sc.altP?(sc.same?'같은 시간 가능한 분':'다른 요일 제안'):'대안이 없어요',sc.altP?`<div class="row">${av(sc.altP)}<div class="sp"><b>${sc.altP}</b><div class="mu">${sc.altWhy}</div></div></div><div style="margin-top:8px;font-weight:600">${sc.alt}</div>`:`<div style="font-weight:600">${sc.alt}</div>`,sc.altWhy)}
+ <div class="btns">${sc.altP?`<button class="btn pri" ${A('gapfill',sid+'|'+sk)}>${sc.altP} 님께 요청</button>`:''}<button class="btn ${sc.altP?'line':'pri'}" ${A('gappost',sid+'|'+sk)}>공고로 올리기</button></div></div>`:''}
+ ${ai(`이번 주 빈칸 ${G2.length}개`,G2.map(x=>`<div class="lrow" style="padding:9px 6px;${sel===x.id+'|'+x.k?'background:#fff':''}" ${A('f','gsel='+x.id+'|'+x.k)}><span class="dotr"></span><div class="sp"><b>${EL(x.id).n} ${slot(x.k)} ${x.c.gap}</b><div class="su">→ ${x.c.alt}</div></div></div>`).join('')||'<div class="su">빈칸이 없어요 🎉</div>','봉사자 가능 시간 · 같은 동 · 단골 여부 · 지난 활동')}</div></div>`}
+D('O-SCHED-01',{n:'돌봄 편성표',r:'org',nav:'O-SCHED-01'},()=>schedPage());
+D('O-SCHED-02',{n:'돌봄 편성표',r:'org',nav:'O-SCHED-01',under:'O-SCHED-01'},()=>{const G2=Object.entries(SCHED).flatMap(([id,o])=>Object.entries(o).filter(([k,c])=>c.gap&&!c.done).map(([k,c])=>({id,k,c})));const off=F('bo',[]);const n=G2.filter(x=>!off.includes(x.id+x.k)).length;
+ return schedPage()+modal('빈칸 공고 한꺼번에 올리기',`<div class="mu" style="margin-bottom:10px">✨ 빈칸마다 공고 초안을 만들어 뒀어요. 확인하고 올릴 것만 고르세요.</div><table class="tbl"><tr><th style="width:36px"></th><th>관리 대상</th><th>도움</th><th>일시</th><th>이슈 메모 (확정 봉사자에게만)</th></tr>
+ ${G2.map(x=>{const e=EL(x.id);const on=!off.includes(x.id+x.k);return `<tr class="ck" ${A('fm','bo='+x.id+x.k)}><td style="font-size:18px">${on?'☑️':'⬜'}</td><td><b>${e.n}</b><div class="mu">${e.dong}</div></td><td>${x.c.gap}</td><td>${DAYS[Math.floor(x.k/2)]}<div class="mu">${x.k%2?'14:00~16:00':'10:00~12:00'}</div></td><td class="su">${e.caution}</td></tr>`}).join('')}</table>`,`<button class="btn sec2" ${A('back')}>취소</button><button class="btn pri" ${A('bulk',n)}>선택한 ${n}건 올리기</button>`)});
+
+/* 요청 관리: 목록 + 상세 */
+const RGRP={'처리할 일':[0,1,4],'진행 중':[2,3],'완료':[5]};
+function reqPage(sel){const sr=REQS.find(x=>x.id===sel);const def=sr?Object.keys(RGRP).find(g=>RGRP[g].includes(sr.st)):'처리할 일';const t=SG('rq',def);const L=REQS.filter(r=>RGRP[t].includes(r.st));const r=L.find(x=>x.id===sel)||L[0];
+ return `<div class="row" style="margin-bottom:14px"><div class="seg" style="width:380px;margin:0">${Object.keys(RGRP).map(g=>`<button class="${t===g?'on':''}" data-seg="rq|${g}">${g} ${REQS.filter(x=>RGRP[g].includes(x.st)).length}</button>`).join('')}</div><span class="sp"></span><button class="btn line sm" ${G('O-POST-04')}>🔍 도움 찾기</button><button class="btn pri sm" ${G('O-POST-02')}>+ 대리 요청</button></div>
+ <div class="split"><div class="card" style="padding:10px">${L.map(x=>`<div class="lrow ${r&&x.id===r.id?'on':''}" ${A('rep','O-POST-03|'+x.id)}><div class="sp"><div class="row" style="gap:6px"><span class="tag ${t==='처리할 일'?'r':t==='진행 중'?'g':''}">${STN[x.st]}</span><span class="mu">${x.d}</span></div><div style="font-weight:700;margin-top:4px">${EL(x.e).n} 님 · ${cw(x.cat).ic} ${x.cat}</div><div class="mu">봉사자 ${P[x.v].n}${t==='처리할 일'?' · '+todoTxt(x):''}</div></div></div>`).join('')||'<div class="empty">없어요</div>'}</div>
+ <div>${r?reqDetail(r):'<div class="card empty">요청을 골라 주세요</div>'}</div></div>`}
+function reqDetail(r){const e=EL(r.e);const st=F('ostars',5);
+ const act=[`<div class="note" style="margin-bottom:10px">수락하면 공고가 닫히고 다른 제안은 자동으로 거절돼요. 24시간 안에 응답해 주세요.</div><div class="btns" style="max-width:360px"><button class="btn sec2" ${A('oadv',r.id+'|-1')}>대신 거절</button><button class="btn pri" ${A('oadv',r.id+'|1')}>대신 수락</button></div>`,
+ `<div class="card" style="background:var(--fill);border:0"><div class="row">${sw('called')}<span>${e.n} 님께 전화로 일정을 설명하고 확인했어요</span></div></div><button class="btn pri" ${F('called')?'':'disabled style="opacity:.5"'} ${A('oadv',r.id+'|1')}>대신 최종 수락</button>`,
+ `<div class="note">확정됐어요 · 시작 QR 전 · 봉사자에게 이슈 메모가 공개됐어요</div>`,`<div class="note">진행 중 · 시작 QR 14:02 기록</div>`,
+ `<div class="g2"><div class="card" style="margin:0"><b>📝 ${P[r.v].n} 님의 일지</b><div style="margin-top:6px">${r.log||''}</div><div class="mu" style="margin-top:8px">📷 영수증 1장 · QR 10:01 ~ 11:03 (1시간 2분)</div></div>
+ <div class="card" style="margin:0"><b>확인하고 평가하기</b> <span class="mu">비공개</span><div class="row" style="gap:4px;font-size:26px;margin:8px 0">${[1,2,3,4,5].map(i=>`<button ${A('f','ostars='+i)} style="filter:${i<=st?'none':'grayscale(1) opacity(.3)'}">⭐</button>`).join('')}</div>${mchips('good',['시간 약속을 잘 지켜요','친절해요','꼼꼼해요'],['시간 약속을 잘 지켜요'])}<button class="btn pri w" style="margin-top:12px" ${A('orate',r.id)}>확인했어요</button></div></div>`,
+ `<div class="note">완료 · QR 10:01 ~ 11:03 · ${P[r.v].n} 님 적립 ${h1(1*cw(r.cat).w)}시간</div>`][r.st]||'';
+ return `<div class="card"><div class="row" style="margin-bottom:12px"><div class="sp"><div class="t" style="font-size:18px">${e.n} 님 · ${cw(r.cat).ic} ${r.cat}</div><div class="mu">${r.d} ${r.tm} · ${e.dong}</div></div><span class="lk" ${G('O-CARE-02',e.id)}>관리 대상 정보 ›</span></div>${steps(Math.max(0,r.st))}</div>
+ <div class="g2"><div class="card"><div class="mu" style="margin-bottom:6px">봉사자</div>${pcard(r.v)}</div><div class="warn" style="margin-bottom:16px">📝 <b>이슈 메모</b> <span class="mu">확정된 봉사자에게만 보여요</span><div style="margin-top:4px">${r.issue}</div></div></div>
+ <div class="card">${act}</div>
+ <div class="card"><div class="row"><b class="sp">메시지</b><span class="mu">${e.n} 님 대신 보내요</span></div><div class="chat" style="margin-top:10px"><div class="msg">안녕하세요, ${r.d.split(' ')[0]}에 뵐게요!</div><div class="msg me">감사합니다. 1층 로비에서 기다리실 거예요.</div></div><div class="row" style="margin-top:10px"><input class="in sp" style="height:40px" placeholder="메시지 보내기"><button class="btn pri sm" ${A('toast','보냈어요')}>보내기</button></div></div>`}
+D('O-POST-01',{n:'요청 관리',r:'org',nav:'O-POST-01'},()=>reqPage());
+D('O-POST-03',{n:'요청 관리',r:'org',nav:'O-POST-01'},p=>reqPage(p||'r1'));
+D('O-POST-02',{n:'대리 봉사 요청',r:'org',nav:'O-POST-01'},p=>{const e=F('pe',p||'e1');const E=EL(e);return `<div class="g2"><div>
+ <div class="card">${fld('관리 대상',`<div class="chips">${ELDERS.map(x=>chip(x.n,e===x.id,A('f','pe='+x.id))).join('')}</div>`)}
+ ${fld('전화로 들은 내용',`<textarea class="in" style="height:150px">다음 주 화요일에 정형외과 가셔야 한대요. 오후 2시 예약이고 혼자 가기 무서우시대요. 끝나고 약국도 들러야 하고요.</textarea>`)}
+ <button class="btn ai-btn w" ${A('ai','opost')}>✨ AI로 공고 정리</button></div>
+ <div class="card"><b>${E.n} 님의 단골</b><div class="mu" style="margin:4px 0 10px">공고 없이 단골에게 바로 요청할 수도 있어요.</div>${E.dg?['최미경','김하늘'].slice(0,E.dg).map(n=>`<div class="row" style="padding:4px 0">${av(n,'s')}<b class="sp">${n}</b><button class="btn line sm" ${A('toast',n+' 님께 바로 요청했어요')}>바로 요청</button></div>`).join(''):'<div class="mu">아직 단골이 없어요</div>'}</div></div>
+ <div>${aiGate('opost',`<div class="card empty" style="padding:60px 20px">왼쪽에 전화 내용을 적고<br><b>✨ AI로 공고 정리</b>를 누르면 여기에 공고가 채워져요</div>`,()=>ai('이렇게 정리했어요 · 고칠 수 있어요',`<div class="card" style="margin:0"><div class="row">${fld('카테고리',inp('','🚶 동행 (×1.0)'))}${fld('날짜',inp('','11/17 (화)'))}</div><div class="row">${fld('시간',inp('','13:40 ~ 16:00'))}${fld('장소',inp('',E.dong+' → 서울정형외과, 약국'))}</div>${fld('내용',`<textarea class="in">정형외과 진료(14:00 예약)에 같이 가 주실 분을 찾아요. 진료 후 약국에 들러 처방약을 받아 오시면 돼요.</textarea>`)}</div>`,'전화 내용에서 찾은 정보: 화요일, 오후 2시, 정형외과, 약국')
+ +`<div class="card"><b>📝 이슈 메모</b> <span class="mu">확정된 봉사자에게만 보여요</span><textarea class="in" style="margin-top:8px">${E.caution}</textarea></div><div class="row" style="justify-content:flex-end;gap:8px"><button class="btn line" ${A('back')}>취소</button><button class="btn pri" ${A('done','대리 요청을 올렸어요|O-POST-01')}>올리기</button></div>`,'전화 내용을 정리하고 있어요')}</div></div>`});
+D('O-POST-04',{n:'도움 찾기',r:'org',nav:'O-POST-01'},p=>{const e=F('fe',p||'e1');const E=EL(e);return `<div class="split" style="grid-template-columns:280px 1fr"><div class="card">${fld('관리 대상',`<div class="chips">${ELDERS.map(x=>chip(x.n,e===x.id,A('f','fe='+x.id))).join('')}</div>`)}
+ ${fld('카테고리',mchips('fcat',CATS.map(c=>c.k),E.needs))}${fld('날짜',fchips('fd',['이번 주','다음 주','날짜 지정'],'이번 주'))}${fld('지역',fchips('fdong',['같은 동','2km 이내','전체'],'같은 동'))}<div class="note">단골과 같은 동 봉사자가 먼저 보여요.</div></div>
+ <div><div class="mu" style="margin-bottom:10px">${E.n} 님께 맞는 봉사 가능 공고 ${OFFERS.length}건</div><div class="g2">${OFFERS.map(o=>`<div class="card"><div class="row">${av(P[o.p].n)}<div class="sp"><b>${P[o.p].n}</b> ${o.p==='mk'||o.p==='hn'?'<span class="tag g">단골</span>':''} <span class="mu">★${P[o.p].rate} · ${o.km}km</span></div></div><div class="t" style="font-size:14px;margin:10px 0 4px">${o.t}</div><div>${tags(o.cats)}</div><div class="su" style="margin-top:6px">📅 ${o.d} ${o.tm}</div><button class="btn pri sm w" style="margin-top:12px" ${A('toast',P[o.p].n+' 님께 '+E.n+' 님 대신 요청했어요')}>대신 요청</button></div>`).join('')}</div></div></div>`});
+
+/* 단체 봉사 · 기관 행사: 목록 + 작성 폼 한 화면 */
+function grpPage(t){const sw2=`<div class="seg" style="width:320px;margin:0 0 14px">${['단체 봉사','기관 행사'].map(x=>`<button class="${t===x?'on':''}" ${A('rep',(x==='단체 봉사'?'O-POST-05':'O-POST-06')+'|')}>${x}</button>`).join('')}</div>`;
+ const list=t==='단체 봉사'?[...GROUPS.filter(g=>g.host==='행복요양원'),{t:'요양원 봉사단 · 토요일 말동무 가능',d:'매주 토',tm:'14:00~16:00',cur:6,max:6,kind:'봉사 가능'}].map(g=>`<div class="card"><div class="row"><span class="tag ${g.kind==='봉사 가능'?'b':'a'}">${g.kind==='봉사 가능'?'봉사단 봉사 가능':'봉사자 모집'}</span><span class="mu">${g.d} ${g.tm}</span></div><div class="t" style="margin:8px 0">${g.t}</div><div class="row"><div class="bar sp"><i style="width:${g.cur/g.max*100}%"></i></div><span class="mu">${g.cur}/${g.max}명</span></div></div>`).join('')
+ :[...EVENTS.filter(e=>e.org==='행복요양원'),{kind:'교실',t:'어르신 손뜨개 교실',d:'12/03 (목) 10:00'}].map(e=>`<div class="card"><div class="row"><span class="tag a">${e.kind}</span><span class="mu">${e.d}</span></div><div class="t" style="margin:8px 0 2px">${e.t}</div><div class="mu">반경 1km 사용자 홈 "동네 기관 소식"에 노출 중 · 조회 128</div></div>`).join('');
+ const form=t==='단체 봉사'?`${fld('종류',fchips('gk',['봉사자 모집','우리 기관 봉사단 봉사 가능'],'봉사자 모집'))}${fld('제목',inp('','어르신 생신잔치 보조'))}${fld('할 일',ta('','상차림, 어르신 이동 돕기, 사진 촬영'))}
+ <div class="row">${fld('날짜',inp('','11/22 (일)'))}${fld('시간',inp('','13:00~16:00'))}</div>${fld('장소',inp('','행복요양원 2층 강당'))}<div class="row">${fld('모집 인원',inp('','8'))}${fld('준비물',inp('','편한 신발'))}${fld('1인 적립',inp('','3.0시간'))}</div>
+ <div class="note" style="margin-bottom:12px">참여한 봉사자가 각자 활동 시간만큼 적립해요. 기관 봉사라 받는 쪽 차감은 없어요.</div><button class="btn pri" ${A('toast','단체 공고를 올렸어요')}>올리기</button>`
+ :`${fld('행사 종류',fchips('ek',['교실','모임','행사','모집'],'행사'))}${fld('제목',inp('','가족과 함께하는 음악회'))}<div class="row">${fld('날짜',inp('','11/25 (수)'))}${fld('시간',inp('','15:00'))}${fld('장소',inp('','행복요양원 1층'))}</div>
+ <div class="row">${fld('대상',inp('','누구나'))}${fld('정원',inp('','40'))}</div>${fld('신청 링크 (기관 홈페이지)',inp('https://'))}<div class="row">${fld('이미지',`<div class="note" style="text-align:center;border:1px dashed #CDD2DA;background:#fff;height:48px;padding:13px">🖼 포스터 올리기</div>`)}${fld('노출 범위',fchips('er',['1km','3km','구 전체'],'1km'))}</div>
+ <div class="note" style="margin-bottom:12px">기관 행사는 시간이 적립·차감되지 않아요. 근처 사용자 홈의 "동네 기관 소식"에 보여요.</div><button class="btn pri" ${A('toast','행사를 올렸어요')}>올리기</button>`;
+ return sw2+`<div class="split" style="grid-template-columns:1fr 1.2fr"><div><div class="sec">올린 ${t==='단체 봉사'?'단체 공고':'행사'}</div>${list}</div><div class="card"><b style="font-size:16px">새 ${t==='단체 봉사'?'단체 봉사 공고':'기관 행사'}</b><div style="height:14px"></div>${form}</div></div>`}
+D('O-POST-05',{n:'단체 봉사·기관 행사',r:'org',nav:'O-POST-05'},()=>grpPage('단체 봉사'));
+D('O-POST-06',{n:'단체 봉사·기관 행사',r:'org',nav:'O-POST-05'},()=>grpPage('기관 행사'));
+
+/* 리포트: 우선순위 목록 + 대상별 상세 */
+const PRI=[['e4','식사를 거르셨다는 말이 일지에 2번 나왔고, 활동이 3회 → 1회로 줄었어요','"아침을 거르셨다고 하셔서 빵도 사 드렸어요" (11/12)'],['e1','이번 달 활동이 3회 → 1회로 줄고 말동무 요청을 2번 취소하셨어요','"요즘 기운이 없다고 다음에 오라고 하셨어요" (11/09)'],['e2','"다리가 붓는다"는 말이 일지에 1번 나왔어요','"다리가 좀 붓는다고 하셔서 쉬엄쉬엄 걸었어요" (11/10)'],['e3','특별한 변화가 없어요','—']];
+function rptPage(sel){const e=EL(sel)||EL('e4');const pr=PRI.find(x=>x[0]===e.id);
+ return `<div class="split" style="grid-template-columns:400px 1fr"><div>${ai('이번 주 요약','<div style="font-weight:600">돌봄 9건 중 7건이 완료됐어요. 희망동 두 분(오덕수, 한영자)의 활동이 줄었고, 한파로 동행 취소가 늘 수 있어요.</div>','최근 4주 요청 32건 · 일지 12건')}
+ <div class="card" style="padding:10px"><div style="padding:6px 8px 10px;font-weight:700">✨ 먼저 안부를 물어볼 순서</div>${PRI.map(([id,w],i)=>{const x=EL(id);return `<div class="lrow ${id===e.id?'on':''}" style="align-items:flex-start" ${A('rep','O-RPT-02|'+id)}><b style="font-size:17px;width:20px">${i+1}</b><div class="sp"><b>${x.n}</b> <span class="mu">${x.age}세 · ${x.dong}</span> ${i<2?'<span class="tag r">우선</span>':''}<div class="su">${w}</div>
+ <div class="row" style="margin-top:6px"><div class="row sp" style="align-items:flex-end;gap:3px;height:22px">${[3,3,2,x.month].map(v=>`<i style="width:12px;height:${v*6+2}px;background:${i<2?'#F0A79F':'var(--org)'};border-radius:2px;display:block"></i>`).join('')}<span class="mu" style="margin-left:6px">최근 4주</span></div><button class="chip ${F('chk'+id)?'on':''}" ${A('ft','chk'+id)}>${F('chk'+id)?'✓ 안부 확인함':'안부 확인함'}</button></div></div></div>`}).join('')}</div></div>
+ <div><div class="card"><div class="row">${av(e.n,'l')}<div class="sp"><div class="t" style="font-size:20px">${e.n} <span class="mu" style="font-size:14px">${e.age}세 · ${e.dong} · ${e.home}</span></div><div style="margin-top:4px">${tags(e.needs)}</div></div><button class="btn line sm" ${G('O-CARE-02',e.id)}>관리 대상 정보</button></div></div>
+ <div class="g2"><div class="card"><b>월별 활동</b><div class="row" style="align-items:flex-end;height:110px;gap:14px;margin-top:10px">${[['8월',4],['9월',5],['10월',3],['11월',e.month]].map(x=>`<div class="sp" style="text-align:center"><i style="display:block;margin:0 auto;width:30px;height:${x[1]*16}px;background:var(--org);border-radius:4px"></i><span class="mu">${x[0]}</span></div>`).join('')}</div></div>
+ <div class="card"><b>도움과 요청 변화</b><div style="margin-top:8px">${kv('많이 받은 도움',e.needs.join(', '))}${kv('요청','월 4건 → 2건')}${kv('취소',e.id==='e1'?'2건 (말동무)':'0건')}${kv('마지막 활동','11/12')}</div></div></div>
+ ${ai('동향 요약',`<div style="font-weight:600">${pr[1]}</div><div class="card" style="margin:10px 0 0;padding:12px"><div class="mu">근거 일지 문장</div><div>${pr[2]}</div></div>`,'최근 4주 일지 · 요청·취소 기록')}
+ ${ai('추천 조치',['📞 안부 전화 드리기','🚶 다음 주 동행 공고 추가하기','🏛 어르신 도시락 배달 연계 (행복동 주민센터)'].map((x,i)=>`<div class="row" style="padding:6px 0"><span class="sp">${x}</span><button class="btn sm ${F('do'+i)?'sec2':'line'}" ${A('ft','do'+i)}>${F('do'+i)?'✓ 했어요':'하기'}</button></div>`).join(''),'비슷한 동향을 보인 분들께 담당자가 한 조치')}
+ <div class="mu" style="text-align:center">이 리포트는 기록을 정리할 뿐, 건강 상태를 진단하지 않아요.</div></div></div>`}
+D('O-RPT-01',{n:'관리 대상 리포트',r:'org',nav:'O-RPT-01'},()=>rptPage());
+D('O-RPT-02',{n:'관리 대상 리포트',r:'org',nav:'O-RPT-01'},p=>rptPage(p||'e4'));
+const ORGNAV=[['돌봄',[['O-HOME-01','🏠 홈'],['O-ALERT-01','❄️ 특보 알림'],['O-CARE-01','👥 관리 대상'],['O-SCHED-01','🗓 돌봄 편성표'],['O-POST-01','📋 요청 관리'],['O-PUB-01','🏛 공공 서비스 연계']]],['기관 공고',[['O-POST-05','📣 기관 공고'],['O-POST-06','🎪 기관 행사']]],['관리',[['O-DLG-01','🔑 권한 위임'],['O-RPT-01','📈 리포트']]]];
+
+/* ================= 운영자 (PC) ================= */
+const NAV=[['운영',[['A-01','📊 대시보드'],['A-02','📈 이용 리포트'],['A-03','🔮 재정 추계·시뮬레이션'],['A-05','❄️ 특보 알림']]],['관리',[['A-06','✅ 승인'],['A-07','🚩 신고'],['A-08','💬 문의'],['A-09','📢 공지사항'],['A-10','🏷 카테고리 건의'],['A-11','🏛 공공 서비스 정보']]]];
+function lineChart(series,opt){const W=opt.w||640,H=opt.h||240,pl=40,pb=28,pt=14,pr=16;const xs=opt.x;const mx=opt.max;
+ const X=i=>pl+i*(W-pl-pr)/(xs.length-1),Y=v=>pt+(H-pt-pb)*(1-v/mx);
+ let g='';for(let i=0;i<=4;i++){const v=mx*i/4;g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="#EEF0F3"/><text x="${pl-8}" y="${Y(v)+4}" font-size="11" text-anchor="end" fill="#9AA1AC">${Math.round(v)}</text>`}
+ xs.forEach((x,i)=>{if(i%(opt.step||1)===0)g+=`<text x="${X(i)}" y="${H-8}" font-size="11" text-anchor="middle" fill="#9AA1AC">${x}</text>`});
+ series.forEach(s=>{g+=`<polyline fill="none" stroke="${s.c}" stroke-width="${s.w||2.5}" ${s.dash?'stroke-dasharray="5 4"':''} points="${s.d.map((v,i)=>X(i)+','+Y(v)).join(' ')}"/>`;s.d.forEach((v,i)=>{if(i===s.d.length-1)g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="3.5" fill="${s.c}"/><text x="${X(i)-6}" y="${Y(v)-8}" font-size="11" text-anchor="end" fill="${s.c}" font-weight="700">${s.l}</text>`})});
+ if(opt.mark!==undefined)g+=`<line x1="${X(opt.mark)}" x2="${X(opt.mark)}" y1="${pt}" y2="${H-pb}" stroke="#E5655B" stroke-dasharray="3 3"/><text x="${X(opt.mark)+4}" y="${H-pb-6}" font-size="11" fill="#E5655B">${opt.markL}</text>`;
+ return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${g}</svg>`}
+const YRS=[2026,2027,2028,2029,2030,2031,2032,2033,2034,2035,2036];
+const SUP=[100,101,101,100,99,98,96,95,94,93,92],DEM=[38,44,51,58,66,74,83,96,112,128,146];
+const SUP2=[100,103,106,109,112,115,118,121,124,127,130];
+D('A-01',{n:'대시보드',r:'admin'},()=>`<div class="g4">${[['이번 달 활동','1,284건','+8%'],['매칭률','82%','+3%p'],['신규 가입 / 총 회원수','312명 / 7,800명','20대 41%'],['등록 기관 수','38곳','승인 대기 3곳']].map(x=>`<div class="card kpi"><div class="mu">${x[0]}</div><div class="big">${x[1]}</div><div class="mu">${x[2]}</div></div>`).join('')}</div>
+ <div class="g21"><div class="card"><b>주별 수요·공급 (도움 요청 vs 봉사 가능)</b>${lineChart([{d:[280,295,310,305,330,342,360,371],c:'#6F9CF0',l:'요청'},{d:[300,310,318,320,322,330,335,338],c:'#6DB3A0',l:'봉사'}],{x:['9/21','9/28','10/5','10/12','10/19','10/26','11/2','11/9'],max:400,h:220})}
+ ${ai('이번 달 한 줄 요약','<div style="font-weight:600">11월 둘째 주부터 요청이 봉사보다 많아졌어요. 한파로 동행·장보기 요청이 늘었고, 희망동 평일 오전이 가장 부족해요.</div>','주별 요청·봉사 가능 공고 수 · 카테고리별 증가율')}</div>
+ <div class="card"><b>처리할 일</b>${[['기관 신청 승인','A-06',3],['담당자 계정','A-06',2],['신고','A-07',4],['미답변 문의','A-08',6],['카테고리 건의','A-10',3]].map(x=>`<div class="li" ${G(x[1])}><span class="sp">${x[0]}</span><span class="tag r">${x[2]}</span></div>`).join('')}</div></div>`);
+D('A-02',{n:'이용 리포트',r:'admin'},()=>{const t=SG('ar','봉사 유형');let h=`<div style="max-width:420px">${seg('ar',['봉사 유형','나이별 인기','계절별'],t)}</div>`;
+ if(t==='봉사 유형')h+=`<div class="g2"><div class="card"><b>카테고리별 주는 쪽 / 받는 쪽 (건)</b>${[['말동무·정서',420,390],['디지털 도움',360,300],['장보기·심부름',220,310],['동행',150,240],['가벼운 집안일',90,130],['생활 정리',44,60]].map(x=>`<div class="hbar"><span>${x[0]}</span><div class="bar" style="display:flex"><i style="width:${x[1]/9}%;background:var(--give);border-radius:4px 0 0 4px"></i><i style="width:${x[2]/9}%;background:var(--recv);border-radius:0 4px 4px 0"></i></div><b>${x[1]}/${x[2]}</b></div>`).join('')}</div>
+ <div class="card"><b>회원 유형</b>${[['주로 봉사',46,'var(--give)'],['둘 다',31,'#A08CE6'],['주로 받음',23,'var(--recv)']].map(x=>`<div class="hbar"><span>${x[0]}</span><div class="bar"><i style="width:${x[1]}%;background:${x[2]}"></i></div><b>${x[1]}%</b></div>`).join('')}</div></div>
+ ${ai('AI 해석','<div>장보기와 동행은 받는 쪽이 더 많아요. 두 카테고리는 가중치가 높아 봉사자 입장에서도 이득이니, 공고 목록에서 "적립 많은 봉사"로 묶어 보여 주면 좋아요.</div>','카테고리별 주는 쪽/받는 쪽 차이')}`;
+ if(t==='나이별 인기')h+=`<div class="card"><table class="tbl"><tr><th>나이대</th><th>1위</th><th>2위</th><th>3위</th></tr>${[['20대','디지털 도움','동행','장보기'],['30대','장보기','디지털 도움','가벼운 집안일'],['40~50대','동행','장보기','말동무'],['60대','말동무','생활 정리','동행'],['70대 이상 (받는 쪽)','말동무','장보기','동행']].map(r=>`<tr>${r.map((c,i)=>`<td>${i?'':'<b>'}${c}${i?'':'</b>'}</td>`).join('')}</tr>`).join('')}</table></div>${ai('AI 해석','<div>60대 회원은 봉사와 받는 쪽을 둘 다 하는 비율이 가장 높아요. "젊은 노인이 더 나이 든 노인을 돕는" 흐름이 생기고 있어요.</div>','나이대별 활동 1,284건')}`;
+ if(t==='계절별')h+=`<div class="card"><b>월별 카테고리 추이</b>${lineChart([{d:[60,58,62,70,74,68,65,72,80,95,120,130],c:'#6F9CF0',l:'동행'},{d:[80,82,85,90,92,88,86,90,96,110,140,150],c:'#E0A23E',l:'장보기'},{d:[120,118,122,125,128,120,118,124,126,130,132,135],c:'#6DB3A0',l:'말동무'}],{x:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월(예상)'],max:160,h:240})}</div>
+ ${ai('다음 계절 예상 수요','<div>12월은 장보기 +7%, 동행 +8%로 예상돼요. 눈·빙판 때문에 외출을 피하는 분이 늘어요. 12월 첫 주에 장보기 봉사자 모집 공지를 추천해요.</div>','작년 같은 달 증가율 · 올해 10~11월 추세')}`;
+ return h});
+D('A-03',{n:'재정 추계',r:'admin'},()=>`<div class="g21"><div class="card"><div class="row"><b class="sp">연도별 수요 vs 공급 (만 시간)</b><span class="mu">— 공급 · — 수요</span></div>${lineChart([{d:SUP,c:'#6DB3A0',l:'공급'},{d:DEM,c:'#E5655B',l:'수요'}],{x:YRS,max:160,mark:7,markL:'2033 역전'})}</div>
+ <div>${ai('11월 월간 요약','<div style="font-weight:600">지금 추세면 2033년에 꺼내 쓸 시간이 봉사 가능 시간을 넘어요. 희망동은 70대 이상 비율이 32%로 가장 빨리, 2031년부터 부족해요.</div>','가입·이탈 추세 24개월 · 나이별 월 사용량')}
+ <div class="card"><b>추계 가정</b>${kv('월 신규 가입','260명 (최근 12개월 평균)')}${kv('연 이탈률','18%')}${kv('75세 이상 월 사용량','14시간')}${kv('60세 이상 봉사 감소','연 −6%')}</div></div></div>
+ <div class="card"><b>위험 동네</b><table class="tbl" style="margin-top:10px"><tr><th>동</th><th>위험 시작</th><th>2035 수요/공급</th><th>부족한 도움</th><th>부족한 시간대</th></tr>${[['희망동','2031년','1.8배','동행, 장보기','평일 오전'],['행복동','2033년','1.3배','장보기','주말 오후'],['은빛동','2034년','1.2배','말동무','평일 저녁']].map(r=>`<tr class="ck" ${G('A-04')}>${r.map((c,i)=>`<td>${i===2?`<b style="color:var(--red)">${c}</b>`:c}</td>`).join('')}</tr>`).join('')}</table></div>`);
+D('A-04',{n:'정책 시뮬레이션',r:'admin'},()=>{const q=F('sq','20대 가입이 매달 30명 늘면?');return `<div class="card"><div class="row"><input class="in sp" value="${q}"><button class="btn ai-btn" ${A('ai','sim')}>✨ 시뮬레이션</button></div><div class="chips" style="margin-top:10px">${['20대 가입이 매달 30명 늘면?','동행 가중치를 1.3으로 낮추면?','60대 봉사자가 매년 10% 늘면?'].map(x=>chip(x,q===x,A('sq',x))).join('')}</div></div>
+ ${aiGate('sim','',()=>`<div class="g21"><div class="card"><div class="row"><b class="sp">바꾸기 전 · 후</b><span class="mu">점선 = 바꾸기 전 공급</span></div>${lineChart([{d:SUP,c:'#9AA1AC',l:'전',dash:1,w:2},{d:SUP2,c:'#6DB3A0',l:'후'},{d:DEM,c:'#E5655B',l:'수요'}],{x:YRS,max:160,mark:9,markL:'역전 2033 → 2035'})}</div>
+ <div>${ai('AI가 바꾼 변수',`<div class="card" style="margin:0">${kv('월 신규 가입 (20대)','108 → 138명')}${kv('20대 월 봉사량','2.4시간 유지')}</div>`,'질문 해석: "20대", "매달 30명", "가입"')}
+ <div class="card">${kv('역전 시점','2033 → <span style="color:#3E8C77">2035년</span>')}${kv('희망동 2035 비율','1.8 → <span style="color:#3E8C77">1.3배</span>')}${kv('행복동 2035 비율','1.3 → <span style="color:#3E8C77">0.9배</span>')}</div></div></div>
+ ${ai('대응 추천',`<div class="su" style="color:var(--ink)">20대만 늘려서는 <b>희망동 평일 오전 동행</b>이 여전히 부족해요. 평일 오전이 자유로운 60대 초반과 대학생을 함께 모집하세요.</div><div class="card" style="margin:10px 0 0"><div class="mu">모집 문구 초안</div><div style="font-weight:600;margin-top:4px">"수업 없는 오전 2시간, 희망동 어르신 병원 길에 함께해요. 봉사한 시간은 내 통장에 쌓여요."</div><div class="btns" style="margin-top:10px;max-width:300px"><button class="btn line sm" ${A('toast','복사했어요')}>복사</button><button class="btn pri sm" ${A('toast','공지사항 초안으로 보냈어요')}>공지로 보내기</button></div></div>`,'위험 동네 표 · 시간대별 공급 부족')}`,'변수를 바꿔 다시 계산하고 있어요')}`});
+D('A-05',{n:'특보 알림',r:'admin'},()=>`<div class="g21"><div><div class="card"><b>기상 특보 (기상청 API)</b><table class="tbl" style="margin-top:10px"><tr><th>종류</th><th>지역</th><th>기간</th></tr><tr class="sel"><td><span class="tag r">한파주의보</span></td><td>행복구 전역</td><td>11/12 ~ 11/14</td></tr><tr><td><span class="tag a">강풍주의보</span></td><td>새솔동</td><td>11/13</td></tr></table></div>
+ ${ai('한파 위험 리포트',`<div class="g3" style="gap:10px;margin-bottom:10px">${[['영향 지역','4개 동'],['기관 관리 대상','42명'],['75세+ 혼자 사는 회원','118명']].map(x=>`<div class="card" style="margin:0;padding:12px"><div class="mu">${x[0]}</div><b style="font-size:20px">${x[1]}</b></div>`).join('')}</div>
+ <div style="font-weight:600">특보 기간에 예정된 동행 37건, 장보기 52건이 있어요. 희망동은 혼자 사는 고령 회원이 가장 많아요.</div><div style="margin-top:8px">권장 조치<br>· 기관 담당자: 혼자 사는 관리 대상께 안부 전화<br>· 봉사자: 동행 시 실내 대기, 장보기는 오후 시간으로<br>· 난방비 지원 공공 서비스 안내</div>`,'기상청 특보 · 회원 나이·가구 형태 · 특보 기간 예정 활동')}</div>
+ <div class="card"><b>전달하기</b><div style="height:10px"></div>${fld('기관 담당자에게 보낼 안내문',ta('',ALERTS[0].sum))}<button class="btn pri w" style="margin-top:12px" ${A('alert2notice')}>📢 공지사항으로 쓰기</button><div class="mu" style="margin-top:6px">특보 내용으로 공지 초안을 만들어 공지사항 화면으로 가요. AI 문장 다듬기도 거기서 해요.</div><button class="btn ${F('asent')?'sec2':'line'} w" style="margin-top:8px" ${F('asent')?'':A('alertsend')}>${F('asent')?'✓ 기관 12곳 담당자에게 보냈어요':'🏥 해당 기관 담당자에게 보내기 (12곳)'}</button><div class="mu" style="margin-top:6px">담당자는 기관 화면의 🔔 알림과 홈 상단 배너, 「특보 알림」 메뉴에서 받아요.</div>
+ <div class="sec" style="font-size:14px">전달 이력</div>${[...(F('asent')?[['11/13 14:30','한파주의보 (다시 전달) → 기관 12곳']]:[]),['11/12 08:10','한파주의보 → 기관 12곳'],['08/03 07:30','폭염경보 → 공지 + 기관 15곳']].map(x=>`<div class="kv"><span>${x[0]}</span><b style="font-weight:500">${x[1]}</b></div>`).join('')}</div></div>`);
+D('A-06',{n:'승인',r:'admin'},()=>{const t=SG('ap','기관 신청');const R={
+ '기관 신청':[['희망병원','병원','사업자등록증.pdf','서울 행복구 희망동','원무과 김○○ · 02-000-1111'],['새솔복지관','복지관','고유번호증.pdf','서울 행복구 새솔동','사회복지사 이○○ · 02-000-2222'],['은빛요양원','요양원','사업자등록증.pdf','서울 행복구 은빛동','간호팀 박○○ · 02-000-3333']],
+ '담당자 계정':[['박지현','행복요양원 (승인됨)','본인인증 완료','사회복지사','재직 확인: 기관 대표 계정'],['정우성','희망복지관 (승인됨)','본인인증 완료','팀장','재직 확인: 기관 대표 계정']],
+ '봉사자 신원':[['김하늘','신분증 + 회보서','11/11','20대 · 행복동','첫 활동 교육 수료'],['이도윤','신분증','11/10','30대 · 희망동','첫 활동 교육 수료']]}[t];const s=Math.min(F('aps',0),R.length-1);const x=R[s];const done=F('apd'+t+s);
+ return `<div style="max-width:460px">${seg('ap',['기관 신청','담당자 계정','봉사자 신원'],t)}</div><div class="g21"><div class="card"><table class="tbl"><tr><th>${t==='기관 신청'?'기관명':'이름'}</th><th>${t==='기관 신청'?'종류':t==='담당자 계정'?'소속 기관':'제출 서류'}</th><th>${t==='기관 신청'?'증빙':t==='담당자 계정'?'본인 확인':'제출일'}</th><th>상태</th></tr>${R.map((r,i)=>`<tr class="ck ${i===s?'sel':''}" ${A('f','aps='+i)}><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${F('apd'+t+i)?`<span class="tag ${F('apd'+t+i)==='승인'?'g':'r'}">${F('apd'+t+i)}</span>`:'<span class="tag a">대기</span>'}</td></tr>`).join('')}</table>
+ ${t==='담당자 계정'?'<div class="note" style="margin-top:12px">승인된 기관의 담당자는 본인 확인이 끝나면 바로 승인할 수 있어요.</div>':''}</div>
+ <div class="card"><div class="t" style="font-size:17px">${x[0]}</div><div class="mu">${x[1]}</div><div style="margin-top:10px">${kv(t==='기관 신청'?'주소':t==='담당자 계정'?'직책':'나이·동네',x[3])}${kv(t==='기관 신청'?'담당자':'확인',x[4])}</div>
+ <div style="height:170px;border:1px dashed #CDD2DA;border-radius:12px;display:grid;place-items:center;color:var(--mute);margin:12px 0;background:var(--fill)">📄 ${t==='기관 신청'?x[2]:t==='봉사자 신원'?'신분증 · 회보서':'본인인증 결과'} 미리보기</div>
+ ${done?`<div class="note">${done} 처리했어요</div>`:`${t!=='담당자 계정'?fld('반려 사유 (반려할 때)',inp('예: 증빙 파일이 흐려요')):''}<div class="btns">${t!=='담당자 계정'?`<button class="btn sec2" ${A('f','apd'+t+s+'=반려')}>반려</button>`:''}<button class="btn pri" ${A('f','apd'+t+s+'=승인')}>승인</button></div>`}</div></div>`});
+D('A-07',{n:'신고',r:'admin'},()=>{const L=[['약속 불이행','이○○','김○○','11/11','검토 중'],['연락처·금전 요구','박○○','정○순','11/10','검토 중'],['부적절한 말·행동','최○○','한○자','11/08','검토 중'],['허위 공고','윤○○','이○○','11/05','처리 완료']];const s=F('rs',1);
+ return `<div class="g21"><div class="card"><table class="tbl"><tr><th>사유</th><th>대상</th><th>신고자</th><th>날짜</th><th>상태</th></tr>${L.map((r,i)=>`<tr class="ck ${i===s?'sel':''}" ${A('f','rs='+i)}>${r.map((c,j)=>`<td>${j===4?`<span class="tag ${c==='처리 완료'?'g':'a'}">${c}</span>`:c}</td>`).join('')}</tr>`).join('')}</table></div>
+ <div class="card"><b>${L[s][0]}</b><div class="mu">${L[s][3]} · 대상 ${L[s][1]}</div><div class="note" style="margin:10px 0">"장보기 끝나고 계좌번호를 알려 달라고 했어요. 수고비를 따로 달라고 해서 불편했어요."</div>
+ <div class="mu">관련 기록</div><div class="kv"><span>메시지</span><b style="font-weight:500">차단된 단어 1회 (계좌)</b></div><div class="kv"><span>QR</span><b style="font-weight:500">14:02 ~ 15:31</b></div>
+ ${fld('처리 메모',ta(''))}<div class="btns"><button class="btn sec2 sm">기각</button><button class="btn line sm" ${A('toast','경고를 보냈어요')}>경고</button><button class="btn red sm" ${A('toast','이용을 정지했어요')}>이용 정지</button></div></div></div>`});
+D('A-08',{n:'문의',r:'admin'},()=>{const L=[['시간 적립 오류','QR 종료를 못 찍었어요','11/12','미답변'],['이용 방법','가족 대신 요청은 어떻게 하나요?','11/11','미답변'],['기타','기관 행사도 시간 적립이 되나요?','11/10','답변 완료']];const s=F('qs',0);
+ return `<div class="g21"><div class="card"><table class="tbl"><tr><th>유형</th><th>제목</th><th>날짜</th><th>상태</th></tr>${L.map((r,i)=>`<tr class="ck ${i===s?'sel':''}" ${A('f','qs='+i)}>${r.map((c,j)=>`<td>${j===3?`<span class="tag ${c==='미답변'?'r':'g'}">${c}</span>`:c}</td>`).join('')}</tr>`).join('')}</table></div>
+ <div class="card"><b>${L[s][1]}</b><div class="mu">${L[s][0]} · ${L[s][2]}</div><div class="note" style="margin:10px 0">봉사 끝나고 어르신 휴대폰이 꺼져서 종료 QR을 못 찍었어요. 실제로는 2시간 했어요.</div>${fld('답변',ta('','QR 기록과 일지를 확인했어요. 2.0시간으로 수정해 드렸어요.'))}<button class="btn pri" ${A('toast','답변을 등록했어요')}>답변 등록</button></div></div>`});
+const NOTICES=[['[한파 특보] 11/12~14 행복구 한파주의보','11/12','📌'],['동행 카테고리 적립 기준 변경','11/01',''],['11월 동네 기관 소식','10/30','']];
+const ALDRAFT={hw:['[한파 특보] 11/12~14 행복구 한파주의보','11/12부터 11/14까지 행복구 전역에 한파주의보가 내려졌어요.\n· 외출은 낮 시간에 짧게 해 주세요.\n· 동행 봉사는 실내에서 기다려 주세요.\n· 장보기는 오후 시간으로 옮겨 주세요.\n· 혼자 사는 이웃께 안부 전화를 드려요.'],
+ gw:['[강풍 특보] 11/13 새솔동 강풍주의보','11/13 새솔동에 강풍주의보가 내려졌어요.\n· 새솔동 활동은 바람이 약한 시간에 해 주세요.\n· 날리기 쉬운 물건을 조심해 주세요.']};
+const escA=v=>String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+function polishNotice(t,b,tone){const L=b.split('\n').map(x=>x.trim()).filter(Boolean);const bul=L.filter(x=>/^[·\-•]/.test(x)).map(x=>'· '+x.replace(/^[·\-•]\s*/,'').replace(/(하시기 바랍니다|해 주시기 바랍니다|바랍니다)\.?$/,'해 주세요.').replace(/([^.요다])$/,'$1.'));
+ const lead=L.filter(x=>!/^[·\-•]/.test(x)).map(x=>x.replace(/(하시기 바랍니다|바랍니다)\.?$/,'해 주세요.').replace(/([^.요다])$/,'$1.'));
+ let out=[];
+ if(tone==='정중하게')out.push('안녕하세요, 시간 적금 운영팀입니다.');
+ out.push(...lead);if(bul.length)out.push(...(tone==='짧게'?bul.slice(0,3):bul));
+ out.push(tone==='짧게'?'':tone==='정중하게'?'항상 함께해 주셔서 감사합니다.':'궁금한 점은 문의로 남겨 주세요.');
+ const fix=tone==='짧게'?['핵심만 남기고 3줄로 줄였어요','할 일을 한 줄씩 나눴어요']:tone==='정중하게'?['인사와 맺음말을 넣었어요','"~바랍니다"를 부드러운 말로 바꿨어요']:['어려운 말을 쉬운 말로 바꿨어요','할 일을 한 줄씩 나눴어요','맺음말에 문의 방법을 넣었어요'];
+ return {t:(t.trim()||'알려 드려요'),b:out.filter((x,i)=>x||i<out.length-1).join('\n'),fix};}
+D('A-09',{n:'공지사항',r:'admin'},()=>{const nt=F('nt',''),nb=F('nb','');const tone=F('ntone','쉬운 말로');
+ return `<div class="g21"><div>
+ <div class="card"><div class="row" style="margin-bottom:8px"><b class="sp">🚨 특보로 공지 쓰기</b><span class="mu">특보 알림에서 바로 가져와요</span></div>${[['❄️','한파주의보 · 행복구 전역','11/12 ~ 11/14','hw','r'],['💨','강풍주의보 · 새솔동','11/13','gw','a']].map(x=>`<div class="lrow" style="padding:9px 6px"><span style="font-size:20px">${x[0]}</span><div class="sp"><b>${x[1]}</b> <span class="tag ${x[4]}">진행 중</span><div class="mu">${x[2]}</div></div><button class="btn pri sm" ${A('ntalert',x[3])}>공지 초안 만들기</button></div>`).join('')}</div>
+ <div class="card"><b>올린 공지</b><table class="tbl" style="margin-top:8px"><tr><th>제목</th><th>날짜</th><th>고정</th></tr>${NOTICES.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table></div></div>
+ <div class="card"><b>새 공지</b><div style="height:10px"></div>${fld('제목',`<input class="in" id="ntitle" value="${escA(nt)}" oninput="st.f.nt=this.value">`)}${fld('본문',`<textarea class="in" id="nbody" style="height:170px" oninput="st.f.nb=this.value">${escA(nb)}</textarea>`)}
+ <div class="row" style="margin-bottom:10px"><span class="mu" style="font-weight:700">말투</span>${['쉬운 말로','짧게','정중하게'].map(x=>chip(x,tone===x,A('nttone',x))).join('')}</div>
+ <button class="btn ai-btn w" ${A('ntpolish')}>✨ AI로 문장 다듬기</button><div style="height:12px"></div>
+ ${aiGate('ntai','',()=>{const r=polishNotice(nt,nb,tone);return ai('이렇게 다듬었어요 · 고쳐 쓸 수 있어요',`<div class="card" style="margin:0 0 8px"><div class="mu">제목</div><div style="font-weight:700">${escA(r.t)}</div><div class="mu" style="margin-top:8px">본문</div><div style="white-space:pre-line">${escA(r.b)}</div></div><div class="su" style="color:var(--ink)">${r.fix.map(x=>'· '+x).join('<br>')}</div><div class="btns" style="margin-top:10px"><button class="btn line sm" ${A('ntdrop')}>원문 그대로</button><button class="btn pri sm" ${A('ntapply')}>이 문장 쓰기</button></div>`,'작성한 제목·본문 · 어르신과 봉사자가 읽기 쉬운 공지 기준')},'AI가 문장을 다듬고 있어요')}
+ <div class="row" style="margin-bottom:12px">${sw('pin')}<span>상단 고정</span></div><button class="btn pri w" ${A('ntpost')}>등록</button></div></div>`});
+D('A-10',{n:'카테고리 건의',r:'admin'},()=>`<div class="card"><table class="tbl"><tr><th>이름</th><th>설명</th><th>건의자</th><th>같은 건의</th><th style="width:240px"></th></tr>${[['반려동물 산책','강아지 산책을 대신해 주세요','최○○',5],['반찬 만들기','반찬 몇 가지만 만들어 주세요','김○○',3],['서류 읽어 드리기','고지서·안내문 읽고 설명','정○순',2]].map((r,i)=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}건</td><td>${F('cg'+i)?`<span class="tag g">${F('cg'+i)}</span>`:`<div class="row"><select class="in" style="height:36px;width:90px"><option>×1.0</option><option>×1.2</option></select><button class="btn sec2 sm" ${A('f','cg'+i+'=반려')}>반려</button><button class="btn pri sm" ${A('f','cg'+i+'=승인')}>승인</button></div>`}</td></tr>`).join('')}</table></div><div class="note">승인할 때 가중치를 정해요. 음식 조리처럼 위생 문제가 있는 건의는 반려 사유를 남겨 주세요.</div>`);
+D('A-11',{n:'공공 서비스 정보',r:'admin'},()=>{const ed=F('a11','');const L=[['장기요양 방문목욕','장기요양 등급자','국민건강보험공단','1577-1000','목욕, 씻기'],['병원 안심동행','혼자 병원 가기 어려운 주민','행복구청 복지정책과','02-000-1234','병원, 동행'],['어르신 도시락 배달','65세+ 혼자 사는 분','행복동 주민센터','02-000-5678','반찬, 식사'],['노인맞춤돌봄서비스','65세+ 돌봄 필요','행복구 노인복지관','02-000-2222','안부, 돌봄'],['디지털 배움터','누구나','희망복지관','02-000-3333','휴대폰, 키오스크']];const r=ed===''?null:ed==='new'?['','','','','']:L[+ed]||null;
+ return `<div class="row" style="margin-bottom:12px"><div class="note sp">✨ 공공 서비스 안내 AI는 이 목록에 있는 정보만 근거로 답해요. 목록을 고치면 바로 답변에 반영돼요.</div><button class="btn pri sm" ${A('f','a11=new')}>+ 등록</button></div>
+ <div class="card"><table class="tbl"><tr><th>서비스</th><th>대상</th><th>신청 기관</th><th>전화</th><th>검색 태그</th><th></th></tr>${L.map((x,i)=>`<tr>${x.map(c=>`<td>${c}</td>`).join('')}<td><span class="lk" ${A('f','a11='+i)}>수정</span></td></tr>`).join('')}</table></div>`
+ +(r?drawer(ed==='new'?'공공 서비스 등록':'공공 서비스 수정',`${fld('서비스 이름',inp('',r[0]))}${fld('대상',inp('',r[1]))}${fld('신청 기관',inp('',r[2]))}<div class="row">${fld('전화',inp('',r[3]))}${fld('링크',inp('https://'))}</div>${fld('검색 태그 (쉼표로 구분)',inp('예: 목욕, 씻기',r[4]))}${fld('설명',ta('AI가 답변에 쓸 설명'))}`,`<button class="btn sec2" ${A('f','a11=')}>취소</button><button class="btn pri" ${A('a11save')}>저장</button>`,A('f','a11=')):'')});
+/* ================= 바텀시트 ================= */
+const SH={
+ send:p=>{const o=[...NEEDS,...OFFERS].find(x=>x.id===p)||OFFERS[0];const g=NEEDS.includes(o);return `<h3>${g?'봉사 제안 보내기':'도움 요청 보내기'}</h3><div class="mu" style="margin-bottom:12px">${P[o.p].n} 님 · ${o.d} ${o.tm}</div>
+  ${fld('시작 시간',fchips('sst',[o.tm.split('~')[0],'+30분','+1시간'],o.tm.split('~')[0]))}${fld('활동 시간',fchips('sdur',['1시간','1.5시간','2시간'],'2시간'))}${fld('카테고리',fchips('scat',o.cats,o.cats[0]))}${fld(g?'메시지':'요청 내용',ta(g?'간단한 인사를 남겨 주세요':'어떤 도움이 필요한지 적어 주세요'))}
+  <div class="note" style="margin-bottom:12px">상대가 24시간 안에 응답해요. 응답이 없으면 자동으로 만료돼요.</div><button class="btn pri w" ${A('done','보냈어요. 응답이 오면 알려 드릴게요|close')}>보내기</button>`},
+ join:p=>{const g=GROUPS.find(x=>x.id===p)||GROUPS[0];return `<h3>${g.t}</h3>${fld('참여 방법',fchips('jn',['나 혼자','우리 팀'],'나 혼자'))}${F('jn')==='우리 팀'?fld('팀 인원',fchips('jc',['2명','3명'],'2명')):''}<div class="note" style="margin-bottom:12px">남은 자리 ${g.max-g.cur}명 · 1인 ${g.h}시간 적립</div><button class="btn pri w" ${A('done','참여를 신청했어요|close')}>신청하기</button>`},
+ catreq:()=>`<h3>카테고리 건의</h3>${fld('카테고리 이름',inp('예: 반려동물 산책'))}${fld('어떤 도움인가요?',ta(''))}<div class="note" style="margin-bottom:12px">운영자가 확인하고, 추가되면 알려 드려요.</div><button class="btn pri w" ${A('done','건의했어요|close')}>건의하기</button>`,
+ qr:p=>{const a=act(p);const g=a.me==='give';const end=a.st===3;return g?`<h3>${end?'종료':'시작'} QR 찍기</h3><div style="height:240px;border-radius:16px;background:#1B1D22;display:grid;place-items:center;position:relative"><div style="width:170px;height:170px;border:3px solid #fff;border-radius:16px;opacity:.85"></div><div style="position:absolute;bottom:14px;color:#fff;font-size:13px">${P[a.p].n} 님 휴대폰의 QR을 비춰 주세요</div></div>
+  <button class="btn pri w" style="margin-top:14px" ${A('qrok',a.id)}>인식 완료 (시연)</button><div style="text-align:center;margin-top:10px"><span class="lk">QR이 안 되나요? 6자리 번호 입력</span></div>`
+  :`<h3>${end?'종료':'시작'} QR 보여 주기</h3><div style="display:grid;place-items:center;padding:10px 0">${qrSvg(a.id.charCodeAt(1)+a.st)}<div class="mu" style="margin-top:8px">30초마다 바뀌어요 · 번호 <b style="color:var(--ink)">${end?'582 104':'317 920'}</b></div></div><button class="btn pri w" ${A('qrok',a.id)}>상대가 찍었어요 (시연)</button>`},
+ rate:p=>{const org=String(p).startsWith('org-');const r=F('stars',5);return `<h3>평가하기</h3><div class="mu" style="margin-bottom:12px">평가는 상대에게 공개되지 않아요.</div><div class="row" style="justify-content:center;gap:6px;font-size:34px;margin-bottom:14px">${[1,2,3,4,5].map(i=>`<button ${A('f','stars='+i)} style="filter:${i<=r?'none':'grayscale(1) opacity(.3)'}">⭐</button>`).join('')}</div>
+  ${fld('좋았던 점',mchips('good',['시간 약속을 잘 지켜요','친절해요','꼼꼼해요','대화가 즐거워요'],['시간 약속을 잘 지켜요']))}<button class="btn pri w" ${A(org?'orate':'rated',org?p.slice(4):p)}>보내기</button>`},
+ gift:()=>{const v=F('gv',1);return `<h3>🎁 시간 선물</h3>${fld('받을 가족',`<div class="chips">${FAMILY.filter(f=>f.st==='연결됨').map(f=>chip(f.n+' ('+f.rel+')',true)).join('')}</div>`)}
+  ${fld('보낼 시간',`<div class="row" style="justify-content:center;gap:20px"><button class="btn sec2 sm" ${A('f','gv='+Math.max(.5,v-.5))}>−</button><b style="font-size:28px">${h1(v)}시간</b><button class="btn sec2 sm" ${A('f','gv='+Math.min(ME.bal,v+.5))}>+</button></div><div class="mu" style="text-align:center;margin-top:6px">보낸 뒤 남는 시간 ${h1(ME.bal-v)}시간</div>`)}
+  ${fld('메시지',inp('','엄마 병원 갈 때 쓰세요'))}<button class="btn pri w" ${A('done','이순자 님에게 '+h1(v)+'시간을 선물했어요|close')}>선물하기</button><div style="text-align:center;margin-top:10px"><span class="lk" ${G('U-MY-04')}>다른 가족 연결하기</span></div>`},
+ gap:p=>{const [id,k]=p.split('|');const e=EL(id);const c=SCHED[id][k];return `<h3>${e.n} 님 · ${DAYS[Math.floor(k/2)].split(' ')[0]} ${k%2?'오후':'오전'}</h3><div class="row" style="margin-bottom:12px"><span class="tag r">빈칸</span><span class="su">${c.gap}</span></div>
+  ${ai(c.altP?(c.same?'같은 시간 가능한 분':'다른 요일 제안'):'대안이 없어요',c.altP?`<div class="row">${av(c.altP)}<div class="sp"><b>${c.altP}</b><div class="mu">${c.altWhy}</div></div></div><div class="su" style="margin-top:8px;color:var(--ink)">${c.alt}</div>`:`<div class="su" style="color:var(--ink)">${c.alt}</div>`,c.altWhy)}
+  <div class="btns">${c.altP?`<button class="btn pri" ${A('gapfill',id+'|'+k)}>이 분께 요청</button>`:''}<button class="btn ${c.altP?'line':'pri'}" ${A('gappost',id+'|'+k)}>공고로 올리기</button></div>`},
+ report:()=>`<h3>🚩 신고하기</h3>${fld('사유',fchips('rr',['약속 불이행','부적절한 말·행동','연락처·금전 요구','허위 공고','기타'],'약속 불이행'))}${fld('내용',ta('어떤 일이 있었는지 적어 주세요'))}<button class="btn red w" ${A('done','신고를 접수했어요|close')}>신고하기</button>`,
+};
+/* ================= 11/13 수정: 기관 담당자 ================= */
+const USERFILE='시간적금_사용자.html';
+/* 관리 대상 연락처 · 주소 · 가족 · 앱 사용 · 위임 */
+Object.assign(EL('e1'),{tel:'02-555-1201',addr:'행복동 행복로 12, 3층 (엘리베이터 없음)',fam:[['딸','김미영','010-9876-1111']],app:false,how:'서면 동의서',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.03.31',call:'11/10'});
+Object.assign(EL('e2'),{tel:'02-555-2211',addr:'행복동 은행나무길 5, 1층',fam:[['아들','정우진','010-5555-2222']],app:false,how:'보호자 동의',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.01.15',call:'11/12'});
+Object.assign(EL('e3'),{tel:'010-3333-4545',addr:'희망동 희망로 88, 101호',fam:[['남편','박영철','010-3333-4546'],['딸','박소연','010-2222-7777']],app:true,how:'앱 동의',scope:['대신 공고','일지 확인','공공 서비스'],until:'2026.12.10',call:'11/06'});
+Object.assign(EL('e4'),{tel:'02-555-4410',addr:'희망동 느티나무길 21, 2층',fam:[['조카','오민석','010-4444-9090']],app:false,how:'서면 동의서',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.05.20',call:'11/03'});
+ELDERS.push({id:'e5',n:'김영자',age:72,dong:'희망동',home:'혼자',needs:['동행','장보기·심부름'],month:2,prev:2,dg:0,pri:'보통',caution:'무릎이 안 좋아 오래 걷기 힘드세요.',consent:true,tel:'010-7777-1234',addr:'희망동 희망로 40, 502호',fam:[['딸','손유진','010-1111-2323']],app:true,how:'앱 동의',scope:['대신 공고','일지 확인','공공 서비스','안부 확인'],until:'2027.08.31',call:'11/11'});
+const ALLSCOPE=['대신 공고','대신 수락','일지 확인','공공 서비스','안부 확인'];
+const scopeTags=a=>ALLSCOPE.map(s=>`<span class="tag ${a.includes(s)?'g':''}" style="${a.includes(s)?'':'opacity:.45;text-decoration:line-through'}">${s}</span>`).join(' ');
+const callBtn=(t,l)=>`<button class="btn line sm" ${A('toast',`📞 ${t} 로 전화를 걸어요 (시연)`)}>📞 ${l||t}</button>`;
+
+/* 관리 대상: 목록 + 상세 */
+carePage=function(sel){const fp=F('ep','전체');const L=ELDERS.filter(e=>fp==='전체'||e.dong===fp||(fp==='우선순위 높음'&&e.pri==='높음')||(fp==='혼자 사는 분'&&e.home==='혼자')||(fp==='앱 쓰는 분'&&e.app));const e=EL(sel)||L[0]||ELDERS[0];
+ return `<div class="split"><div class="card" style="padding:14px"><input class="in" placeholder="🔍 이름·전화번호 검색" style="height:40px;margin-bottom:10px">
+ <div class="chips" style="margin-bottom:10px">${['전체','행복동','희망동','우선순위 높음','혼자 사는 분','앱 쓰는 분'].map(x=>chip(x,fp===x,A('f','ep='+x))).join('')}</div>
+ ${L.map(x=>`<div class="lrow ${x.id===e.id?'on':''}" ${A('rep','O-CARE-02|'+x.id)}>${av(x.n,'s')}<div class="sp"><b>${x.n}</b> <span class="mu">${x.age}세 · ${x.dong} · ${x.home}</span><div class="mu">📞 ${x.tel} · 안부 ${x.call}</div></div>${x.app?'<span class="tag b">앱</span>':''}${x.pri==='높음'?'<span class="tag r">우선</span>':''}</div>`).join('')||'<div class="empty">조건에 맞는 분이 없어요</div>'}
+ <button class="btn pri w sm" style="margin-top:12px" ${G('O-CARE-03')}>+ 관리 대상 등록</button></div>
+ <div>${careDetail(e)}</div></div>`};
+const _cd=careDetail;
+careDetail=function(e){const base=_cd(e);const called=F('called_'+e.id);
+ const contact=`<div class="g2"><div class="card"><div class="row" style="margin-bottom:8px"><b class="sp">📞 연락처 · 안부 확인</b><span class="mu">담당자만 봐요</span></div>
+ ${kv('본인 전화',`${e.tel} ${e.app?'<span class="tag b">앱 사용</span>':'<span class="tag">전화만</span>'}`)}${kv('주소',e.addr)}${e.fam.map(f=>kv('가족 ('+f[0]+')',`${f[1]} · ${f[2]}`)).join('')}${kv('마지막 안부 확인',called?'오늘 (11/13)':e.call)}
+ <div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap">${callBtn(e.tel,'본인')}${e.fam.map(f=>callBtn(f[2],f[0])).join('')}<span class="sp"></span><button class="btn ${called?'sec2':'pri'} sm" ${A('ft','called_'+e.id)}>${called?'✓ 안부 확인함':'안부 확인 기록'}</button></div></div>
+ <div class="card"><div class="row" style="margin-bottom:8px"><b class="sp">🔑 권한 위임</b><span class="lk" ${G('O-DLG-02',e.id)} onclick="st.seg.dg='위임 목록'">위임 관리 ›</span></div>${kv('동의 방법',e.how)}${kv('기간',`~ ${e.until}`)}<div style="margin-top:8px">${scopeTags(e.scope)}</div>${e.app?'<div class="note" style="margin-top:10px">앱을 쓰시는 분이라 맡긴 일은 본인이 앱에서 켜고 꺼요.</div>':'<div class="note" style="margin-top:10px">앱을 안 쓰셔서 서면·보호자 동의로 위임했어요.</div>'}</div></div>`;
+ return base.replace('<div class="g2"><div class="warn"',contact+'<div class="g2"><div class="warn"').replace('<span class="tag g">리포트 공유 동의 ✓</span>','');};
+const careForm=e=>`${fld('이름',inp('',e?e.n:''))}<div class="mu" style="margin:-8px 0 14px">봉사자에게는 "이○례"처럼 가려서 보여요.</div>
+ <div class="row">${fld('나이',inp('',e?e.age:''))}${fld('가구 형태',fchips('ehh',['혼자','배우자와','자녀와','기타'],e?e.home:'혼자'))}</div>
+ <div class="sec" style="font-size:14px;margin-top:4px">📞 안부 확인 연락처</div>
+ <div class="row">${fld('본인 전화번호',inp('010-0000-0000',e?e.tel:''))}${fld('앱 사용',fchips('eapp',['앱 써요','전화만 받아요'],e?(e.app?'앱 써요':'전화만 받아요'):'전화만 받아요'))}</div>
+ ${fld('주소',`<div class="row" style="gap:8px"><input class="in sp" placeholder="도로명 주소 검색" value="${e?e.addr.split(',')[0]:''}"><button class="btn line sm">주소 검색</button></div><input class="in" style="margin-top:8px" placeholder="상세 주소 (동·호수, 엘리베이터 여부)" value="${e&&e.addr.includes(',')?e.addr.split(',').slice(1).join(',').trim():''}">`)}
+ ${fld('가족 연락처',`${(e?e.fam:[['','','']]).map(f=>`<div class="row" style="gap:8px;margin-bottom:8px"><input class="in" style="width:90px" placeholder="관계" value="${f[0]}"><input class="in" style="width:120px" placeholder="이름" value="${f[1]}"><input class="in sp" placeholder="010-0000-0000" value="${f[2]}"></div>`).join('')}<button class="btn line sm" ${A('toast','가족 연락처 칸을 추가했어요')}>+ 가족 추가</button>`)}
+ <div class="sec" style="font-size:14px;margin-top:4px">돌봄 정보</div>
+ ${fld('동',fchips('edong',['행복동','희망동','은빛동'],e?e.dong:'행복동'))}${fld('필요한 도움',mchips('eneed',CATS.map(c=>c.k),e?e.needs:[]))}${fld('방문 주의사항',ta('예: 귀가 어두우세요',e?e.caution:''))}
+ ${e?'':`<div class="card"><b>권한 위임 동의</b><div class="mu" style="margin:4px 0 8px">등록하면 권한 위임 목록에 올라가요</div>${fld('동의 방법',fchips('ehow',['앱으로 동의 요청','서면 동의서 올리기','보호자 동의 (문자)'],'서면 동의서 올리기'))}${fld('맡길 일',mchips('escope',ALLSCOPE,['대신 공고','대신 수락','일지 확인','안부 확인']))}</div>`}
+ <div class="note">🔒 전화번호·주소·가족 연락처는 이 기관 담당자만 봐요. 봉사자에게는 일정이 확정된 뒤 방문 주소만 담당자가 알려요.</div>`;
+D('O-CARE-03',{n:'관리 대상',r:'org',nav:'O-CARE-01',under:'O-CARE-01'},p=>{const e=EL(p);return carePage(p)+drawer(e?e.n+' 님 정보 수정':'관리 대상 등록',careForm(e),`<button class="btn sec2" ${A('back')}>취소</button><button class="btn pri" ${A('done','저장했어요|back')}>저장</button>`)});
+
+/* 요청 관리: 관리 대상 요청 | 기관 공고 신청 */
+const APPS=[
+ {id:'ap1',kind:'봉사자 모집',post:'어르신 산책 동행',d:'11/18 (화)',tm:'10:00~12:00',who:'hn',st:0,msg:'오전 수업이 없어서 갈 수 있어요. 산책 동행 경험 8번 있어요.',at:'오늘 09:40'},
+ {id:'ap2',kind:'봉사자 모집',post:'어르신 산책 동행',d:'11/18 (화)',tm:'10:00~12:00',who:'sj',st:0,msg:'처음이지만 첫 활동 교육 마쳤어요.',at:'어제'},
+ {id:'ap3',kind:'단체 봉사',post:'어르신 생신잔치 보조',d:'11/22 (일)',tm:'13:00~16:00',who:'mk',st:0,msg:'친구 1명과 같이 갈게요.',n:2,at:'오늘 08:15'},
+ {id:'ap4',kind:'해 드려요',post:'요양보호사 방문 상담 (무료)',d:'날짜 조율',tm:'평일 오후',who:'bn',st:0,msg:'아내가 요즘 혼자 씻기 힘들어해요. 상담 받고 싶어요.',at:'어제'},
+ {id:'ap5',kind:'해 드려요',post:'요양보호사 방문 상담 (무료)',d:'11/14 (금)',tm:'14:00~15:00',who:'hj',st:2,msg:'장기요양 등급 신청이 궁금해요.',at:'11/10'},
+ {id:'ap6',kind:'단체 봉사',post:'어르신 생신잔치 보조',d:'11/22 (일)',tm:'13:00~16:00',who:'dy',st:2,msg:'',n:1,at:'11/09'},
+ {id:'ap7',kind:'봉사자 모집',post:'점심 배식 보조',d:'11/06 (목)',tm:'11:30~13:00',who:'mk',st:5,msg:'',at:'11/02'},
+];
+const AGRP={'처리할 일':[0],'확정':[1,2,3],'완료':[4,5]};
+const KTAG={'봉사자 모집':'g','단체 봉사':'a','해 드려요':'b'};
+function appPage(sel){const sa=APPS.find(x=>x.id===sel);const def=sa?Object.keys(AGRP).find(g=>AGRP[g].includes(sa.st)):'처리할 일';const t=SG('aq',def);const fk=F('ak','전체');
+ const L=APPS.filter(a=>AGRP[t].includes(a.st)&&(fk==='전체'||a.kind===fk));const a=L.find(x=>x.id===sel)||L[0];
+ return `<div class="row" style="margin-bottom:14px;gap:12px"><div class="seg" style="width:340px;margin:0">${Object.keys(AGRP).map(g=>`<button class="${t===g?'on':''}" data-seg="aq|${g}">${g} ${APPS.filter(x=>AGRP[g].includes(x.st)).length}</button>`).join('')}</div><div class="chips">${['전체','봉사자 모집','단체 봉사','해 드려요'].map(k=>chip(k,fk===k,A('f','ak='+k))).join('')}</div><span class="sp"></span><button class="btn line sm" ${G('O-POST-05')}>기관 공고 보기 ›</button></div>
+ <div class="split"><div class="card" style="padding:10px">${L.map(x=>`<div class="lrow ${a&&x.id===a.id?'on':''}" ${A('rep','O-POST-09|'+x.id)}><div class="sp"><div class="row" style="gap:6px"><span class="tag ${KTAG[x.kind]}">${x.kind}</span><span class="mu">${x.at}</span></div><div style="font-weight:700;margin-top:4px">${P[x.who].n}${x.n>1?` 외 ${x.n-1}명`:''} · ${x.kind==='해 드려요'?'신청':'참여 신청'}</div><div class="mu">${x.post} · ${x.d}</div></div></div>`).join('')||'<div class="empty">없어요</div>'}</div>
+ <div>${a?appDetail(a):'<div class="card empty">신청을 골라 주세요</div>'}</div></div>`}
+function appDetail(a){const give=a.kind!=='해 드려요';const p=P[a.who];
+ const act=a.st===0?(give?`<div class="note" style="margin-bottom:10px">수락하면 일정이 확정돼요. 당일 기관에서 QR로 시작·종료를 찍고, 봉사자는 활동 시간만큼 적립해요. 기관 공고라 받는 쪽 차감은 없어요.</div><div class="btns" style="max-width:360px"><button class="btn sec2" ${A('aadv',a.id+'|-1')}>거절</button><button class="btn pri" ${A('aadv',a.id+'|2')}>수락</button></div>`
+  :`<div class="note" style="margin-bottom:10px">기관이 해 드리는 도움이라 시간이 적립·차감되지 않아요. 방문 날짜를 정해 알려 드려요.</div><div class="row" style="gap:8px;max-width:520px">${fld('방문 날짜',inp('','11/17 (월)'))}${fld('시간',inp('','14:00~15:00'))}</div><div class="btns" style="max-width:360px"><button class="btn sec2" ${A('aadv',a.id+'|-1')}>어려워요</button><button class="btn pri" ${A('aadv',a.id+'|2')}>일정 정해 확정</button></div>`)
+  :a.st===2?`<div class="note">확정됐어요 · ${a.d} ${a.tm} · 신청자에게 알림을 보냈어요</div>`:`<div class="note">완료 · ${give?'봉사자 적립 '+h1(1.5)+'시간':'방문 상담 기록 저장됨'}</div>`;
+ return `<div class="card"><div class="row"><div class="sp"><span class="tag ${KTAG[a.kind]}">${a.kind}</span><div class="t" style="font-size:18px;margin-top:6px">${a.post}</div><div class="mu">${a.d} ${a.tm} · 행복요양원</div></div><span class="lk" ${G('O-POST-05')}>공고 보기 ›</span></div></div>
+ <div class="g2"><div class="card"><div class="mu" style="margin-bottom:6px">${give?'신청한 봉사자':'신청한 분'}</div>${pcard(a.who)}${a.n>1?`<div class="mu" style="margin-top:8px">함께 오는 인원 ${a.n}명</div>`:''}</div><div class="card"><b>신청 메시지</b><div style="margin-top:6px">${a.msg||'<span class="mu">메시지 없음</span>'}</div><div class="mu" style="margin-top:8px">${a.at} 신청</div></div></div>
+ <div class="card">${act}</div>`}
+const _rp=reqPage;
+reqPage=function(sel){const t=sel?(String(sel).startsWith('ap')?'기관 공고 신청':'관리 대상 요청'):SG('rqt','관리 대상 요청');st.seg.rqt=t;
+ const top=`<div class="seg" style="width:420px;margin:0 0 16px">${['관리 대상 요청','기관 공고 신청'].map(x=>`<button class="${t===x?'on':''}" data-seg="rqt|${x}">${x} ${x==='관리 대상 요청'?REQS.filter(r=>[0,1,4].includes(r.st)).length:APPS.filter(a=>a.st===0).length}</button>`).join('')}</div>`;
+ return top+(t==='관리 대상 요청'?`<div class="mu" style="margin:-6px 0 12px">담당자가 관리 대상 분 대신 올린 요청과 받은 제안이에요.</div>`+_rp(sel):`<div class="mu" style="margin:-6px 0 12px">우리 기관이 올린 공고(봉사자 모집 · 단체 봉사 · 해 드려요)에 들어온 신청이에요.</div>`+appPage(sel));};
+D('O-POST-09',{n:'요청 관리',r:'org',nav:'O-POST-01'},p=>reqPage(p||'ap1'));
+
+/* 기관 공고: 봉사자 모집 · 단체 봉사 · 해 드려요 */
+const OPOSTS=[
+ {id:'op1',kind:'봉사자 모집',t:'어르신 산책 동행',d:'11/18 (화)',tm:'10:00~12:00',cat:'말동무·정서',need:1,app:2,st:'모집 중',txt:'요양원 앞 공원까지 휠체어 산책을 함께해요.'},
+ {id:'op2',kind:'봉사자 모집',t:'점심 배식 보조',d:'매주 목',tm:'11:30~13:00',cat:'가벼운 집안일',need:2,app:1,st:'모집 중',txt:'배식과 정리를 도와요.'},
+ {id:'op3',kind:'단체 봉사',t:'어르신 생신잔치 보조',d:'11/22 (일)',tm:'13:00~16:00',cat:'말동무·정서',need:8,app:5,st:'모집 중',txt:'상차림, 어르신 이동 돕기, 사진 촬영'},
+ {id:'op4',kind:'해 드려요',t:'요양보호사 방문 상담 (무료)',d:'평일 오후',tm:'14:00~17:00',cat:'생활 정리',need:6,app:2,st:'신청 받는 중',txt:'혼자 씻기·거동이 힘든 분 댁에 요양보호사가 찾아가 상담하고 장기요양 등급 신청을 도와드려요.'},
+ {id:'op5',kind:'해 드려요',t:'어르신 이발 봉사',d:'매월 첫째 토',tm:'10:00~12:00',cat:'생활 정리',need:10,app:7,st:'신청 받는 중',txt:'요양원 이용 미용사가 동네 어르신 머리를 무료로 다듬어 드려요.'},
+];
+const OKIND={'봉사자 모집':['🙋','봉사자 1~2명이 필요해요','산책·배식처럼 한두 명이 와서 도와주면 되는 일','봉사자는 활동 시간만큼 적립 · 기관 공고라 차감 없음'],
+ '단체 봉사':['👥','여러 명이 함께해요','김장·생신잔치처럼 여러 명이 같이 하는 일','참여자 각자 활동 시간만큼 적립 · 차감 없음'],
+ '해 드려요':['🤲','우리 기관이 해 드려요','기관이 동네 분들께 해 줄 수 있는 도움 · 필요한 분이 신청','기관 직원이 하는 일이라 적립·차감 없음']};
+function opostPage(){const t=SG('opk','전체');const L=OPOSTS.filter(p=>t==='전체'||p.kind===t);
+ return `<div class="row" style="margin-bottom:14px;gap:12px"><div class="seg" style="width:520px;margin:0">${['전체','봉사자 모집','단체 봉사','해 드려요'].map(x=>`<button class="${t===x?'on':''}" data-seg="opk|${x}">${x} ${x==='전체'?OPOSTS.length:OPOSTS.filter(p=>p.kind===x).length}</button>`).join('')}</div><span class="sp"></span><button class="btn line sm" ${A('gof','O-POST-01|_=')} onclick="st.seg.rqt='기관 공고 신청'">신청 ${APPS.filter(a=>a.st===0).length}건 보기</button><button class="btn pri sm" ${G('O-POST-07')}>+ 공고 올리기</button></div>
+ <div class="note" style="margin-bottom:14px">특정 관리 대상 분을 위한 요청은 <span class="lk" ${G('O-POST-02')}>요청 관리 › 대리 요청</span>에서 올려요. 여기는 기관 이름으로 동네 전체에 올리는 공고예요.</div>
+ <div class="g3">${L.map(p=>`<div class="card" style="margin:0"><div class="row"><span class="tag ${KTAG[p.kind]}">${OKIND[p.kind][0]} ${p.kind}</span><span class="sp"></span><span class="mu">${p.st}</span></div><div class="t" style="margin:10px 0 4px;font-size:16px">${p.t}</div><div class="mu">${cw(p.cat).ic} ${p.cat} · ${p.d} ${p.tm}</div><div class="su" style="margin-top:6px">${p.txt}</div>
+ <div class="row" style="margin-top:12px"><div class="bar sp"><i style="width:${Math.min(100,p.app/p.need*100)}%"></i></div><span class="mu">${p.kind==='해 드려요'?`신청 ${p.app} / ${p.need}명`:`${p.app} / ${p.need}명`}</span></div>
+ <div class="row" style="gap:6px;margin-top:12px"><button class="btn line sm" ${A('gof','O-POST-01|ak='+p.kind)} onclick="st.seg.rqt='기관 공고 신청';st.seg.aq='처리할 일'">신청 보기</button><button class="btn sec2 sm" ${A('toast','공고를 마감했어요')}>마감</button></div></div>`).join('')}</div>`}
+D('O-POST-05',{n:'기관 공고',r:'org',nav:'O-POST-05'},()=>opostPage());
+D('O-POST-07',{n:'기관 공고',r:'org',nav:'O-POST-05',under:'O-POST-05'},()=>opostPage()+modal('어떤 공고를 올릴까요?',`<div class="g3" style="gap:12px">${Object.entries(OKIND).map(([k,v])=>`<button class="card tap" style="margin:0;text-align:left;border:1.5px solid var(--line)" ${A('rep','O-POST-08|'+k)}><div style="font-size:30px">${v[0]}</div><div class="t" style="font-size:16px;margin:8px 0 4px">${v[1]}</div><div class="su">${v[2]}</div><div class="mu" style="margin-top:10px">${v[3]}</div><div style="margin-top:10px"><span class="tag ${KTAG[k]}">${k}</span></div></button>`).join('')}</div>
+ <div class="note" style="margin-top:14px">동네 행사·교실 안내는 시간과 상관없어서 <span class="lk" ${A('tab','O-POST-06')}>기관 행사</span>에서 따로 올려요.</div>`));
+D('O-POST-08',{n:'기관 공고',r:'org',nav:'O-POST-05',under:'O-POST-05'},p=>{const k=p||'봉사자 모집';const v=OKIND[k];
+ const form=k==='봉사자 모집'?`${fld('제목',inp('','어르신 산책 동행'))}${fld('도움 종류',fchips('opc',CATS.map(c=>c.k),'말동무·정서'))}<div class="row">${fld('날짜',inp('','11/18 (화)'))}${fld('시간',inp('','10:00~12:00'))}${fld('필요한 인원',fchips('opn',['1명','2명'],'1명'))}</div>${fld('할 일',ta('','요양원 앞 공원까지 휠체어 산책을 함께해요.'))}${fld('반복',fchips('oprep',['한 번','매주','격주'],'한 번'))}`
+ :k==='단체 봉사'?`${fld('제목',inp('','어르신 생신잔치 보조'))}${fld('할 일',ta('','상차림, 어르신 이동 돕기, 사진 촬영'))}<div class="row">${fld('날짜',inp('','11/22 (일)'))}${fld('시간',inp('','13:00~16:00'))}</div>${fld('장소',inp('','행복요양원 2층 강당'))}<div class="row">${fld('모집 인원',inp('','8'))}${fld('준비물',inp('','편한 신발'))}</div>${fld('팀 신청',fchips('opteam',['개인만','동아리·모임도 받기'],'동아리·모임도 받기'))}`
+ :`${fld('어떤 도움을 해 드리나요?',inp('','요양보호사 방문 상담 (무료)'))}${fld('내용',ta('','혼자 씻기·거동이 힘든 분 댁에 요양보호사가 찾아가 상담하고, 장기요양 등급 신청을 도와드려요.'))}<div class="row">${fld('가능한 때',inp('','평일 오후 2~5시'))}${fld('받을 수 있는 인원',inp('','이번 달 6명'))}</div>${fld('대상',fchips('optg',['누구나','65세 이상','혼자 사는 분'],'65세 이상'))}${fld('신청 방법',fchips('opway',['앱에서 신청','전화 신청도 받기'],'전화 신청도 받기'))}${fld('노출 범위',fchips('opr',['1km','3km','구 전체'],'3km'))}`;
+ return opostPage()+drawer(`${v[0]} ${k} 공고 쓰기`,`<div class="note" style="margin-bottom:14px">${v[2]}<br><b>${v[3]}</b></div><div class="row" style="margin-bottom:12px"><span class="mu">유형</span>${Object.keys(OKIND).map(x=>chip(x,x===k,A('rep','O-POST-08|'+x))).join('')}</div>${form}<button class="btn ai-btn w" style="margin-top:6px" ${A('toast','✨ AI가 제목과 내용을 다듬었어요')}>✨ AI로 문장 다듬기</button>`,`<button class="btn sec2" ${A('back')}>취소</button><button class="btn pri" ${A('done','공고를 올렸어요|O-POST-05')}>올리기</button>`)});
+
+/* 기관 행사: 따로 */
+D('O-POST-06',{n:'기관 행사',r:'org',nav:'O-POST-06'},()=>grpPage('기관 행사').replace(/^<div class="seg"[\s\S]*?<\/div>/,'<div class="note" style="margin-bottom:14px">교실·모임·행사 안내예요. 시간이 적립·차감되지 않고, 근처 사용자 홈의 "동네 기관 소식"에 보여요. 봉사자가 필요하면 <span class="lk" '+G('O-POST-07')+'>기관 공고</span>로 올려요.</div>'));
+
+/* 권한 위임 */
+const DLGREQ=[{e:'e5',kind:'새 연결',d:'11/13 09:20',what:['대신 공고','일지 확인','공공 서비스','안부 확인'],msg:'혼자 지내서 담당자님이 챙겨 주시면 좋겠어요.'},{e:'e3',kind:'범위 변경',d:'11/11',what:['대신 수락 끔'],msg:'수락은 제가 직접 할게요.'}];
+const STAFF=[['박지현','사회복지사','나'],['이수진','사회복지사',''],['최은호','간호사','']];
+const DELEG=[{to:'이수진',from:'11/20',until:'11/24',who:'전체 (5명)',why:'휴가',scope:'대신 수락 · 일지 확인 · 안부 확인',st:'예정'},{to:'최은호',from:'10/01',until:'계속',who:'오덕수',why:'병원 동행 전담',scope:'대신 공고 · 일지 확인',st:'위임 중'}];
+const dSt=e=>e.until.startsWith('2026.12')?'<span class="tag a">만료 임박</span>':'<span class="tag g">위임 중</span>';
+function dlgPage(sel){const t=SG('dg','위임 목록');
+ const top=`<div class="row" style="margin-bottom:14px"><div class="seg" style="width:460px;margin:0">${['위임 목록','받은 요청','담당자 간 위임'].map(x=>`<button class="${t===x?'on':''}" data-seg="dg|${x}">${x}${x==='받은 요청'?' '+DLGREQ.length:''}</button>`).join('')}</div><span class="sp"></span><button class="btn pri sm" ${G('O-DLG-03')}>+ 새 위임 등록</button></div>`;
+ if(t==='받은 요청')return top+`<div class="note" style="margin-bottom:14px">앱을 쓰는 분이 "담당 기관 연결"이나 "맡긴 일 바꾸기"를 하면 여기로 와요.</div><div class="g2">${DLGREQ.map(r=>{const e=EL(r.e);return `<div class="card" style="margin:0"><div class="row">${av(e.n)}<div class="sp"><b>${e.n}</b> <span class="mu">${e.age}세 · ${e.dong}</span><div class="mu">${r.d} · 앱에서 요청</div></div><span class="tag ${r.kind==='새 연결'?'b':'a'}">${r.kind}</span></div><div style="margin:10px 0">${r.what.map(x=>`<span class="tag g">${x}</span>`).join(' ')}</div><div class="su">"${r.msg}"</div><div class="btns" style="margin-top:12px;max-width:320px"><button class="btn sec2 sm" ${A('toast','거절했어요. 사유를 앱으로 알려요')}>거절</button><button class="btn pri sm" ${A('toast',r.kind==='새 연결'?e.n+' 님과 연결했어요. 관리 대상에 추가돼요':'바뀐 범위를 반영했어요')}>${r.kind==='새 연결'?'수락하고 연결':'확인'}</button></div></div>`}).join('')}</div>`;
+ if(t==='담당자 간 위임')return top+`<div class="g21"><div class="card"><b>대리 담당자 · 이관</b><table class="tbl" style="margin-top:10px"><tr><th>받는 담당자</th><th>기간</th><th>대상</th><th>사유</th><th>맡긴 일</th><th>상태</th></tr>${DELEG.map(d=>`<tr><td><b>${d.to}</b></td><td>${d.from} ~ ${d.until}</td><td>${d.who}</td><td>${d.why}</td><td class="su">${d.scope}</td><td><span class="tag ${d.st==='예정'?'a':'g'}">${d.st}</span></td></tr>`).join('')}</table></div>
+ <div class="card"><b>대리 담당자 지정</b><div class="mu" style="margin:4px 0 12px">휴가·출장 때 같은 기관 담당자에게 잠깐 맡기거나, 퇴사·업무 변경 때 아예 넘겨요.</div>${fld('방식',fchips('dgw',['기간 동안 대리','완전히 이관'],'기간 동안 대리'))}${fld('받는 담당자',fchips('dgto',STAFF.filter(s=>!s[2]).map(s=>s[0]+' '+s[1]),'이수진 사회복지사'))}${fld('대상',fchips('dgwho',['전체','골라서'],'전체'))}<div class="row">${fld('시작',inp('','11/20'))}${fld('끝',inp('','11/24'))}</div>${fld('맡길 일',mchips('dgsc',ALLSCOPE,['대신 수락','일지 확인','안부 확인']))}<div class="note" style="margin-bottom:12px">관리 대상 분께 "이 기간에는 이수진 담당자가 연락드려요" 알림이 가요.</div><button class="btn pri w" ${A('toast','대리 담당자를 지정했어요')}>지정하기</button></div></div>`;
+ const e=EL(sel)||ELDERS[0];
+ return top+`<div class="split" style="grid-template-columns:1.5fr 1fr"><div class="card"><table class="tbl"><tr><th>관리 대상</th><th>동의 방법</th><th>맡긴 일</th><th>기간</th><th>상태</th></tr>${ELDERS.map(x=>`<tr class="ck ${x.id===e.id?'sel':''}" ${A('rep','O-DLG-02|'+x.id)}><td><b>${x.n}</b> <span class="mu">${x.age}세</span>${x.app?' <span class="tag b">앱</span>':''}</td><td>${x.how}</td><td>${x.scope.length}개</td><td>~ ${x.until}</td><td>${dSt(x)}</td></tr>`).join('')}</table><div class="mu" style="margin-top:10px">위임 기간이 끝나기 30일 전에 본인(또는 보호자)에게 다시 동의를 받아요.</div></div>
+ <div><div class="card"><div class="row">${av(e.n)}<div class="sp"><b style="font-size:16px">${e.n}</b> <span class="mu">${e.age}세 · ${e.dong}</span><div class="mu">${e.how} · ~ ${e.until}</div></div>${dSt(e)}</div>
+ <div style="margin-top:12px">${ALLSCOPE.map(s=>`<div class="li" style="cursor:default"><span class="sp">${s}</span>${e.app?`<span class="tag ${e.scope.includes(s)?'g':''}">${e.scope.includes(s)?'켜짐':'꺼짐'}</span>`:sw('sc_'+e.id+s,e.scope.includes(s))}</div>`).join('')}</div>
+ <div class="note" style="margin-top:10px">${e.app?'앱을 쓰시는 분이라 본인이 앱에서만 바꿀 수 있어요.':'서면·보호자 동의라 담당자가 바꾸고, 바꾸면 보호자에게 문자가 가요.'}</div>
+ <div class="row" style="gap:6px;margin-top:12px"><button class="btn line sm" ${A('toast','연장 동의 요청을 보냈어요')}>기간 연장 요청</button><button class="btn sec2 sm" ${A('toast','위임을 해지했어요 (시연)')}>해지</button></div></div>
+ <div class="card"><b>위임으로 한 일</b> <span class="mu">기록은 본인·가족도 볼 수 있어요</span>${[['11/12','박지현','병원 동행 공고를 대신 올림'],['11/10','박지현','봉사 제안을 대신 수락'],['11/06','최은호','일지 2건 확인']].map(x=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><span class="mu">${x[0]} · ${x[1]}</span> ${x[2]}</div>`).join('')}</div></div></div>`}
+D('O-DLG-01',{n:'권한 위임',r:'org',nav:'O-DLG-01'},()=>dlgPage());
+D('O-DLG-02',{n:'권한 위임',r:'org',nav:'O-DLG-01'},p=>dlgPage(p||'e1'));
+D('O-DLG-03',{n:'권한 위임',r:'org',nav:'O-DLG-01',under:'O-DLG-01'},()=>dlgPage()+drawer('새 위임 등록',`${fld('관리 대상',`<div class="chips">${ELDERS.map(x=>chip(x.n,F('dge','e4')===x.id,A('f','dge='+x.id))).join('')}</div>`)}
+ ${fld('동의 방법',fchips('dgh',['앱으로 동의 요청','서면 동의서 올리기','보호자 동의 (문자)'],'서면 동의서 올리기'))}
+ ${F('dgh','서면 동의서 올리기')==='서면 동의서 올리기'?`<div class="note" style="text-align:center;border:1px dashed #CDD2DA;background:#fff;padding:18px;margin-bottom:14px">📄 서명한 동의서 사진·PDF 올리기</div>`:F('dgh')==='보호자 동의 (문자)'?`<div class="note" style="margin-bottom:14px">등록된 가족 연락처로 동의 링크 문자를 보내요.</div>`:`<div class="note" style="margin-bottom:14px">본인 앱으로 동의 요청 알림이 가요. 본인이 맡길 일을 고를 수 있어요.</div>`}
+ ${fld('맡길 일',mchips('dgs',ALLSCOPE,['대신 공고','대신 수락','일지 확인','안부 확인']))}<div class="row">${fld('시작',inp('','2026.11.13'))}${fld('끝 (최대 1년)',inp('','2027.11.12'))}</div>`,`<button class="btn sec2" ${A('back')}>취소</button><button class="btn pri" ${A('done','위임을 등록했어요|back')}>등록</button>`));
+
+/* 공공 서비스 연계 */
+const PUBR=[
+ {id:'pb1',chat:[['me','혼자 사는데 쓰러지면 걱정돼요'],['bot','혼자 지내시는 분이 쓸 수 있는 서비스를 찾아 봤어요. 응급안전안심서비스는 화재·활동 감지 장비를 달아 응급 때 119와 연결해 줘요.'],['bot','노인맞춤돌봄서비스는 안부 확인과 외출 동행을 해 줘요. 주민센터에서 신청해요.'],['me','담당자님이 신청을 도와주면 좋겠어요']],e:'e5',q:'혼자 사는데 쓰러지면 걱정돼요',svc:['응급안전안심서비스','노인맞춤돌봄서비스'],d:'오늘 09:12',memo:'평일 오전에 전화 주세요',st:0},
+ {id:'pb2',chat:[['me','요즘 깜빡깜빡해요'],['bot','가까운 치매안심센터에서 무료로 검진과 상담을 받을 수 있어요.']],e:'e3',q:'요즘 깜빡깜빡해요',svc:['치매안심센터'],d:'11/11',memo:'',st:2},
+ {id:'pb3',chat:[['me','목욕을 도와줄 사람이 필요해요'],['bot','장기요양 등급이 있으면 방문요양·방문목욕을 받을 수 있어요. 등급이 없으면 국민건강보험공단에 신청해야 해요.']],e:'e5',q:'목욕을 도와줄 사람이 필요해요',svc:['장기요양 방문요양·방문목욕'],d:'11/05',memo:'',st:3,res:'국민건강보험공단 등급 신청 접수 (11/07) · 방문 조사 11/20'},
+];
+const PST=['새 요청','연락함','신청 도움 중','완료'];
+const SVC={'응급안전안심서비스':['혼자 사시는 분 등','화재·활동 감지 장비 설치, 응급 때 119·담당자 연결','주민센터'],'노인맞춤돌봄서비스':['65세 이상 기초연금 수급자 등','안부 확인, 생활 교육, 외출 동행','주민센터'],'치매안심센터':['60세 이상 등','치매 조기 검진, 상담, 쉼터','보건소 · 1899-9988'],'장기요양 방문요양·방문목욕':['장기요양 등급자','요양보호사 방문, 목욕 지원','국민건강보험공단 · 1577-1000']};
+function pubPage(sel){const t=SG('pbq','진행 중');const L=PUBR.filter(r=>t==='진행 중'?r.st<3:r.st===3);const r=L.find(x=>x.id===sel)||L[0];
+ return `<div class="g4" style="margin-bottom:16px">${[['새 요청',PUBR.filter(x=>x.st===0).length+'건'],['진행 중',PUBR.filter(x=>x.st>0&&x.st<3).length+'건'],['이번 달 완료','3건'],['연계 많은 서비스','노인맞춤돌봄']].map(x=>`<div class="card kpi" style="margin:0"><div class="mu">${x[0]}</div><div class="big" style="font-size:22px">${x[1]}</div></div>`).join('')}</div>
+ <div class="row" style="margin-bottom:14px"><div class="seg" style="width:300px;margin:0">${['진행 중','완료'].map(x=>`<button class="${t===x?'on':''}" data-seg="pbq|${x}">${x}</button>`).join('')}</div><span class="sp"></span><span class="mu">본인이 앱에서 "담당자에게 전달하기"를 눌렀을 때만 그 대화와 AI가 찾은 서비스가 여기로 와요</span></div>
+ <div class="split"><div class="card" style="padding:10px">${L.map(x=>{const e=EL(x.e);return `<div class="lrow ${r&&x.id===r.id?'on':''}" ${A('rep','O-PUB-02|'+x.id)}><div class="sp"><div class="row" style="gap:6px"><span class="tag ${x.st===0?'r':x.st===3?'g':'a'}">${PST[x.st]}</span><span class="mu">${x.d}</span></div><div style="font-weight:700;margin-top:4px">${e.n} 님 · ${x.svc[0]}</div><div class="mu">"${x.q}"</div></div></div>`}).join('')||'<div class="empty">없어요</div>'}</div>
+ <div>${r?pubDetail(r):'<div class="card empty">요청을 골라 주세요</div>'}</div></div>`}
+function pubDetail(r){const e=EL(r.e);
+ return `<div class="card"><div class="row">${av(e.n,'l')}<div class="sp"><div class="t" style="font-size:18px">${e.n} <span class="mu" style="font-size:14px">${e.age}세 · ${e.dong} · ${e.home}</span></div><div class="mu">${r.d} 앱에서 전달 · 📞 ${e.tel}</div></div>${callBtn(e.tel,'전화')}<button class="btn line sm" ${G('O-CARE-02',e.id)}>관리 대상 정보</button></div>${steps2(r.st)}</div>
+ <div class="g2"><div class="card"><div class="row"><b class="sp">💬 본인이 전달한 AI 대화</b><span class="tag g">본인이 전달함 · ${r.d}</span></div><div class="note" style="margin:8px 0">앱에서 "담당자에게 전달하기"를 누른 대화만 보여요. 누르지 않은 대화와 찾아본 기록은 담당자에게 보이지 않아요.</div><div class="chat">${(r.chat||[]).map(m=>`<div class="msg ${m[0]==='me'?'me':'bot'}" style="max-width:92%">${m[1]}</div>`).join('')}</div>${r.memo?`<div class="mu" style="margin-top:10px">담당자에게 남긴 말: ${r.memo}</div>`:''}</div>
+ ${ai('자격 미리 보기',`<div>${e.age}세 · ${e.home} 사세요. <b>${r.svc[0]}</b>는 ${SVC[r.svc[0]][0]}이 대상이라 받을 가능성이 높아요.</div><div class="mu" style="margin-top:6px">확인할 것: 기초연금 수급 여부, 장기요양 등급 여부</div>`,'관리 대상 정보 · 공공 서비스 DB (운영자 등록)')}</div>
+ <div class="card"><div class="row"><b class="sp">AI가 찾은 서비스</b><span class="mu">전달한 대화에서 찾은 기록</span></div><table class="tbl" style="margin-top:8px"><tr><th>서비스</th><th>대상</th><th>내용</th><th>신청</th></tr>${r.svc.map(s=>`<tr><td><b>${s}</b></td><td>${SVC[s][0]}</td><td class="su">${SVC[s][1]}</td><td>${SVC[s][2]}</td></tr>`).join('')}</table></div>
+ <div class="card">${r.st===3?`<div class="note">✅ 완료 · ${r.res}</div>`:`${fld('처리 메모',ta('예: 11/14 주민센터에 대신 신청 접수',''))}<div class="row" style="gap:8px">${r.st<1?`<button class="btn line" ${A('pbadv',r.id+'|1')}>연락했어요</button>`:''}${r.st<2?`<button class="btn line" ${A('pbadv',r.id+'|2')}>신청 도와드리는 중</button>`:''}<button class="btn pri" ${A('pbadv',r.id+'|3')}>완료</button><span class="sp"></span><button class="btn sec2" ${A('pbadv',r.id+'|3')}>대상이 아니에요</button></div><div class="mu" style="margin-top:8px">상태를 바꾸면 ${e.n} 님 앱에 알림이 가요.</div>`}</div>`}
+const steps2=s=>`<div class="steps" style="margin-top:12px">${PST.map((x,i)=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="stl">${PST.map((x,i)=>`<span class="${i===s?'on':''}">${x}</span>`).join('')}</div>`;
+D('O-PUB-01',{n:'공공 서비스 연계',r:'org',nav:'O-PUB-01'},()=>pubPage());
+D('O-PUB-02',{n:'공공 서비스 연계',r:'org',nav:'O-PUB-01'},p=>pubPage(p||'pb1'));
+
+/* 홈: 새로 온 요청 카드 추가 */
+const _oh=orgHome;
+orgHome=function(){const h=_oh();const more=`<div class="card"><b>새로 온 요청</b>${[['❄️','특보 알림',2,'O-ALERT-01','기상 특보 한파주의보 · 운영자 안내 1건'],['🏛','공공 서비스 연계',PUBR.filter(x=>x.st===0).length,'O-PUB-01','김영자 님 · 응급안전안심서비스'],['📣','기관 공고 신청',APPS.filter(a=>a.st===0).length,'O-POST-09','산책 동행 2 · 생신잔치 1 · 방문 상담 1'],['🔑','권한 위임 요청',DLGREQ.length,'O-DLG-01','새 연결 1 · 범위 변경 1']].map(x=>`<div class="lrow" style="padding:10px 6px" ${x[3]==='O-ALERT-01'?G('O-ALERT-01','wx1'):x[3]==='O-DLG-01'?A('gof','O-DLG-01|_=')+` onclick="st.seg.dg='받은 요청'"`:G(x[3])}><span style="font-size:20px">${x[0]}</span><div class="sp"><b>${x[1]}</b><div class="mu">${x[4]}</div></div><span class="tag r">${x[2]}</span><span class="ar">›</span></div>`).join('')}</div>`;
+ return h.replace('<div class="card"><b>최근 도착한 일지</b>',more+'<div class="card"><b>최근 도착한 일지</b>');};
+D('O-HOME-01',{n:'홈',r:'org',nav:'O-HOME-01'},()=>orgHome());
+
+
+/* ================= 11/13 추가: 기관 담당자 특보 알림 ================= */
+const ALERTS=[
+ {id:'al1',k:'한파주의보',ic:'❄️',area:'행복구 전역',per:'11/12 ~ 11/14',at:'오늘 08:10',on:true,sum:'특보 기간에 외출이 줄고 난방이 걱정되는 분이 늘어요. 혼자 사는 분께 안부 전화를 먼저 드려 주세요.',
+  acts:[['📞','혼자 사는 관리 대상께 안부 전화','아래 표에서 전화하고 기록해요'],['🏠','동행 일정은 실내 대기로 바꾸기','병원·복지관 동행 봉사자에게 안내'],['🛒','장보기는 오후 시간으로 옮기기','아침 빙판길을 피해요'],['🏛','난방비 지원 공공 서비스 안내','공공 서비스 연계에서 신청을 도와요']]},
+ {id:'al2',k:'폭염경보',ic:'☀️',area:'행복구 전역',per:'08/03 ~ 08/05',at:'08/03 07:30',on:false,sum:'지난 특보예요. 당시 안부 전화 4건을 기록했어요.',acts:[]}];
+const WX=[
+ {id:'wx1',k:'한파주의보',ic:'❄️',area:'행복구 전역',per:'11/12 ~ 11/14',at:'11/12 06:00',mine:true,txt:'기온이 크게 떨어지고 바람이 강해 체감온도가 더 낮을 것으로 예상돼요.'},
+ {id:'wx2',k:'강풍주의보',ic:'💨',area:'새솔동',per:'11/13',at:'11/13 05:30',mine:false,txt:'새솔동 일대에 강한 바람이 불 것으로 예상돼요.'}];
+function alertPage(sel){sel=sel||'wx1';const isW=sel.startsWith('wx');const lone=ELDERS.filter(e=>e.home==='혼자');const inP=REQS.filter(r=>/^11\/1[34]/.test(r.d));const doneN=lone.filter(e=>F('called_'+e.id)).length;
+ const tabs=`<div class="seg" style="width:420px;margin:0 0 16px">${[['기상 특보','wx1',WX.filter(w=>w.mine).length],['운영자 안내','al1',ALERTS.filter(a=>a.on&&!F('alr_'+a.id)).length]].map(x=>`<button class="${(x[0]==='기상 특보')===isW?'on':''}" ${A('rep','O-ALERT-01|'+x[1])}>${x[0]} ${x[2]}</button>`).join('')}</div>`;
+ const kp=`<div class="g3" style="margin-bottom:16px">${[['혼자 사는 관리 대상',lone.length+'명'],['안부 확인 완료',doneN+' / '+lone.length+'명'],['특보 기간 예정 돌봄',inP.length+'건']].map(x=>`<div class="card kpi" style="margin:0"><div class="mu">${x[0]}</div><div class="big" style="font-size:22px">${x[1]}</div></div>`).join('')}</div>`;
+ if(isW){const w=WX.find(x=>x.id===sel)||WX[0];
+  return tabs+`<div class="split" style="grid-template-columns:340px 1fr"><div class="card" style="padding:10px"><div style="padding:6px 8px 10px;font-weight:700">기상청 특보 <span class="mu" style="font-weight:500">기상청 API</span></div>
+  ${WX.map(x=>`<div class="lrow ${x.id===w.id?'on':''}" ${A('rep','O-ALERT-01|'+x.id)}><span style="font-size:22px">${x.ic}</span><div class="sp"><div class="row" style="gap:6px"><b>${x.k}</b>${x.mine?'<span class="tag r">우리 지역</span>':'<span class="tag">다른 지역</span>'}</div><div class="mu">${x.area} · ${x.per}</div></div></div>`).join('')}
+  <div class="note" style="margin:10px 6px 4px">우리 기관(행복구 행복동)이 있는 지역의 특보가 오면 홈 상단에도 보여요.</div></div>
+  <div><div class="${w.mine?'danger':'note'}" style="margin-bottom:16px;padding:16px 18px"><div class="row"><span style="font-size:26px">${w.ic}</span><div class="sp"><b style="font-size:16px">${w.k} · ${w.area}</b><div class="mu" style="color:inherit;opacity:.8">기상청 · ${w.per} · ${w.at} 발표</div></div></div><div style="margin-top:8px">${w.txt}</div></div>
+  ${w.mine?kp+`<div class="card"><div class="row"><b class="sp">📨 이 특보에 대한 운영자 안내</b><button class="btn pri sm" ${A('rep','O-ALERT-01|al1')}>안내 보기 ›</button></div><div class="su" style="margin-top:6px">${ALERTS[0].sum}</div></div>`:`<div class="card"><div class="mu">우리 기관 지역이 아니라서 따로 할 일은 없어요.</div></div>`}</div></div>`}
+ const a=ALERTS.find(x=>x.id===sel)||ALERTS[0];
+ return tabs+`<div class="split" style="grid-template-columns:340px 1fr"><div class="card" style="padding:10px"><div style="padding:6px 8px 10px;font-weight:700">운영자가 보낸 안내</div>
+ ${ALERTS.map(x=>`<div class="lrow ${x.id===a.id?'on':''}" ${A('rep','O-ALERT-01|'+x.id)}><span style="font-size:22px">${x.ic}</span><div class="sp"><div class="row" style="gap:6px"><b>${x.k} 안내</b>${x.on?'<span class="tag r">진행 중</span>':'<span class="tag">종료</span>'}${x.on&&!F('alr_'+x.id)?'<span class="dotr"></span>':''}</div><div class="mu">${x.area} · ${x.per} · ${x.at}</div></div></div>`).join('')}
+ <div class="note" style="margin:10px 6px 4px">운영자가 특보를 보고 담당자에게 "이렇게 대비해 주세요" 하고 보낸 안내예요.</div></div>
+ <div><div class="${a.on?'danger':'note'}" style="margin-bottom:16px;padding:16px 18px"><div class="row"><span style="font-size:26px">📨</span><div class="sp"><b style="font-size:16px">[운영자 안내] ${a.k} · ${a.area}</b><div class="mu" style="color:inherit;opacity:.8">운영자 김운영 · ${a.per} · ${a.at} 도착</div></div>${a.on?`<button class="btn ${F('alr_'+a.id)?'sec2':'pri'} sm" ${A('ft','alr_'+a.id)}>${F('alr_'+a.id)?'✓ 확인했어요':'확인했어요'}</button>`:''}</div><div style="margin-top:8px">${a.sum}</div></div>
+ ${a.on?kp+`<div class="card"><div class="row" style="margin-bottom:8px"><b class="sp">📞 먼저 안부 전화 드릴 분 (혼자 사는 분)</b><span class="lk" ${A('gof','O-CARE-01|ep=혼자 사는 분')}>관리 대상에서 보기 ›</span></div>
+ <table class="tbl"><tr><th>관리 대상</th><th>우선</th><th>마지막 안부</th><th style="width:300px"></th></tr>${lone.map(e=>`<tr><td><b>${e.n}</b> <span class="mu">${e.age}세 · ${e.dong}</span><div class="mu">${e.caution}</div></td><td>${e.pri==='높음'?'<span class="tag r">우선</span>':''}</td><td>${F('called_'+e.id)?'오늘 (11/13)':e.call}</td><td><div class="row" style="gap:6px;justify-content:flex-end">${callBtn(e.tel,'전화')}${e.fam.length?callBtn(e.fam[0][2],'가족'):''}<button class="btn ${F('called_'+e.id)?'sec2':'pri'} sm" ${A('ft','called_'+e.id)}>${F('called_'+e.id)?'✓ 안부 확인함':'안부 확인 기록'}</button></div></td></tr>`).join('')}</table></div>
+ ${ai('운영자가 권하는 조치',a.acts.map((x,i)=>`<div class="row" style="padding:7px 0"><span style="font-size:20px">${x[0]}</span><div class="sp"><b>${x[1]}</b><div class="mu">${x[2]}</div></div><button class="btn sm ${F('ald'+i)?'sec2':'line'}" ${A('ft','ald'+i)}>${F('ald'+i)?'✓ 했어요':'했어요'}</button></div>`).join(''),'기상청 특보 · 관리 대상 가구 형태 · 특보 기간 예정 돌봄')}
+ <div class="card"><div class="row" style="margin-bottom:8px"><b class="sp">특보 기간에 예정된 돌봄</b><span class="lk" ${G('O-SCHED-01')}>편성표 ›</span></div>${inP.map(r=>`<div class="lrow" style="padding:9px 6px" ${G('O-POST-03',r.id)}><div class="sp"><b>${EL(r.e).n}</b> <span class="mu">${r.d} ${r.tm}</span><div class="su">${cw(r.cat).ic} ${r.cat} · 봉사자 ${P[r.v].n}</div></div><span class="tag a">${STN[r.st]}</span><span class="ar">›</span></div>`).join('')||'<div class="mu">예정된 돌봄이 없어요</div>'}
+ <div class="btns" style="margin-top:10px;max-width:420px"><button class="btn line sm" ${A('toast','예정된 봉사자에게 특보 안내를 보냈어요')}>봉사자에게 특보 알리기</button><button class="btn line sm" ${G('O-PUB-01')}>공공 서비스 연계 ›</button></div></div>`
+ :`<div class="card"><div class="mu">종료된 안내예요. 당시 전달 내용은 운영자 공지사항에서도 볼 수 있어요.</div></div>`}</div></div>`}
+D('O-ALERT-01',{n:'특보 알림',r:'org',nav:'O-ALERT-01'},p=>alertPage(p));
+
+/* ================= 11/13 수정: 운영자 ================= */
+const REG=['전체','행복동','희망동','은빛동'];
+const regSel=()=>F('rg','전체');
+const regChips=()=>`<div class="row" style="margin:0 0 14px;gap:10px"><span class="mu" style="font-weight:700">지역</span>${fchips('rg',REG,'전체')}</div>`;
+const AGE=[['20대',1820,0.4,82],['30대',1240,0.6,74],['40대',760,0.7,61],['50대',980,0.9,55],['60대',1450,1.1,48],['70대',1120,1.6,12],['80대 이상',430,1.2,6]];
+const RAGE={행복동:[1.1,1,1,1,.9,.9,.8],희망동:[.7,.8,.9,1,1.2,1.4,1.5],은빛동:[1,1.1,1,1,1,.9,.9]};
+const umMode=()=>F('um','봉사하기');
+const umToggle=()=>`<span class="tg" style="display:inline-flex;margin-left:14px;vertical-align:middle"><button class="g ${umMode()==='봉사하기'?'on':''}" ${A('f','um=봉사하기')}>봉사하기</button><button class="r ${umMode()==='봉사받기'?'on':''}" ${A('f','um=봉사받기')}>봉사받기</button></span>`;
+D('A-02',{n:'이용 리포트',r:'admin'},()=>{const t=SG('ar','회원·공고');const rg=regSel();const k=RAGE[rg]||[1,1,1,1,1,1,1];const isG=umMode()==='봉사하기';const gc=isG?'var(--give)':'var(--recv)';const ML=isG?'봉사하기':'봉사받기';
+ let h=`<div style="max-width:620px">${seg('ar',['회원·공고','봉사 유형','나이별 인기','계절별','지역별'],t)}</div>`;
+ if(t!=='지역별')h+=regChips();
+ if(t==='회원·공고'){const sc=rg==='전체'?1:.3;
+  const A2=AGE.map((a,i)=>{const all=Math.round(a[1]*k[i]*sc);const gv=Math.round(all*a[3]/100);return [a[0],isG?gv:all-gv,a[2],isG?a[3]:100-a[3]]});
+  const mx=Math.max(...A2.map(a=>a[1]));const tot=A2.reduce((s,a)=>s+a[1],0);const pc=Math.round((isG?1065:1251)*sc);
+  const helps=isG?['디지털 도움','디지털 도움','장보기','동행','말동무','말동무','말동무']:['장보기','장보기','장보기','동행','말동무','동행','말동무'];
+  h+=`<div class="g4" style="margin-bottom:16px">${[[isG?'봉사하기 회원':'봉사받기 회원',tot.toLocaleString()+'명'],[isG?'이번 달 봉사 가능 공고':'이번 달 도움 요청 공고',pc.toLocaleString()+'건'],['전체 공고 중 비율',isG?'46%':'54%'],[isG?'신원 확인 완료 봉사자':'기관 등록 대상',isG?(Math.round(1950*sc)).toLocaleString()+'명':(rg==='전체'?'184명':rg==='희망동'?'71명':'52명')]].map(x=>`<div class="card kpi" style="margin:0"><div class="mu">${x[0]}</div><div class="big" style="font-size:22px">${x[1]}</div></div>`).join('')}</div>
+  <div class="g2"><div class="card"><b>나이대별 ${ML} 회원 수</b>${A2.map(a=>`<div class="hbar"><span>${a[0]}</span><div class="bar"><i style="width:${a[1]/mx*100}%;background:${gc}"></i></div><b style="width:60px">${a[1].toLocaleString()}</b></div>`).join('')}</div>
+  <div class="card"><b>나이대별 ${isG?'봉사 가능':'도움 요청'} 공고 올리는 정도</b><table class="tbl" style="margin-top:8px"><tr><th>나이대</th><th>1인당 월 공고</th><th>나이대 회원 중</th><th>많이 올리는 도움</th></tr>${A2.map((a,i)=>`<tr><td><b>${a[0]}</b></td><td>${(a[2]*a[3]/100*1.6*(k[i]>1.2?1.1:1)).toFixed(1)}건</td><td><span class="tag ${isG?'g':'b'}">${isG?'봉사하는 분':'도움 받는 분'} ${a[3]}%</span></td><td>${helps[i]}</td></tr>`).join('')}</table></div></div>
+  <div class="g21"><div class="card"><b>가장 많이 올라온 ${isG?'봉사 가능':'도움 요청'} 공고 (이번 달)</b>${[['장보기·심부름',520,310],['말동무·정서',480,430],['동행',410,190],['디지털 도움',300,380],['가벼운 집안일',180,140],['생활 정리',90,70]].map(x=>{const v=isG?x[2]:x[1];return `<div class="hbar"><span>${x[0]}</span><div class="bar"><i style="width:${v/6}%;background:${gc}"></i></div><b style="width:50px">${v}</b></div>`}).join('')}</div>
+  ${ai('AI 해석',`<div>${isG?(rg==='희망동'?'희망동은 봉사 가능 공고가 도움 요청의 0.6배뿐이에요. 이웃 동 봉사자에게 희망동 공고를 먼저 보여 주세요.':'봉사 가능 공고는 20~30대가 가장 많이 올려요. <b>디지털 도움</b>은 봉사 가능이 요청보다 많아 여유가 있지만, <b>동행</b>은 요청의 절반도 안 돼요.'):(rg==='희망동'?'희망동은 70대 이상이 많아 <b>도움 요청 공고</b>가 봉사 가능 공고보다 1.6배 많아요.':'도움 요청 공고는 70대 이상이 대부분이에요. <b>장보기·동행</b> 요청이 가장 많고, 동행은 봉사 가능 공고의 2배가 넘어요.')}</div>`,(isG?'봉사 가능 공고 ':'도움 요청 공고 ')+'· 나이대별 회원')}</div>`;}
+ if(t==='봉사 유형')h+=`<div class="g2"><div class="card"><b>카테고리별 ${isG?'봉사하는 쪽':'도움 받는 쪽'} (건)${rg!=='전체'?' · '+rg:''}</b>${[['말동무·정서',420,390],['디지털 도움',360,300],['장보기·심부름',220,310],['동행',150,240],['가벼운 집안일',90,130],['생활 정리',44,60]].map(x=>{const m=rg==='희망동'?[.25,.4]:rg==='전체'?[1,1]:[.33,.3];const v=Math.round(isG?x[1]*m[0]:x[2]*m[1]);const mxv=Math.round(isG?420*m[0]:390*m[1]);return `<div class="hbar"><span>${x[0]}</span><div class="bar"><i style="width:${v/Math.max(1,mxv)*100}%;background:${gc}"></i></div><b>${v}</b></div>`}).join('')}</div>
+ <div class="card"><b>${ML} 회원 유형</b>${(isG?[['주로 봉사',46,'var(--give)'],['둘 다 (받기도 해요)',31,'#A08CE6']]:[['주로 받음',23,'var(--recv)'],['둘 다 (봉사도 해요)',31,'#A08CE6']]).map(x=>`<div class="hbar"><span style="width:130px">${x[0]}</span><div class="bar"><i style="width:${x[1]*2}%;background:${x[2]}"></i></div><b>${x[1]}%</b></div>`).join('')}<div class="mu" style="margin-top:6px">전체 회원 100% 기준 · 두 쪽을 다 하는 분은 양쪽에 포함돼요</div></div></div>
+ ${ai('AI 해석',`<div>${isG?'봉사하는 쪽은 <b>말동무·디지털 도움</b>에 몰려 있어요. 동행·장보기는 봉사가 모자라니 공고 목록 위쪽에 "지금 많이 필요한 봉사"로 묶어 보여 주면 봉사자를 모으기 좋아요.':'받는 쪽은 <b>장보기와 동행</b>이 봉사하는 쪽보다 많아요. 이 두 카테고리는 가중치가 높아 봉사자에게도 이득이니, 받는 분이 올린 요청을 우선 노출해 주세요.'}</div>`,'카테고리별 '+(isG?'봉사하는 쪽':'받는 쪽')+' 건수')}`;
+ if(t==='나이별 인기'){const RG={전체:[['20대','디지털 도움','동행','장보기'],['30대','장보기','디지털 도움','가벼운 집안일'],['40~50대','동행','장보기','말동무'],['60대','말동무','생활 정리','동행']],희망동:[['20대','동행','디지털 도움','장보기'],['30대','장보기','동행','디지털 도움'],['40~50대','동행','장보기','말동무'],['60대','동행','말동무','생활 정리']],행복동:[['20대','디지털 도움','말동무','장보기'],['30대','디지털 도움','장보기','가벼운 집안일'],['40~50대','장보기','말동무','동행'],['60대','말동무','생활 정리','디지털 도움']],은빛동:[['20대','디지털 도움','장보기','동행'],['30대','장보기','가벼운 집안일','디지털 도움'],['40~50대','말동무','동행','장보기'],['60대','말동무','동행','생활 정리']]};
+  const RR={전체:[['40~50대 (가족 대신)','동행','장보기','말동무'],['60대','말동무','생활 정리','동행'],['70대','말동무','장보기','동행'],['80대 이상','말동무','동행','장보기']],희망동:[['40~50대 (가족 대신)','동행','장보기','말동무'],['60대','동행','말동무','장보기'],['70대','동행','장보기','말동무'],['80대 이상','동행','장보기','생활 정리']],행복동:[['40~50대 (가족 대신)','장보기','말동무','동행'],['60대','말동무','디지털 도움','생활 정리'],['70대','말동무','디지털 도움','장보기'],['80대 이상','말동무','장보기','동행']],은빛동:[['40~50대 (가족 대신)','말동무','장보기','동행'],['60대','말동무','동행','생활 정리'],['70대','말동무','장보기','생활 정리'],['80대 이상','말동무','생활 정리','장보기']]};
+  const R=(isG?RG:RR)[rg];
+  const txt=isG?(rg==='희망동'?'희망동 봉사자는 모든 나이대에서 <b>동행</b>을 많이 해요. 병원이 멀어서 동행 봉사 수요가 크다는 뜻이에요.':rg==='행복동'?'행복동 봉사자는 <b>디지털 도움</b>을 가장 많이 해요. 주민센터 스마트폰 교실과 연결하면 좋아요.':'20~30대는 디지털 도움과 장보기, 60대는 말동무를 많이 해요. 60대는 봉사와 받기를 둘 다 하는 비율이 가장 높아요.'):(rg==='희망동'?'희망동은 모든 나이대에서 <b>동행</b> 요청이 1~2위예요. 병원이 멀어서 동행 수요가 몰려요.':rg==='행복동'?'행복동은 70대 이상도 <b>디지털 도움</b>을 많이 요청해요. 주민센터 스마트폰 교실과 연결하면 좋아요.':'80대 이상은 말동무와 동행, 70대는 말동무와 장보기를 가장 많이 요청해요. 40~50대는 부모님을 대신해 동행을 많이 올려요.');
+  h+=`<div class="card"><b>나이대별 인기 ${isG?'봉사':'도움 요청'}${rg!=='전체'?' · '+rg:''}</b><table class="tbl" style="margin-top:8px"><tr><th>나이대</th><th>1위</th><th>2위</th><th>3위</th></tr>${R.map(r=>`<tr>${r.map((c,i)=>`<td>${i?'':'<b>'}${c}${i?'':'</b>'}</td>`).join('')}</tr>`).join('')}</table></div>${ai('AI 해석',`<div>${txt}</div>`,'나이대별 '+(isG?'봉사 가능':'도움 요청')+' 공고'+(rg!=='전체'?' 중 '+rg:''))}`;}
+ if(t==='계절별'){const m=rg==='희망동'?[1.4,1.1,.7]:rg==='행복동'?[.8,1,1.1]:rg==='은빛동'?[.9,.9,1]:[1,1,1];const f=isG?[.75,.8,.95]:[1.25,1.2,1.05];const sc=(a,fx)=>a.map(v=>Math.round(v*fx*(rg==='전체'?1:.35)));
+  h+=`<div class="card"><b>월별 ${isG?'봉사 가능':'도움 요청'} 추이${rg!=='전체'?' · '+rg:''}</b>${lineChart([{d:sc([60,58,62,70,74,68,65,72,80,95,120,130],m[0]*f[0]),c:'#6F9CF0',l:'동행'},{d:sc([80,82,85,90,92,88,86,90,96,110,140,150],m[1]*f[1]),c:'#E0A23E',l:'장보기'},{d:sc([120,118,122,125,128,120,118,124,126,130,132,135],m[2]*f[2]),c:'#6DB3A0',l:'말동무'}],{x:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월(예상)'],max:rg==='전체'?(isG?160:200):(isG?70:90),h:240})}</div>
+  ${ai('다음 계절 예상 수요',`<div>${isG?(rg==='희망동'?'희망동은 12월 동행 요청이 +14% 늘 것 같은데 봉사 가능은 +3%뿐이에요. 빙판길 병원 동행 봉사자를 먼저 모으세요.':'12월은 봉사 가능이 거의 그대로(+2%)인데 요청은 늘어요. 눈·빙판 때문에 봉사자도 외출을 줄이니 12월 첫 주에 모집 공지를 추천해요.'):(rg==='희망동'?'희망동은 12월 <b>동행 요청 +14%</b>가 예상돼요. 빙판길 병원 동행 봉사자를 먼저 모으세요.':'12월은 장보기 요청 +7%, 동행 요청 +8%로 예상돼요. 눈·빙판 때문에 외출을 피하는 분이 늘어요.')}</div>`,'작년 같은 달 증가율 · 올해 10~11월 추세')}`;}
+ if(t==='지역별'){const D3=isG?[['행복동','1,910명','26%','520건','0.9배','디지털 도움','장보기 +6%','주말 오후'],['희망동','1,120명','36%','300건','1.6배','동행','동행 +10%','평일 오전'],['은빛동','1,239명','30%','245건','1.1배','말동무','장보기 +4%','평일 저녁']]:[['행복동','1,210명','50%','480건','0.9배','장보기','장보기 +12%','평일 오전'],['희망동','1,290명','60%','495건','1.6배','동행','동행 +21%','평일 오전'],['은빛동','1,031명','50%','276건','1.1배','말동무','장보기 +9%','주말 오후']];
+  const AG=isG?[['행복동',[38,22,14,18,8]],['희망동',[30,18,16,24,12]],['은빛동',[34,20,16,20,10]]]:[['행복동',[4,6,10,30,50]],['희망동',[2,4,8,26,60]],['은빛동',[3,5,10,32,50]]];
+  h+=`<div class="card" style="margin-top:4px"><b>동네별 한눈에 · ${ML}</b><table class="tbl" style="margin-top:10px"><tr><th>동</th><th>${ML} 회원</th><th>${isG?'60대 이상':'70대 이상'}</th><th>이번 달 ${isG?'봉사 가능':'도움 요청'} 공고</th><th>요청 / 봉사 가능</th><th>인기 1위</th><th>계절 변화 (11월)</th><th>${isG?'봉사자가 부족한 시간대':'요청이 몰리는 시간대'}</th></tr>${D3.map(r=>`<tr class="ck" ${A('f','rg='+r[0])} onclick="st.seg.ar='나이별 인기'">${r.map((c,i)=>`<td>${i===0?`<b>${c}</b>`:i===4&&parseFloat(c)>1.3?`<b style="color:var(--red)">${c}</b>`:c}</td>`).join('')}</tr>`).join('')}</table><div class="mu" style="margin-top:8px">행을 누르면 그 동의 나이별 인기를 봐요</div></div>
+  <div class="g2"><div class="card"><b>동네별 ${ML} 회원 나이 분포</b>${AG.map(([d,a])=>`<div class="hbar"><span>${d}</span><div class="bar" style="display:flex">${a.map((v,i)=>`<i style="width:${v}%;background:${['#6F9CF0','#8FB3F5','#A08CE6','#E0A23E','#E5655B'][i]}"></i>`).join('')}</div></div>`).join('')}<div class="row mu" style="gap:10px;margin-top:6px;flex-wrap:wrap">${['20~30대','40대','50대','60대','70대 이상'].map((x,i)=>`<span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${['#6F9CF0','#8FB3F5','#A08CE6','#E0A23E','#E5655B'][i]}"></i> ${x}</span>`).join('')}</div></div>
+  ${ai('AI 해석',isG?'<div><b>희망동</b>은 봉사하는 분이 1,120명으로 가장 적고, 도움 요청이 봉사 가능보다 1.6배 많아요. 이웃 동인 행복동 20대 봉사자에게 희망동 평일 오전 공고를 먼저 보여 주면 좋아요.</div>':'<div><b>희망동</b>은 도움 받는 분의 60%가 70대 이상이고 <b>동행</b> 요청이 가장 많아요. 평일 오전에 요청이 몰리니 이 시간대 봉사자부터 연결하세요.</div>','동별 '+ML+' 회원·공고 · 최근 3개월')}</div>`;}
+ return h});
+
+/* 재정 추계 + 정책 시뮬레이션 */
+const POL=[
+ {k:'p1',t:'희망동 평일 오전 동행 봉사자 집중 모집',why:'희망동이 2031년에 가장 먼저 부족해지고, 평일 오전 동행이 제일 모자라요',vars:[['희망동 월 신규 봉사자','22 → 40명'],['평일 오전 봉사 가능 시간','+18%']],sup:[100,102,104,106,108,110,112,114,116,118,120],mark:9,ml:'역전 2033 → 2035',eff:[['역전 시점','2033 → 2035년'],['희망동 2035 비율','1.8 → 1.2배']],copy:'"수업 없는 오전 2시간, 희망동 어르신 병원 길에 함께해요. 봉사한 시간은 내 통장에 쌓여 나중에 꺼내 써요."'},
+ {k:'p2',t:'대학 봉사 학점 연계로 20대 가입 늘리기',why:'20대는 1인당 봉사량이 많지만 졸업하면 이탈률이 높아요 (연 18%)',vars:[['20대 월 신규 가입','108 → 138명'],['20대 연 이탈률','24% → 20%']],sup:SUP2,mark:9,ml:'역전 2033 → 2035',eff:[['역전 시점','2033 → 2035년'],['행복동 2035 비율','1.3 → 0.9배']],copy:'"봉사 학점도 받고, 시간도 모으고. 행복구 어르신 곁에 2시간."'},
+ {k:'p3',t:'60대 "둘 다 회원" 유지 프로그램',why:'60대는 봉사와 받기를 둘 다 하는 비율이 가장 높은데, 연 6%씩 봉사가 줄어요',vars:[['60세 이상 봉사 감소','연 −6% → −3%']],sup:[100,101,102,102,102,101,101,100,100,99,99],mark:8,ml:'역전 2033 → 2034',eff:[['역전 시점','2033 → 2034년'],['은빛동 2035 비율','1.2 → 1.0배']],copy:'"가까운 이웃 1명, 한 달 2시간. 나중에 내가 받을 시간을 지금 모아요."'},
+];
+const CUSTOM={k:'c',t:'',why:'',vars:[['20대 월 신규 가입','108 → 138명'],['20대 월 봉사량','2.4시간 유지']],sup:SUP2,mark:9,ml:'역전 2033 → 2035',eff:[['역전 시점','2033 → 2035년'],['희망동 2035 비율','1.8 → 1.3배']],copy:'"수업 없는 오전 2시간, 동네 어르신 곁에 함께해요."'};
+function simResult(){const pk=F('pk','');const p=POL.find(x=>x.k===pk)||{...CUSTOM,t:F('sq','20대 가입이 매달 30명 늘면?')};
+ return `<div class="card" style="border:2px solid var(--admin-s)"><div class="row"><b class="sp" style="font-size:16px">🧪 시뮬레이션 결과 · ${p.t}</b><button class="ic" ${A('simclr')}>✕</button></div>
+ <div class="g21" style="margin-top:10px"><div><div class="row"><b class="sp">바꾸기 전 · 후</b><span class="mu">점선 = 바꾸기 전 공급</span></div>${lineChart([{d:SUP,c:'#9AA1AC',l:'전',dash:1,w:2},{d:p.sup,c:'#6DB3A0',l:'후'},{d:DEM,c:'#E5655B',l:'수요'}],{x:YRS,max:160,mark:p.mark,markL:p.ml.replace('역전 2033 → ','역전 ')})}</div>
+ <div>${ai('AI가 바꾼 변수',`<div class="card" style="margin:0">${p.vars.map(v=>kv(v[0],v[1])).join('')}</div>`,pk?'추천 정책의 가정':'질문 해석: "'+p.t+'"')}<div class="card">${p.eff.map(v=>kv(v[0],`<span style="color:#3E8C77">${v[1]}</span>`)).join('')}</div></div></div>
+ <div class="card" style="margin:6px 0 0;background:var(--fill);border:0"><div class="mu">공지·모집 문구 초안</div><div style="font-weight:600;margin-top:4px">${p.copy}</div><div class="btns" style="margin-top:10px;max-width:300px"><button class="btn line sm" ${A('toast','복사했어요')}>복사</button><button class="btn pri sm" ${A('toast','공지사항 초안으로 보냈어요')}>공지로 보내기</button></div></div></div>`}
+function forecastPage(){const q=F('sq','');
+ return `<div class="g21"><div class="card"><div class="row"><b class="sp">연도별 수요 vs 공급 (만 시간)</b><span class="mu">— 공급 · — 수요</span></div>${lineChart([{d:SUP,c:'#6DB3A0',l:'공급'},{d:DEM,c:'#E5655B',l:'수요'}],{x:YRS,max:160,mark:7,markL:'2033 역전'})}</div>
+ <div>${ai('11월 월간 요약','<div style="font-weight:600">지금 추세면 2033년에 꺼내 쓸 시간이 봉사 가능 시간을 넘어요. 희망동은 70대 이상 비율이 32%로 가장 빨리, 2031년부터 부족해요.</div>','가입·이탈 추세 24개월 · 나이별 월 사용량')}
+ <div class="card"><b>추계 가정</b>${kv('월 신규 가입','260명 (최근 12개월 평균)')}${kv('연 이탈률','18%')}${kv('75세 이상 월 사용량','14시간')}${kv('60세 이상 봉사 감소','연 −6%')}<div class="mu" style="margin-top:6px">가중치: 기본 1.0 · 수고 1.2</div></div></div></div>
+ <div class="card"><b>위험 동네</b><table class="tbl" style="margin-top:10px"><tr><th>동</th><th>위험 시작</th><th>2035 수요/공급</th><th>부족한 도움</th><th>부족한 시간대</th></tr>${[['희망동','2031년','1.8배','동행, 장보기','평일 오전'],['행복동','2033년','1.3배','장보기','주말 오후'],['은빛동','2034년','1.2배','말동무','평일 저녁']].map(r=>`<tr>${r.map((c,i)=>`<td>${i===2?`<b style="color:var(--red)">${c}</b>`:c}</td>`).join('')}</tr>`).join('')}</table></div>
+ <div class="sec" style="margin-top:6px">🧪 정책 시뮬레이션</div>
+ <div class="g21"><div>${ai('추계를 보고 AI가 추천한 정책',POL.map((p,i)=>`<div class="card" style="margin:10px 0 0;padding:14px"><div class="row"><b class="sp">${i+1}. ${p.t}</b><span class="tag g">${p.ml.replace('역전 ','')}</span></div><div class="su" style="margin-top:4px">${p.why}</div><button class="btn ${F('pk')===p.k?'sec2':'pri'} sm" style="margin-top:10px" ${A('simrun',p.k)}>${F('pk')===p.k?'✓ 결과 보는 중':'이 정책으로 시뮬레이션'}</button></div>`).join(''),'위험 동네 표 · 나이대별 이탈·봉사량 · 시간대별 공급 부족')}</div>
+ <div class="card"><b>직접 입력</b><div class="mu" style="margin:4px 0 10px">바꿔 보고 싶은 정책을 문장으로 적으면 AI가 변수로 바꿔 계산해요.</div><textarea class="in" id="simq" style="height:90px" placeholder="예) 20대 가입이 매달 30명 늘면?">${q}</textarea><div class="chips" style="margin:10px 0">${['20대 가입이 매달 30명 늘면?','가족 선물을 연 20시간으로 묶으면?','희망동 75세 이상이 매년 5% 늘면?'].map(x=>chip(x,q===x,A('sq',x))).join('')}</div><button class="btn ai-btn w" ${A('simcustom')}>✨ 시뮬레이션 돌리기</button></div></div>
+ ${aiGate('sim','',simResult,'변수를 바꿔 다시 계산하고 있어요')}`}
+D('A-03',{n:'재정 추계',r:'admin'},()=>forecastPage());
+D('A-04',{n:'재정 추계',r:'admin',nav:'A-03'},()=>{if(!st.ai.sim){st.f.pk='p1';st.ai.sim='done'}return forecastPage()});
+
+
+
+/* ================= 화면 그리기 ================= */
+const TABS={user:[['home','🏠','홈','U-HOME-01'],['post','📋','공고','U-POST-01'],['plan','🗓','플래너','U-PLAN-01'],['bank','⏳','시간 통장','U-BANK-01'],['my','👤','마이','U-MY-01']],
+ org:[['home','🏠','홈','O-HOME-01'],['care','👥','관리 대상','O-CARE-01'],['sched','🗓','편성표','O-SCHED-01'],['post','📋','공고','O-POST-01'],['rpt','📈','리포트','O-RPT-01']]};
+function render(scroll){const c=cur();const s=S[c.id];if(!s){console.error('no screen',c.id);return}
+ if(s.r!=='start')st.role=s.r;
+ const stage=document.getElementById('stage');const prevScroll=(stage.querySelector('.bd,.mbd')||{}).scrollTop||0;
+ document.querySelectorAll('.tool .rl').forEach(b=>b.classList.toggle('on',b.dataset.role===st.role&&s.r!=='start'));
+ document.getElementById('jump').value=c.id;document.getElementById('sid').textContent=c.id;
+ const body=s.f(c.p);
+ if(s.r==='admin'||s.r==='org'){const org=s.r==='org';const nv=org?ORGNAV:NAV;const on=s.nav||c.id;const parts=body.split(OV);
+  stage.innerHTML=`<div class="desk" style="--acc:${org?'var(--org)':'var(--admin)'};--acc-s:${org?'var(--org-s)':'var(--admin-s)'}"><div class="nav"><div class="lg">⏳ 시간 적금<small>${org?'행복요양원 · 기관 담당자':'운영자 · 김운영'}</small></div>${nv.map(([g,it])=>`<div class="gp">${g}</div>`+it.map(([id,l])=>`<button class="${on===id?'on':''}" ${A('tab',id)}>${l}</button>`).join('')).join('')}<div class="gp"></div><button ${A('logout')}>↩ 로그아웃</button></div>
+  <div class="main"><div class="mtop"><h1>${s.n}${c.id==='A-02'?umToggle():''}</h1><span class="mu">${c.id}</span><span class="mu">2026.11.13 (금)</span>${org?`<button class="ic" ${G('O-HOME-02')}>🔔<span class="dot"></span></button><button class="prof" ${G('O-HOME-03')}>${av('박지현','s')}박지현 ▾</button>`:''}</div><div class="mbd">${parts[0]}</div></div>${parts.slice(1).join('')}${st.toast?`<div class="toast" style="bottom:30px">${st.toast}</div>`:''}</div>`}
+ else{const isU=s.r==='user'||s.r==='start';const acc=s.r==='org'?['var(--org)','var(--org-s)']:st.mode==='give'||s.r==='start'?['var(--give)','var(--give-s)']:['var(--recv)','var(--recv-s)'];
+  let hd='';
+  if(!s.bare){if(s.main){hd=s.r==='org'?`<div class="hd"><h1>${c.id==='O-HOME-01'?'행복요양원':s.n}</h1><button class="ic" ${G('O-HOME-02')}>🔔<span class="dot"></span></button><button class="ic" ${G('O-HOME-03')}>👤</button></div>`
+   :`<div class="hd"><h1>${s.n}</h1>${s.nomode?'':`<div class="tg"><button class="g ${st.mode==='give'?'on':''}" ${A('mode','give')}>봉사하기</button><button class="r ${st.mode==='recv'?'on':''}" ${A('mode','recv')}>봉사받기</button></div>`}<button class="ic" ${G('U-HOME-02')}>🔔${st.f.read?'':'<span class="dot"></span>'}</button></div>`}
+   else hd=`<div class="hd"><button class="ic" ${A('back')}>‹</button><h2>${s.n}</h2>${s.r==='user'&&!s.nomode&&['U-POST-04','U-POST-05','U-POST-06','U-PLAN-01'].includes(c.id)?`<span class="tag ${st.mode==='give'?'g':'b'}">${st.mode==='give'?'봉사하기':'봉사받기'}</span>`:''}</div>`}
+  const t=TABS[s.r];const tb=t&&s.tab!==undefined||t&&s.main?`<div class="tb">${t.map(x=>`<button class="${s.tab===x[0]?'on':''}" ${A('tab',x[3])}><i>${x[1]}</i>${x[2]}</button>`).join('')}</div>`:'';
+  stage.innerHTML=`<div class="phone" style="--acc:${acc[0]};--acc-s:${acc[1]}">${hd}<div class="bd ${s.gray?'gray':''}" style="${s.bare?'padding:0':''}">${body}</div>${s.main?tb:''}
+  ${st.sheet?`<div class="ov" data-act="close"><div class="sh"><div class="gr"></div>${SH[st.sheet.n](st.sheet.p)}</div></div>`:''}${st.toast?`<div class="toast">${st.toast}</div>`:''}</div>`}
+ const sc=stage.querySelector('.bd,.mbd');if(sc&&!scroll)sc.scrollTop=prevScroll;
+ if(st.sheet&&st._shs){const sh=stage.querySelector('.sh');if(sh)sh.scrollTop=st._shs}
+}
+/* ================= 동작 ================= */
+const ACT={
+ a11save:()=>{st.f.a11=undefined;toast('저장했어요. AI 답변에 바로 반영돼요')},
+ rep:v=>{const [i,p]=v.split('|');rep(i,p||undefined)},
+ gof:v=>{const [i,kv]=v.split('|');const [k,x]=kv.split('=');st.f[k]=x;tab(i)},
+ back,close,tab:v=>tab(v),mode:v=>{st.mode=v;st.seg.pv=st.seg.pv;render()},
+ login:v=>{st.role=v;tab(v==='user'?'U-HOME-01':v==='org'?'O-HOME-01':'A-01')},logout:()=>{location.href=encodeURI(USERFILE)},
+ f:v=>{const i=v.indexOf('=');const k=v.slice(0,i);let x=v.slice(i+1);if(x==='')x=undefined;else if(!isNaN(x)&&x.trim()!=='')x=Number(x);st.f[k]=x;render()},
+ fm:v=>{const [k,x]=v.split('=');const a=[...F(k,k==='pc'&&cur().p==='re'?['장보기·심부름']:k==='pt'?['평일저녁','주말오후','주말저녁']:k==='pdong'?['행복동','희망동']:k==='pskill'?['디지털 도움','동행']:k==='repd'?['토']:k==='gc'?['디지털 도움']:k==='good'?['시간 약속을 잘 지켜요']:k==='eneed'?((EL(cur().p)||{}).needs||[]):[])];const i=a.indexOf(x);i>=0?a.splice(i,1):a.push(x);st.f[k]=a;render()},
+ ft:v=>{st.f[v]=!F(v);render()},
+ seg:v=>{const [k,x]=v.split('|');st.seg[k]=x;render()},
+ toast:v=>toast(v),
+ sheet:v=>{const i=v.indexOf('|');i<0?sheet(v):sheet(v.slice(0,i),v.slice(i+1))},
+ ai:v=>aiRun(v),
+ done:v=>{const [m,n]=v.split('|');st.sheet=null;if(n==='close'){}else if(n==='back')back();else if(n)rep(n);toast(m)},
+ readall:()=>{st.f.read=true;render()},
+ aia:v=>{st.f.aia=[...F('aia',[]),v];st.ai.aipost=undefined;render()},
+ aireset:()=>{st.f.aia=[];st.ai.aipost=undefined;render()},
+ pq:v=>{st.f.pq=v;st.ai.prec=undefined;render()},
+ wi:v=>{st.f.wi=v;st.ai.wi='load';render();setTimeout(()=>{st.ai.wi='done';render()},800)},
+ sq:v=>{st.f.sq=v;st.ai.sim=undefined;render()},
+ psa:v=>{const a=F('psa',[]);if(!a.includes(+v))st.f.psa=[...a,+v];render()},
+ quiz:v=>{st.f.qz=+v;st.f.qa=-1;render()},
+ rp:v=>{const [t,i]=v.split('|').map(Number);st.f['rpa'+t]=i;st.f.rp=t+1;render()},
+ rpreset:()=>{st.f.rp=0;st.f.rpa0=null;st.f.rpa1=null;st.ai.rp=undefined;render()},
+ adv:v=>{const [id,d]=v.split('|');const a=act(id);if(+d<0){a.st=-1;toast('취소했어요')}else{a.st++;toast(a.st===1?'수락했어요. 상대의 최종 수락을 기다려요':a.st===2?'일정이 확정됐어요':'다음 단계로 넘어갔어요')}render()},
+ qrok:v=>{const a=act(v);st.sheet=null;if(a.st===2){a.st=3;a.qr='시작 '+a.tm.split('~')[0];toast('시작을 기록했어요')}else{a.st=4;a.qr+=' · 종료 '+a.tm.split('~')[1];toast('종료를 기록했어요. '+(a.me==='give'?'일지를 써 주세요':'일지를 기다려요'))}render()},
+ logsubmit:v=>{const a=act(v);a.logged=true;st.ai.log=undefined;back();toast('일지를 보냈어요')},
+ rated:v=>{const a=act(v);a.st=5;st.sheet=null;ME.bal-=+calc(a.h,a.cat);render();toast('확인했어요. '+calc(a.h,a.cat)+'시간이 차감됐어요')},
+ orate:v=>{const r=REQS.find(x=>x.id===v);r.st=5;st.sheet=null;render();toast('일지를 확인했어요')},
+ alert2notice:()=>{const d=ALDRAFT.hw;st.f.nt=d[0];st.f.nb=d[1];st.f.pin=true;st.ai.ntai=undefined;tab('A-09');toast('한파주의보 내용으로 공지 초안을 만들었어요');},
+ ntalert:v=>{const d=ALDRAFT[v];st.f.nt=d[0];st.f.nb=d[1];st.f.pin=(v==='hw');st.ai.ntai=undefined;render();toast('특보 내용으로 초안을 채웠어요');},
+ nttone:v=>{st.f.ntone=v;st.ai.ntai=undefined;render()},
+ ntpolish:()=>{if(!((F('nt','')+F('nb','')).trim())){toast('제목이나 내용을 먼저 적어 주세요');return}aiRun('ntai',900)},
+ ntapply:()=>{const r=polishNotice(F('nt',''),F('nb',''),F('ntone','쉬운 말로'));st.f.nt=r.t;st.f.nb=r.b;st.ai.ntai=undefined;render();toast('다듬은 문장을 넣었어요')},
+ ntdrop:()=>{st.ai.ntai=undefined;render()},
+ ntpost:()=>{const t=(F('nt','')).trim();if(!t){toast('제목을 적어 주세요');return}NOTICES.unshift([t,'11/13',F('pin')?'📌':'']);st.f.nt=undefined;st.f.nb=undefined;st.f.pin=undefined;st.ai.ntai=undefined;render();toast('공지사항을 등록했어요')},
+ alertsend:()=>{st.f.asent=true;toast('기관 12곳 담당자에게 보냈어요');},
+ oadv:v=>{const [id,d]=v.split('|');const r=REQS.find(x=>x.id===id);if(+d<0){r.st=5;toast('대신 거절했어요')}else{r.st++;toast(r.st===1?'대신 수락했어요':'대신 최종 수락했어요. 확정됐어요')}render()},
+ gapfill:v=>{const [id,k]=v.split('|');const c=SCHED[id][k];c.done=c.altP+' (요청 중)';st.sheet=null;render();toast(c.altP+' 님께 요청했어요')},
+ gappost:v=>{const [id,k]=v.split('|');SCHED[id][k].done='공고 올림';st.sheet=null;render();toast('공고로 올렸어요')},
+ bulk:v=>{Object.values(SCHED).forEach(o=>Object.values(o).forEach(c=>{if(c.gap&&!c.done)c.done='공고 올림'}));rep('O-SCHED-01');toast(v+'건을 공고로 올렸어요')},
+};
+Object.assign(ACT,{
+ simrun:v=>{st.f.pk=v;aiRun('sim',1000);setTimeout(()=>{const m=document.querySelector('.mbd');if(m)m.scrollTop=m.scrollHeight},1050)},
+ simcustom:()=>{const t=(document.getElementById('simq')||{}).value||'20대 가입이 매달 30명 늘면?';st.f.sq=t;st.f.pk='';aiRun('sim',1000);setTimeout(()=>{const m=document.querySelector('.mbd');if(m)m.scrollTop=m.scrollHeight},1050)},
+ sq:v=>{st.f.sq=v;st.f.pk='';st.ai.sim=undefined;render()},
+ simclr:()=>{st.ai.sim=undefined;st.f.pk='';render()},
+ aadv:v=>{const [id,d]=v.split('|');const a=APPS.find(x=>x.id===id);a.st=+d<0?5:+d;toast(+d<0?'거절했어요. 신청자에게 알림이 가요':'확정했어요. 신청자에게 알림이 가요');render()},
+ pbadv:v=>{const [id,d]=v.split('|');const r=PUBR.find(x=>x.id===id);r.st=+d;if(+d===3)r.res='처리 완료 (11/13)';toast(['','연락함으로 바꿨어요','신청 도움 중으로 바꿨어요','완료했어요. '+EL(r.e).n+' 님께 알림이 가요'][+d]);render()},
+});
+document.addEventListener('click',e=>{const el=e.target.closest('[data-go],[data-act],[data-seg],[data-role]');if(!el)return;
+ if(el.classList.contains('ov')&&e.target.closest('.sh'))return;
+ if(el.classList.contains('dov')&&e.target.closest('.drw,.mdl,.pop'))return;
+ const sh=document.querySelector('.sh');st._shs=sh?sh.scrollTop:0;
+ if(el.dataset.role){const r=el.dataset.role;st.role=r;tab(r==='user'?'U-HOME-01':r==='org'?'O-HOME-01':'A-01');return}
+ if(el.dataset.go){go(el.dataset.go,el.dataset.p);return}
+ if(el.dataset.seg){ACT.seg(el.dataset.seg);return}
+ const a=ACT[el.dataset.act];if(a&&el.tagName!=='INPUT')a(el.dataset.v)});
+document.addEventListener('change',e=>{const el=e.target;if(el.dataset.act==='range'){st.f[el.dataset.v]=+el.value;st.ai.plan=st.ai.plan;render();const r=document.querySelector('input[type=range]');r&&r.focus()}});
+/* 화면 목록 */
+const GRP=[['기관 담당자',/^O-/],['운영자',/^A-/]];
+document.getElementById('jump').innerHTML=GRP.map(([g,re])=>`<optgroup label="${g}">${Object.values(S).filter(s=>re.test(s.id)).map(s=>`<option value="${s.id}">${s.id} ${s.n}</option>`).join('')}</optgroup>`).join('');
+document.getElementById('jump').addEventListener('change',e=>{const id=e.target.value;const s=S[id];const main=s.under||{user:'U-HOME-01'}[s.r];st.stack=main&&main!==id&&!s.main?[{id:main},{id}]:[{id}];st.sheet=null;render(true)});
+const q=new URLSearchParams(location.search);
+if(q.get('s')&&S[q.get('s')]){const id=q.get('s');if(q.get('m'))st.mode=q.get('m');const s=S[id];const main=s.under||{user:'U-HOME-01'}[s.r];st.stack=main&&main!==id&&!s.main?[{id:main},{id,p:q.get('p')||undefined}]:[{id,p:q.get('p')||undefined}];render(true)}
+else{st.stack=[{id:q.get('role')==='admin'?'A-01':'O-HOME-01'}];render(true)}
+</script>
+</body>
+</html>
