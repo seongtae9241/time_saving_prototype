@@ -286,6 +286,53 @@ function monthBars(months) {
   );
 }
 const UT = { GIVE: '봉사만', BOTH: '주고받음', GET: '도움만', NONE: '활동 없음' };
+/* 이용 리포트 상단 토글(2026-11-13 대표 지시): 도움 요청 / 봉사 가능 에 따라 나이별 인기 · 계절별 · 지역별 통계가 달라진다 */
+function ByTypeStats() {
+  const [type, setType] = useState('NEED');
+  const [d] = useLoad(() => api(`/admin/stats/by-type?type=${type}`), [type]);
+  const color = type === 'NEED' ? OR : BL;
+  const keys = Object.keys((((d && d.monthly) || [])[0] || {}).counts || {});
+  const tops = (top) => (top || []).map((c, i) => `${i + 1}위 ${SHORT[c.category] || c.category}(${c.count})`).join(' · ') || '기록 없음';
+  return (
+    <>
+      <div className="seg2" role="tablist" style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+        {[['NEED', '도움 요청'], ['OFFER', '봉사 가능']].map(([k, t]) => <button key={k} role="tab" aria-selected={type === k} className={'chip ' + (type === k ? 'on' : '')} style={{ flex: 1, justifyContent: 'center' }} onClick={() => setType(k)}>{t}</button>)}
+      </div>
+      <div className="mute2" style={{ marginTop: 6 }}>{type === 'NEED' ? '도움 요청 공고' : '봉사 가능 공고'} 기준 통계예요{d ? ` · 최근 ${d.periodMonths}개월 공고 ${d.postCount}건` : ''}</div>
+      {d === undefined ? <Loading /> : !d ? <Empty>불러오지 못했어요</Empty> : (
+        <>
+          <div className="sec-t">나이별 인기</div>
+          <div className="card">
+            {(d.byAge || []).length ? d.byAge.map((a) => (
+              <div key={a.ageGroup} style={{ padding: '8px 0', borderTop: '1px dashed var(--line)' }}>
+                <div className="between"><b>{a.ageGroup}</b><span className="mute2">{a.total}건</span></div>
+                <div className="small" style={{ marginTop: 2 }}>{tops(a.top)}</div>
+              </div>
+            )) : <Empty>나이대를 알 수 있는 공고가 아직 없어요</Empty>}
+            <div className="mute2" style={{ marginTop: 6 }}>나이대는 공고를 올린 사람(기관 대리 공고는 그 관리 대상) 기준이에요</div>
+          </div>
+          <div className="sec-t">계절별</div>
+          <div className="card">
+            <div className="between"><span className="b">월별 {d.label} 공고</span><span className="mute2">최근 {d.periodMonths}개월</span></div>
+            {monthBars(d.monthly || [])}
+            <div className="legend" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px' }}>{keys.map((k) => <span key={k}><i style={{ background: ccOf(k) }} />{SHORT[k] || k}</span>)}</div>
+            {(d.seasons || []).map((x) => <div key={x.season} className="small" style={{ marginTop: 6 }}><b>{x.season}</b> {x.total}건 · {tops(x.top)}</div>)}
+          </div>
+          <div className="sec-t">지역별</div>
+          <div className="card">
+            {(d.byArea || []).length ? (
+              <>
+                {hbars(d.byArea.map((a) => [a.area, a.total]), color)}
+                {d.byArea.map((a) => <div key={a.area} className="small" style={{ marginTop: 6 }}><b>{a.area}</b> {a.total}건 · {tops(a.top)}</div>)}
+              </>
+            ) : <Empty>아직 공고가 없어요</Empty>}
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
 export function AStats() {
   const nav = useNavigate();
   const [t] = useLoad(() => api('/admin/stats/types'), []);
@@ -294,8 +341,9 @@ export function AStats() {
   const ns = s && s.nextSeason;
   const keys = Object.keys((((s && s.monthly) || [])[0] || {}).counts || {});
   return (
-    <Screen title="봉사 리포트" noTabs>
-      <div className="sec-t" style={{ marginTop: 4 }}>봉사 유형</div>
+    <Screen title="이용 리포트" noTabs>
+      <ByTypeStats />
+      <div className="sec-t">봉사 유형</div>
       {t === undefined ? <Loading /> : !t ? <Empty>불러오지 못했어요</Empty> : (
         <>
           <div className="card">
@@ -519,7 +567,7 @@ export function ReportMenu() {
     <div className="ml" style={{ marginTop: 12 }}>
       <Mi t="시간 은행 재정 추계" s="10년 뒤 동네별 수요·공급 · 위험 동네 월간 요약" i="chart" onClick={() => nav('/a/forecast')} />
       <Mi t="정책 시뮬레이션" s="조건을 말로 바꿔 전후 비교" i="spark" onClick={() => nav('/a/sim')} />
-      <Mi t="봉사 리포트" s="유형별 주는 쪽·받는 쪽 · 계절별 · 다음 계절 예상" i="chart" onClick={() => nav('/a/stats')} />
+      <Mi t="이용 리포트" s="도움 요청·봉사 가능별 나이·계절·지역 통계 · 봉사 유형" i="chart" onClick={() => nav('/a/stats')} />
       <Mi t="대응 추천" s="공급이 모자란 곳의 모집 문구 초안" i="file" onClick={() => nav('/a/recruit')} />
       <Mi t="특보 알림" s="폭염·한파 위험 지역 리포트 · 공지와 담당자 알림" i="flag" onClick={() => nav('/a/weather')} />
     </div>

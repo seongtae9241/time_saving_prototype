@@ -32,6 +32,7 @@ const LINK_MAP = [
   [/^\/org\/elders\/(\d+)/, '/o/elders/$1'],
   [/^\/org\/transfers\b.*/, '/o/elders'],            // 이관 신청은 도움 대상 목록 위에 보인다
   [/^\/org\/reports\b.*/, '/o/report'],
+  [/^\/org\/public-referrals\b.*/, '/o/public'],   // 공공 서비스 연계 요청
   [/^\/admin\/reports\b.*/, '/a/safety'],
   [/^\/admin\/inquiries\b.*/, '/a/inquiries'],
   [/^\/admin\/orgs\b.*/, '/a/approve?seg=org'],

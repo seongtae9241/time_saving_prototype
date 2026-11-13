@@ -104,6 +104,46 @@ public class WeatherAlertService {
                 "noticeId", a.noticeId, "sentAt", a.sentAt, "sentManagers", a.sentManagers, "createdAt", a.createdAt);
     }
 
+    /**
+     * 담당자 화면의 특보 알림(2026-11-13 대표 지시): 담당자도 날씨 특보를 보고, 운영자가 보낸 안내를 같은 곳에서 본다.
+     * 내 담당 대상이 있는 지역인지와 대상 수·기간 안 예정 활동 수는 코드가 센다. 다른 담당자의 정보는 주지 않는다.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> forManager(User mgr) {
+        LocalDate today = LocalDate.now();
+        List<Elder> mine = elders.findAll().stream().filter(e -> e.status == ElderStatus.ACTIVE && mgr.id.equals(e.managerId)).toList();
+        Set<Long> mineIds = new HashSet<>();
+        mine.forEach(e -> mineIds.add(e.id));
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (WeatherAlert a : alerts.findAll().stream().sorted(Comparator.comparing((WeatherAlert x) -> -x.id)).toList()) {
+            LocalDate from = a.startDate == null ? (a.createdAt == null ? today : a.createdAt.toLocalDate()) : a.startDate;
+            LocalDate to = a.endDate == null ? from.plusDays(2) : a.endDate;
+            boolean active = !to.isBefore(today);
+            if (!active && to.isBefore(today.minusDays(30))) continue; // 한 달 넘게 지난 특보는 보이지 않는다
+            List<Elder> in = mine.stream().filter(e -> a.areas.contains(e.dong)).toList();
+            Set<Long> inIds = new HashSet<>();
+            in.forEach(e -> inIds.add(e.id));
+            long acts = requests.findAll().stream().filter(r -> r.elderId != null && inIds.contains(r.elderId) && (r.status.pending() || r.status.active())
+                    && r.date != null && !r.date.isBefore(from) && !r.date.isAfter(to)).count();
+            Map<String, Object> rep = Views.parse(a.reportJson, new TypeReference<Map<String, Object>>() {}, Map.of());
+            Object actions = rep.get("actions") instanceof List<?> l && !l.isEmpty() ? l : ACTIONS.getOrDefault(a.type, ACTIONS_ETC);
+            Notice n = a.noticeId == null ? null : notices.findById(a.noticeId).orElse(null);
+            rows.add(Views.map("id", a.id, "type", a.type, "level", a.level, "areas", a.areas, "from", from.toString(), "to", to.toString(),
+                    "active", active, "mineArea", !in.isEmpty(), "myElders", in.size(),
+                    "myElderNames", in.stream().map(e -> e.alias + " 님").limit(20).toList(), "myActivities", acts,
+                    "actions", actions, "source", a.source,
+                    "sent", a.sentAt != null, "sentAt", a.sentAt, "noticeId", a.noticeId,
+                    "guideTitle", n == null ? null : n.title, "guide", n == null ? null : n.content));
+        }
+        // 홈 배너: 운영자가 보낸 것 가운데 지금 진행 중이고 내 담당 대상이 있는 지역의 가장 최근 특보
+        Map<String, Object> banner = rows.stream().filter(r -> Boolean.TRUE.equals(r.get("sent")) && Boolean.TRUE.equals(r.get("active")) && Boolean.TRUE.equals(r.get("mineArea")))
+                .findFirst().orElse(null);
+        return Views.map("alerts", rows.stream().filter(r -> Boolean.TRUE.equals(r.get("active"))).toList(),
+                "past", rows.stream().filter(r -> !Boolean.TRUE.equals(r.get("active"))).toList(),
+                "guides", rows.stream().filter(r -> Boolean.TRUE.equals(r.get("sent"))).toList(),
+                "banner", banner, "myElderTotal", mine.size());
+    }
+
     @Transactional(readOnly = true)
     public Map<String, Object> list() {
         return Views.map("live", provider.live(), "types", WeatherProvider.TYPES, "levels", WeatherProvider.LEVELS, "knownAreas", knownAreas(),

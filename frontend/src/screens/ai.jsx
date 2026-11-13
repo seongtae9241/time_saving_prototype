@@ -9,6 +9,7 @@ import { hh, dlabel, lvName, lvWeight, LV, W, fmt } from '../lib/format.js';
 import { I } from '../ui/icons.js';
 import { useSpeechInput } from './voice.jsx';
 import { useLocationAsk } from '../ui/location.jsx';
+import { ForwardSheet } from './orgExtra.jsx'; // 담당자에게 전달하기(전달하겠다고 눌렀을 때만)
 
 /* ---------- 공공 서비스 카드 (프로토타입 pubCards) ---------- */
 export function PubCards({ list, big, ai }) {
@@ -193,6 +194,8 @@ export function VolunteerGuide({ v }) {
 export function Public() {
   const [sp] = useSearchParams();
   const { me } = useAuth();
+  const nav = useNavigate();
+  const { sheet, closeSheet } = useUi();
   const [q, setQ] = useState(sp.get('q') || '');
   const [asked, setAsked] = useState(null);
   const [res, setRes] = useState(null);
@@ -241,7 +244,7 @@ export function Public() {
       <AskBox mic title="필요한 걸 말해 주세요" sub="근처 공공기관과 신청 방법을 쉬운 말로 알려드리고, 이웃 봉사로 받을 수 있는 일인지도 함께 알려드려요" placeholder="예) 혼자 사는데 쓰러지면 걱정돼요" q={q} setQ={setQ} onAsk={ask}
         quick={['목욕을 도와줄 사람이 필요해요', '혼자 사는데 쓰러지면 걱정돼요', '요즘 깜빡깜빡해요']} />
       <button type="button" className="loc-btn" onClick={findNear}><Ic n="pin" s={20} /> 내 위치로 찾기 <span className="mod m4" style={{ marginLeft: 2 }}>AI</span></button>
-      <div className="mute2 center" style={{ marginTop: 6 }}>질문과 위치는 찾을 때 한 번만 쓰고 저장하지 않아요</div>
+      <div className="mute2 center" style={{ marginTop: 6 }}>질문과 위치는 찾을 때 한 번만 쓰고 저장하지 않아요. 담당자에게 전달하기를 누른 내용만 전달돼요</div>
       {locNote && asked && <div className="notice" style={{ marginTop: 8 }}>{locNote}</div>}
       {asked && (
         <div className="ans">
@@ -257,6 +260,16 @@ export function Public() {
             </div>
           )}
           {res && !res.loading && res.volunteer && <VolunteerGuide v={res.volunteer} />}
+          {res && !res.loading && me && me.role === 'USER' && (
+            <div className="card" style={{ marginTop: 10 }}>
+              <div className="b">혼자 신청하기 어려우세요?</div>
+              <div className="small muted" style={{ marginTop: 4 }}>가까운 기관 담당자에게 이 내용을 전달하면 신청을 도와드려요. 전달하기를 눌렀을 때만 내용이 넘어가요.</div>
+              <div className="btns" style={{ marginTop: 10 }}>
+                <button className="btn ghost sm" onClick={() => nav('/public-referrals')}>전달한 요청 보기</button>
+                <button className="btn soft sm" onClick={() => sheet(() => <ForwardSheet question={asked} answer={res.answer} services={res.services} onDone={closeSheet} />)}>담당자에게 전달하기</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </Screen>

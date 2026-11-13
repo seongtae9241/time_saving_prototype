@@ -820,3 +820,13 @@ DONE --(평가)--> 평가는 별도 테이블, 상태는 DONE 유지
 - 실제 AI(키 있음)로는 한 번도 확인하지 않았다. ✨ 기능 17개 모두 키 없이 규칙 모드로 돈다.
 - 커밋 `5e68fdc` 기준으로 운영자가 더한 카테고리의 공고·요청이 생기면 `GET /api/admin/analytics`가 오류가 난다(`AnalyticsService.add`). 통합 담당이 고치는 중.
 - 커밋 `5e68fdc` 기준으로 단체 봉사가 빠진 곳: 첫 활동 교육 검사(참여·제공형 올리기), 봉사 확인서, 월별 횟수 요약, 월별 리포트, 플래너 목표·주 보기, 운영자 통계. 통합 담당이 고치는 중이며, 고쳐지면 이 줄과 ①의 마지막 줄을 지운다.
+
+### 7.19 담당자·운영자 화면 변경 (2026-11-13 대표 지시)
+
+- **담당자 특보 알림**: `GET /api/org/weather` → `{alerts[], past[], guides[], banner, myElderTotal}`. 항목마다 `type, level, areas, from, to, active, mineArea, myElders, myElderNames, myActivities, actions, sent, sentAt, guideTitle, guide`. `guides`는 운영자가 전달한 특보(공지 내용 포함), `banner`는 그 가운데 진행 중이고 내 담당 대상이 있는 지역의 최근 것(담당자 홈 배너). 화면 `/o/weather`, 담당자 홈·마이에 진입점.
+- **공공 서비스 연계**: 사용자가 공공 서비스 안내에서 "담당자에게 전달하기"를 누르고 동의했을 때만 기록이 만들어진다(표 `public_referrals`). 누르지 않은 질문·답은 저장하지 않는다.
+  - `GET /api/public-referrals/orgs`(전달할 수 있는 승인 기관), `POST /api/public-referrals {orgId, question, answer, services[], note, consent:true}`(동의 없으면 400 `CONSENT_REQUIRED`), `GET /api/public-referrals/mine`.
+  - 담당자: `GET /api/org/public-referrals`(우리 기관에 온 것만, 전달한 사용자의 이름·전화·동네·나이대 포함), `POST /api/org/public-referrals/{id}/status {status: CONTACTED|HELPING|DONE|NOT_ELIGIBLE, memo}` → 사용자에게 알림. 화면 `/o/public`, 사용자 `/public-referrals`.
+- **운영자 대시보드 상단 네 칸**: 이번 달 활동 · 매칭률 · 신규 가입/총 가입자 · 등록 기관 수. `GET /api/admin/dashboard`의 `kpi`에 `newUsers, totalUsers, orgCount` 추가. (시간 발행·소비 칸은 상단에서 뺌)
+- **이용 리포트 토글**: `GET /api/admin/stats/by-type?type=NEED|OFFER` → 그 종류 공고(최근 12개월)의 `byAge[]`(나이별 인기), `monthly[]`·`seasons[]`(계절별), `byArea[]`(지역별). 숫자는 모두 코드 집계.
+- **공고 상세**: `GET /api/posts/{id}` 응답에 `manager {name, orgName, orgType}`(관리 대상 공고만, 연락처 없음) 추가.

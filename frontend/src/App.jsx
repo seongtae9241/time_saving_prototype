@@ -25,6 +25,7 @@ import { GroupDetail, GroupNew } from './screens/group.jsx'; // 기능 U-10·U-1
 import { Bundle } from './screens/bundle.jsx'; // 기능 U-12 빈 시간 묶음 추천
 import { RecurringList, RecurringNew } from './screens/recurring.jsx'; // 기능 U-09 정기 요청
 import { AForecast, ASim, AStats, ARecruit, AWeather, AMgrApps } from './screens/adminReports.jsx'; // 기능명세서 운영자 리포트
+import { OWeather, OPublicRefs, MyPublicRefs } from './screens/orgExtra.jsx'; // 특보 알림 · 공공 서비스 연계
 import { ManagerApply } from './screens/managerApply.jsx'; // 기능 C-04 담당자 계정 신청
 import { TimePlan, MonthReport } from './screens/timeplan.jsx'; // 기능 U-24 시간 플랜 · U-25 월별 리포트
 
@@ -127,6 +128,9 @@ function Shell() {
         <Route path="/o/reqs/:id" element={g(<RequestDetail />, O)} />
         <Route path="/o/report" element={g(<OReport />, O)} />
         <Route path="/o/schedule" element={g(<OSchedule />, O)} />
+        <Route path="/o/weather" element={g(<OWeather />, O)} />
+        <Route path="/o/public" element={g(<OPublicRefs />, O)} />
+        <Route path="/public-referrals" element={g(<MyPublicRefs />, U)} />
         <Route path="/o/memo-posts" element={g(<MemoToPosts />, O)} />
         <Route path="/o/my" element={g(<OMy />, O)} />
         <Route path="/o/space" element={<Navigate to="/o/events" replace />} />

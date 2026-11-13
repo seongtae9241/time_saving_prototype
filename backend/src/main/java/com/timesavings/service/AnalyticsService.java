@@ -235,6 +235,58 @@ public class AnalyticsService {
                 "monthlyCategory", monthly, "seasons", seasonTop, "supplyDemand", sd, "supplyDemandDays", SD_DAYS);
     }
 
+    /**
+     * 이용 리포트의 도움 요청 / 봉사 가능 토글(2026-11-13 대표 지시).
+     * 고른 종류의 공고(최근 12개월)만 세어 나이별 인기 · 계절별 · 지역별 통계를 낸다. 숫자는 모두 코드가 센다.
+     * 나이대는 공고를 올린 사람(관리 대상 대리 공고는 그 관리 대상) 기준.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> byPostType(PostType type) {
+        Map<Long, User> userMap = new HashMap<>();
+        users.findAll().forEach(u -> userMap.put(u.id, u));
+        Map<Long, Elder> elderMap = new HashMap<>();
+        elders.findAll().forEach(e -> elderMap.put(e.id, e));
+        LocalDate from = YearMonth.now().minusMonths(11).atDay(1);
+        List<Post> list = posts.findAll().stream().filter(p -> p.type == type && p.date != null && !p.date.isBefore(from)
+                && p.categories != null && !p.categories.isEmpty()).toList();
+        Map<String, Map<String, Integer>> age = new HashMap<>(), area = new TreeMap<>();
+        for (Post p : list) {
+            String ag = p.elderId != null ? Optional.ofNullable(elderMap.get(p.elderId)).map(e -> e.ageGroup).orElse(null)
+                    : Optional.ofNullable(userMap.get(p.ownerId)).map(u -> u.ageGroup).orElse(null);
+            for (String c : p.categories) {
+                if (ag != null && !ag.isBlank()) age.computeIfAbsent(ag, k -> new HashMap<>()).merge(c, 1, Integer::sum);
+                if (p.area != null && !p.area.isBlank()) area.computeIfAbsent(p.area, k -> new HashMap<>()).merge(c, 1, Integer::sum);
+            }
+        }
+        List<Map<String, Object>> monthly = new ArrayList<>();
+        Map<String, Map<String, Integer>> seasons = new LinkedHashMap<>();
+        for (int i = 11; i >= 0; i--) {
+            YearMonth ym = YearMonth.now().minusMonths(i);
+            Map<String, Integer> cnt = new LinkedHashMap<>();
+            for (String c : Rules.CATEGORIES) cnt.put(c, 0);
+            list.stream().filter(p -> YearMonth.from(p.date).equals(ym)).forEach(p -> p.categories.forEach(c -> cnt.merge(c, 1, Integer::sum)));
+            int total = cnt.values().stream().mapToInt(Integer::intValue).sum();
+            List<Map<String, Object>> top = topCats(cnt, 1);
+            monthly.add(Views.map("month", ym.toString(), "season", season(ym.getMonthValue()), "total", total, "counts", cnt,
+                    "top", total == 0 || top.isEmpty() ? null : top.get(0).get("category")));
+            Map<String, Integer> sm = seasons.computeIfAbsent(season(ym.getMonthValue()), k -> new HashMap<>());
+            cnt.forEach((k, v) -> sm.merge(k, v, Integer::sum));
+        }
+        List<Map<String, Object>> seasonTop = new ArrayList<>();
+        seasons.forEach((k, v) -> {
+            int total = v.values().stream().mapToInt(Integer::intValue).sum();
+            seasonTop.add(Views.map("season", k, "total", total, "top", total == 0 ? List.of() : topCats(v, 3)));
+        });
+        List<Map<String, Object>> areas = new ArrayList<>();
+        area.forEach((k, v) -> {
+            int total = v.values().stream().mapToInt(Integer::intValue).sum();
+            areas.add(Views.map("area", k, "total", total, "top", topCats(v, 3)));
+        });
+        areas.sort((a, b) -> Integer.compare((Integer) b.get("total"), (Integer) a.get("total")));
+        return Views.map("type", type.name(), "label", type == PostType.NEED ? "도움 요청" : "봉사 가능", "periodMonths", 12,
+                "postCount", list.size(), "byAge", byAge(age), "monthly", monthly, "seasons", seasonTop, "byArea", areas);
+    }
+
     // ---------------------------------------------------------------- 카테고리 밖 문장
     /** 6개 카테고리의 대표 낱말. 요청 문장에 하나도 없으면 "카테고리에 안 맞는 문장"으로 본다. */
     static final Map<String, Pattern> CAT_WORDS = Map.of(

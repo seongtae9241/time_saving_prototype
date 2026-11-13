@@ -33,10 +33,12 @@ public class AdminReportController {
     private final MessageRepo messages;
     private final PostRepo posts;
     private final NotificationService noti;
+    private final com.timesavings.service.AnalyticsService analytics;
 
     public AdminReportController(FinanceForecastService finance, AdminReportService reportSvc, WeatherAlertService weather, CategoryRegistry categories,
                                  NoticeRepo notices, CategorySuggestionRepo suggestions, ReportRepo reports, UserRepo users, RequestRepo requests,
-                                 MessageRepo messages, PostRepo posts, NotificationService noti) {
+                                 MessageRepo messages, PostRepo posts, NotificationService noti, com.timesavings.service.AnalyticsService analytics) {
+        this.analytics = analytics;
         this.finance = finance; this.reportSvc = reportSvc; this.weather = weather; this.categories = categories; this.notices = notices;
         this.suggestions = suggestions; this.reports = reports; this.users = users; this.requests = requests; this.messages = messages;
         this.posts = posts; this.noti = noti;
@@ -78,6 +80,12 @@ public class AdminReportController {
     public Map<String, Object> recruit() { return reportSvc.recruit(); }
 
     // ---------------- 기능 A-08 · A-09 특보 ----------------
+    /** 이용 리포트: 도움 요청(NEED) / 봉사 가능(OFFER) 토글에 따라 나이별 인기 · 계절별 · 지역별 통계. */
+    @GetMapping("/admin/stats/by-type")
+    public Map<String, Object> statsByType(@RequestParam(defaultValue = "NEED") String type) {
+        return analytics.byPostType("OFFER".equalsIgnoreCase(type) ? com.timesavings.domain.Enums.PostType.OFFER : com.timesavings.domain.Enums.PostType.NEED);
+    }
+
     @GetMapping("/admin/weather/alerts")
     public Map<String, Object> alerts() { return weather.list(); }
 

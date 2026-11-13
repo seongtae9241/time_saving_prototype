@@ -125,7 +125,11 @@ public class AdminController {
         return Views.map(
                 "supply", cur.get("supply"), "demand", cur.get("demand"), "elderUsage", cur.get("elderUsage"),
                 "kpi", Views.map("activities", cur.get("activities"), "prevActivities", prev.get("activities"), "groupActivities", cur.get("groupActivities"),
-                        "matchRate", tot == 0 ? 0 : Math.round(mat * 100.0 / tot), "elderUsage", cur.get("elderUsage"), "prevElderUsage", prev.get("elderUsage")),
+                        "matchRate", tot == 0 ? 0 : Math.round(mat * 100.0 / tot), "elderUsage", cur.get("elderUsage"), "prevElderUsage", prev.get("elderUsage"),
+                        // 대시보드 상단 네 칸(2026-11-13): 이번 달 활동 · 매칭률 · 신규 가입/총 가입자 · 등록 기관 수
+                        "newUsers", users.findAll().stream().filter(u -> u.role == Role.USER && u.status != UserStatus.WITHDRAWN && u.createdAt != null && YearMonth.from(u.createdAt).equals(now)).count(),
+                        "totalUsers", users.findAll().stream().filter(u -> u.role == Role.USER && u.status != UserStatus.WITHDRAWN).count(),
+                        "orgCount", orgs.findAll().stream().filter(o -> o.status == OrgStatus.APPROVED).count()),
                 "matchRateByArea", rate,
                 "timeBalance", Views.map("issued", issued, "consumed", consumed, "elderFree", elderFree,
                         "useRatio", issued == 0 ? 0 : Math.round(consumed * 100 / issued)),

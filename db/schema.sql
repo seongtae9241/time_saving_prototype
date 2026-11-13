@@ -757,3 +757,20 @@ create index ix_req_post
 
 alter table users 
    add constraint ux_users_login unique (login_id);
+
+-- 공공 서비스 연계 (2026-11-13): 사용자가 "담당자에게 전달하기"를 누르고 동의했을 때만 만들어진다
+CREATE TABLE IF NOT EXISTS public_referrals (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  org_id BIGINT NOT NULL,
+  question VARCHAR(1000) NOT NULL,   -- 사용자가 물어본 말
+  answer VARCHAR(2000),              -- AI가 한 안내 문장
+  services_json VARCHAR(6000),       -- AI가 찾은 서비스 목록(JSON)
+  note VARCHAR(300),                 -- 담당자에게 한마디
+  status VARCHAR(15) NOT NULL DEFAULT 'NEW',  -- NEW, CONTACTED, HELPING, DONE, NOT_ELIGIBLE
+  memo VARCHAR(500),                 -- 담당자 처리 메모
+  handler_id BIGINT,
+  consent_at DATETIME,               -- 전달 동의 시각
+  created_at DATETIME,
+  updated_at DATETIME
+);

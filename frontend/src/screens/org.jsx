@@ -1,3 +1,4 @@
+import { WeatherBanner, OrgExtraEntries } from './orgExtra.jsx'; // 특보 알림 · 공공 서비스 연계 (2026-11-13)
 import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
@@ -103,6 +104,7 @@ export function OHome() {
   const counts = (home && home.counts) || {};
   return (
     <Screen title={me ? `${me.name} 담당자` : '담당자'} back={false}>
+      <WeatherBanner />
       <div className="hero" style={{ background: '#3A6FD8' }}>
         <div className="bk-top"><span className="bk-name">{me && (me.orgName || (me.org && me.org.name)) || '기관'}</span><span className="bk-no">담당자</span></div>
         <div className="lbl">담당 도움 대상</div><div className="num">{counts.elders ?? (elders ? elders.filter((e) => e.status !== 'ENDED').length : 0)}<small>명</small></div>
@@ -127,6 +129,8 @@ export function OHome() {
       <div className="todo" role="button" tabIndex={0} onClick={() => nav('/o/events/new')}><div className="n" style={{ background: '#FFEDF3', color: '#E2557F' }}><Ic n="cal" s={20} /></div><div className="grow"><div className="t">기관 소식 올리기</div><div className="d">교실·모임·행사를 올리면 근처 사용자 홈에 보여요</div></div><span className="st go">올리기</span></div>
       <div className="sec-t"><span>단체 봉사</span><a role="button" tabIndex={0} onClick={() => nav('/board?tab=group&kind=mine')}>우리 기관 ›</a></div>
       <div className="todo" role="button" tabIndex={0} onClick={() => nav('/board?tab=group')}><div className="n" style={{ background: '#E4F5F9', color: '#178FAD' }}><Ic n="users" s={20} /></div><div className="grow"><div className="t">단체 봉사 공고</div><div className="d">기관 봉사거리에 단체를 모집하거나, 봉사 가능한 단체를 받아요</div></div><span className="st go">보기</span></div>
+      <div className="sec-t"><span>특보 · 공공 서비스</span></div>
+      <OrgExtraEntries />
       <div className="sec-t"><span>살펴볼 대상</span><a role="button" tabIndex={0} onClick={() => nav('/o/report', { replace: true })}>관리 대상 리포트 ›</a></div>
       {watch ? (watch.length ? watch.map((x) => <ChangeCard key={x.elderId} x={x} />) : <Empty>먼저 살펴볼 대상이 없어요</Empty>)
         : flagged.length ? flagged.map((e) => <ElderCard key={e.id} e={e} sig={sigs[e.id]} />) : <Empty>변화가 큰 대상이 없어요</Empty>}
@@ -402,6 +406,8 @@ export function OMy() {
         <Mi t="기관 정보" s={me && (me.orgName || (me.org && me.org.name)) || '기관'} i="building" onClick={() => toast(`${(me && (me.orgName || (me.org && me.org.name))) || '기관'} · 담당자 ${me && me.name}`)} />
         <Mi t="돌봄 편성표" s="주간 일정 · 빈 칸 추천 · 공고 한꺼번에 올리기" i="cal" onClick={() => nav('/o/schedule', { replace: true })} />
         <Mi t="대상 정기 요청" s="매주 같은 요일·시간으로 대신 등록한 요청 · 일시정지·해지" i="clock" onClick={() => nav('/recurring')} />
+        <Mi t="특보 알림" s="날씨 특보 · 운영자 안내" i="flag" onClick={() => nav('/o/weather')} />
+        <Mi t="공공 서비스 연계" s="사용자가 전달한 요청 처리" i="shield" onClick={() => nav('/o/public')} />
         <Mi t="단체 봉사 공고" s="단체 모집 · 봉사 가능한 단체 받기 · 참석 확인" i="users" onClick={() => nav('/board?tab=group')} />
         <Mi t="기관 소식 운영" s="기관 행사·교실·모임 올리기" i="cal" onClick={() => nav('/o/events')} />
         <Mi t="카테고리 건의" s="6가지 종류에 없는 도움을 운영자에게 건의" i="flag" onClick={() => nav('/my/suggest')} />

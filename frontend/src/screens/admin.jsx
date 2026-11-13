@@ -187,7 +187,13 @@ export function ADash() {
   const delta = (a, b, unit = '') => { const d = (Number(a) || 0) - (Number(b) || 0); return <em className={d >= 0 ? 'up' : 'dn'}>{d >= 0 ? '▲' : '▼'} {Math.abs(d)}{unit}</em>; };
   return (
     <Screen title="운영 대시보드" back={false}>
-      <div className="kpis"><div><b>{kpi.activities ?? 0}</b><span>이번 달 활동</span>{delta(kpi.activities, kpi.prevActivities)}</div><div><b>{kpi.matchRate ?? 0}%</b><span>매칭 성공률</span></div><div><b>{kpi.elderUsage ?? x.elderUsage ?? 0}건</b><span>기관 대상 이용</span>{delta(kpi.elderUsage, kpi.prevElderUsage)}</div></div>
+      {/* 상단 네 칸(2026-11-13 대표 지시): 이번 달 활동 · 매칭률 · 신규 가입/총 가입자 · 등록 기관 수 */}
+      <div className="kpis" style={{ gridTemplateColumns: 'repeat(2,1fr)' }}>
+        <div><b>{kpi.activities ?? 0}건</b><span>이번 달 활동</span>{delta(kpi.activities, kpi.prevActivities)}</div>
+        <div><b>{kpi.matchRate ?? 0}%</b><span>매칭률</span></div>
+        <div><b>{kpi.newUsers ?? 0}명 <small style={{ fontSize: 13, fontWeight: 600, color: 'var(--sub)' }}>/ {kpi.totalUsers ?? 0}명</small></b><span>신규 가입 / 총 가입자</span></div>
+        <div><b>{kpi.orgCount ?? 0}곳</b><span>등록 기관 수</span></div>
+      </div>
       <div className="stat2" style={{ marginTop: 8 }}><div><b>{x.demand ?? 0}</b><span>이번 달 봉사 요청 공고</span></div><div><b>{x.supply ?? 0}</b><span>이번 달 도움 가능 공고</span></div></div>
       {Object.values(pend).some((v) => v) && (
         <div className="card" style={{ marginTop: 12 }}>
