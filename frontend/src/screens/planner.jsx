@@ -1,9 +1,9 @@
-// 시간 플래너 (41판 B-60~B-62, 프로토타입 2026-11-12): 맨 앞에 생애 플랜, 그 아래 "시간 플래너 · n월" 캘린더 / 추천 봉사
+// 시간 플래너 (41판 B-60~B-62 · 2026-11-13 대표 지시): 탭 순서 생애 플랜 → 캘린더 → AI 추천. 관심 공고(북마크)는 달력 칸이 아니라 캘린더 아래 목록으로
 // 일정·목표·추천 순위·생애 숫자는 모두 서버 코드가 계산한다(GET /api/me/planner, /api/me/life-plan). AI 는 설명 문장만.
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
-import { Spk, Loading, Empty, RuleNote, useLoad, useBusy } from '../ui/bits.jsx';
+import { Spk, Loading, Empty, RuleNote, FavButton, useLoad, useBusy, postCats } from '../ui/bits.jsx';
 import { useUi } from '../ui/ctx.jsx';
 import { api, post, del } from '../api.js';
 import { CATS, SHORT, hh, fmt, dlabel } from '../lib/format.js';
@@ -107,8 +107,10 @@ export function Planner() {
   const { give, mode } = useMode();
   const [sp, setSp] = useSearchParams();
   // 기능 U-01·U-27·U-28: 봉사하기 모드는 캘린더 / 추천 봉사, 도움 받기 모드는 캘린더 / AI 도움 추천
-  const seg0 = sp.get('seg') || 'cal';
-  const seg = seg0 === 'cal' ? 'cal' : give ? 'rec' : 'help';
+  const seg0 = sp.get('seg') || 'life';
+  const seg = seg0 === 'life' ? 'life' : seg0 === 'cal' ? 'cal' : give ? 'rec' : 'help';
+  // 관심 공고(북마크): 캘린더 아래 목록으로만 보여 준다(달력 칸에는 표시하지 않는다). 헤더 모드에 맞는 종류만
+  const [favs, reloadFavs] = useLoad(() => api('/posts/bookmarks', { quiet: true }).catch(() => []), []);
   const [view, setViewRaw] = useState(readView);
   const setView = (v) => { setViewRaw(v); try { localStorage.setItem(CAL_VIEW_KEY, v); } catch { /* 저장이 막혀도 화면은 바뀐다 */ } };
   const [helpQ, setHelpQ] = useState('');
@@ -120,10 +122,10 @@ export function Planner() {
   const [wk] = useLoad(() => (view === 'week' ? api(`/me/planner/week?mode=${mode}${sel ? `&start=${sel}` : ''}`, { quiet: true }).catch(() => null) : Promise.resolve(null)), [view, sel, mode]);
   const [picked, setPicked] = useState([]);
   const [busy, run] = useBusy();
-  const segs = give ? [['cal', '캘린더'], ['rec', '추천 봉사']] : [['cal', '캘린더'], ['help', 'AI 도움 추천']];
+  const segs = [['life', '생애 플랜'], ['cal', '캘린더'], [give ? 'rec' : 'help', give ? 'AI 봉사 추천' : 'AI 도움 추천']];
   const head = (
-    <div className="chips" role="tablist" aria-label="시간 플래너" style={{ marginBottom: 12 }}>
-      {segs.map(([k, t]) => <button key={k} role="tab" aria-selected={seg === k} className={'chip ' + (seg === k ? 'on' : '')} onClick={() => setSp({ seg: k }, { replace: true })}>{t}</button>)}
+    <div className="pltabs" role="tablist" aria-label="시간 플래너">
+      {segs.map(([k, t]) => <button key={k} role="tab" aria-selected={seg === k} className={seg === k ? 'on' : ''} onClick={() => setSp({ seg: k }, { replace: true })}>{t}</button>)}
     </div>
   );
   if (d === undefined) return <Screen title="시간 플래너" back={false} tab="/planner"><Loading /></Screen>;
@@ -175,16 +177,18 @@ export function Planner() {
 
   return (
     <Screen title="시간 플래너" back={false} tab="/planner">
-      {!p ? (life === undefined ? <Loading /> : null) : (
+      {head}
+      {seg === 'life' && (!p ? (life === undefined ? <Loading /> : <Empty>생애 플랜을 불러오지 못했어요</Empty>) : (
         <>
-          <div className="sec-t" style={{ marginTop: 4 }}><span>생애 플랜</span><a role="button" tabIndex={0} onClick={openGoal} onKeyDown={(e) => { if (e.key === 'Enter') openGoal(); }}>목표 바꾸기</a></div>
+          {/* 생애 플랜은 꺾은선 그래프가 먼저(프로토타입 pl-top). 점은 서버가 계산한 값 */}
+          <div className="pl-top"><div className="between"><b>나이별 시간 통장 예상</b><span className="mute2">{p.age}세 → {p.maxAge}세</span></div><LifeChart p={p} /></div>
+          <div className="sec-t"><span>생애 플랜</span><a role="button" tabIndex={0} onClick={openGoal} onKeyDown={(e) => { if (e.key === 'Enter') openGoal(); }}>목표 바꾸기</a></div>
           <div className="life">
             <div className="life-bar"><span className="lb1" style={{ flex: p.startAge - p.age }} /><span className="lb2" style={{ flex: Math.max(1, p.endAge - p.startAge) }} /></div>
             <div className="life-l"><span>지금 {p.age}세</span><span>{p.startAge}세</span><span>{p.endAge}세{p.endAge >= p.maxAge ? '+' : ''}</span></div>
             <div className="life-s"><div><i style={{ background: '#6DB3A0' }} />모으기 <b>{Math.round(p.saved)}시간</b></div><div><i style={{ background: '#EE9A7E' }} />쓰기 <b>약 {Math.round(p.lastYears)}년</b></div></div>
             <div className="ptext" style={{ marginTop: 12, boxShadow: 'none', background: '#F4F6FA' }}><div className="mute2" style={{ marginBottom: 6 }}><span className="mod m1">플랜 설명 AI</span> 숫자는 시스템이 계산하고, 설명 문장만 AI가 써요</div><p style={{ margin: 0 }}><Spk /> {life.text}</p><RuleNote source={life.source} /></div>
           </div>
-          <div className="card" style={{ marginTop: 12 }}><div className="between"><span className="b">나이별 시간 통장 예상</span><span className="mute2">{p.age}세 → {p.maxAge}세</span></div><LifeChart p={p} /></div>
           <div className="sum" style={{ marginTop: 12 }}>
             <div className="between"><span className="muted">지금 통장</span><b>{hmTxt(p.balance)}</b></div>
             <div className="between"><span className="muted">한 달에 모을 시간</span><b>{fmt(p.monthlyHours)}시간 × {p.saveYears}년</b></div>
@@ -197,9 +201,7 @@ export function Planner() {
           {!life.saved && <button className="btn" style={{ marginTop: 12 }} onClick={openGoal}>내 조건으로 계획 세우기</button>}
           <button className="btn ghost" style={{ marginTop: 10 }} onClick={() => nav('/bank/plan')}>남은 시간으로 받을 수 있는 도움 계산하기</button>
         </>
-      )}
-      <div className="sec-t" style={{ marginTop: 22 }}><span>시간 플래너</span><span className="mute2" style={{ fontWeight: 500 }}>{M}월</span></div>
-      {head}
+      ))}
       {seg === 'cal' && (
         <>
           <div className="seg" role="tablist" aria-label="달력 보기" style={{ marginBottom: 10 }}>
@@ -245,7 +247,7 @@ export function Planner() {
             <div className="goal2">
               <div><Ring v={tot} max={g.target || 1} /></div>
               <div className="grow"><div className="mute2">이번 달 봉사 목표</div><div className="b" style={{ fontSize: 20 }}>{hmTxt(tot)} <span className="mute2" style={{ fontSize: 14 }}>/ {fmt(g.target)}시간</span></div>
-                <div className="mute2">{g.planned ? `계획 포함 · 확정 ${fmt(g.confirmed)}시간` : g.fromLifePlan ? '생애 플랜의 한 달 목표예요' : '추천 봉사를 넣으면 함께 계산돼요'}</div></div>
+                <div className="mute2">{g.planned ? `계획 포함 · 확정 ${fmt(g.confirmed)}시간` : g.fromLifePlan ? '생애 플랜의 한 달 목표예요' : 'AI 추천 탭에서 찾아보세요'}</div></div>
             </div>
           ) : (
             <div className="sum" style={{ marginTop: 12 }}><div className="between"><span className="muted">{M}월 도움 받을 일정</span><b>{shownItems.length}건 · {hmTxt(recvHours)}</b></div></div>
@@ -271,6 +273,22 @@ export function Planner() {
               }) : <div className="empty">이번 주에는 {give ? '봉사할' : '도움 받을'} 일정이 없어요</div>}
             </>
           ))}
+          {(() => {
+            const fl = (favs || []).filter((x) => (x.type === 'NEED') === give && (x.status || 'OPEN') === 'OPEN');
+            return (
+              <>
+                <div className="sec-t"><span>관심 공고 <span style={{ color: 'var(--brand)' }}>{fl.length}</span>개</span><a className="sec-lk" role="button" tabIndex={0} onClick={() => nav('/board', { replace: true })} onKeyDown={(e) => { if (e.key === 'Enter') nav('/board', { replace: true }); }}>공고 ›</a></div>
+                <p className="fav-h" style={{ marginTop: 0 }}>☆를 눌러 담은 공고예요. 달력에는 들어가지 않고, 신청해서 확정되면 달력에 보여요.</p>
+                {fl.length ? fl.map((x) => (
+                  <div key={x.id} className="card item click" role="button" tabIndex={0} onClick={() => nav(`/post/${x.id}`)} onKeyDown={(e) => { if (e.key === 'Enter') nav(`/post/${x.id}`); }}>
+                    <DIc k={postCats(x)[0]} size={40} />
+                    <div className="grow" style={{ minWidth: 0 }}><div className="b">{x.type === 'OFFER' ? x.note || x.title : x.title}</div><div className="mute2">{x.elderDisplayName || x.ownerName || '이웃'} · {dlabel(x.date)} {hh(x.startHour)}~{hh(x.endHour)}</div></div>
+                    <FavButton p={x} on onChange={() => { toast('관심 공고에서 뺐어요'); reloadFavs(); }} inCard />
+                  </div>
+                )) : <div className="empty">담은 공고가 없어요 · 공고에서 ☆를 눌러 담아 보세요</div>}
+              </>
+            );
+          })()}
           {give
             ? <button className="ai-fill" onClick={() => setSp({ seg: 'rec' }, { replace: true })}><DIc k="ai" size={40} bare /><div className="grow" style={{ textAlign: 'left' }}><b>추천 봉사로 빈 날 채우기</b><span>많이 하신 도움·지역·시간대에 맞는 봉사 요청 {recs.length}개</span></div>›</button>
             : <button className="ai-fill" onClick={() => setSp({ seg: 'help' }, { replace: true })}><DIc k="ai" size={40} bare /><div className="grow" style={{ textAlign: 'left' }}><b>AI 도움 추천 받기</b><span>필요한 도움을 적으면 받을 수 있는 도움과 봉사자를 찾아 드려요</span></div>›</button>}

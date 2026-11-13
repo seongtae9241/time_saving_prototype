@@ -6,6 +6,9 @@ import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
 import { ap, dlabel, addDays, AREAS } from '../lib/format.js';
 import '../styles/meeting.css';
+import { BoardSeg } from './group.jsx';
+import { HelpableStrip, evLook } from './home.jsx';
+import { DIc } from '../ui/proto.jsx';
 
 /* ---------- 동네 기관 소식 (B-64·C-15, 41판): 담당자가 올린 소식과 AI가 찾은 소식을 한 목록으로. 신청은 기관 페이지 링크로만 ---------- */
 const host = (u) => { try { return new URL(u).host; } catch { return u; } };
@@ -29,6 +32,46 @@ function NewsCard({ n }) {
         {n.url ? <a className="btn sm" href={n.url} target="_blank" rel="noopener noreferrer nofollow">기관 페이지로 이동</a> : <button className="btn sm" disabled style={{ opacity: 0.45 }}>링크 없음</button>}
       </div>
     </div>
+  );
+}
+
+/* ---------- 공고 화면의 "동네 기관 소식" 탭 (2026-11-13 대표 지시): 최신순으로 공고 카드처럼, 누르면 기관 페이지 ---------- */
+function NewsPostCard({ n }) {
+  const nav = useNavigate();
+  const [k, t] = BY[n.kind] || BY.ORG;
+  const { ic } = evLook(n);
+  const body = (
+    <>
+      <div className="top"><DIc k={ic} size={44} /><div className="grow"><div className="who">{n.orgName || '기관'}</div><div className="sub">{n.place || n.area || '장소는 기관 페이지에서'}</div></div><span className={`st ${k}`}>{t}</span></div>
+      <div className="ttl">{n.title}</div>
+      <div className="between" style={{ marginTop: 10 }}><span className="tr-t">{n.when || when(n)}</span><span className="pill">{n.url ? '기관 페이지 ↗' : '요약 보기 ›'}</span></div>
+      {n.url && <div className="mute2" style={{ marginTop: 6, wordBreak: 'break-all' }}>{host(n.url)}</div>}
+      {n.aiFound && <div className="mute2" style={{ marginTop: 4 }}>{n.notice || 'AI가 찾은 정보 · 신청 전 기관에 확인'}</div>}
+    </>
+  );
+  // 누르면 기관 페이지 링크(새 창). 링크가 없는 소식만 앱 안 요약으로
+  if (n.url) return <a className="pc2 click" style={{ display: 'block', color: 'inherit', textDecoration: 'none' }} href={n.url} target="_blank" rel="noopener noreferrer nofollow" aria-label={`${n.title} · 기관 페이지 열기`}>{body}</a>;
+  const go = () => nav(n.kind === 'ORG' ? `/news/${n.id}` : `/news/class/${n.id}`);
+  return <div className="pc2 click" role="button" tabIndex={0} onClick={go} onKeyDown={(e) => { if (e.key === 'Enter') go(); }}>{body}</div>;
+}
+export function NewsBoard() {
+  const nav = useNavigate();
+  const { me } = useAuth();
+  const [area, setArea] = useState('');
+  const [data] = useLoad(() => api(`/news?sort=new${area ? `&area=${encodeURIComponent(area)}` : ''}`), [area]);
+  const myArea = me && me.area;
+  const list = (data && data.items) || [];
+  return (
+    <Screen title="공고" tab="/board" back={false}>
+      <BoardSeg cur="news" />
+      <div className="chips" role="tablist" aria-label="지역">
+        {[['', '전체'], ...AREAS.map((a) => [a, a === myArea ? `${a} (내 동네)` : a])].map(([v, l]) => <button key={v || 'all'} role="tab" aria-selected={area === v} className={'chip ' + (area === v ? 'on' : '')} onClick={() => setArea(v)}>{l}</button>)}
+      </div>
+      <div className="sec-t"><span>동네 기관 소식 <span style={{ color: 'var(--brand)' }}>{list.length}</span>개</span><span className="sec-r"><a role="button" tabIndex={0} onClick={() => nav('/news')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/news'); }}>근처 소식 더 찾기 ›</a></span></div>
+      <div className="mute2" style={{ margin: '-4px 2px 6px' }}>최신순이에요. 누르면 기관 페이지로 가요. 신청과 자세한 내용은 기관 페이지에서 해요.</div>
+      {data === undefined ? <Loading /> : list.length ? list.map((n) => <NewsPostCard key={n.key} n={n} />) : <Empty>{area ? `${area}에 올라온 기관 소식이 없어요` : '지금 올라온 기관 소식이 없어요'}</Empty>}
+      <HelpableStrip />
+    </Screen>
   );
 }
 

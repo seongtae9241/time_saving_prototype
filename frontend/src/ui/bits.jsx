@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
 import { I, ic, LOGO } from './icons.js';
 import { CI, ccOf, SHORT, ST, hh, fmt, dlabel, KIND_LABEL, lvName, lvWeight } from '../lib/format.js';
-import { api, fileBlobUrl, isProtectedFile } from '../api.js';
+import { api, post as apiPost, del as apiDel, fileBlobUrl, isProtectedFile } from '../api.js';
 import { DIc, duoColor } from './proto.jsx';
 import { DI } from './duoIcons.js';
 import { MatchWhy, EasyListen } from './assist.jsx'; // LLM 추가 A(7.12)
@@ -110,13 +110,36 @@ export function postWho(p) {
     badge: o.crime ? <span className="badge trust">✓ 신원 확인</span> : null,
   };
 }
-export function PostCard({ p, to }) {
+/**
+ * 관심 공고 별 버튼 (2026-11-13 대표 지시, 프로토타입 favTg ☆/★). 누르면 서버에 담거나 뺀다(POST·DELETE /api/posts/{id}/bookmark).
+ * on 을 주면 그 값대로 보이고(목록이 상태를 쥘 때), 안 주면 공고의 bookmarked 로 시작해 스스로 기억한다.
+ */
+export function FavButton({ p, on, onChange, inCard, style }) {
+  const [own, setOwn] = useState(!!p.bookmarked);
+  const [busy, setBusy] = useState(false);
+  const cur = on === undefined ? own : !!on;
+  const toggle = async (e) => {
+    e.stopPropagation();
+    if (busy) return;
+    setBusy(true);
+    try {
+      if (cur) await apiDel(`/posts/${p.id}/bookmark`); else await apiPost(`/posts/${p.id}/bookmark`);
+      setOwn(!cur);
+      if (onChange) onChange(!cur);
+    } catch { /* 토스트 */ }
+    setBusy(false);
+  };
+  return <button type="button" className={`favb ${inCard ? 'in' : ''} ${cur ? 'on' : ''}`} style={style} aria-pressed={cur} aria-label={cur ? '관심 공고에서 빼기' : '관심 공고에 담기'} onClick={toggle} onKeyDown={(e) => e.stopPropagation()}>{cur ? '★' : '☆'}</button>;
+}
+
+/** fav: true/false 를 주면 관심 공고 별 버튼을 보인다(사용자 공고 목록에서만). onFav(담았는지)로 목록에 알린다. */
+export function PostCard({ p, to, fav, onFav }) {
   const nav = useNavigate();
   const w = postWho(p);
   const offer = p.type === 'OFFER';
   return (
     <div className="pc2 click" role="button" tabIndex={0} onClick={() => nav(to || `/post/${p.id}`)}>
-      <div className="top"><Avatar name={w.name} elder={w.elder} /><div className="grow"><div className="who">{w.name}{w.badge}{p.proxy && <span className="kind reg">가족 대신</span>}</div><div className="sub">{w.sub}</div></div><span className={`kind ${offer ? 'offer' : 'need'}`}>{offer ? '도움 가능' : '봉사 요청'}</span></div>
+      <div className="top"><Avatar name={w.name} elder={w.elder} /><div className="grow"><div className="who">{w.name}{w.badge}{p.proxy && <span className="kind reg">가족 대신</span>}</div><div className="sub">{w.sub}</div></div>{fav !== undefined && <FavButton p={p} on={fav} onChange={onFav} inCard />}<span className={`kind ${offer ? 'offer' : 'need'}`}>{offer ? '도움 가능' : '봉사 요청'}</span></div>
       <div className="ttl">{offer ? (p.note || p.title) : p.title}</div>
       <Cats list={postCats(p)} style={{ marginTop: 10 }} />
       {offer && <MatchWhy text={p.matchReason} style={{ marginTop: 10 }} />}

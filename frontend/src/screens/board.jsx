@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Screen from '../ui/Frame.jsx';
-import { Ic, Spk, Mod, TBar, Cats, PostCard, ReqRow, Avatar, Stars, StTag, Loading, Empty, RuleNote, useLoad, postWho, postCats } from '../ui/bits.jsx';
+import { Ic, Spk, Mod, TBar, Cats, PostCard, FavButton, ReqRow, Avatar, Stars, StTag, Loading, Empty, RuleNote, useLoad, postWho, postCats } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, del } from '../api.js';
 import { CATS, SHORT, AREAS, KIND_LABEL, W, fmt, hh, dlabel, lvName, lvWeight, todayISO, addDays } from '../lib/format.js';
@@ -16,6 +16,8 @@ import { useLocationAsk } from '../ui/location.jsx';
 import { useRepost } from '../ui/repost.jsx';
 import { BoardSeg, GroupBoard } from './group.jsx'; // 기능 U-10 단체 공고 탭
 import { BundleLink } from './bundle.jsx';
+import { NewsBoard } from './news.jsx';
+import { HelpableStrip } from './home.jsx';
 
 const DATES = [['all', '전체 날짜'], ['today', '오늘'], ['week', '이번 주'], ['next', '다음 주']]; // + 날짜 고르기(pick)
 const SLOTS = [['all', '시간대'], ['am', '오전'], ['pm', '오후'], ['eve', '저녁']];
@@ -27,7 +29,7 @@ const NW = { whiteSpace: 'nowrap' };
 export function Board() {
   const nav = useNavigate();
   const { me } = useAuth();
-  const { sheet, closeSheet } = useUi();
+  const { sheet, closeSheet, toast } = useUi();
   const [sp, setSp] = useSearchParams();
   const elderId = sp.get('elder');
   const { mode, setMode } = useMode();
@@ -70,6 +72,9 @@ export function Board() {
   if (dt === 'next') { q.set('dateFrom', addDays(7)); q.set('dateTo', addDays(13)); }
   if (sort === 'near' && pos) { q.set('lat', pos.lat); q.set('lng', pos.lng); }
   const [list] = useLoad(() => api(`/posts?${q}`), [q.toString()]);
+  // 2026-11-13 대표 지시: 관심 공고(☆로 담은 공고)가 먼저, 그 아래 나머지 공고. 담은 공고는 서버가 기억한다(/api/posts/bookmarks)
+  const [favs, reloadFavs] = useLoad(() => (isUser && !elderId ? api('/posts/bookmarks', { quiet: true }).catch(() => []) : Promise.resolve([])), [isUser, elderId]);
+  const favIds = new Set((favs || []).map((p) => p.id));
   let shown = (list || []).filter((p) => !p.mine && !p.proxyMine && (p.status || 'OPEN') === 'OPEN');
   if (slot !== 'all') shown = shown.filter((p) => (slot === 'am' ? p.startHour < 12 : slot === 'pm' ? p.endHour > 12 && p.startHour < 18 : p.endHour > 18));
   // U3: 도움 받고 싶을 때(도움 가능 공고)는 "내가 자주 받는 도움" 공고가 먼저, 칩도 그 순서로
@@ -94,6 +99,11 @@ export function Board() {
   const dtLabel = dt === 'pick' && pickDate ? dlabel(pickDate) : (DATES.find((d) => d[0] === dt) || DATES[0])[1];
   const eName = elder ? elder.alias + ' 님' : '';
   if (!elderId && sp.get('tab') === 'group') return <GroupBoard />; // 기능 U-10: 단체 공고 탭(1:1 공고와 분리)
+  if (!elderId && isUser && sp.get('tab') === 'news') return <NewsBoard />; // 2026-11-13: 동네 기관 소식 탭
+  const favOn = isUser && !elderId;
+  const favShown = favOn ? shown.filter((p) => favIds.has(p.id)) : [];
+  const rest = favOn ? shown.filter((p) => !favIds.has(p.id)) : shown;
+  const card = (p) => <PostCard key={p.id} p={p} to={elderId ? `/post/${p.id}?elder=${elderId}` : undefined} fav={favOn ? favIds.has(p.id) : undefined} onFav={(on) => { toast(on ? '관심 공고에 담았어요' : '관심 공고에서 뺐어요'); reloadFavs(); }} />;
   return (
     <Screen title={elderId ? `${eName} 대신 요청` : '공고'} tab={me && me.role === 'ORG' ? '/o/elders' : '/board'} noTabs={!!elderId} back={elderId ? true : false}>
       {!elderId && isUser && <BoardSeg />}
@@ -117,8 +127,16 @@ export function Board() {
       {!elderId && me && me.role === 'USER' && <div className="tip" style={{ marginTop: 12, padding: '12px 16px' }}><div className="grow small"><Ic n="bell" s={16} /> 조건에 맞는 공고가 올라오면 알려드려요</div><button className="btn soft sm" style={{ width: 'auto', padding: '0 12px', minHeight: 36 }} onClick={() => nav('/my/alerts')}>관심 조건</button></div>}
       {sort === 'time' && <div className="mute2" style={{ margin: '8px 0 0' }}>활동 날짜와 시작 시각이 빠른 순이에요.</div>}
       {!elderId && isUser && type === 'NEED' && <BundleLink />}
-      <div className="sec-t"><span>공고 <span style={{ color: 'var(--brand)' }}>{shown.length}</span>개</span></div>
-      {list === undefined ? <Loading /> : shown.length ? shown.map((p) => <PostCard key={p.id} p={p} to={elderId ? `/post/${p.id}?elder=${elderId}` : undefined} />) : <Empty>조건에 맞는 공고가 없어요</Empty>}
+      {favShown.length > 0 && (
+        <>
+          <div className="sec-t"><span>관심 공고 <span style={{ color: 'var(--brand)' }}>{favShown.length}</span>개</span></div>
+          <p className="fav-h">☆를 눌러 담은 공고예요. 플래너에는 들어가지 않고, 신청해서 확정되면 플래너에 보여요.</p>
+          {favShown.map(card)}
+        </>
+      )}
+      <div className="sec-t"><span>공고 <span style={{ color: 'var(--brand)' }}>{rest.length}</span>개</span><span className="led-sort">{SORT_L[sort]}</span></div>
+      {list === undefined ? <Loading /> : rest.length ? rest.map(card) : <Empty>{favShown.length ? '다른 공고는 없어요' : '조건에 맞는 공고가 없어요'}</Empty>}
+      {favOn && type === 'OFFER' && <HelpableStrip />}
       {!elderId && me && me.role === 'USER' && (
         <button className="fab" onClick={() => nav('/write')}><Ic n="plus" s={20} /> 공고 올리기</button>
       )}
@@ -166,6 +184,7 @@ export function PostDetail() {
       <div className="row" style={{ gap: 12 }}>
         <Avatar name={w.name} s={56} elder={w.elder} />
         <div className="grow"><div className="b" style={{ fontSize: 18, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>{w.name}{w.badge}</div><div className="mute2">{w.sub}</div></div>
+        {!mine && !proxyMine && me && me.role === 'USER' && <FavButton p={p} onChange={(on) => toast(on ? '관심 공고에 담았어요' : '관심 공고에서 뺐어요')} />}
         {p.ownerId && !mine && !w.elder && <button className="btn soft sm" style={{ width: 'auto', padding: '0 12px' }} onClick={() => profile(p.ownerId)}>프로필</button>}
       </div>
       {offer && !mine && <MatchWhy text={p.matchReason} style={{ marginTop: 10 }} />}
@@ -181,7 +200,7 @@ export function PostDetail() {
         <div className="notice" style={{ marginTop: 12 }}><Ic n="repeat" s={15} /> <b>{p.repeatRule}</b> 정기 요청의 회차 공고예요. 이 공고에도 요청 1건만 수락돼요.{(mine || proxyMine) && <> <a role="button" tabIndex={0} style={{ color: 'var(--brand)', fontWeight: 700 }} onClick={() => nav(p.elderId ? `/recurring?elder=${p.elderId}` : '/recurring')}>정기 요청 관리 ›</a></>}</div>
       )}
       {mine && <FixTips p={p} />}
-      {/* 공고 상세 순서(대표 지시 2026-11-13, 프로토타입 1113): 시간 → 필요한 도움 → 내용 → 담당자 → 봉사 특이사항 및 요청사항(요청자·담당자) */}
+      {/* 공고 상세 순서(대표 지시 2026-11-13, 프로토타입 1113): 시간 → 필요한 도움 → 내용 → 특이사항(요청자·담당자). 담당자 소속은 특이사항의 담당자 줄에 함께 */}
       <label className="f">시간</label>
       <div className="card">
         <div className="mute2">{offer ? '봉사할 수 있는 시간' : '도움이 필요한 시간'}</div>
@@ -193,16 +212,7 @@ export function PostDetail() {
       <Cats list={postCats(p)} />
       <label className="f">내용</label>
       <div className="card">{offer ? (p.title || p.detail || p.note || '내용이 없어요') : <><b>{p.title}</b>{p.detail && <div className="muted" style={{ marginTop: 4 }}>{p.detail}</div>}</>}</div>
-      {w.elder && (
-        <>
-          <label className="f">담당자</label>
-          <div className="card">
-            <div className="b">{p.manager ? [p.manager.orgName, p.manager.name && `${p.manager.name} 담당자`].filter(Boolean).join(' · ') : '기관 담당자'}</div>
-            <div className="mute2" style={{ marginTop: 4 }}>기관에 등록된 분이라 담당자가 대신 요청하고 확인해요. 이름·주소·연락처는 수락 후 담당자가 알려드려요.</div>
-          </div>
-        </>
-      )}
-      <label className="f">봉사 특이사항 및 요청사항</label>
+      <label className="f">특이사항</label>
       <div className="spc">
         {(() => {
           // 요청자(도움 가능 공고는 봉사자)가 적은 한마디. 도움 가능 공고에서 내용 칸에 이미 보인 글은 되풀이하지 않는다
@@ -213,6 +223,7 @@ export function PostDetail() {
         {w.elder && (
           <div><span className="sp-w org">담당자</span><div className="grow">
             {p.elderIssueLocked ? <span className="mute2">특이사항은 일정이 확정된 봉사자에게만 보여요</span> : (p.elderCaution || p.caution || <span className="mute2">따로 적은 내용이 없어요</span>)}
+            <div className="mute2" style={{ marginTop: 4 }}>{p.manager ? [p.manager.orgName, p.manager.name && `${p.manager.name} 담당자`].filter(Boolean).join(' ') : '기관 담당자'} · 이름·주소·연락처는 수락 후 담당자가 알려드려요</div>
           </div></div>
         )}
       </div>

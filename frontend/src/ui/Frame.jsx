@@ -1,12 +1,13 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { I } from './icons.js';
 import { Ic } from './bits.jsx';
 import { useAuth, useUi } from './ctx.jsx';
 import { DIc, MODE, useMode } from './proto.jsx';
+import { api } from '../api.js';
 
 export const ROLES = {
-  USER: { label: '사용자', color: '#5B8DEF', tabs: [['/u/home', '홈', 'home'], ['/board', '공고', 'search'], ['/planner', '플래너', 'cal'], ['/bank', '시간 통장', 'wallet'], ['/my', '마이', 'user']] },
+  USER: { label: '사용자', color: '#5B8DEF', tabs: [['/u/home', '홈', 'home'], ['/board', '공고', 'search'], ['/bank', '시간 통장', 'wallet'], ['/planner', '플래너', 'cal'], ['/my', '마이', 'user']] },
   ORG: { label: '담당자', color: '#3A6FD8', tabs: [['/o/home', '홈', 'home'], ['/o/elders', '도움 대상', 'users'], ['/o/schedule', '편성표', 'cal'], ['/o/reqs', '요청 관리', 'list'], ['/o/report', '리포트', 'chart'], ['/o/my', '마이', 'user']] },
   ADMIN: { label: '운영자', color: '#1B1D22', tabs: [['/a/dash', '대시보드', 'chart'], ['/a/approve', '승인', 'shield'], ['/a/safety', '신고·점검', 'flag'], ['/a/manage', '관리', 'gear']] },
 };
@@ -52,6 +53,30 @@ export function useDemoSheet() {
   ));
 }
 
+/* 공지 확성기 (2026-11-13 대표 지시, 프로토타입 .ntc): 고정 공지가 있으면 사용자 탭 화면 위쪽에 한 줄로 흐르고, 누르면 그 공지로 간다.
+   공지 목록은 한 번만 불러 탭 사이에서 나눠 쓴다(5분 지나면 다시). */
+let noticeCache = null, noticeAt = 0;
+function pinnedNotices() {
+  if (!noticeCache || Date.now() - noticeAt > 300000) {
+    noticeAt = Date.now();
+    noticeCache = api('/notices', { quiet: true }).then((l) => (l || []).filter((n) => n.pinned)).catch(() => { noticeCache = null; return []; });
+  }
+  return noticeCache;
+}
+function NoticeTicker() {
+  const nav = useNavigate();
+  const [list, setList] = useState([]);
+  useEffect(() => { let on = true; pinnedNotices().then((l) => { if (on) setList(l.slice(0, 2)); }); return () => { on = false; }; }, []);
+  if (!list.length) return null;
+  return (
+    <button type="button" className="ntc" aria-label={`공지: ${list.map((n) => n.title).join(', ')}`} onClick={() => nav(`/notice/${list[0].id}`)}>
+      <span className="nt-ic" aria-hidden="true">📢</span>
+      <div className="nt-w" aria-hidden="true"><div className="nt-t">{[0, 1].map((k) => list.map((n) => <span key={`${k}-${n.id}`}>{n.title}</span>))}</div></div>
+      <span style={{ flex: '0 0 auto', opacity: 0.7 }} aria-hidden="true">›</span>
+    </button>
+  );
+}
+
 /**
  * 프로토타입 render()의 화면 틀: 헤더(뒤로·제목·알림 벨·역할 칩) + 본문 + 역할별 아래 탭
  */
@@ -85,6 +110,7 @@ export default function Screen({ title = '', noHeader, noTabs, noBell, cls = '',
           </div>
         </header>
       )}
+      {role === 'USER' && showTabs && !noHeader && R.tabs.some(([k]) => k === loc.pathname) && <NoticeTicker />}
       <main key={loc.key} className={`bd ${cls} ${anim}`} ref={bd}>{children}</main>
       {showTabs && (
         <nav className="tabs">

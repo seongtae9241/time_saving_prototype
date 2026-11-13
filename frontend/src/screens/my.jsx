@@ -150,19 +150,18 @@ export function My() {
         <Mi t="내 공고" s={`올린 공고 ${(posts || []).length}개`} i="list" onClick={() => nav('/act?seg=posts')} />
         <Mi t="내 정기 요청" s="매주 같은 요일·시간 도움 · 다음 회차 · 일시정지·해지" i="clock" onClick={() => nav('/recurring')} />
         <Mi t="내 활동" s="도움 받은 활동 · 봉사한 활동(단체 봉사 포함) · 월별 횟수" i="cal" onClick={() => nav('/act')} />
+        <Mi t="단골에게 요청" s="자주 도와준 봉사자에게 바로 요청해요" i="heart" onClick={() => nav('/regular')} />
         <Mi t="단골 관리" s={badges.length ? `받은 단골 배지 ${badges.length}개 · 등록·해지` : '내 단골 · 받은 단골 배지 · 등록·해지'} i="star" onClick={() => sheet(<RegularSheet refresh={refresh} onClose={closeSheet} />)} />
         <Mi t="봉사 확인서 발급" s="기간을 골라 PDF 파일로 받아요" i="file" onClick={() => nav('/my/cert')} />
         <Mi t="AI 분석" s="내 활동·평가 습관 분석 · 봉사 플랜" i="chart" onClick={() => nav('/my/insight')} />
-        <Mi t="시간 플래너" s="생애 플랜 · 캘린더 · 추천 봉사" i="cal" onClick={() => nav('/planner', { replace: true })} />
+        <Mi t="시간 플래너" s="생애 플랜 · 캘린더 · AI 추천" i="cal" onClick={() => nav('/planner', { replace: true })} />
         <Mi t="첫 활동 교육 · 연습" s={me.eduDone ? '안전 교육 이수 · AI 역할극으로 다시 연습할 수 있어요' : v.eduRequired ? 'AI 역할극 상황을 모두 마치면 안전 교육 이수 · 봉사 전 필수' : 'AI 역할극 상황을 모두 마치면 안전 교육 이수'} i="cap" onClick={() => nav('/edu')} />
       </div>
       <div className="sec-t">가족</div>
       <div className="ml">
         <Mi t="내가 받은 도움 기록" s="건별 메모 · 병원에서 들은 말" i="list" onClick={() => nav('/my/report')} />
         <Mi t="가족 연결" s={fam0 ? `${fam0.relation || ''} ${fam0.user.name} · 연결됨${linked.length > 1 ? ` 외 ${linked.length - 1}명` : ''}` : '연결된 가족이 없어요'} i="users" onClick={() => nav('/my/family')} />
-        {fam0 && <Mi t="가족 대신 봉사 요청" s={`${fam0.user.name} 님 이름으로 봉사 요청`} i="chat" onClick={() => nav(`/write/need?family=${encodeURIComponent(fam0.user.name)}`)} />}
-        {fam0 && <Mi t="가족 최근 기록" s={`${fam0.user.name} 님 최근 활동·메모 (공유 동의한 경우)`} i="chart" onClick={() => nav(`/my/family/${fam0.user.id}/report`)} />}
-        <Mi t="내 리포트 공유 동의" s="가족 연결 화면에서 가족마다 켜고 꺼요" i="heart" onClick={() => nav('/my/family')} />
+        {/* 2026-11-13 대표 지시: "가족 대신 올리기"는 공고 올리기(공고 화면)로 옮기고, "가족 최근 기록"·"내 리포트 공유"는 마이에서 뺐다(기능은 가족 연결 화면에 그대로) */}
       </div>
       <div className="sec-t">알림·도움</div>
       <div className="ml">

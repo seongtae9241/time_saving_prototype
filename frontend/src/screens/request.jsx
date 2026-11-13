@@ -626,7 +626,17 @@ export function RequestDetail() {
       {['CONFIRMED', 'IN_PROGRESS'].includes(st) && (
         <div className="lock" style={{ marginTop: 12 }} role="note"><Ic n="shield" s={18} /><div><b>방문 중 안전 규칙</b><div style={{ marginTop: 4 }}>· 신체 접촉은 하지 않아요 (부축이 꼭 필요하면 먼저 여쭤보고 최소한으로)<br />· 방문 시간 외의 개인 연락, 연락처 교환·금전 요구는 금지예요<br />· 불편한 일이 있으면 아래 "신고하기"로 알려 주세요. 응급 상황은 119·112로 바로 전화해요</div></div></div>
       )}
-      {r.logText && !(st === 'LOG_SUBMITTED' && recv) && (
+      {/* 2026-11-13 대표 지시: 끝난 활동 상세에는 봉사 일지 상자(프로토타입 .logbox) — 날짜·작성자·확인 여부, 일지 줄, QR 시작·종료 시각과 적립(차감) 시간 */}
+      {r.logText && st === 'DONE' && (
+        <div className="logbox">
+          <h4>📝 봉사 일지</h4>
+          <div className="mute2">{dlabel(r.date)} · {v.name || '봉사자'} 님 작성 · {iVol ? '상대가 확인함' : mgr ? '담당자가 확인함' : '내가 확인함'}</div>
+          <ul>{String(r.logText).split(/\n+/).map((x) => x.replace(/^[-·•]\s*/, '').trim()).filter(Boolean).map((x, i) => <li key={i}>{x}</li>)}</ul>
+          <LogPhotos r={r} />
+          <div className="lg-qr"><span>{r.checkInAt && r.checkOutAt ? `QR 시작 ${tm(r.checkInAt)} · 종료 ${tm(r.checkOutAt)}${r.autoClosed ? ' (예정 시각으로 자동 마감)' : ''}` : '시작·종료 기록 없음'}</span><b>{iVol ? `+${hmTxt(r.earned != null ? r.earned : r.estEarn)}` : r.elder ? '차감 없음' : `−${hmTxt(r.hours)}`}</b></div>
+        </div>
+      )}
+      {r.logText && st !== 'DONE' && !(st === 'LOG_SUBMITTED' && recv) && (
         <div className="ai" style={{ marginTop: 14 }}><div className="ah"><Spk />활동 일지<Mod n={3} /></div><div className="small" style={{ whiteSpace: 'pre-wrap' }}>{r.logText}</div>{r.checkInAt && r.checkOutAt && <div className="mute2" style={{ marginTop: 6 }}>기록된 시각 {tm(r.checkInAt)} ~ {tm(r.checkOutAt)} ({durTxt(durMin(r.checkInAt, r.checkOutAt))}){r.autoClosed ? ' · 종료는 예정 시각으로 자동 마감' : ''}</div>}<LogPhotos r={r} /></div>
       )}
       {!(st === 'LOG_SUBMITTED' && recv) && <CareMemo text={r.careMemo} style={{ marginTop: 10 }} />}

@@ -9,7 +9,7 @@ import { I } from '../ui/icons.js';
 import { PubCards, NearbyPublicBtn } from './ai.jsx';
 import { useSpeechInput } from './voice.jsx';
 import { PostCheck, mergeChecks } from './assist.jsx'; // LLM 추가 A(7.12) 빠진 정보 점검
-import { DIc } from '../ui/proto.jsx';
+import { DIc, useMode } from '../ui/proto.jsx';
 import { SuggestLink } from '../ui/suggest.jsx';
 import { useRepost } from '../ui/repost.jsx';
 import { RecurringLink } from './recurring.jsx'; // 기능 U-09 정기 요청
@@ -18,36 +18,67 @@ import { RecurringLink } from './recurring.jsx'; // 기능 U-09 정기 요청
 export function Write() {
   const nav = useNavigate();
   const { me } = useAuth();
+  const { give } = useMode();
+  const recv = !give;
   const [mine] = useLoad(() => api('/posts/mine', { quiet: true }), []);
+  // 2026-11-13 대표 지시: "가족 대신 올리기"를 마이에서 공고 올리기로 옮겼다(프로토타입 wFor). 연결(수락)된 가족만 고를 수 있고, 서버가 다시 확인한다
+  const [links] = useLoad(() => api('/family', { quiet: true }).catch(() => []), []);
+  const fam = (links || []).filter((f) => f.status === 'ACCEPTED');
+  const [forId, setForId] = useState(null);
+  const forUser = fam.find((f) => f.user.id === forId);
   const repost = useRepost();
-  // 기능 U-06: 내가 올렸던 공고 목록에서 골라 날짜만 바꿔 다시 올린다(처음엔 3개, "더 보기"로 전부)
+  // 기능 U-06: 내가 올렸던 공고 목록에서 골라 날짜만 바꿔 다시 올린다(처음엔 3개, "더 보기"로 전부). 헤더 모드에 맞는 종류만
   const [allPast, setAllPast] = useState(false);
-  const pastAll = (mine || []).filter((p) => !p.proxyMine); // 가족 대신 올린 공고는 읽기만이라 다시 올리기 목록에 넣지 않는다
+  const pastAll = (mine || []).filter((p) => !p.proxyMine && (p.type === 'OFFER') === give); // 가족 대신 올린 공고는 읽기만이라 다시 올리기 목록에 넣지 않는다
   const past = allPast ? pastAll : pastAll.slice(0, 3);
+  const q = forUser ? `?familyId=${forUser.user.id}` : '';
+  const row = (to, ic, t, d) => <div role="button" tabIndex={0} onClick={() => nav(to)} onKeyDown={(e) => { if (e.key === 'Enter') nav(to); }}><Ic n={ic} s={20} /><div className="grow">{t}<span>{d}</span></div>›</div>;
   return (
     <Screen title="공고 올리기" noTabs>
-      <h2 className="su-h" style={{ marginTop: 4 }}>어떤 공고를<br />올릴까요?</h2>
-      <p className="su-p">자동 매칭은 없어요. 공고를 보고 온 요청을 직접 골라요.</p>
-      <div className="bbtn big">
-        <button onClick={() => nav('/write/offer')}><DIc k="offer" size={48} /><b>도움 가능</b><em>내가 도와줄 수 있는 시간을 올려요</em></button>
-        <button onClick={() => nav('/write/need')}><DIc k="req" size={48} /><b>봉사 요청</b><em>도움이 필요한 일을 AI와 정리해요</em></button>
+      <span className={`wmode ${recv ? 'recv' : 'give'}`}>{recv ? '도움 받기' : '봉사하기'} 모드</span>
+      <h2 className="su-h" style={{ marginTop: 4 }}>{recv ? <>어떤 도움이<br />필요하세요?</> : <>언제 도와줄 수<br />있으세요?</>}</h2>
+      <p className="su-p">{recv ? '도와줄 이웃이 공고를 보고 제안해요.' : '도움이 필요한 이웃이 공고를 보고 요청해요.'} 위쪽 메뉴에서 모드를 바꾸면 다른 공고를 올릴 수 있어요.</p>
+      {recv && fam.length > 0 && (
+        <>
+          <label className="f">누구의 도움인가요?</label>
+          <div className="wfor" role="radiogroup" aria-label="누구의 도움인가요">
+            <button type="button" role="radio" aria-checked={!forUser} className={forUser ? '' : 'on'} onClick={() => setForId(null)}><b>나</b><span>{me ? me.name : ''} 이름으로</span></button>
+            {fam.map((f) => <button type="button" role="radio" key={f.id} aria-checked={forId === f.user.id} className={forId === f.user.id ? 'on' : ''} onClick={() => setForId(f.user.id)}><b>가족 대신 올리기</b><span>{f.user.name} 님 이름으로</span></button>)}
+          </div>
+          {forUser && <div className="mute2" style={{ margin: '8px 2px' }}>공고는 {forUser.user.name} 님 이름으로 올라가요. 최종 수락·거부는 {forUser.user.name} 님이 직접 하고, 시간도 {forUser.user.name} 님 통장에서 빠져요.</div>}
+        </>
+      )}
+      <div className="card" style={{ marginTop: 16 }}>
+        <div className="row" style={{ gap: 12 }}><DIc k={recv ? 'req' : 'offer'} size={48} /><div className="grow"><div className="b" style={{ fontSize: 16 }}>{recv ? '도움 요청 공고' : '도움 가능 공고'}</div><div className="mute2">{recv ? '도움이 필요한 일과 시간을 올려요' : '내가 도와줄 수 있는 시간을 올려요 · 2명 이상이면 단체 봉사'}</div></div></div>
+        {recv ? (
+          <div className="btns" style={{ marginTop: 12 }}>
+            <button className="btn ghost sm" onClick={() => nav(`/write/need/manual${q}`)}>✍ 직접 쓰기</button>
+            <button className="btn soft sm" onClick={() => nav(`/write/need${q}`)}><Ic h={I.spark} /> AI로 쓰기</button>
+          </div>
+        ) : (
+          <div className="btns" style={{ marginTop: 12 }}>
+            <button className="btn ghost sm" onClick={() => nav('/write/offer')}>✍ 직접 쓰기</button>
+            <button className="btn soft sm" onClick={() => nav('/group/new')}>단체로 봉사하기</button>
+          </div>
+        )}
       </div>
-      <div className="ml" style={{ marginTop: 12 }}>
-        <div role="button" tabIndex={0} onClick={() => nav('/write/need/manual')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/write/need/manual'); }}><Ic n="pen" s={20} /><div className="grow">봉사 요청 직접 적기<span>AI 없이 칸을 직접 채워요 (수동)</span></div>›</div>
-        <div role="button" tabIndex={0} onClick={() => nav('/group/new')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/group/new'); }}><Ic n="users" s={20} /><div className="grow">단체로 봉사하기<span>동아리·모임처럼 2명 이상이 함께 봉사할 때 (단체 공고)</span></div>›</div>
-        <div role="button" tabIndex={0} onClick={() => nav('/voice')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/voice'); }}><Ic n="mic" s={20} /><div className="grow">말로 요청하기<span>마이크를 누르고 말하면 큰 글씨 요청서로 만들어 드려요</span></div>›</div>
-        <div role="button" tabIndex={0} onClick={() => nav('/recurring/new')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/recurring/new'); }}><Ic n="repeat" s={20} /><div className="grow">정기 요청 등록<span>매주 요일·시간과 기간을 정하면 회차마다 공고가 올라가요</span></div>›</div>
-        <div role="button" tabIndex={0} onClick={() => nav('/recurring')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/recurring'); }}><Ic n="list" s={20} /><div className="grow">내 정기 요청<span>다음 회차·남은 회차 보기 · 일시정지 · 해지</span></div>›</div>
-      </div>
+      {recv && !forUser && (
+        <div className="ml" style={{ marginTop: 12 }}>
+          {row('/voice', 'mic', '말로 요청하기', '마이크를 누르고 말하면 큰 글씨 요청서로 만들어 드려요')}
+          {row('/recurring/new', 'repeat', '정기 요청 등록', '매주 요일·시간과 기간을 정하면 회차마다 공고가 올라가요')}
+          {row('/recurring', 'list', '내 정기 요청', '다음 회차·남은 회차 보기 · 일시정지 · 해지')}
+          {row('/regular', 'star', '단골에게 요청', '자주 도와준 봉사자에게 바로 요청해요')}
+        </div>
+      )}
       {past.length > 0 && <><div className="sec-t">지난 공고 다시 올리기</div><div className="mute2" style={{ margin: '-4px 0 8px' }}>누르면 같은 내용으로 불러와요. 날짜만 고르면 돼요.</div></>}
       {past.map((p) => (
         <div key={p.id} className="card item click" role="button" tabIndex={0} onClick={() => repost(p)} onKeyDown={(e) => { if (e.key === 'Enter') repost(p); }}>
           <span className={`kind ${p.type === 'OFFER' ? 'offer' : 'need'}`}>{p.type === 'OFFER' ? '도움 가능' : '봉사 요청'}</span>
-          <div className="grow"><div className="b">{p.type === 'OFFER' ? p.note || p.title : p.title}</div><div className="mute2">{p.proxyMine ? `${p.ownerName} 님 대신 · ` : ''}{postCats(p).map((c) => SHORT[c]).join('·')} · {dlabel(p.date)} {hh(p.startHour)}~{hh(p.endHour)}</div></div><span className="mute2">↻</span>
+          <div className="grow"><div className="b">{p.type === 'OFFER' ? p.note || p.title : p.title}</div><div className="mute2">{postCats(p).map((c) => SHORT[c]).join('·')} · {dlabel(p.date)} {hh(p.startHour)}~{hh(p.endHour)}</div></div><span className="mute2">↻</span>
         </div>
       ))}
       {!allPast && pastAll.length > 3 && <button className="btn ghost sm" style={{ marginTop: 8 }} onClick={() => setAllPast(true)}>지난 공고 {pastAll.length}개 모두 보기</button>}
-      {me && me.idStatus !== 'APPROVED' && <div className="notice" style={{ marginTop: 14 }}>도움 가능 공고는 신분증 인증을 마친 뒤 올릴 수 있어요.</div>}
+      {!recv && me && me.idStatus !== 'APPROVED' && <div className="notice" style={{ marginTop: 14 }}>도움 가능 공고는 신분증 인증을 마친 뒤 올릴 수 있어요.</div>}
     </Screen>
   );
 }

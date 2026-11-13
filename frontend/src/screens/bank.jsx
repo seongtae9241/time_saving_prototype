@@ -4,7 +4,7 @@ import Screen from '../ui/Frame.jsx';
 import { Ic, ReqRow, PostCard, Loading, Empty, useLoad, useBusy } from '../ui/bits.jsx';
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post } from '../api.js';
-import { fmt, dshort, ACTIVE_ST, PAST_ST } from '../lib/format.js';
+import { fmt, ACTIVE_ST, PAST_ST } from '../lib/format.js';
 import { needsMe } from './home.jsx';
 import { MonthNote } from '../ui/ActivityAi.jsx'; // 7.13 B-6
 import { DIc, CalIcon, HmBig, hmTxt, useMode } from '../ui/proto.jsx';
@@ -101,56 +101,100 @@ export function Bank() {
       <button className="btn ghost" style={{ marginTop: 12 }} onClick={closeSheet}>닫기</button>
     </>
   ));
+  // 2026-11-13 대표 지시: 거래 내역은 월별로 골라 보고(최신순), 건마다 번·쓴 시간, 그 뒤 잔액, 도움 준(받은) 사람을 보여 준다.
+  // 잔액(balanceAfter)·상대 이름(counterpart)·월 합계(months)는 모두 서버가 계산한 값이다.
+  const [ledM, setLedM] = useState(null);
+  const [open, setOpen] = useState(false);
   if (b === undefined) return <Screen title="시간 통장" back={false}><Loading /></Screen>;
   const bk = b || { balance: 0, hold: 0, entries: [], monthly: [] };
   const entries = bk.entries || [];
-  let bal = Number(bk.balance) || 0, last = '', lastM = '';
-  // 기능 U-22: 월별 목록 + 월별 합계(번 시간·쓴 시간). 합계는 서버(months)가 센 값
   const monthSum = Object.fromEntries((bk.months || []).map((m) => [m.month, m]));
   const lvOf = (w) => (Number(w) >= 1.5 ? '책임' : Number(w) >= 1.2 ? '수고' : '기본');
-  const rows = entries.map((l) => {
-    const d = dshort(l.createdAt).split(' ')[0];
-    const mk = String(l.createdAt).slice(0, 7), ms = monthSum[mk];
-    const mhead = mk !== lastM ? <div className="between" style={{ padding: '14px 0 6px', borderBottom: '1px solid var(--line)' }}><b>{mk.slice(0, 4)}년 {+mk.slice(5, 7)}월</b>{ms && <span className="small"><span className="p-in">번 시간 +{hmTxt(ms.in)}</span> · <span className="p-out">쓴 시간 −{hmTxt(ms.out)}</span></span>}</div> : null;
-    lastM = mk;
-    const head = d !== last ? <div className="pass-d">{d}</div> : null; last = d;
-    const v = Number(l.amount) || 0;
-    const isHold = l.type === 'HOLD' || l.type === 'RELEASE';
-    const row = (
-      <div key={l.id}>{mhead}{head}
-        <div className="pass-r"><div className="pc"><b>{l.label || LT[l.type]}</b><span>{LT[l.type] || l.type}{l.baseHours ? ` · ${fmt(l.baseHours)}시간 × ${lvOf(l.weight || 1)} ${Number(l.weight || 1).toFixed(1)} = ${fmt(Math.abs(v))}시간` : ''}</span></div>
-          <div className="pa"><b className={v > 0 ? 'p-in' : 'p-out'}>{isHold ? '' : v > 0 ? '+' : '−'}{hmTxt(v)}</b><span>{isHold ? '보류' : `잔액 ${hmTxt(bal)}`}</span></div></div>
-      </div>
+  const mkOf = (l) => String(l.createdAt).slice(0, 7);
+  const ms = [...new Set(entries.map(mkOf))]; // 최신 달부터
+  const curM = ms.includes(ledM) ? ledM : ms[0];
+  const mi = ms.indexOf(curM);
+  const rowsM = entries.filter((l) => mkOf(l) === curM);
+  const sumM = monthSum[curM];
+  const N = 8;
+  const isHold = (l) => l.type === 'HOLD' || l.type === 'RELEASE';
+  const whoTxt = (l) => (l.counterpart ? `${l.counterpart}${/님$/.test(l.counterpart) ? '' : ' 님'}` : '');
+  // 원장 글(label)이 "도움 종류 · 상대 이름" 꼴이면 이름은 상대 칸에서 따로 보여 주므로 앞쪽(도움 종류)만 제목으로 쓴다
+  const titleOf = (l) => { const t = l.label || LT[l.type]; return l.counterpart && String(t).includes(' · ') ? String(t).split(' · ')[0] : t; };
+  const receipt = (l) => sheet(() => {
+    const v = Number(l.amount) || 0, inn = v > 0, hold = isHold(l);
+    const dt = String(l.createdAt).slice(0, 10).split('-');
+    return (
+      <>
+        <h2 style={{ textAlign: 'center', marginBottom: 12 }}>거래 상세</h2>
+        <div className="rcpt">
+          <div className="rc-h"><span>{hold ? (l.type === 'HOLD' ? '확정된 일정에 묶인 시간' : '묶였다가 풀린 시간') : l.type === 'GIFT_OUT' || l.type === 'GIFT_IN' ? '가족 선물' : inn ? '봉사해서 모은 시간' : '도움 받아 쓴 시간'}</span><b style={{ color: hold ? '#5F6672' : inn ? '#2F8069' : '#C0603F' }}>{hold ? '' : inn ? '+' : '−'}{hmTxt(v)}</b><span>{+dt[0]}년 {+dt[1]}월 {+dt[2]}일</span></div>
+          <div className="rc-r"><span>구분</span><b>{LT[l.type] || l.type}</b></div>
+          <div className="rc-r"><span>내용</span><b>{l.label || LT[l.type]}</b></div>
+          {l.counterpart && <div className="rc-r"><span>{l.counterpartRole === 'HELPED' ? '도운 분' : '도와준 분'}</span><b>{whoTxt(l)}</b></div>}
+          {l.baseHours ? <div className="rc-r"><span>계산</span><b>{hmTxt(l.baseHours)} × {Number(l.weight || 1).toFixed(1)} ({lvOf(l.weight || 1)})</b></div> : null}
+          <div className="rc-sum">
+            <div className="rc-r"><span>거래 후 잔액</span><b>{hmTxt(l.balanceAfter)}</b></div>
+            {hold && <div className="rc-r"><span>알림</span><b>묶인 시간은 잔액을 바꾸지 않아요</b></div>}
+            <div className="rc-r"><span>거래 번호</span><b>TX-{dt.join('')}-{String(l.id).padStart(4, '0')}</b></div>
+          </div>
+        </div>
+        {l.requestId && <button className="btn soft" style={{ marginTop: 22 }} onClick={() => { closeSheet(); nav(`/req/${l.requestId}`); }}>활동 상세 · 봉사 일지 보기</button>}
+        <div className="btns" style={{ marginTop: l.requestId ? 8 : 22 }}><button className="btn ghost" onClick={closeSheet}>닫기</button><button className="btn ghost" onClick={() => { closeSheet(); nav('/qna/new'); }}>문제 신고</button></div>
+      </>
     );
-    if (!isHold) bal -= v;
-    return row;
   });
+  const arrow = (up) => <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d={up ? 'M10 15V5M5.5 9.5 10 5l4.5 4.5' : 'M10 5v10M5.5 10.5 10 15l4.5-4.5'} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
   return (
     <Screen title="시간 통장" back={false}>
+      {/* 통장 번호 · 예금주 · 쓸 수 있는 시간 · 총 모은 시간 · 총 사용 시간 · [가족에게 선물하기] · [플래너] */}
       <div className="pb">
         <div className="pb-head"><span className="pb-mark"><CalIcon s={18} /></span><b>시간 적금 통장</b><span className="pb-no">{bk.accountNo || (me && me.accountNo) || ''}</span></div>
         <div className="pb-body" style={{ paddingBottom: 12 }}>
           <div className="pb-who"><span>예금주</span><b>{me ? me.name : ''}</b></div>
           <div className="pb-l">쓸 수 있는 시간</div><div className="pb-n"><HmBig v={bk.available ?? bk.balance} /></div>
-          <div className="pb-note">적립 한도 없음 · 가족에게 선물할 수 있어요{Number(bk.hold) > 0 ? ` · 보류 ${hmTxt(bk.hold)}` : ''}</div>
+          <div className="pb-note">적립 한도 없음 · 가족에게 선물할 수 있어요{Number(bk.hold) > 0 ? ` · 묶인 시간 ${hmTxt(bk.hold)}` : ''}</div>
         </div>
-        <div className="pb-acts pb3"><button onClick={() => nav('/gift')}>가족에게 선물</button><button onClick={() => nav('/planner')}>플래너</button><button onClick={rule}>이용 규칙</button></div>
+        <div className="pbt2">
+          <div className="pt-i in"><span className="pt-ic">{arrow(false)}</span><div><span>총 모은 시간</span><b>{hmTxt(bk.totalEarned)}</b></div></div>
+          <div className="pt-i out"><span className="pt-ic">{arrow(true)}</span><div><span>총 사용 시간</span><b>{hmTxt(bk.totalUsed)}</b></div></div>
+        </div>
+        <div className="pb-acts"><button onClick={() => nav('/gift')}>가족에게 선물하기</button><button onClick={() => nav('/planner', { replace: true })}>플래너</button></div>
       </div>
-      {/* 기능 U-21: 쓸 수 있는 시간(위) · 묶인 시간 · 누적 번 시간 · 누적 쓴 시간 */}
-      <div className="kpis"><div><b>{hmTxt(bk.hold)}</b><span>묶인 시간</span></div><div><b>{hmTxt(bk.totalEarned)}</b><span>누적 번 시간</span></div><div><b>{hmTxt(bk.totalUsed)}</b><span>누적 쓴 시간</span></div></div>
-      <div className="mute2" style={{ margin: '8px 2px 0' }}>묶인 시간은 확정된 도움 일정에 잡혀 있는 시간이에요(끝나면 차감, 취소되면 돌아와요). 잔액 {hmTxt(bk.balance)} · 직접 적립 {hmTxt(bk.earnedSelf)} · 선물받음 {hmTxt(bk.giftReceived)}</div>
+      {bk.canUseSelf === false && <div className="notice" style={{ marginTop: 12 }}>직접 적립한 시간이 10시간이 되면 도움을 받을 때 쓸 수 있어요. 선물받은 시간은 바로 쓸 수 있어요.</div>}
+      {/* 거래 내역: 월별 필터 · 최신순 · 건마다 번/쓴 시간 · 그 뒤 잔액 · 도움 준(받은) 사람 */}
+      <div className="sec-t"><span>거래 내역</span><span className="led-sort">최신순 · 누르면 상세</span></div>
+      {entries.length ? (
+        <div className="ledger2">
+          <div className="lm-h">
+            <button className="bs-nav" aria-label="이전 달" disabled={mi >= ms.length - 1} onClick={() => { setLedM(ms[mi + 1]); setOpen(false); }}>‹</button>
+            <div className="lm-t"><b>{curM.slice(0, 4)}년 {+curM.slice(5, 7)}월</b>{sumM && <span>적립 <em className="bt-a">+{hmTxt(sumM.in)}</em> · 사용 <em className="bt-b">−{hmTxt(sumM.out)}</em></span>}</div>
+            <button className="bs-nav" aria-label="다음 달" disabled={mi <= 0} onClick={() => { setLedM(ms[mi - 1]); setOpen(false); }}>›</button>
+          </div>
+          {(open ? rowsM : rowsM.slice(0, N)).map((l) => {
+            const v = Number(l.amount) || 0, hold = isHold(l);
+            const who = whoTxt(l);
+            return (
+              <button type="button" key={l.id} className="lg2" onClick={() => receipt(l)}>
+                <div className="l2-d"><b>{String(l.createdAt).slice(8, 10)}</b><span>{+String(l.createdAt).slice(5, 7)}월</span></div>
+                <div className="l2-t"><b>{titleOf(l)}</b><em>{who ? `${l.counterpartRole === 'HELPED' ? '도운 분' : '도와준 분'} ${who} · ` : ''}{LT[l.type] || l.type}{l.baseHours ? ` · ${hmTxt(l.baseHours)} × ${Number(l.weight || 1).toFixed(1)}` : ''}</em></div>
+                <div className="l2-r"><b className={hold ? '' : v > 0 ? 'lg-in' : 'lg-out'}>{hold ? '' : v > 0 ? '+' : '−'}{hmTxt(v)}</b><span>잔액 {hmTxt(l.balanceAfter)}</span></div>
+              </button>
+            );
+          })}
+          {rowsM.length > N && <button className="l2-more" onClick={() => setOpen(!open)}>{open ? '접기' : <>더보기 <span>{rowsM.length - N}건</span></>}</button>}
+        </div>
+      ) : <Empty>아직 내역이 없어요</Empty>}
+      <div className="mute2" style={{ margin: '8px 2px 0' }}>묶인 시간은 확정된 도움 일정에 잡혀 있는 시간이에요(끝나면 차감, 취소되면 돌아와요). 잔액 {hmTxt(bk.balance)} · 직접 적립 {hmTxt(bk.earnedSelf)} · 선물받음 {hmTxt(bk.giftReceived)} · <a role="button" tabIndex={0} style={{ color: 'var(--brand)', fontWeight: 700, cursor: 'pointer' }} onClick={rule} onKeyDown={(e) => { if (e.key === 'Enter') rule(); }}>이용 규칙</a></div>
       {/* 기능 U-24 시간 플랜 · U-25 월별 리포트 */}
       <div className="card item click" style={{ marginTop: 12 }} role="button" tabIndex={0} onClick={() => nav('/bank/time-plan')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/bank/time-plan'); }}><DIc k="ai" size={40} bare /><div className="grow"><div className="b">시간 플랜</div><div className="mute2">앞으로 몇 년, 어떤 도움을 받을 수 있는지와 적립 목표</div></div>›</div>
       <div className="card item click" style={{ marginTop: 8 }} role="button" tabIndex={0} onClick={() => nav('/bank/report')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/bank/report'); }}><span className="pb-mark"><CalIcon s={18} /></span><div className="grow"><div className="b">월별 리포트</div><div className="mute2">이번 달 봉사·도움 횟수와 지난달 대비 변화</div></div>›</div>
-      {bk.canUseSelf === false && <div className="notice" style={{ marginTop: 12 }}>직접 적립한 시간이 10시간이 되면 도움을 받을 때 쓸 수 있어요. 선물받은 시간은 바로 쓸 수 있어요.</div>}
       <div className="card" style={{ marginTop: 12 }}>
         <div className="between"><span className="b">월별 결산 <span className="mute2" style={{ fontWeight: 500 }}>최근 {(bk.monthly || []).length}개월</span></span><span className="legend"><i style={{ background: '#5B8DEF' }} />적립<i style={{ background: '#F59E4B', marginLeft: 8 }} />사용</span></div>
         {(bk.monthly || []).length ? monthBars(bk.monthly.map((m) => [monthLabel(m.month), Number(m.in) || 0, Number(m.out) || 0])) : <Empty>아직 결산할 내역이 없어요</Empty>}
         <div className="between mute2" style={{ marginTop: 4 }}><span>이번 달 적립 +{fmt(bk.monthIn)}</span><span>이번 달 사용 −{fmt(bk.monthOut)}</span></div>
         <MonthNote />
       </div>
-      <div className="sec-t"><span>적립·사용 내역</span><span className="mute2" style={{ fontWeight: 500 }}>월별 · 시간 × 난이도</span></div>
-      {entries.length ? <div className="pass">{rows}</div> : <Empty>아직 내역이 없어요</Empty>}
     </Screen>
   );
 }

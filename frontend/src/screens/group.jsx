@@ -7,18 +7,19 @@ import { Ic, CatIc, Cats, TBar, Loading, Empty, useLoad, useBusy } from '../ui/b
 import { useAuth, useUi } from '../ui/ctx.jsx';
 import { api, post, del } from '../api.js';
 import { CATS, AREAS, SHORT, hh, fmt, dlabel, addDays, todayISO } from '../lib/format.js';
+import { HelpableStrip } from './home.jsx';
 
 const KINDS = [['', '전체'], ['RECRUIT', '단체 모집'], ['OFFER', '단체 봉사 가능'], ['mine', '내 단체 봉사']];
 const ST_KO = { OPEN: null, DONE: ['ok', '완료'], CANCELLED: ['end', '취소'] };
 const MY_KO = { JOINED: ['go', '참여 신청함'], ATTENDED: ['ok', '참석 확인'], ABSENT: ['no', '불참'] };
 
-/** 공고 화면 맨 위의 1:1 공고 / 단체 공고 탭 (기능 U-10) */
-export function BoardSeg({ group }) {
+/** 공고 화면 맨 위 탭 (2026-11-13 대표 지시): 1:1 공고 / 단체 봉사 / 동네 기관 소식 */
+const BOARD_TABS = [['one', '1:1 공고', '/board'], ['group', '단체 봉사', '/board?tab=group'], ['news', '동네 기관 소식', '/board?tab=news']];
+export function BoardSeg({ cur = 'one' }) {
   const nav = useNavigate();
   return (
-    <div className="seg" role="tablist" aria-label="1:1 공고와 단체 공고" style={{ marginBottom: 12 }}>
-      <button role="tab" aria-selected={!group} className={group ? '' : 'on'} onClick={() => group && nav('/board', { replace: true })}>1:1 공고</button>
-      <button role="tab" aria-selected={!!group} className={group ? 'on' : ''} onClick={() => !group && nav('/board?tab=group', { replace: true })}>단체 공고</button>
+    <div className="seg" role="tablist" aria-label="공고 종류" style={{ marginBottom: 12 }}>
+      {BOARD_TABS.map(([k, t, to]) => <button key={k} role="tab" aria-selected={cur === k} className={cur === k ? 'on' : ''} style={{ fontSize: 14, whiteSpace: 'nowrap' }} onClick={() => cur !== k && nav(to, { replace: true })}>{t}</button>)}
     </div>
   );
 }
@@ -74,7 +75,7 @@ export function GroupBoard() {
   const shown = (list || []).filter((g) => mine || !area || g.area === area);
   return (
     <Screen title="공고" tab={org ? '/o/home' : '/board'} back={org ? true : false}>
-      {!org && <BoardSeg group />}
+      {!org && <BoardSeg cur="group" />}
       <div className="lock"><Ic n="users" s={18} /><div><b>여럿이 함께 하는 봉사예요.</b> 담당자가 그날 참석을 확인하면 참여한 사람마다 자기 통장에 활동 시간만큼 적립돼요.</div></div>
       <div className="chips" role="tablist" aria-label="단체 공고 종류" style={{ marginTop: 12 }}>
         {KINDS.map(([k, t]) => <button key={k} role="tab" aria-selected={kind === k} className={'chip ' + (kind === k ? 'on' : '')} onClick={() => setSp(k ? { tab: 'group', kind: k } : { tab: 'group' }, { replace: true })}>{k === 'mine' && org ? '우리 기관' : t}</button>)}
@@ -84,9 +85,10 @@ export function GroupBoard() {
           {['', ...AREAS].map((a) => <button key={a} className={'chip ' + (area === a ? 'on' : '')} onClick={() => setArea(a)}>{a || '행복구 전체'}</button>)}
         </div>
       )}
-      <div className="sec-t"><span>{mine ? (org ? '우리 기관 단체 봉사' : '내 단체 봉사') : '단체 공고'} <span style={{ color: 'var(--brand)' }}>{shown.length}</span>개</span></div>
+      <div className="sec-t"><span>{mine ? (org ? '우리 기관 단체 봉사' : '내 단체 봉사') : '단체 봉사'} <span style={{ color: 'var(--brand)' }}>{shown.length}</span>개</span></div>
       {list === undefined ? <Loading /> : shown.length ? shown.map((g) => <GroupCard key={g.id} g={g} />)
-        : <Empty>{mine ? '아직 올리거나 참여한 단체 봉사가 없어요' : '조건에 맞는 단체 공고가 없어요'}</Empty>}
+        : <Empty>{mine ? '아직 올리거나 참여한 단체 봉사가 없어요' : '조건에 맞는 단체 봉사가 없어요'}</Empty>}
+      {!org && <HelpableStrip />}
       {me && me.role !== 'ADMIN' && <button className="fab" onClick={() => nav('/group/new')}><Ic n="plus" s={20} /> 단체 공고 올리기</button>}
     </Screen>
   );

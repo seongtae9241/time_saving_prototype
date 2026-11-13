@@ -44,7 +44,6 @@ export function VoiceCard() {
 
 /* ===== 2026-11-11 역할별 정리판: 홈 (프로토타입 SCREENS.u_home 최종) ===== */
 const WD = ['일', '월', '화', '수', '목', '금', '토'];
-const dayTxt = (d) => { const p = String(d).slice(0, 10).split('-'); const dt = new Date(+p[0], +p[1] - 1, +p[2]); return `${+p[1]}월 ${+p[2]}일 (${WD[dt.getDay()]})`; };
 const KC = { give: '#6DB3A0', recv: '#EE9A7E', ev: '#8DB4F7' };
 
 /** 큰 통장 카드 (프로토타입 bankCard) */
@@ -60,33 +59,50 @@ function BankCard({ me }) {
   );
 }
 
-/** 내 일정 (프로토타입 planCard): 헤더 모드에 맞는 확정 일정, 가까운 날짜 3개 (기관 소식은 앱 안 신청이 없어 일정에 넣지 않는다) */
-function PlanCard({ list, give }) {
+/** 내 다음 일정 (2026-11-13 대표 지시, 프로토타입 nextSec): 헤더 모드에 맞는 확정 일정, 가까운 날짜 2개 (기관 소식은 앱 안 신청이 없어 일정에 넣지 않는다) */
+function NextSec({ list, give }) {
   const nav = useNavigate();
   const today = todayISO();
-  const up = list.filter((r) => ['CONFIRMED', 'IN_PROGRESS', 'CHECKED_OUT'].includes(r.status) && ((r.myRole === 'VOLUNTEER') === give) && String(r.date).slice(0, 10) >= today)
-    .map((r) => ({ k: give ? 'give' : 'recv', cat: r.category, t: r.content, w: give ? (r.elder ? r.elder.displayName : r.recipient && `${r.recipient.name} 님`) : r.volunteer && `${r.volunteer.name} 님`, d: String(r.date).slice(0, 10), h: r.startHour, v: give ? `+${hmTxt(r.estEarn)}` : `−${hmTxt(r.hours)}`, to: `/req/${r.id}`, r }));
-  const rows = up.sort((a, b) => a.d.localeCompare(b.d) || (a.h || 0) - (b.h || 0)).slice(0, 3);
+  const rows = list.filter((r) => ['CONFIRMED', 'IN_PROGRESS', 'CHECKED_OUT'].includes(r.status) && ((r.myRole === 'VOLUNTEER') === give) && String(r.date).slice(0, 10) >= today)
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)) || (a.startHour || 0) - (b.startHour || 0)).slice(0, 2);
+  const c = give ? ['#2F8069', '#E2F3EC'] : ['#3A6FD8', '#EDF3FE'];
+  const go = () => nav('/planner?seg=cal', { replace: true });
   return (
-    <>
-      <div className="pc-up"><span>내 일정</span><a role="button" tabIndex={0} style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 600, color: 'var(--sub)' }} onClick={() => nav('/planner')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/planner'); }}>달력 ›</a></div>
-      {rows.length ? (
-        <div className="tline pc-tl">
-          {rows.map((x, i) => (
-            <div key={i} className="tl2 click" role="button" tabIndex={0} onClick={() => nav(x.to)} onKeyDown={(e) => { if (e.key === 'Enter') nav(x.to); }}>
-              <span className="tl2-dot" style={{ borderColor: KC[x.k] }} />
-              <div className="tl2-card">
-                <DIc k={x.cat} size={44} />
-                <div className="grow" style={{ minWidth: 0 }}><div className="b">{x.t}</div><div className="mute2">{x.w} · {dayTxt(x.d)}</div></div>
-                <div className="tl2-r"><b>{x.h != null ? hh(x.h) : ''}</b><span style={{ color: KC[x.k] }}>{x.r && x.r.status === 'IN_PROGRESS' ? '활동 중' : x.r && x.r.status === 'CHECKED_OUT' ? '일지 쓰기' : x.v}</span></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : <div className="empty" style={{ padding: '18px 0' }}>확정된 {give ? '봉사' : '도움'} 일정이 없어요</div>}
+    <div className="nx">
+      <div className="sec-t" style={{ marginTop: 0 }}><span>내 다음 일정</span><a className="sec-lk" role="button" tabIndex={0} onClick={go} onKeyDown={(e) => { if (e.key === 'Enter') go(); }}>플래너 ›</a></div>
+      {rows.length ? rows.map((r) => {
+        const p = String(r.date).slice(0, 10).split('-');
+        const dt = new Date(+p[0], +p[1] - 1, +p[2]);
+        const who = give ? (r.elder ? r.elder.displayName : r.recipient && `${r.recipient.name} 님`) : r.volunteer && `${r.volunteer.name} 님`;
+        const st = r.status === 'IN_PROGRESS' ? '활동 중' : r.status === 'CHECKED_OUT' ? '일지 쓰기' : give ? '봉사 확정' : '도움 받기 확정';
+        return (
+          <div key={r.id} className="nx-card" role="button" tabIndex={0} style={{ '--nxc': c[0], '--nxs': c[1] }} onClick={() => nav(`/req/${r.id}`)} onKeyDown={(e) => { if (e.key === 'Enter') nav(`/req/${r.id}`); }}>
+            <div className="nx-d"><b>{+p[2]}</b><span>{WD[dt.getDay()]}요일</span></div>
+            <div className="grow" style={{ minWidth: 0 }}><div className="nx-tag">{st} · {hh(r.startHour)}</div><div className="b">{r.content}</div><div className="mute2">{who || ''}{who ? ' · ' : ''}{give ? `+${hmTxt(r.estEarn)}` : `−${hmTxt(r.hours)}`}</div></div>›
+          </div>
+        );
+      }) : <div className="nx-empty">{give ? '확정된 봉사 일정이 없어요' : '확정된 도움 받기 일정이 없어요'}</div>}
       {/* 7.13 B-1 방문 전 브리핑: 가장 가까운 봉사 일정 하나 */}
-      {give && rows[0] && rows[0].r && rows[0].r.status === 'CONFIRMED' && <BriefingButton id={rows[0].r.id} />}
-    </>
+      {give && rows[0] && rows[0].status === 'CONFIRMED' && <BriefingButton id={rows[0].id} />}
+    </div>
+  );
+}
+
+/** 도움 받기 홈의 AI 도움 찾기 (프로토타입 aisrch): 적은 문장으로 AI 추천 화면(/recommend)을 연다. 빠른 메뉴 'AI 추천' 자리를 대신한다 */
+const HQ = ['무릎이 아파서 병원 가기가 힘들어요', '폰으로 손주랑 영상통화 하고 싶어요', '혼자 장보기가 버거워요'];
+function AiSearch() {
+  const nav = useNavigate();
+  const [q, setQ] = useState('');
+  const ask = (t) => nav(`/recommend?q=${encodeURIComponent(t)}`);
+  return (
+    <div className="aisrch-wrap">
+      <h3>어떤 도움이 필요하신가요?</h3>
+      <p>편하게 적으면 AI가 받을 수 있는 도움과 맞는 공고를 찾아 드려요</p>
+      <form className="aisrch" onSubmit={(e) => { e.preventDefault(); const v = q.trim(); if (v) ask(v); }}>
+        <span aria-hidden="true">✨</span><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="예) 무릎이 아파서 병원 가기가 힘들어요" aria-label="필요한 도움 적기" autoComplete="off" /><button type="submit" aria-label="AI에게 묻기"><Ic h={I.send} /></button>
+      </form>
+      <div className="aisrch-q">{HQ.map((t) => <button key={t} type="button" onClick={() => ask(t)}>{t}</button>)}</div>
+    </div>
   );
 }
 
@@ -128,7 +144,7 @@ function WaitBox({ need, give }) {
 }
 
 /** 이웃 카드 (프로토타입 nCard) */
-function NCard({ p }) {
+export function NCard({ p }) {
   const nav = useNavigate();
   const off = p.type === 'OFFER';
   const name = p.elderDisplayName || p.ownerName || '이웃';
@@ -138,6 +154,21 @@ function NCard({ p }) {
       <div className="n3-note">{off ? (p.note || p.title) : p.title}</div>
       <div className="n3-f"><span className="n3-tag">{postCats(p)[0]}</span><span>{dlabel(p.date)} {hh(p.startHour)}</span></div>
     </div>
+  );
+}
+
+/** 공고 화면 세 탭에 공통으로 두는 "내가 도와줄 수 있는 이웃"(2026-11-13 대표 지시): 가까운 봉사 요청 공고를 가로로 넘겨 본다 */
+export function HelpableStrip() {
+  const nav = useNavigate();
+  const [posts] = useLoad(() => api('/posts?type=NEED&sort=near', { quiet: true }).catch(() => []), []);
+  const near = (posts || []).filter((p) => !p.mine && !p.proxyMine && (p.status || 'OPEN') === 'OPEN').slice(0, 10);
+  if (!near.length) return null;
+  const all = () => nav('/board?type=NEED', { replace: true });
+  return (
+    <>
+      <div className="sec-t"><span>내가 도와줄 수 있는 이웃</span><span className="sec-r"><a role="button" tabIndex={0} onClick={all} onKeyDown={(e) => { if (e.key === 'Enter') all(); }}>전체 ›</a></span></div>
+      <div className="npanel"><div className="hs hs2">{near.map((p) => <NCard key={p.id} p={p} />)}</div></div>
+    </>
   );
 }
 
@@ -242,28 +273,25 @@ export function UHome() {
   const shown = (posts || []).filter((p) => !p.mine && p.status === 'OPEN');
   const near = (give ? shown : sortByTop(shown, top)).slice(0, 10);
   const evs = (events || []).slice(0, 5);
-  const qa = give
-    ? null // 봉사하기 홈: 빠른 메뉴 대신 '도움 가능 · 봉사 확인서' 한 섹션(대표 지시 2026-11-12). 단골 관리·첫 활동 교육은 마이, 플래너는 아래 탭
-    : [['/write/need', '봉사 요청', 'req'], ['/regular', '단골 요청', 'regular'], ['/public', '공공 서비스', 'public'], ['/recommend', 'AI 추천', 'ai'], ['/planner', '플래너', 'cal']];
+  const todo = (to, ic, t, d2, st) => <div className="todo" role="button" tabIndex={0} onClick={() => nav(to)} onKeyDown={(e) => { if (e.key === 'Enter') nav(to); }}><DIc k={ic} size={44} /><div className="grow"><div className="t">{t}</div><div className="d">{d2}</div></div><span className="st go">{st}</span></div>;
+  const boardTo = `/board?type=${give ? 'NEED' : 'OFFER'}`;
   return (
     <Screen title={<span className="hlogo"><i><Ic h={I.logo} /></i>시간 적금</span>} back={false}>
+      {/* 2026-11-13 대표 지시: 시간 통장 요약 → 내 다음 일정 → (모드별) → 이웃. 작은 사각형 빠른 메뉴는 두 모드 모두 없앴다.
+          옮긴 진입점: 공고 올리기 = 공고 화면, 단골 = 마이 · 단골 관리, 공공 서비스 = 마이 · 플래너 AI 도움 추천, AI 추천 = 아래 "어떤 도움이 필요하신가요?" */}
       <BankCard me={me} />
-      <PlanCard list={list} give={give} />
-      {qa ? (
-        <div className="qa" style={{ marginTop: 18 }}>
-          {qa.map(([g, t, i, sub]) => <button key={t} onClick={() => nav(g)} aria-label={sub ? `${t} ${sub}` : t}><DIc k={i} size={56} />{t}{sub && <small className="qm-sub">{sub}</small>}</button>)}
-        </div>
-      ) : (
+      <NextSec list={list} give={give} />
+      {give ? (
         <>
-          <div className="sec-t"><span>봉사하기</span></div>
-          <div className="todo" role="button" tabIndex={0} onClick={() => nav('/write/offer')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/write/offer'); }}><DIc k="offer" size={44} /><div className="grow"><div className="t">도움 가능 공고 올리기</div><div className="d">도울 수 있는 날짜·시간·도움 종류를 올려요</div></div><span className="st go">올리기</span></div>
-          <div className="todo" role="button" tabIndex={0} onClick={() => nav('/my/cert')} onKeyDown={(e) => { if (e.key === 'Enter') nav('/my/cert'); }}><DIc k="cert" size={44} /><div className="grow"><div className="t">봉사 확인서</div><div className="d">기간을 골라 봉사 활동 확인서를 받아요</div></div><span className="st go">발급</span></div>
+          {/* 봉사하기: "도움 가능"은 하나의 메뉴(프로토타입 givecta) */}
+          <button className="givecta" onClick={() => nav('/write/offer')}><DIc k="offer" size={48} /><div><b>도움 가능</b><span>내가 도울 수 있는 시간을 공고로 올려요</span></div><span className="gc-ar" aria-hidden="true">›</span></button>
+          <a className="givelink" role="button" tabIndex={0} onClick={() => nav(boardTo, { replace: true })} onKeyDown={(e) => { if (e.key === 'Enter') nav(boardTo, { replace: true }); }}>도움이 필요한 이웃 공고 보기 ›</a>
         </>
-      )}
+      ) : <AiSearch />}
       {reqs === undefined ? null : <WaitBox need={need} give={give} />}
       {give && <RecBox />}
       {give && <BundleLink />}
-      <div className="sec-t"><span>{give ? '도움이 필요한 이웃' : '도와줄 수 있는 이웃'}</span><span className="sec-r"><a role="button" tabIndex={0} onClick={() => nav(`/board?type=${give ? 'NEED' : 'OFFER'}`, { replace: true })} onKeyDown={(e) => { if (e.key === 'Enter') nav(`/board?type=${give ? 'NEED' : 'OFFER'}`, { replace: true }); }}>전체 ›</a></span></div>
+      <div className="sec-t"><span>{give ? '도움이 필요한 이웃' : '도와줄 수 있는 이웃'}</span><span className="sec-r"><a role="button" tabIndex={0} onClick={() => nav(boardTo, { replace: true })} onKeyDown={(e) => { if (e.key === 'Enter') nav(boardTo, { replace: true }); }}>전체 ›</a></span></div>
       <div className="npanel"><div className="hs hs2">{near.map((p) => <NCard key={p.id} p={p} />)}{posts && !near.length && <Empty>근처에 열린 공고가 없어요</Empty>}</div></div>
       {evs.length > 0 && (
         <>
@@ -271,6 +299,8 @@ export function UHome() {
           <EvSlider events={evs} />
         </>
       )}
+      {/* 봉사하기: 봉사 확인서는 아래쪽에 하나의 메뉴로(2026-11-13 대표 지시) */}
+      {give && <><div className="sec-t"><span>봉사 확인서</span></div>{todo('/my/cert', 'cert', '봉사 확인서', '기간을 골라 봉사 활동 확인서를 받아요', '발급')}</>}
       {/* 프로토타입에 자리가 없는 기존 기능: 물어보기 · 말로 요청하기 · 이번 주 기관 클래스 */}
       <div className="sec-t"><span>말로 편하게</span></div>
       <AskBar />
