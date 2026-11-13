@@ -71,7 +71,57 @@ public class PostController {
         if ((lat != null || lng != null) && !Geo.valid(lat, lng)) throw ApiException.bad("INVALID_LOCATION", "위치 값이 맞지 않아요");
         List<Map<String, Object>> list = posts.list(u, type, area, date, cat, sort, dateFrom, dateTo, lat, lng);
         if (matchReasons != null) matchReasons.decorateCards(u, list);
+        markBookmarks(u, list);
         return list;
+    }
+
+    // ======================= 관심 공고(북마크, 2026-11-13 대표 지시) =======================
+    @org.springframework.beans.factory.annotation.Autowired private PostBookmarkRepo bookmarks;
+
+    private Set<Long> bookmarkedIds(User u) {
+        Set<Long> ids = new HashSet<>();
+        bookmarks.findByUserIdOrderByCreatedAtDescIdDesc(u.id).forEach(b -> ids.add(b.postId));
+        return ids;
+    }
+
+    /** 공고 카드마다 bookmarked(내가 관심 공고로 담았는지)를 붙인다. */
+    private void markBookmarks(User u, List<Map<String, Object>> cards) {
+        Set<Long> ids = bookmarkedIds(u);
+        for (Map<String, Object> c : cards) c.put("bookmarked", ids.contains(((Number) c.get("id")).longValue()));
+    }
+
+    /** 내가 담은 관심 공고: 담은 순서가 최근인 것부터. 삭제된 공고는 빼고, 마감·매칭된 공고는 status 로 구분해 그대로 준다. */
+    @GetMapping("/posts/bookmarks")
+    public List<Map<String, Object>> bookmarkList(@CurrentUser User u) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (PostBookmark b : bookmarks.findByUserIdOrderByCreatedAtDescIdDesc(u.id)) {
+            Post p = postRepo.findById(b.postId).orElse(null);
+            if (p == null || p.status == PostStatus.DELETED) continue;
+            Map<String, Object> card = posts.decorate(views.postCard(p, u), p, u);
+            card.put("bookmarked", true);
+            card.put("bookmarkedAt", b.createdAt);
+            out.add(card);
+        }
+        return out;
+    }
+
+    @PostMapping("/posts/{id}/bookmark")
+    public Map<String, Object> bookmark(@CurrentUser User u, @PathVariable Long id) {
+        Post p = posts.get(id);
+        if (p.status == PostStatus.DELETED) throw ApiException.notFound("삭제된 공고예요");
+        if (u.id.equals(p.ownerId)) throw ApiException.bad("OWN_POST", "내가 올린 공고는 관심 공고에 담지 않아요");
+        if (bookmarks.findByUserIdAndPostId(u.id, id).isEmpty()) {
+            PostBookmark b = new PostBookmark();
+            b.userId = u.id; b.postId = id;
+            bookmarks.save(b);
+        }
+        return Views.map("postId", id, "bookmarked", true);
+    }
+
+    @DeleteMapping("/posts/{id}/bookmark")
+    public Map<String, Object> unbookmark(@CurrentUser User u, @PathVariable Long id) {
+        bookmarks.findByUserIdAndPostId(u.id, id).ifPresent(bookmarks::delete);
+        return Views.map("postId", id, "bookmarked", false);
     }
 
     /**
@@ -100,6 +150,7 @@ public class PostController {
         if (p.status == PostStatus.DELETED) throw ApiException.notFound("삭제된 공고예요");
         Map<String, Object> card = posts.decorate(views.postCard(p, u), p, u);
         if (matchReasons != null) matchReasons.decorateCards(u, List.of(card));
+        card.put("bookmarked", bookmarks.findByUserIdAndPostId(u.id, p.id).isPresent());
         if (unmatched != null && posts.canEdit(p, u) && p.status == PostStatus.OPEN) card.put("fixTips", unmatched.tipsOf(p));
         if (posts.canSeeRequests(p, u)) {
             // 대신 올린 사람(B-57)은 진행 상황을 읽기만 한다: requestView 의 actions 가 비어 있고, 수락·거부 API 도 가족 본인만 통과한다

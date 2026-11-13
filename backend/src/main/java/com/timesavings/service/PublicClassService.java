@@ -129,7 +129,8 @@ public class PublicClassService {
                     "date", c.startDate == null ? null : c.startDate.toString(), "startHour", null,
                     "when", whenLabel(c.startDate, c.endDate, today) + (c.scheduleText == null ? "" : " · " + c.scheduleText),
                     "place", c.place, "area", c.region, "near", viewerArea != null && !viewerArea.isBlank() && text.contains(viewerArea),
-                    "url", c.applyUrl, "image", c.imageUrl, "aiFound", ai, "notice", ai ? AI_NOTICE : null));
+                    "url", c.applyUrl, "image", c.imageUrl, "aiFound", ai, "notice", ai ? AI_NOTICE : null,
+                    "createdAt", c.createdAt == null ? null : c.createdAt.toString()));
         }
         return out;
     }

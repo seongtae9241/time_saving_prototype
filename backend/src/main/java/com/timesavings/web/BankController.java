@@ -45,10 +45,25 @@ public class BankController {
         BankService.Summary s = bank.summary(u.id);
         List<Map<String, Object>> monthly = bank.monthly(u.id, 6);
         Map<String, Object> cur = monthly.get(monthly.size() - 1);
+        // 2026-11-13 대표 지시: 건마다 "그 뒤 잔액"과 "도움 준(받은) 사람"을 서버가 계산해 준다.
+        // 잔액은 원장을 시간순으로 더한 값(보류·보류 해제는 잔액을 바꾸지 않는다).
+        List<Ledger> desc = bank.entries(u.id);
+        Map<Long, Double> after = new HashMap<>();
+        double run = 0;
+        for (int i = desc.size() - 1; i >= 0; i--) {
+            Ledger l = desc.get(i);
+            if (l.type != LedgerType.HOLD && l.type != LedgerType.RELEASE) run += l.amount;
+            after.put(l.id, Math.round(run * 100) / 100.0);
+        }
         List<Map<String, Object>> entries = new ArrayList<>();
-        for (Ledger l : bank.entries(u.id))
-            entries.add(Views.map("id", l.id, "type", l.type, "amount", l.amount, "baseHours", l.baseHours, "weight", l.weight,
-                    "label", l.label, "requestId", l.requestId, "createdAt", l.createdAt));
+        for (Ledger l : desc) {
+            Map<String, Object> e = Views.map("id", l.id, "type", l.type, "amount", l.amount, "baseHours", l.baseHours, "weight", l.weight,
+                    "label", l.label, "requestId", l.requestId, "createdAt", l.createdAt, "balanceAfter", after.get(l.id));
+            String[] who = counterpart(u, l);
+            e.put("counterpart", who == null ? null : who[0]);
+            e.put("counterpartRole", who == null ? null : who[1]);
+            entries.add(e);
+        }
         double[] tot = bank.totals(u.id);
         return Views.map("accountNo", BankService.accountNo(u.id), "totalEarned", tot[0], "totalUsed", tot[1],
                 "balance", s.balance(), "hold", s.hold(), "available", s.available(), "usable", s.usable(),
@@ -56,6 +71,28 @@ public class BankController {
                 "selfUseMin", BankService.SELF_USE_MIN, "monthIn", cur.get("in"), "monthOut", cur.get("out"),
                 "monthly", monthly, "entries", entries,
                 "months", bank.monthsAll(u.id)); // 기능 U-22: 월별 합계(거래가 있는 모든 달)
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired private ElderRepo elderRepo;
+
+    /**
+     * 거래의 상대: [이름, 역할]. 역할은 HELPER(나를 도와준 사람) · HELPED(내가 도운 사람).
+     * 원장에는 상대 이름이 없어서 요청 기록에서 찾는다. 기관 대상은 가린 이름으로. 요청과 이어지지 않은 거래(선물·조정)는 null.
+     */
+    private String[] counterpart(User u, Ledger l) {
+        if (l.requestId == null) return null;
+        Request r = requests.findById(l.requestId).orElse(null);
+        if (r == null) return null;
+        if (u.id.equals(r.volunteerId)) {
+            if (r.elderId != null) {
+                Elder e = elderRepo.findById(r.elderId).orElse(null);
+                return e == null ? null : new String[]{Rules.maskAlias(e.alias), "HELPED"};
+            }
+            User to = r.recipientId == null ? null : users.findById(r.recipientId).orElse(null);
+            return to == null ? null : new String[]{to.name, "HELPED"};
+        }
+        User v = users.findById(r.volunteerId).orElse(null);
+        return v == null ? null : new String[]{v.name, "HELPER"};
     }
 
     private FamilyLink acceptedLink(Long a, Long b) {

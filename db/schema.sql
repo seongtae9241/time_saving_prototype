@@ -25,6 +25,7 @@
 --   표는 그대로이고 값만 늘어난 것: ai_results.kind 에 FIN_MONTHLY(재정 추계 월간 요약, ref_key=연-월)
 --     app_settings 에 categories.extra(운영자가 더한 카테고리 {이름: 등급} JSON), verify.items 값에 edu 항목
 --     ledger 의 단체 봉사 적립은 type=EARN · request_id null · label "단체 봉사 · …"
+-- 2026-11-13 사용자 화면 변경(계약서 7.20): 새 표 post_bookmarks(관심 공고 — 사용자가 ☆로 담은 1:1 공고). 다른 표는 그대로.
 
 
 create table ai_notes (
@@ -396,6 +397,14 @@ create table planner_picks (
     primary key (id)
 ) engine=InnoDB;
 
+create table post_bookmarks ( -- 2026-11-13 추가: 관심 공고(북마크)
+    created_at datetime(6),
+    id bigint not null auto_increment,
+    post_id bigint not null,
+    user_id bigint not null,
+    primary key (id)
+) engine=InnoDB;
+
 create table posts (
     date date not null,
     end_hour float(53) not null,
@@ -745,6 +754,12 @@ create index ix_recur_owner
 
 create index ix_recur_status 
    on recurring_posts (status);
+
+alter table post_bookmarks 
+   add constraint uq_post_bookmark unique (user_id, post_id);
+
+create index ix_post_bookmark_user 
+   on post_bookmarks (user_id);
 
 alter table regular_marks 
    add constraint uq_regular_mark unique (user_id, volunteer_id);

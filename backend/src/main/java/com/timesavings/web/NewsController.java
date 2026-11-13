@@ -70,7 +70,7 @@ public class NewsController {
      */
     @GetMapping("/news")
     @Transactional
-    public Map<String, Object> news(@CurrentUser User u, @RequestParam(required = false) String area) {
+    public Map<String, Object> news(@CurrentUser User u, @RequestParam(required = false) String area, @RequestParam(required = false) String sort) {
         String a = area == null || area.isBlank() ? null : area.trim();
         List<Map<String, Object>> items = new ArrayList<>();
         for (Map<String, Object> e : events.list(u, a)) {
@@ -78,12 +78,15 @@ public class NewsController {
                     "orgName", e.get("orgName"), "date", e.get("date"), "startHour", e.get("startHour"), "when", null, "place", e.get("place"),
                     "area", e.get("area"), "near", e.get("near"), "url", e.get("url"), "capacity", e.get("capacity"), "image", e.get("preview") instanceof Map<?, ?> p ? p.get("image") : null,
                     "aiFound", false, "notice", null);
+            m.put("createdAt", e.get("createdAt"));
             items.add(m);
         }
         items.addAll(classes.newsItems(a, u.area));
         // 내 동네 먼저, 그 안에서는 날짜 빠른 순(날짜 없는 것은 뒤)
         items.sort(Comparator.<Map<String, Object>>comparingInt(m -> Boolean.TRUE.equals(m.get("near")) ? 0 : 1)
                 .thenComparing(m -> m.get("date") == null ? "9999" : String.valueOf(m.get("date"))));
+        // 2026-11-13 대표 지시: 공고 화면의 "동네 기관 소식" 탭은 올라온 순서가 최근인 것부터(sort=new)
+        if ("new".equals(sort)) items.sort(Comparator.<Map<String, Object>, String>comparing(m -> Objects.toString(m.get("createdAt"), "")).reversed());
         return Views.map("items", items, "area", a, "searchAvailable", classes.searchAvailable(), "aiNotice", PublicClassService.AI_NOTICE);
     }
 
