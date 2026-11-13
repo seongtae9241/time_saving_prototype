@@ -80,8 +80,8 @@ export function OWeather() {
 }
 
 /* ---------- 공공 서비스 연계 ---------- */
-const PR_ST = { NEW: ['wait', '새 요청'], CONTACTED: ['go', '연락함'], HELPING: ['go', '신청 도움 중'], DONE: ['ok', '완료'], NOT_ELIGIBLE: ['end', '대상이 아니에요'] };
-const PR_NEXT = [['CONTACTED', '연락했어요'], ['HELPING', '신청 도와드리는 중'], ['DONE', '완료'], ['NOT_ELIGIBLE', '대상이 아니에요']];
+export const PR_ST = { NEW: ['wait', '새 요청'], CONTACTED: ['go', '연락함'], HELPING: ['go', '신청 도움 중'], DONE: ['ok', '완료'], NOT_ELIGIBLE: ['end', '대상이 아니에요'] };
+export const PR_NEXT = [['CONTACTED', '연락했어요'], ['HELPING', '신청 도와드리는 중'], ['DONE', '완료'], ['NOT_ELIGIBLE', '대상이 아니에요']];
 
 export function PrServices({ list }) {
   if (!(list || []).length) return <div className="small muted">AI가 찾은 서비스가 없어요</div>;

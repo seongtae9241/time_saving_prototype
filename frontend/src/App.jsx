@@ -5,14 +5,16 @@ import { Notif, Notice, NoticeDetail, Qna, QnaNew } from './screens/common.jsx';
 import { UHome } from './screens/home.jsx';
 import { Board, PostDetail } from './screens/board.jsx';
 import { ReqForm, Regular, RequestDetail, LogWrite, Rate } from './screens/request.jsx';
-import { Write, WriteOffer, WriteNeed, WriteNeedManual, PostEdit } from './screens/write.jsx';
+import { Write, WriteOffer, WriteNeedManual, PostEdit } from './screens/write.jsx';
 import { Act, Bank, Gift } from './screens/bank.jsx';
 import { My, ProfileEdit, Verify, Family, FamReport, AlertSet, NotiSet, Cert, InfoEdit, Withdraw, Suggest } from './screens/my.jsx';
 import { Recommend, Public } from './screens/ai.jsx';
 import { VoiceReq } from './screens/voice.jsx';
-import { OElders, EDetail, EForm, OReport, OMy } from './screens/org.jsx';
+import { Elders } from './screens/eldersPc.jsx'; // 담당자 PC 2차(계약서 7.23): 관리 대상 목록 + 상세 + 등록·수정 패널 (좁으면 기존 모바일 화면)
+import { OReqDetail, OWriteNeed, OWeather, OPublicRefs, OReport, OEvents, OMy } from './screens/orgPc2.jsx'; // 담당자 PC 2차: 요청 상세·대신 요청·특보·공공 연계·리포트·기관 행사·내 정보
+import { PcLayout } from './ui/PcLayout.jsx'; // 담당자 PC 틀을 한 번만 그린다
 import { OHome, OReqs } from './screens/orgPc.jsx'; // 담당자 PC 틀(5판): 폭 901px 이상이면 PC 홈·요청 보드, 좁으면 기존 모바일 화면
-import { News, EventDetail, OEvents, OEventNew } from './screens/news.jsx';
+import { News, EventDetail } from './screens/news.jsx';
 import { OSchedule } from './screens/schedulePc.jsx'; // 기능 O-11~O-13 돌봄 편성표 (PC: 일/주/월 캘린더, 좁으면 기존 표)
 import { Edu, EduCard, EduQuiz, EduRp, EduRpRes } from './screens/edu.jsx';
 import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANotices, APub, APersona, AVerify, ASuggest } from './screens/admin.jsx';
@@ -26,7 +28,7 @@ import { GroupDetail, GroupNew } from './screens/group.jsx'; // 기능 U-10·U-1
 import { Bundle } from './screens/bundle.jsx'; // 기능 U-12 빈 시간 묶음 추천
 import { RecurringList, RecurringNew } from './screens/recurring.jsx'; // 기능 U-09 정기 요청
 import { AForecast, ASim, AStats, ARecruit, AWeather, AMgrApps } from './screens/adminReports.jsx'; // 기능명세서 운영자 리포트
-import { OWeather, OPublicRefs, MyPublicRefs } from './screens/orgExtra.jsx'; // 특보 알림 · 공공 서비스 연계
+import { MyPublicRefs } from './screens/orgExtra.jsx'; // 특보 알림 · 공공 서비스 연계
 import { ManagerApply } from './screens/managerApply.jsx'; // 기능 C-04 담당자 계정 신청
 import { TimePlan, MonthReport } from './screens/timeplan.jsx'; // 기능 U-24 시간 플랜 · U-25 월별 리포트
 
@@ -45,6 +47,7 @@ const g = (el, roles) => <Guard roles={roles}>{el}</Guard>;
 function Shell() {
   return (
     <div id="app">
+      <PcLayout>
       <Routes>
         <Route path="/" element={<Splash />} />
         <Route path="/login" element={<Onboard />} />
@@ -75,7 +78,7 @@ function Shell() {
         <Route path="/regular" element={g(<Regular />, UO)} />
         <Route path="/write" element={g(<Write />, U)} />
         <Route path="/write/offer" element={g(<WriteOffer />, U)} />
-        <Route path="/write/need" element={g(<WriteNeed />, UO)} />
+        <Route path="/write/need" element={g(<OWriteNeed />, UO)} />
         <Route path="/write/need/manual" element={g(<WriteNeedManual />, UO)} />
         <Route path="/bundle" element={g(<Bundle />, U)} />
         <Route path="/recurring" element={g(<RecurringList />, UO)} />
@@ -116,17 +119,17 @@ function Shell() {
         <Route path="/news/class/:id" element={g(<ClassDetail />, UO)} />
         <Route path="/news/:id" element={g(<EventDetail />, UO)} />
         <Route path="/o/events" element={g(<OEvents />, O)} />
-        <Route path="/o/events/new" element={g(<OEventNew />, O)} />
+        <Route path="/o/events/new" element={g(<OEvents form />, O)} />
         {/* 동네 클래스는 2026-11-10 사용자 결정으로 삭제: 예전 링크는 동네 소식으로 */}
         <Route path="/cls/*" element={<Navigate to="/news" replace />} />
 
         <Route path="/o/home" element={g(<OHome />, O)} />
-        <Route path="/o/elders" element={g(<OElders />, O)} />
-        <Route path="/o/elders/new" element={g(<EForm />, O)} />
-        <Route path="/o/elders/:id" element={g(<EDetail />, O)} />
-        <Route path="/o/elders/:id/edit" element={g(<EForm />, O)} />
+        <Route path="/o/elders" element={g(<Elders m="list" />, O)} />
+        <Route path="/o/elders/new" element={g(<Elders m="form" form="new" />, O)} />
+        <Route path="/o/elders/:id" element={g(<Elders m="detail" />, O)} />
+        <Route path="/o/elders/:id/edit" element={g(<Elders m="form" form="edit" />, O)} />
         <Route path="/o/reqs" element={g(<OReqs />, O)} />
-        <Route path="/o/reqs/:id" element={g(<RequestDetail />, O)} />
+        <Route path="/o/reqs/:id" element={g(<OReqDetail />, O)} />
         <Route path="/o/report" element={g(<OReport />, O)} />
         <Route path="/o/schedule" element={g(<OSchedule />, O)} />
         <Route path="/o/weather" element={g(<OWeather />, O)} />
@@ -157,6 +160,7 @@ function Shell() {
         <Route path="/a/mgr-apps" element={g(<AMgrApps />, A)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </PcLayout>
     </div>
   );
 }

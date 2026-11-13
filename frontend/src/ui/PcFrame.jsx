@@ -1,6 +1,6 @@
 /* 담당자(ORG) PC 틀 — 프로토타입 5판(2026-11-13). 계약서 7.22.
    폭 901px 이상에서 역할이 ORG 일 때만 쓴다. 그보다 좁으면 Frame.jsx 의 모바일 틀이 그대로 나온다. */
-import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
+import { createContext, useContext, useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './ctx.jsx';
 import { api } from '../api.js';
@@ -32,6 +32,17 @@ export const ICO = {
   plus: LI('<path d="M12 5v14M5 12h14"/>'),
   mic: LI('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
   swap: LI('<path d="M4 8h14l-3-3M20 16H6l3 3"/>'),
+  x: LI('<path d="M6 6l12 12M18 6L6 18"/>'),
+  check: LI('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
+  shield: LI('<path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/>'),
+  qr: LI('<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 14h2M14 18h2M18 18h2v2"/>'),
+  chat: LI('<path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H6a2 2 0 0 1-2-2z"/>'),
+  file: LI('<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>'),
+  gear: LI('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>'),
+  tag: LI('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="8" cy="8" r="1.5"/>'),
+  redo: LI('<path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/>'),
+  flag: LI('<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>'),
+  phone: LI('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A15 15 0 0 1 4 5a1 1 0 0 1 1-1z"/>'),
 };
 export const PIc = ({ k }) => <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: ICO[k] || ICO.list }} />;
 
@@ -110,7 +121,8 @@ function activeMenu(loc) {
   return '';
 }
 
-/* 프로필 숫자 3줄(관리 대상 · 처리할 일 · 이번 주 돌봄): 화면을 옮길 때마다 틀이 다시 그려지므로 한 번 받은 값을 1분 동안 나눠 쓴다 */
+/* 프로필 숫자 3줄(관리 대상 · 처리할 일 · 이번 주 돌봄): 한 번 받은 값을 1분 동안 나눠 쓴다.
+   요청 처리·등록처럼 자료를 바꾸는 호출이 끝나면(api.js 가 'ts-mutated' 를 알림) 캐시를 비우고 다시 받는다. */
 let statCache = null, statAt = 0, statUser = null;
 function loadStats(userId) {
   if (!statCache || statUser !== userId || Date.now() - statAt > 60000) {
@@ -123,66 +135,117 @@ function loadStats(userId) {
 let lastStats = null;
 function useStats(userId) {
   const [v, setV] = useState(lastStats && lastStats.u === userId ? lastStats.v : null);
-  useEffect(() => { let on = true; loadStats(userId).then((x) => { lastStats = { u: userId, v: x }; if (on) setV(x); }); return () => { on = false; }; }, [userId]);
+  useEffect(() => {
+    let on = true, t = null;
+    const load = () => loadStats(userId).then((x) => { lastStats = { u: userId, v: x }; if (on) setV(x); });
+    load();
+    const changed = () => { clearTimeout(t); t = setTimeout(() => { statCache = null; load(); }, 400); };
+    window.addEventListener('ts-mutated', changed);
+    return () => { on = false; clearTimeout(t); window.removeEventListener('ts-mutated', changed); };
+  }, [userId]);
   return v;
 }
 
 const DOW = ['일', '월', '화', '수', '목', '금', '토'];
 const todayText = () => { const d = new Date(); const z = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}.${z(d.getMonth() + 1)}.${z(d.getDate())} (${DOW[d.getDay()]})`; };
 
-/**
- * 담당자 PC 틀: 왼쪽 메뉴(로고·프로필 카드·숫자 3줄·그룹 메뉴·로그아웃) + 위 막대(제목·날짜·알림 종·프로필) + 본문.
- * wide=true 인 화면(홈·요청 보드·편성표)은 본문을 가득 쓰고, 나머지는 모바일 본문을 가운데 카드에 담는다.
- */
-export function PcShell({ title, wide, cls = '', canBack, bodyRef, onDemo, children }) {
-  const { me, unread, logout } = useAuth();
+/* ---------- 틀과 본문 사이 연결 ----------
+   틀(왼쪽 메뉴·위 막대)은 App 에서 한 번만 그리고(ui/PcLayout.jsx), 화면은 본문만 그린다. 화면 제목·뒤로 버튼 여부는 PcHeadCtx 로 올린다.
+   PcSideCtx 를 주면 본문이 "위 줄 + 왼쪽 목록 340px + 오른쪽 상세" 두 칸으로 그려진다(오른쪽에 기존 모바일 본문이 들어간다). */
+export const PcHeadCtx = createContext(null);
+export const PcSideCtx = createContext(null);
+
+/** 왼쪽 메뉴: 로고 · 프로필 카드 · 숫자 3줄 · 그룹 메뉴 · 계정 바꾸기 · 로그아웃 */
+export function PcNav({ onDemo }) {
+  const { me, logout } = useAuth();
   const nav = useNavigate();
   const loc = useLocation();
   const on = activeMenu(loc);
   const stats = useStats(me && me.id);
-  useLayoutEffect(() => { document.body.classList.add('pcw-on'); return () => document.body.classList.remove('pcw-on'); }, []);
   const org = (me && (me.orgName || (me.org && me.org.name))) || '기관';
   const n = (x, u) => (x == null ? '-' : `${x}${u}`);
+  return (
+    <aside className="pcw-nav">
+      <div className="pfl">
+        <div className="pf-top"><span className="pf-lg"><PIc k="logo" /></span><b>시간 적금</b></div>
+        <button type="button" className="pf-card" onClick={() => nav('/o/my')} aria-label="내 정보·설정">
+          <div className="pf-av" aria-hidden="true">{me ? me.name[0] : ''}</div>
+          <div style={{ minWidth: 0 }}><div className="pf-o">{org}</div><div className="pf-n">{me && me.name} <small>담당자</small></div></div>
+        </button>
+        <div className="pf-rows">
+          <button type="button" onClick={() => nav('/o/elders')}><span>관리 대상</span><b>{n(stats && stats.elders, '명')}</b></button>
+          <button type="button" onClick={() => nav('/o/reqs')}><span>처리할 일</span><b>{n(stats && stats.todo, '건')}</b></button>
+          <button type="button" onClick={() => nav('/o/schedule')}><span>이번 주 돌봄</span><b>{n(stats && stats.week, '건')}</b></button>
+        </div>
+      </div>
+      <nav className="nv-card" aria-label="담당자 메뉴">
+        {ORG_MENU.map(([g, items]) => (
+          <div key={g}>
+            <div className="gp">{g}</div>
+            {items.map(([k, l, i]) => <button key={k} type="button" className={'nv ' + (on === k ? 'on' : '')} aria-current={on === k ? 'page' : undefined} onClick={() => nav(k)}><span className="ni"><PIc k={i} /></span>{l}</button>)}
+          </div>
+        ))}
+        <div className="nv-foot">
+          {onDemo && <button type="button" className="nv" onClick={onDemo}><span className="ni"><PIc k="swap" /></span>계정 바꾸기</button>}
+          <button type="button" className="nv" onClick={async () => { await logout(); nav('/login', { replace: true }); }}><span className="ni"><PIc k="out" /></span>로그아웃</button>
+        </div>
+      </nav>
+    </aside>
+  );
+}
+
+/** 위 막대: 뒤로 · 제목 · 날짜 · 알림 종(children 으로 드롭다운) · 프로필 알약 */
+export function PcTop({ head, bell }) {
+  const { me } = useAuth();
+  const nav = useNavigate();
+  const loc = useLocation();
   const isRoot = ORG_MENU.some(([, items]) => items.some(([k]) => k.split('?')[0] === loc.pathname));
   return (
-    <div className="pcw">
-      <aside className="pcw-nav">
-        <div className="pfl">
-          <div className="pf-top"><span className="pf-lg"><PIc k="logo" /></span><b>시간 적금</b></div>
-          <button type="button" className="pf-card" onClick={() => nav('/o/my')} aria-label="내 정보·설정">
-            <div className="pf-av" aria-hidden="true">{me ? me.name[0] : ''}</div>
-            <div style={{ minWidth: 0 }}><div className="pf-o">{org}</div><div className="pf-n">{me && me.name} <small>담당자</small></div></div>
-          </button>
-          <div className="pf-rows">
-            <button type="button" onClick={() => nav('/o/elders')}><span>관리 대상</span><b>{n(stats && stats.elders, '명')}</b></button>
-            <button type="button" onClick={() => nav('/o/reqs')}><span>처리할 일</span><b>{n(stats && stats.todo, '건')}</b></button>
-            <button type="button" onClick={() => nav('/o/schedule')}><span>이번 주 돌봄</span><b>{n(stats && stats.week, '건')}</b></button>
-          </div>
-        </div>
-        <nav className="nv-card" aria-label="담당자 메뉴">
-          {ORG_MENU.map(([g, items]) => (
-            <div key={g}>
-              <div className="gp">{g}</div>
-              {items.map(([k, l, i]) => <button key={k} type="button" className={'nv ' + (on === k ? 'on' : '')} aria-current={on === k ? 'page' : undefined} onClick={() => nav(k)}><span className="ni"><PIc k={i} /></span>{l}</button>)}
-            </div>
-          ))}
-          <div className="nv-foot">
-            {onDemo && <button type="button" className="nv" onClick={onDemo}><span className="ni"><PIc k="swap" /></span>계정 바꾸기</button>}
-            <button type="button" className="nv" onClick={async () => { await logout(); nav('/login', { replace: true }); }}><span className="ni"><PIc k="out" /></span>로그아웃</button>
-          </div>
-        </nav>
-      </aside>
-      <div className="pcw-main">
-        <header className="mtop">
-          {canBack && !isRoot && <button type="button" className="ic" aria-label="뒤로" onClick={() => nav(-1)}><PIc k="back" /></button>}
-          <h1>{title}</h1>
-          <span className="mu">{todayText()}</span>
-          <button type="button" className="ic" aria-label={unread ? `알림 ${unread}건` : '알림'} onClick={() => nav('/notif')}><PIc k="bell" />{unread ? <span className="dot" /> : null}</button>
-          <button type="button" className="prof" onClick={() => nav('/o/my')} aria-label="내 정보·설정"><i aria-hidden="true">{me ? me.name[0] : ''}</i>{me && me.name}</button>
-        </header>
-        <main key={loc.key} className="mbd" ref={bodyRef}>
-          {wide ? children : <div className={`pcw-col bd ${cls}`}>{children}</div>}
-        </main>
+    <header className="mtop">
+      {head.canBack && !isRoot && <button type="button" className="ic" aria-label="뒤로" onClick={() => nav(-1)}><PIc k="back" /></button>}
+      <h1>{head.title}</h1>
+      <span className="mu">{todayText()}</span>
+      {bell}
+      <button type="button" className="prof" onClick={() => nav('/o/my')} aria-label="내 정보·설정"><i aria-hidden="true">{me ? me.name[0] : ''}</i>{me && me.name}</button>
+    </header>
+  );
+}
+
+/**
+ * 화면 본문. wide=true 인 화면(PC용으로 새로 짠 화면)은 본문을 가득 쓰고,
+ * PcSideCtx 가 있으면 [위 줄] + [목록 340 | 모바일 본문], 둘 다 아니면 모바일 본문을 가운데 카드(최대 760px)에 담는다.
+ * stay=true 면 주소가 바뀌어도 본문을 새로 만들지 않는다(목록 + 상세 화면에서 목록이 깜빡이지 않게).
+ */
+export function PcBody({ title, wide, cls = '', canBack, bodyRef, stay, children }) {
+  const setHead = useContext(PcHeadCtx);
+  const side = useContext(PcSideCtx);
+  const loc = useLocation();
+  useLayoutEffect(() => { if (setHead) setHead({ title, canBack: !!canBack }); }, [setHead, title, canBack]);
+  return (
+    <main key={stay || side ? 'stay' : loc.key} className="mbd" ref={bodyRef}>
+      {wide ? children : side ? (
+        <>
+          {side.top}
+          <div className="split">{side.side}<div className={`pcw-col fill bd ${cls}`}>{children}</div></div>
+        </>
+      ) : <div className={`pcw-col bd ${cls}`}>{children}</div>}
+    </main>
+  );
+}
+
+/** 오른쪽에서 나오는 패널(5판 drawer, 480px) */
+export function PcDrawer({ title, onClose, foot, children }) {
+  useEffect(() => {
+    const k = (e) => { if (e.key === 'Escape' && !document.querySelector('.ov.on')) onClose(); };
+    document.addEventListener('keydown', k);
+    return () => document.removeEventListener('keydown', k);
+  }, [onClose]);
+  return (
+    <div className="dov" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="drw" role="dialog" aria-modal="true" aria-label={title}>
+        <div className="prw" style={{ marginBottom: 18 }}><h3 style={{ margin: 0, fontSize: 19, flex: 1 }}>{title}</h3><button type="button" className="xbtn" aria-label="닫기" onClick={onClose}><PIc k="x" /></button></div>
+        <div className="dbody">{children}</div>
+        {foot && <div className="dfoot">{foot}</div>}
       </div>
     </div>
   );

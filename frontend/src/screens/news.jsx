@@ -11,7 +11,7 @@ import { HelpableStrip, evLook } from './home.jsx';
 import { DIc } from '../ui/proto.jsx';
 
 /* ---------- 동네 기관 소식 (B-64·C-15, 41판): 담당자가 올린 소식과 AI가 찾은 소식을 한 목록으로. 신청은 기관 페이지 링크로만 ---------- */
-const host = (u) => { try { return new URL(u).host; } catch { return u; } };
+export const host = (u) => { try { return new URL(u).host; } catch { return u; } };
 const when = (e) => (e.date ? `${dlabel(e.date)}${e.startHour != null ? ` ${ap(e.startHour)}` : ''}` : '날짜 미정');
 
 /** B-64 소식 카드: 누가 올렸는지(담당자가 올림 / AI가 찾음 · 출처 확인) · 제목 · 일시·장소 · 기관 페이지 링크 */
@@ -166,7 +166,8 @@ export function OEvents() {
 }
 
 /* ---------- 담당자: 행사·클래스 홍보 올리기 ---------- */
-export function OEventNew() {
+/** 행사 올리기 폼 본문. 모바일 화면(OEventNew)과 PC 기관 행사 화면(orgPc2.jsx)의 오른쪽 칸이 같이 쓴다. */
+export function EventFormBody({ onDone }) {
   const nav = useNavigate();
   const { toast } = useUi();
   const [f, setF] = useState({ title: '', content: '', date: addDays(7), startHour: 14, place: '', url: '', capacity: '' });
@@ -194,10 +195,10 @@ export function OEventNew() {
     if (pv && pv.url) { body.ogTitle = pv.title || undefined; body.ogImage = pv.image || undefined; body.ogDesc = pv.description || undefined; }
     const e = await post('/events', body);
     toast('기관 소식을 올렸어요. 근처 사용자의 동네 기관 소식에 보여요');
-    nav(`/news/${e.id}`, { replace: true });
+    if (onDone) onDone(e); else nav(`/news/${e.id}`, { replace: true });
   });
   return (
-    <Screen title="기관 소식 올리기" noTabs>
+    <>
       <p className="su-p" style={{ marginTop: 0 }}>기관이 여는 교실·모임·행사를 제목·일시·장소·정원과 신청 링크로 알려요. 자세한 내용과 신청은 기관 페이지에서 받아요.</p>
       <label className="f">기관 페이지 링크 (필수)</label>
       <div className="row"><input className="in grow" inputMode="url" placeholder="https://… 행사 안내 페이지" value={f.url} onChange={(e) => { set('url', e.target.value); setPv(null); }} aria-label="안내 링크" /><button type="button" className="btn soft sm" style={{ width: 'auto', padding: '0 14px', flex: '0 0 auto' }} disabled={pvBusy} onClick={fetchPreview}>{pvBusy ? '불러오는 중…' : '불러오기'}</button></div>
@@ -213,6 +214,9 @@ export function OEventNew() {
       <label className="f">정원 <span className="mute2" style={{ fontWeight: 500 }}>(제한이 없으면 비워 두세요)</span></label><input className="in" inputMode="numeric" value={f.capacity} onChange={(e) => set('capacity', e.target.value.replace(/[^0-9]/g, '').slice(0, 4))} placeholder="예) 20" aria-label="정원(명)" />
       <div className="notice" style={{ marginTop: 12 }}>기관 행사는 시간 통장 적립·차감이 없어요. 올리면 근처 사용자의 "동네 기관 소식"에 AI가 찾은 소식과 함께 보여요.</div>
       <button className="btn big-cta" style={{ marginTop: 16 }} disabled={busy} onClick={submit}>올리기</button>
-    </Screen>
+    </>
   );
+}
+export function OEventNew() {
+  return <Screen title="기관 소식 올리기" noTabs><EventFormBody /></Screen>;
 }

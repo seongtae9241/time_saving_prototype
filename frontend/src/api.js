@@ -73,6 +73,10 @@ export async function api(path, opts = {}) {
     if (!quiet) onError(msg);
     throw err;
   }
+  // 자료를 바꾸는 호출이 끝났음을 알린다(담당자 PC 틀의 프로필 숫자가 바로 다시 받도록). 읽기 성격의 POST 는 뺀다.
+  if (method !== 'GET' && typeof window !== 'undefined' && !/^\/(notifications|auth|ai|link-preview|org\/schedule\/suggest)/.test(path)) {
+    try { window.dispatchEvent(new Event('ts-mutated')); } catch { /* 무시 */ }
+  }
   return data;
 }
 

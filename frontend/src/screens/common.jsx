@@ -8,7 +8,7 @@ import { ago, dshort } from '../lib/format.js';
 import { VoiceField } from '../ui/VoiceInput.jsx';
 import { I } from '../ui/icons.js';
 
-const NT_IC = (t = '') => {
+export const NT_IC = (t = '') => {
   t = String(t).toUpperCase();
   if (/REQUEST|PROPOSAL|NEW_REQ/.test(t)) return ['hand', ''];
   if (/ACCEPT|CONFIRM|FINAL/.test(t)) return ['check', ''];

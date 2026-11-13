@@ -18,7 +18,7 @@ import { DoorCardSheet } from './request.jsx'; // C-11 현관 QR 카드
 import { DIc } from '../ui/proto.jsx';
 import { SuggestLink } from '../ui/suggest.jsx';
 
-const elderName = (e) => (e ? `${e.alias} 님` : '');
+export const elderName = (e) => (e ? `${e.alias} 님` : '');
 
 function ElderCard({ e, sig }) {
   const nav = useNavigate();
@@ -47,7 +47,7 @@ export function useElderPick() {
 }
 
 /* ---------- C-16 변화 리포트 카드: n순위 · 먼저 살펴보기/비슷해요 · 변화 · 특이사항 ---------- */
-function ChangeCard({ x }) {
+export function ChangeCard({ x }) {
   const nav = useNavigate();
   const first = x.level !== 'LOW';
   const change = (x.changes && x.changes.length ? x.changes : x.reasons && x.reasons.length ? x.reasons : ['이전 기록과 비슷해요.']).join(' · ');
@@ -63,7 +63,7 @@ function ChangeCard({ x }) {
 }
 
 /** C-14 지난 요청 다시 올리기(B-06): 지난 공고를 고르고 날짜만 골라 같은 내용으로 올린다. 자동으로 반복되지 않는다. */
-function RepostSheet({ elder, posts, onDone }) {
+export function RepostSheet({ elder, posts, onDone }) {
   const { toast } = useUi();
   const [sel, setSel] = useState(null);
   const [date, setDate] = useState(addDays(7));
@@ -257,7 +257,7 @@ export function EDetail() {
   );
 }
 
-function TransferSheet({ e, onDone }) {
+export function TransferSheet({ e, onDone }) {
   const [mgrs] = useLoad(() => api('/org/managers'), []);
   const { me } = useAuth();
   const [to, setTo] = useState(null);
@@ -275,34 +275,45 @@ function TransferSheet({ e, onDone }) {
 }
 
 /* ---------- 도움 대상 등록 · 수정 (C-02) ---------- */
-export function EForm() {
-  const { id } = useParams();
-  const nav = useNavigate();
+/** 등록·수정 폼 본문. 모바일 화면(EForm)과 PC 오른쪽 패널(eldersPc.jsx)이 같이 쓴다. onCancel 을 주면 아래에 [취소][저장] 두 버튼으로 그린다. */
+export function ElderFormBody({ id, onSaved, onCancel }) {
   const { toast } = useUi();
   const [e] = useLoad(() => (id ? api(`/org/elders/${id}`) : Promise.resolve(null)), [id]);
   const [f, setF] = useState(null);
   const [agree, setAgree] = useState(!!id);
   const [busy, run] = useBusy();
-  if (id && e === undefined) return <Screen title="도움 대상 수정" noTabs><Loading /></Screen>;
+  if (id && e === undefined) return <Loading />;
   const v = f || (e ? { alias: e.alias, dong: e.dong, ageGroup: e.ageGroup, needs: arr(e.needs), caution: e.caution || '' } : { alias: '', dong: '행복동', ageGroup: '80대', needs: [], caution: '' });
   const set = (k) => (x) => setF({ ...v, [k]: x && x.target ? x.target.value : x });
+  const save = () => run(async () => {
+    if (!v.alias.trim()) return toast('별칭을 적어 주세요');
+    if (!v.needs.length) return toast('필요한 도움을 골라 주세요');
+    if (!agree) return toast('대상에게 동의를 받았는지 체크해 주세요');
+    const body = { alias: v.alias.trim(), dong: v.dong, ageGroup: v.ageGroup, needs: v.needs, caution: v.caution };
+    if (id) { await put(`/org/elders/${id}`, body); toast('저장했어요'); onSaved(id); }
+    else { const r = await post('/org/elders', { ...body, consent: true }); toast('도움 대상을 등록했어요'); onSaved(r.id); }
+  });
   return (
-    <Screen title={id ? '도움 대상 수정' : '도움 대상 등록'} noTabs>
+    <>
       <div className="lock"><Ic n="shield" s={18} /><div><b>이름·주소·연락처는 적지 않아요.</b> 기관이 따로 보관하고, 수락된 활동에만 담당자가 봉사자에게 알려요. 별칭은 봉사자에게 가려서 보여요.</div></div>
       <label className="f">별칭</label><input className="in" placeholder="예) 솔바람 · 꽃할머니 (실명 대신 부를 이름)" value={v.alias} onChange={set('alias')} />
       <label className="f">나이대 <span className="mute2" style={{ fontWeight: 500 }}>담당자에게만 보여요</span></label><ChipsPick options={['60대', '70대', '80대', '90대 이상']} value={v.ageGroup} onChange={set('ageGroup')} />
       <label className="f">사는 동</label><select className="in" value={v.dong} onChange={set('dong')}>{AREAS.map((a) => <option key={a}>{a}</option>)}</select>
       <label className="f">필요한 도움</label><ChipsPick multi options={CATS.map((c) => c.k)} value={v.needs} onChange={set('needs')} />
       <label className="f">방문 시 주의사항</label><textarea className="in" placeholder="예) 귀가 어두우세요 / 반려견이 있어요 (병명은 적지 않아요)" value={v.caution} onChange={set('caution')} />
-      {!id && <div className={'su-check ' + (agree ? 'on' : '')} role="button" tabIndex={0} style={{ marginTop: 10 }} onClick={() => setAgree(!agree)}><span className="bx" /><div className="small">대상에게 서비스 이용을 설명하고 동의를 받았어요</div></div>}
-      <button className="btn big-cta" style={{ marginTop: 16 }} disabled={busy} onClick={() => run(async () => {
-        if (!v.alias.trim()) return toast('별칭을 적어 주세요');
-        if (!v.needs.length) return toast('필요한 도움을 골라 주세요');
-        if (!agree) return toast('대상에게 동의를 받았는지 체크해 주세요');
-        const body = { alias: v.alias.trim(), dong: v.dong, ageGroup: v.ageGroup, needs: v.needs, caution: v.caution };
-        if (id) { await put(`/org/elders/${id}`, body); toast('저장했어요'); nav(-1); }
-        else { const r = await post('/org/elders', { ...body, consent: true }); toast('도움 대상을 등록했어요'); nav(`/o/elders/${r.id}`, { replace: true }); }
-      })}>{id ? '저장' : '등록하기'}</button>
+      {!id && <div className={'su-check ' + (agree ? 'on' : '')} role="button" tabIndex={0} style={{ marginTop: 10 }} onClick={() => setAgree(!agree)} onKeyDown={(x) => { if (x.key === 'Enter' || x.key === ' ') { x.preventDefault(); setAgree(!agree); } }}><span className="bx" /><div className="small">대상에게 서비스 이용을 설명하고 동의를 받았어요</div></div>}
+      {onCancel
+        ? <div className="dfoot"><button type="button" className="pbtn sec2 lg" onClick={onCancel}>취소</button><button type="button" className="pbtn pri lg" disabled={busy} onClick={save}>{id ? '저장' : '등록하기'}</button></div>
+        : <button className="btn big-cta" style={{ marginTop: 16 }} disabled={busy} onClick={save}>{id ? '저장' : '등록하기'}</button>}
+    </>
+  );
+}
+export function EForm() {
+  const { id } = useParams();
+  const nav = useNavigate();
+  return (
+    <Screen title={id ? '도움 대상 수정' : '도움 대상 등록'} noTabs>
+      <ElderFormBody id={id} onSaved={(nid) => (id ? nav(-1) : nav(`/o/elders/${nid}`, { replace: true }))} />
     </Screen>
   );
 }
@@ -327,7 +338,7 @@ export function OReqs() {
 
 /* ---------- 생활 변화 리포트 (P-05) ---------- */
 /* ---------- 받지 않기로 한 봉사자 (O1) ---------- */
-function BlockList({ elderId }) {
+export function BlockList({ elderId }) {
   const { toast, confirm } = useUi();
   const [list, reload] = useLoad(() => api(`/org/elders/${elderId}/blocks`, { quiet: true }), [elderId]);
   if (!list || !list.length) return null;
