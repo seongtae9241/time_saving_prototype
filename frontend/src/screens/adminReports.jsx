@@ -266,11 +266,11 @@ export function ASim() {
 }
 
 /* ---------- 기능 A-02 · A-04 봉사 리포트 ---------- */
-function AiNote({ title, x }) {
+export function AiNote({ title, x }) {
   if (!x) return null;
   return <div className="ai" style={{ marginTop: 10 }}><div className="ah"><Spk />{title}<Mod n={5} /></div><div className="small">{x.text}</div><div className="mute2" style={{ fontSize: 12, marginTop: 6 }}>숫자는 시스템 집계, 풀이는 {x.source === 'ai' ? 'AI' : '규칙'} 문장이에요</div><RuleNote source={x.source} /></div>;
 }
-function monthBars(months) {
+export function monthBars(months) {
   const W = 320, H = 150, pt = 16, pb = 24;
   const max = Math.max(1, ...months.map((m) => Number(m.total) || 0)) * 1.12;
   const cw = (W - 8) / Math.max(1, months.length), bw = Math.min(16, cw - 6);

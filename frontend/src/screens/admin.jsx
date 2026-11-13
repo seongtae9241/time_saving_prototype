@@ -16,7 +16,7 @@ const VERIFY_KO = { NONE: '미제출', PENDING: '확인 중', APPROVED: '승인'
 import { ReportMenu, ReportContext } from './adminReports.jsx'; // 기능명세서 운영자 리포트 진입 · 신고 관련 기록
 import { useTriage, TriageBox, SevChip, useAnomalyNotes, AnomalyNote, InquiryDraft, PersonaFromCases, PersonaDraftNote } from './opsai.jsx';
 
-function groupBars(rows) {
+export function groupBars(rows, c1 = '#F59E4B', c2 = '#5B8DEF', t1 = '#C46A17') {
   const W2 = 320, H = 170, pt = 22, pb = 28, bw = 16, gap = 5;
   const max = Math.max(1, ...rows.flatMap((r) => [r[1], r[2]])) * 1.1;
   const cw = (W2 - 16) / Math.max(1, rows.length);
@@ -26,10 +26,10 @@ function groupBars(rows) {
         const cx = 8 + cw * i + cw / 2, ha = ((H - pt - pb) * a) / max, hb = ((H - pt - pb) * b) / max, by = H - pb;
         return (
           <g key={d}>
-            <rect x={cx - bw - gap / 2} y={by - ha} width={bw} height={ha} rx="6" fill="#F59E4B" />
-            <rect x={cx + gap / 2} y={by - hb} width={bw} height={hb} rx="6" fill="#5B8DEF" />
-            <text x={cx - bw / 2 - gap / 2} y={by - ha - 6} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#C46A17">{a}</text>
-            <text x={cx + bw / 2 + gap / 2} y={by - hb - 6} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#5B8DEF">{b}</text>
+            <rect x={cx - bw - gap / 2} y={by - ha} width={bw} height={ha} rx="6" fill={c1} />
+            <rect x={cx + gap / 2} y={by - hb} width={bw} height={hb} rx="6" fill={c2} />
+            <text x={cx - bw / 2 - gap / 2} y={by - ha - 6} textAnchor="middle" fontSize="10.5" fontWeight="700" fill={t1}>{a}</text>
+            <text x={cx + bw / 2 + gap / 2} y={by - hb - 6} textAnchor="middle" fontSize="10.5" fontWeight="700" fill={c2}>{b}</text>
             <text x={cx} y={H - 8} textAnchor="middle" fontSize="12" fill="#5F6672">{d}</text>
           </g>
         );
@@ -40,7 +40,7 @@ function groupBars(rows) {
 
 /* ---------- 5장 분석: 나이대·월별 추이·수요 공급·AI 인사이트 ---------- */
 const ccOf2 = (k) => (CC[k] || ['#EEF3FF', '#5B8DEF'])[1];
-function stackBars(months) {
+export function stackBars(months) {
   const W2 = 320, H = 170, pt = 18, pb = 26;
   const max = Math.max(1, ...months.map((m) => Number(m.total) || 0)) * 1.1;
   const cw = (W2 - 8) / Math.max(1, months.length), bw = Math.min(16, cw - 6);
@@ -66,7 +66,7 @@ function stackBars(months) {
   );
 }
 
-function AgeCard({ a }) {
+export function AgeCard({ a }) {
   const [seg, setSeg] = useState('rec');
   const rows = (seg === 'rec' ? a.byRecipientAge : a.byVolunteerAge) || [];
   const mx = Math.max(1, ...rows.map((r) => r.total));
@@ -87,7 +87,7 @@ function AgeCard({ a }) {
   );
 }
 
-function InsightCard() {
+export function InsightCard() {
   const nav = useNavigate();
   const [ins, setIns] = useState(undefined);
   const [busy, run] = useBusy();
@@ -114,13 +114,13 @@ function InsightCard() {
 }
 
 /** D-04 지역별 부족한 도움: 지역마다 요청 대비 부족 건수(막대) + 가장 부족한 지역의 부족한 도움 종류 */
-function AreaShortCard({ a }) {
+export function AreaShortCard({ a, color = '#F59E4B' }) {
   const rows = ((a && a.areaShortage) || []).filter((r) => r.demand > 0 || r.supply > 0);
   const top = rows.find((r) => r.shortTotal > 0);
   return (
     <div className="card" style={{ marginTop: 12 }}>
       <div className="b">지역별 부족한 도움 <span className="mute2" style={{ fontWeight: 500 }}>(요청 대비 부족 건수)</span></div>
-      {rows.length ? hbars(rows.map((r) => [r.area, Number(r.shortTotal) || 0]), '#F59E4B') : <Empty>아직 데이터가 없어요</Empty>}
+      {rows.length ? hbars(rows.map((r) => [r.area, Number(r.shortTotal) || 0]), color) : <Empty>아직 데이터가 없어요</Empty>}
       {rows.filter((r) => r.shortTotal > 0).slice(0, 4).map((r) => <div key={r.area} className="small" style={{ marginTop: 6 }}><b>{r.area}</b> <span className="mute2">도움 요청 {r.demand} · 봉사 가능 {r.supply}</span> {(r.short || []).map((c) => <span key={c.category} className="tag2" style={{ marginLeft: 6 }}>{SHORT[c.category] || c.category} −{c.gap}</span>)}</div>)}
       <div className="mute2" style={{ marginTop: 8 }}>{top ? `${top.area}은 ${(top.short || []).slice(0, 2).map((c) => SHORT[c.category] || c.category).join('·')} 봉사가 특히 부족해요` : '지금은 부족한 지역이 없어요'} · 최근 {a.supplyDemandDays}일</div>
     </div>
@@ -128,7 +128,7 @@ function AreaShortCard({ a }) {
 }
 
 /** D-11 계절별 봉사 요청·봉사 가능량(봉사 유형별) */
-function SeasonCard({ a }) {
+export function SeasonCard({ a, c1 = '#F59E4B', c2 = '#5B8DEF', t1 = '#C46A17' }) {
   const seasons = (a && a.seasonSupplyDemand) || [];
   const firstWith = seasons.find((s) => s.demand > 0 || s.supply > 0);
   const [sel, setSel] = useState(null);
@@ -136,9 +136,9 @@ function SeasonCard({ a }) {
   if (!seasons.length) return null;
   return (
     <div className="card" style={{ marginTop: 12 }}>
-      <div className="between"><span className="b">계절별 봉사 요청 · 봉사 가능</span><span className="legend"><i style={{ background: '#F59E4B' }} />봉사 요청<i style={{ background: '#5B8DEF', marginLeft: 8 }} />봉사 가능</span></div>
+      <div className="between"><span className="b">계절별 봉사 요청 · 봉사 가능</span><span className="legend"><i style={{ background: c1 }} />봉사 요청<i style={{ background: c2, marginLeft: 8 }} />봉사 가능</span></div>
       <div className="chips" style={{ margin: '8px 0 4px' }}>{seasons.map((s) => <button key={s.season} className={'chip ' + (cur && cur.season === s.season ? 'on' : '')} onClick={() => setSel(s.season)}>{s.season} {s.demand}/{s.supply}</button>)}</div>
-      {cur && (cur.demand > 0 || cur.supply > 0) ? groupBars((cur.categories || []).map((c) => [SHORT[c.category] || c.category, Number(c.demand) || 0, Number(c.supply) || 0])) : <Empty>이 계절에는 아직 데이터가 없어요</Empty>}
+      {cur && (cur.demand > 0 || cur.supply > 0) ? groupBars((cur.categories || []).map((c) => [SHORT[c.category] || c.category, Number(c.demand) || 0, Number(c.supply) || 0]), c1, c2, t1) : <Empty>이 계절에는 아직 데이터가 없어요</Empty>}
       <div className="small muted" style={{ marginTop: 4 }}>{cur ? ((cur.categories || []).filter((c) => c.gap > 0).map((c) => `${SHORT[c.category] || c.category} ${c.gap}건 부족`).join(' · ') || '부족한 봉사 유형이 없어요') : ''}</div>
       <div className="mute2" style={{ marginTop: 6 }}>최근 {a.periodMonths || 12}개월 · 공고·요청을 만든 달의 계절로 나눠요 (봄 3~5월 · 여름 6~8월 · 가을 9~11월 · 겨울 12~2월)</div>
     </div>
@@ -222,7 +222,7 @@ export function ADash() {
 }
 
 /* ---------- 승인 (D-01, D-03, B-28) ---------- */
-const VKIND = { id: '신분증', crime: '범죄경력 회보서' };
+export const VKIND = { id: '신분증', crime: '범죄경력 회보서' };
 export function AApprove() {
   const [sp, setSp] = useSearchParams();
   const seg = sp.get('seg') || 'org';
@@ -285,8 +285,8 @@ export function AApprove() {
 }
 
 /* ---------- 신고·점검 (D-02, D-06) ---------- */
-const ACTS = [['WARNING', '경고'], ['SUSPEND', '이용 정지'], ['BAN', '퇴출'], ['NONE', '신고 기각']];
-function ReportHandle({ r, onDone, t, onTriage }) {
+export const ACTS = [['WARNING', '경고'], ['SUSPEND', '이용 정지'], ['BAN', '퇴출'], ['NONE', '신고 기각']];
+export function ReportHandle({ r, onDone, t, onTriage }) {
   const [a, setA] = useState('WARNING');
   const [result, setResult] = useState('');
   const { toast } = useUi();
@@ -390,8 +390,8 @@ export function AManage() {
 }
 
 /* ---------- 회원 관리 (D-07) ---------- */
-const RL = { USER: '사용자', ORG: '담당자', ADMIN: '운영자' };
-function MemberSheet({ id, onDone }) {
+export const RL = { USER: '사용자', ORG: '담당자', ADMIN: '운영자' };
+export function MemberSheet({ id, onDone }) {
   const [u, reload] = useLoad(() => api(`/admin/users/${id}`), [id]);
   const { toast } = useUi();
   if (!u) return <Loading />;
@@ -433,7 +433,7 @@ export function AMembers() {
 }
 
 /* ---------- 담당자 계정 (D-01, C-03 대신 이관) ---------- */
-function AdminTransfer({ m, managers, onDone }) {
+export function AdminTransfer({ m, managers, onDone }) {
   const [to, setTo] = useState(null);
   const { toast } = useUi();
   const elders = (m.elders || []).filter((e) => e.status !== 'ENDED');
@@ -472,7 +472,7 @@ export function AManagers() {
 }
 
 /* ---------- 1:1 문의 관리 (D-08) ---------- */
-function AnswerSheet({ q, onDone }) {
+export function AnswerSheet({ q, onDone }) {
   const [a, setA] = useState(q.answer || '');
   const { toast } = useUi();
   return (
@@ -506,7 +506,7 @@ export function AInquiries() {
 }
 
 /* ---------- 공지 관리 (D-09) ---------- */
-function NoticeForm({ n, onDone }) {
+export function NoticeForm({ n, onDone }) {
   const [t, setT] = useState(n ? n.title : '');
   const [c, setC] = useState(n ? n.content : '');
   const { toast } = useUi();
@@ -539,7 +539,7 @@ export function ANotices() {
 }
 
 /* ---------- 공공 서비스 정보 (P-02) ---------- */
-function PubForm({ p, onDone }) {
+export function PubForm({ p, onDone }) {
   const [f, setF] = useState(p ? { ...p, keywords: arr(p.keywords).join(', ') } : { name: '', target: '', content: '', applyHow: '', contact: '', region: '전국', keywords: '' });
   const { toast } = useUi();
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
@@ -654,7 +654,7 @@ export function AVerify() {
 }
 
 /* ---------- 카테고리 건의 처리 (2026-11-11) ---------- */
-function SuggestAnswer({ g, onDone }) {
+export function SuggestAnswer({ g, onDone }) {
   const { toast } = useUi();
   const [status, setStatus] = useState(g.status === 'RECEIVED' ? 'REVIEWING' : g.status);
   const [answer, setAnswer] = useState((g.items[0] && g.items[0].answer) || '');

@@ -1,5 +1,5 @@
-/* 담당자(ORG) PC 틀 — 프로토타입 5판(2026-11-13). 계약서 7.22.
-   폭 901px 이상에서 역할이 ORG 일 때만 쓴다. 그보다 좁으면 Frame.jsx 의 모바일 틀이 그대로 나온다. */
+/* 담당자(ORG)·운영자(ADMIN) PC 틀 — 프로토타입 5판(2026-11-13). 계약서 7.22(담당자) · 7.24(운영자).
+   폭 901px 이상에서 역할이 ORG·ADMIN 일 때만 쓴다. 그보다 좁으면 Frame.jsx 의 모바일 틀이 그대로 나온다. */
 import { createContext, useContext, useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './ctx.jsx';
@@ -42,6 +42,8 @@ export const ICO = {
   tag: LI('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="8" cy="8" r="1.5"/>'),
   redo: LI('<path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/>'),
   flag: LI('<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>'),
+  dash: LI('<rect x="3" y="3" width="8" height="10" rx="2"/><rect x="13" y="3" width="8" height="6" rx="2"/><rect x="13" y="11" width="8" height="10" rx="2"/><rect x="3" y="15" width="8" height="6" rx="2"/>'),
+  fore: LI('<path d="M3 20h18M6 16l4-5 3 3 5-8"/><path d="M15 6h3v3"/>'),
   phone: LI('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A15 15 0 0 1 4 5a1 1 0 0 1 1-1z"/>'),
 };
 export const PIc = ({ k }) => <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: ICO[k] || ICO.list }} />;
@@ -66,7 +68,8 @@ export function StTag5({ st, kind }) {
   return <span className="stag" style={{ background: bg, color: fg }}>{st === 'SENT' && kind === 'PROPOSAL' ? '새 제안' : t}</span>;
 }
 export function Avc({ n, cat, size }) {
-  const [a, b, bg] = cat === 'acc' ? ['#2F8069', '#CFEBDF', '#E2F3EC'] : dc5(cat);
+  // 'acc' = 역할 색(담당자 초록 · 운영자 호박색): 색 변수로 읽는다
+  const [a, b, bg] = cat === 'acc' ? ['var(--acc-k)', 'var(--ai-bd)', 'var(--acc-s)'] : dc5(cat);
   return <span className="avc" style={{ background: bg, color: a, boxShadow: `inset 0 0 0 1.5px ${b}`, ...(size ? { width: size, height: size, fontSize: Math.round(size * 0.42) } : null) }} aria-hidden="true">{(n || '?')[0]}</span>;
 }
 export function CPill({ cat, children }) {
@@ -74,14 +77,14 @@ export function CPill({ cat, children }) {
   return <span className="cpill" style={{ background: bg, color: a, borderColor: b }}>{children || cat}</span>;
 }
 
-/* ---------- PC 틀을 쓸지: 역할 ORG + 폭 901px 이상 ---------- */
+/* ---------- PC 틀을 쓸지: 역할 ORG·ADMIN + 폭 901px 이상 ---------- */
 const MQ = '(min-width:901px)';
 const subMq = (cb) => { const m = window.matchMedia(MQ); m.addEventListener('change', cb); return () => m.removeEventListener('change', cb); };
 export function useWide() { return useSyncExternalStore(subMq, () => window.matchMedia(MQ).matches, () => false); }
 export function usePc() {
   const { me } = useAuth();
   const wide = useWide();
-  return !!(me && me.role === 'ORG' && wide);
+  return !!(me && (me.role === 'ORG' || me.role === 'ADMIN') && wide);
 }
 
 /* ---------- 메뉴 (5판 ORGNAV 순서. 권한 위임은 기능이 없어 넣지 않음) ---------- */
@@ -104,6 +107,40 @@ export const ORG_MENU = [
     ['/o/my', '내 정보·설정', 'user'],
   ]],
 ];
+/* 운영자 메뉴 (5판 NAV 순서: [운영] 대시보드·이용 리포트·재정 추계·시뮬레이션·특보 알림 / [관리] 승인·신고·문의·공지사항·카테고리 건의·공공 서비스 정보).
+   5판 메뉴에 없지만 앱에 있는 화면은 가까운 그룹 끝이나 [설정] 그룹에 넣었다(계약서 7.24 표). */
+export const ADMIN_MENU = [
+  ['운영', [
+    ['/a/dash', '대시보드', 'dash'],
+    ['/a/stats', '이용 리포트', 'trend'],
+    ['/a/forecast', '재정 추계·시뮬레이션', 'fore'],
+    ['/a/weather', '특보 알림', 'snow'],
+    ['/a/recruit', '대응 추천', 'mega'],
+  ]],
+  ['관리', [
+    ['/a/approve', '승인', 'check'],
+    ['/a/safety', '신고', 'flag'],
+    ['/a/inquiries', '문의', 'chat'],
+    ['/a/notices', '공지사항', 'mega'],
+    ['/a/suggest', '카테고리 건의', 'tag'],
+    ['/a/pub', '공공 서비스 정보', 'building'],
+  ]],
+  ['설정', [
+    ['/a/members', '회원 관리', 'users'],
+    ['/a/managers', '담당자 계정', 'user'],
+    ['/a/verify', '봉사 인증 항목', 'shield'],
+    ['/a/classes', '기관 클래스', 'ticket'],
+    ['/a/persona', '가상 상대(역할극)', 'heart'],
+  ]],
+];
+function activeAdmin(loc) {
+  const p = loc.pathname;
+  if (p.startsWith('/a/sim')) return '/a/forecast';
+  if (p.startsWith('/a/mgr-apps')) return '/a/approve';
+  if (p.startsWith('/notice')) return '/a/notices';
+  const hit = ADMIN_MENU.flatMap(([, items]) => items).find(([k]) => p.startsWith(k));
+  return hit ? hit[0] : '';
+}
 /** 지금 주소가 어느 메뉴에 속하는지(메뉴에 없는 하위 화면은 가까운 메뉴에 불을 켠다) */
 function activeMenu(loc) {
   const p = loc.pathname, q = loc.search;
@@ -124,25 +161,30 @@ function activeMenu(loc) {
 /* 프로필 숫자 3줄(관리 대상 · 처리할 일 · 이번 주 돌봄): 한 번 받은 값을 1분 동안 나눠 쓴다.
    요청 처리·등록처럼 자료를 바꾸는 호출이 끝나면(api.js 가 'ts-mutated' 를 알림) 캐시를 비우고 다시 받는다. */
 let statCache = null, statAt = 0, statUser = null;
-function loadStats(userId) {
+function loadStats(userId, role) {
   if (!statCache || statUser !== userId || Date.now() - statAt > 60000) {
     statAt = Date.now(); statUser = userId;
-    statCache = Promise.all([api('/org/home', { quiet: true }).catch(() => null), api('/org/schedule', { quiet: true }).catch(() => null)])
+    // 운영자: 처리 대기(대시보드 pending 합) · 이번 달 활동 · 등록 기관 — 모두 /admin/dashboard 값
+    if (role === 'ADMIN') statCache = api('/admin/dashboard', { quiet: true }).catch(() => null)
+      .then((d) => ({ pend: d && d.pending ? pendSum(d.pending) : null, acts: d && d.kpi ? d.kpi.activities : null, orgs: d && d.kpi ? d.kpi.orgCount : null }));
+    else statCache = Promise.all([api('/org/home', { quiet: true }).catch(() => null), api('/org/schedule', { quiet: true }).catch(() => null)])
       .then(([h, s]) => ({ elders: h && h.counts ? h.counts.elders : null, todo: h && h.todo ? h.todo.length : null, week: s && s.counts ? s.counts.fixed : null }));
   }
   return statCache;
 }
+/** 운영자 처리 대기 합: 이상 적립(anomalies)은 묶음 수라 빼고, 사람이 처리할 접수 건만 더한다 */
+export const pendSum = (p) => ['orgs', 'ids', 'crimes', 'appeals', 'reports', 'welfare', 'inquiries'].reduce((a, k) => a + (Number(p && p[k]) || 0), 0);
 let lastStats = null;
-function useStats(userId) {
+function useStats(userId, role) {
   const [v, setV] = useState(lastStats && lastStats.u === userId ? lastStats.v : null);
   useEffect(() => {
     let on = true, t = null;
-    const load = () => loadStats(userId).then((x) => { lastStats = { u: userId, v: x }; if (on) setV(x); });
+    const load = () => loadStats(userId, role).then((x) => { lastStats = { u: userId, v: x }; if (on) setV(x); });
     load();
     const changed = () => { clearTimeout(t); t = setTimeout(() => { statCache = null; load(); }, 400); };
     window.addEventListener('ts-mutated', changed);
     return () => { on = false; clearTimeout(t); window.removeEventListener('ts-mutated', changed); };
-  }, [userId]);
+  }, [userId, role]);
   return v;
 }
 
@@ -160,26 +202,39 @@ export function PcNav({ onDemo }) {
   const { me, logout } = useAuth();
   const nav = useNavigate();
   const loc = useLocation();
-  const on = activeMenu(loc);
-  const stats = useStats(me && me.id);
+  const adm = !!me && me.role === 'ADMIN';
+  const on = adm ? activeAdmin(loc) : activeMenu(loc);
+  const stats = useStats(me && me.id, me && me.role);
+  const menu = adm ? ADMIN_MENU : ORG_MENU;
+  const myPath = adm ? '/a/manage' : '/o/my';
   const org = (me && (me.orgName || (me.org && me.org.name))) || '기관';
   const n = (x, u) => (x == null ? '-' : `${x}${u}`);
   return (
     <aside className="pcw-nav">
       <div className="pfl">
         <div className="pf-top"><span className="pf-lg"><PIc k="logo" /></span><b>시간 적금</b></div>
-        <button type="button" className="pf-card" onClick={() => nav('/o/my')} aria-label="내 정보·설정">
+        <button type="button" className="pf-card" onClick={() => nav(myPath)} aria-label={adm ? '운영자 계정·관리' : '내 정보·설정'}>
           <div className="pf-av" aria-hidden="true">{me ? me.name[0] : ''}</div>
-          <div style={{ minWidth: 0 }}><div className="pf-o">{org}</div><div className="pf-n">{me && me.name} <small>담당자</small></div></div>
+          {adm
+            ? <div style={{ minWidth: 0 }}><div className="pf-o">운영자</div><div className="pf-n" style={{ fontSize: 15 }}>{me && me.name}</div></div>
+            : <div style={{ minWidth: 0 }}><div className="pf-o">{org}</div><div className="pf-n">{me && me.name} <small>담당자</small></div></div>}
         </button>
+        {adm ? (
+          <div className="pf-rows">
+            <button type="button" onClick={() => nav('/a/approve')}><span>처리 대기</span><b>{n(stats && stats.pend, '건')}</b></button>
+            <button type="button" onClick={() => nav('/a/stats')}><span>이번 달 활동</span><b>{n(stats && stats.acts, '건')}</b></button>
+            <button type="button" onClick={() => nav('/a/approve?seg=org')}><span>등록 기관</span><b>{n(stats && stats.orgs, '곳')}</b></button>
+          </div>
+        ) : (
         <div className="pf-rows">
           <button type="button" onClick={() => nav('/o/elders')}><span>관리 대상</span><b>{n(stats && stats.elders, '명')}</b></button>
           <button type="button" onClick={() => nav('/o/reqs')}><span>처리할 일</span><b>{n(stats && stats.todo, '건')}</b></button>
           <button type="button" onClick={() => nav('/o/schedule')}><span>이번 주 돌봄</span><b>{n(stats && stats.week, '건')}</b></button>
         </div>
+        )}
       </div>
-      <nav className="nv-card" aria-label="담당자 메뉴">
-        {ORG_MENU.map(([g, items]) => (
+      <nav className="nv-card" aria-label={adm ? '운영자 메뉴' : '담당자 메뉴'}>
+        {menu.map(([g, items]) => (
           <div key={g}>
             <div className="gp">{g}</div>
             {items.map(([k, l, i]) => <button key={k} type="button" className={'nv ' + (on === k ? 'on' : '')} aria-current={on === k ? 'page' : undefined} onClick={() => nav(k)}><span className="ni"><PIc k={i} /></span>{l}</button>)}
@@ -199,14 +254,16 @@ export function PcTop({ head, bell }) {
   const { me } = useAuth();
   const nav = useNavigate();
   const loc = useLocation();
-  const isRoot = ORG_MENU.some(([, items]) => items.some(([k]) => k.split('?')[0] === loc.pathname));
+  const adm = !!me && me.role === 'ADMIN';
+  const isRoot = (adm ? ADMIN_MENU : ORG_MENU).some(([, items]) => items.some(([k]) => k.split('?')[0] === loc.pathname));
   return (
     <header className="mtop">
       {head.canBack && !isRoot && <button type="button" className="ic" aria-label="뒤로" onClick={() => nav(-1)}><PIc k="back" /></button>}
       <h1>{head.title}</h1>
       <span className="mu">{todayText()}</span>
-      {bell}
-      <button type="button" className="prof" onClick={() => nav('/o/my')} aria-label="내 정보·설정"><i aria-hidden="true">{me ? me.name[0] : ''}</i>{me && me.name}</button>
+      {/* 5판: 운영자 위 막대에는 종·프로필이 없다(운영자는 알림이 없다) */}
+      {!adm && bell}
+      {!adm && <button type="button" className="prof" onClick={() => nav('/o/my')} aria-label="내 정보·설정"><i aria-hidden="true">{me ? me.name[0] : ''}</i>{me && me.name}</button>}
     </header>
   );
 }

@@ -1,4 +1,4 @@
-/* 담당자(ORG) PC 틀을 App 에서 한 번만 그린다 — 계약서 7.23.
+/* 담당자(ORG)·운영자(ADMIN) PC 틀을 App 에서 한 번만 그린다 — 계약서 7.23 · 7.24(운영자는 색만 다르고 종·프로필 알약이 없다).
    화면을 옮겨도 왼쪽 메뉴·위 막대는 그대로 있고 본문만 바뀐다(1차에서는 화면마다 틀을 다시 그렸다).
    폭 900px 이하이거나 담당자가 아니면 아무것도 그리지 않고(display:contents) 화면을 그대로 내보낸다. */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -67,17 +67,23 @@ function Bell() {
   );
 }
 
-function NavPart() { const demo = useDemoSheet(); useLayoutEffect(() => { document.body.classList.add('pcw-on'); return () => document.body.classList.remove('pcw-on'); }, []); return <PcNav onDemo={demo} />; }
+function NavPart({ adm }) {
+  const demo = useDemoSheet();
+  useLayoutEffect(() => { const c = document.body.classList; c.add('pcw-on'); c.toggle('pcw-adm', !!adm); return () => { c.remove('pcw-on'); c.remove('pcw-adm'); }; }, [adm]);
+  return <PcNav onDemo={demo} />;
+}
 
 export function PcLayout({ children }) {
   const wide = usePc();
+  const { me } = useAuth();
+  const adm = !!me && me.role === 'ADMIN';
   const loc = useLocation();
   const on = wide && !PUBLIC.test(loc.pathname);
   const [head, setHead] = useState({ title: '', canBack: false });
   // 꺼져 있을 때도 같은 자리에 같은 종류의 요소를 둬서, 창 폭이 바뀌어도 화면 상태가 날아가지 않게 한다
   return (
-    <div className={on ? 'pcw' : 'pcw-off'}>
-      {on ? <NavPart /> : null}
+    <div className={on ? (adm ? 'pcw adm' : 'pcw') : 'pcw-off'}>
+      {on ? <NavPart adm={adm} /> : null}
       <div className={on ? 'pcw-main' : 'pcw-off'}>
         {on ? <PcTop head={head} bell={<Bell />} /> : null}
         <PcHeadCtx.Provider value={on ? setHead : null}>{children}</PcHeadCtx.Provider>

@@ -12,12 +12,13 @@ import { Recommend, Public } from './screens/ai.jsx';
 import { VoiceReq } from './screens/voice.jsx';
 import { Elders } from './screens/eldersPc.jsx'; // 담당자 PC 2차(계약서 7.23): 관리 대상 목록 + 상세 + 등록·수정 패널 (좁으면 기존 모바일 화면)
 import { OReqDetail, OWriteNeed, OWeather, OPublicRefs, OReport, OEvents, OMy } from './screens/orgPc2.jsx'; // 담당자 PC 2차: 요청 상세·대신 요청·특보·공공 연계·리포트·기관 행사·내 정보
-import { PcLayout } from './ui/PcLayout.jsx'; // 담당자 PC 틀을 한 번만 그린다
+import { PcLayout } from './ui/PcLayout.jsx'; // 담당자·운영자 PC 틀을 한 번만 그린다
 import { OHome, OReqs } from './screens/orgPc.jsx'; // 담당자 PC 틀(5판): 폭 901px 이상이면 PC 홈·요청 보드, 좁으면 기존 모바일 화면
 import { News, EventDetail } from './screens/news.jsx';
 import { OSchedule } from './screens/schedulePc.jsx'; // 기능 O-11~O-13 돌봄 편성표 (PC: 일/주/월 캘린더, 좁으면 기존 표)
 import { Edu, EduCard, EduQuiz, EduRp, EduRpRes } from './screens/edu.jsx';
-import { ADash, AApprove, ASafety, AManage, AMembers, AManagers, AInquiries, ANotices, APub, APersona, AVerify, ASuggest } from './screens/admin.jsx';
+import { AManage, APersona, AVerify } from './screens/admin.jsx';
+import { ADash, AStats, AApprove, AMgrApps, ASafety, AInquiries, ANotices, ASuggest, APub, AMembers, AManagers } from './screens/adminPc.jsx'; // 운영자 PC(5판, 계약서 7.24): 폭 901px 이상이면 PC 화면, 좁으면 기존 모바일 화면
 import { MyInsight, CarePlan, MyReport, FamRecentReport } from './screens/insight.jsx';
 import { MemoToPosts } from './screens/opsai.jsx';
 import { ModeProvider } from './ui/proto.jsx';
@@ -27,7 +28,7 @@ import { ClassDetail, APublicClasses } from './screens/publicClass.jsx';
 import { GroupDetail, GroupNew } from './screens/group.jsx'; // 기능 U-10·U-11·O-07 단체 봉사
 import { Bundle } from './screens/bundle.jsx'; // 기능 U-12 빈 시간 묶음 추천
 import { RecurringList, RecurringNew } from './screens/recurring.jsx'; // 기능 U-09 정기 요청
-import { AForecast, ASim, AStats, ARecruit, AWeather, AMgrApps } from './screens/adminReports.jsx'; // 기능명세서 운영자 리포트
+import { AForecast, ASim, ARecruit, AWeather } from './screens/adminReports.jsx'; // 기능명세서 운영자 리포트
 import { MyPublicRefs } from './screens/orgExtra.jsx'; // 특보 알림 · 공공 서비스 연계
 import { ManagerApply } from './screens/managerApply.jsx'; // 기능 C-04 담당자 계정 신청
 import { TimePlan, MonthReport } from './screens/timeplan.jsx'; // 기능 U-24 시간 플랜 · U-25 월별 리포트
