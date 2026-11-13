@@ -1,7 +1,7 @@
 # 시간 적금 — ERD (데이터 구조)
 
 - 작성일: 2026-11-13
-- 기준 커밋: `c68c72e 2026-11-13 대표 화면 지시 정리와 담당자·운영자 PC 프로토타입 추가` + 읽는 시점에 아직 커밋되지 않은 작업 폴더 변경(엔티티 `PostBookmark` = 표 `post_bookmarks`). 사용자 화면 담당이 고치는 중이라 더 바뀔 수 있다.
+- 기준 커밋: `9f78dc4 사용자 화면을 2026-11-13 대표 지시대로: 하단바·홈·공고·통장·플래너·마이` (백엔드·DB는 바로 앞 `aeed99f`까지 반영 — 표 `post_bookmarks` 추가). 쓰기 시작할 때는 `c68c72e`였고, 쓰는 동안 올라온 두 커밋에 맞춰 끝에 다시 확인했다.
 - 근거: `backend/src/main/java/com/timesavings/domain/*.java`(엔티티 42개 + `Enums` + `StringListConverter`). **엔티티 코드가 기준**이고 `db/schema.sql`·`db/README.md`는 참고만 했다(다른 곳은 6장).
 - **기관 담당자 관련 표는 5장에 따로 모아 더 자세히** 적었다. 3장에는 그 표들의 칸 정의를 다시 싣지 않고 5장을 가리킨다.
 
@@ -660,7 +660,7 @@ erDiagram
 | plan_source | VARCHAR(10) | | `ai`·`rule` | |
 | created_at | DATETIME | | | |
 
-#### `post_bookmarks` — 관심 공고 *(커밋 전 작업)*
+#### `post_bookmarks` — 관심 공고 (2026-11-13 추가)
 유일: `uq_post_bookmark(user_id, post_id)`, 색인 `ix_post_bookmark_user(user_id)`
 | 칸 | 형식 | 필수 | 설명 | 참조 |
 |---|---|---|---|---|
@@ -1303,11 +1303,10 @@ CONFIRMED ──시작 QR·번호──▶ IN_PROGRESS ──종료 QR·번호(�
 다시 쓰게 된 칸(예전 문서에 "쓰지 않음"으로 적혔던 것): `users.edu_done`, `edu_progress.completed_at`(첫 활동 교육 이수), `posts.repeat_rule`·`series_id`(정기 요청 회차), `org_events.capacity`(표시용 정원).
 
 ### 6.2 `db/schema.sql`·`db/README.md`와 엔티티가 다른 곳
-1. **표 수**: schema.sql·README는 **40개**, 엔티티는 **42개**. 빠진 표:
-   - `public_referrals`(공공 서비스 연계, 2026-11-13 추가)
-   - `post_bookmarks`(관심 공고, 커밋 전 작업)
-   실행 때는 `ddl-auto=update`가 만들어 주지만, schema.sql로 MySQL을 새로 만들면 두 표가 없다.
-2. 두 표를 뺀 **나머지 40개 표의 칸 이름은 엔티티와 같았다**(표·칸 이름을 기계로 견줌. 형식·길이까지는 한 칸씩 견주지 않았다 — 확인 필요).
+1. **표 수**: 엔티티는 **42개**, schema.sql은 **41개**, README는 머리말에 "테이블 40개"라고 적혀 있다.
+   - **`public_referrals`(공공 서비스 연계, 2026-11-13 추가)가 schema.sql에 없다.** 실행 때는 `ddl-auto=update`가 만들어 주지만, schema.sql로 MySQL을 새로 만들면 이 표가 없다.
+   - `post_bookmarks`는 커밋 `aeed99f`에서 schema.sql에 더해졌다. `db/README.md`의 표 목록에는 `post_bookmarks`·`public_referrals` 둘 다 없다.
+2. `public_referrals`를 뺀 **나머지 41개 표의 칸 이름은 엔티티와 같았다**(표·칸 이름을 기계로 견줌. 형식·길이까지는 한 칸씩 견주지 않았다 — 확인 필요).
 3. schema.sql에는 외래 키 제약이 없다(엔티티에 연관이 없어서). 이 문서의 관계선은 논리 관계다.
 4. `users.text_size`: 엔티티 기본값은 `normal`(소문자), API로 바꾸면 `BIG`·`NORMAL`(대문자)이 들어간다 — 한 칸에 대소문자가 섞인다.
 5. `elders.alias`: 칸 길이는 30자인데 API는 10자까지만 받는다.

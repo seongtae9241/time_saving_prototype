@@ -1,7 +1,7 @@
 # 시간 적금 — API 정의서 (백엔드)
 
 - 작성일: 2026-11-13
-- 기준 커밋: `c68c72e 2026-11-13 대표 화면 지시 정리와 담당자·운영자 PC 프로토타입 추가` + 읽는 시점에 아직 커밋되지 않은 작업 폴더 변경(`PostController` 관심 공고 3개 API, `BankController` 거래별 잔액·상대 이름, 엔티티 `PostBookmark`). 사용자 화면 담당이 고치는 중이라 이 부분은 더 바뀔 수 있다.
+- 기준 커밋: `9f78dc4 사용자 화면을 2026-11-13 대표 지시대로: 하단바·홈·공고·통장·플래너·마이` (백엔드는 바로 앞 `aeed99f 관심 공고(북마크) API, 통장 거래 건별 잔액·상대 이름, 동네 소식 최신순`까지 반영). 쓰기 시작할 때는 `c68c72e`였고, 쓰는 동안 사용자 화면 담당이 위 두 커밋을 올려서 끝에 다시 맞췄다. 사용자 화면 쪽은 더 바뀔 수 있다.
 - 근거: `backend/src/main/java/com/timesavings/web/*.java`(컨트롤러 28개), `config/AuthInterceptor.java`·`WebConfig.java`·`ApiException.java`·`GlobalExceptionHandler.java`, 응답 조립 `service/Views.java`와 각 서비스. `docs/design/contract.md`는 참고만 했고, 다르면 **코드가 맞다**.
 - 이 문서의 칸 이름은 컨트롤러의 `record`와 `Views.map(...)`에서 직접 확인한 것이다. 서비스 안쪽에서 만들어져 이번에 끝까지 읽지 못한 응답은 "(확인 필요)"로 적었다.
 - **기관 담당자 영역(16장)은 모든 API를 상세로** 적었다. 담당자가 함께 쓰는 공용 API는 16.9에 모았다.
@@ -145,13 +145,13 @@
 |---|---|---|---|
 | GET | `/api/posts` | 로그인 | 공고 목록(필터·정렬) |
 | GET | `/api/posts/mine` | 로그인 | 내가 올린 공고(지난 것 포함). 담당자는 담당 대상 공고도 |
-| GET | `/api/posts/bookmarks` | 로그인 | 내 관심 공고 목록 *(커밋 전 작업)* |
+| GET | `/api/posts/bookmarks` | 로그인 | 내 관심 공고 목록 |
 | GET | `/api/posts/{id}` | 로그인 | 공고 상세 + 받은 요청 |
 | POST | `/api/posts` | 로그인(운영자 제외는 서비스 규칙) | 공고 올리기(항상 1건) |
 | POST | `/api/posts/{id}/repost` | 공고 주인·담당자 | 지난 공고를 날짜만 바꿔 다시 올리기 |
 | PUT | `/api/posts/{id}` | 공고 주인·담당자 | 공고 고치기 |
 | DELETE | `/api/posts/{id}` | 공고 주인·담당자 | 공고 삭제(상태 DELETED) |
-| POST·DELETE | `/api/posts/{id}/bookmark` | 로그인 | 관심 공고 담기·빼기 *(커밋 전 작업)* |
+| POST·DELETE | `/api/posts/{id}/bookmark` | 로그인 | 관심 공고 담기·빼기 |
 | GET | `/api/posts/{id}/easy` | 로그인 | 쉬운 말로 읽어 주기 문장(공고별 1회 생성·저장) |
 | GET | `/api/posts/{id}/fix-tips` | 공고 주인·담당자 | 안 맞춰지는 공고 고치기 제안 |
 | GET·POST | `/api/interest-alerts` | 로그인 | 관심 조건 알림 목록·추가 |
@@ -268,7 +268,7 @@
 | POST | `/api/me/care-plan` | USER | 봉사 플랜 `{plans[{category, perWeek, hours}]}` |
 
 ### 상세
-- **GET `/api/bank`** → `accountNo, totalEarned, totalUsed, balance, hold, available, usable, earnedSelf, giftReceived, canUseSelf, selfUseMin, monthIn, monthOut, monthly[], months[], entries[{id, type, amount, baseHours, weight, label, requestId, createdAt, balanceAfter, counterpart, counterpartRole(HELPER|HELPED)}]`. `balanceAfter`·`counterpart`는 커밋 전 작업이다. 보류(HOLD)·보류 해제(RELEASE)는 잔액을 바꾸지 않는다.
+- **GET `/api/bank`** → `accountNo, totalEarned, totalUsed, balance, hold, available, usable, earnedSelf, giftReceived, canUseSelf, selfUseMin, monthIn, monthOut, monthly[], months[], entries[{id, type, amount, baseHours, weight, label, requestId, createdAt, balanceAfter, counterpart, counterpartRole(HELPER|HELPED)}]`. `balanceAfter`·`counterpart`는 2026-11-13에 더해졌다(계약서 7.20). 보류(HOLD)·보류 해제(RELEASE)는 잔액을 바꾸지 않는다.
 - **POST `/api/bank/gift`** → `{ok, balance}`. 오류 `INVALID_INPUT`, `INVALID_AMOUNT`, 403(연결된 가족 아님), `INSUFFICIENT_BALANCE`.
 - **GET `/api/certificate`** → `name, accountNo, period, from, to, totalHours, totalEarned, count, groupCount, elderCount, byCategory[{category, count, hours}], items[{date, category, hours, earned, recipient, elder, group?}], issuedAt, summary, summarySource(ai|rule)`. 오류 `INVALID_DATE`, `INVALID_PERIOD`.
 - **GET `/api/my/activity-summary`** → `{months[{month, helpCount, helpHours, receivedCount, receivedHours}], totalHelpCount, totalReceivedCount, groupHelpCount}`.
@@ -423,13 +423,13 @@
 |---|---|---|---|
 | GET | `/api/events?area=&nearby=` | 로그인 | 열린 기관 소식. `nearby=true`면 내 동네 근처만 |
 | GET | `/api/events/{id}` | 로그인 | 소식 한 건(EventView) |
-| GET | `/api/news?area=` | 로그인 | 한 목록: 담당자가 올린 소식(ORG) + AI가 찾은 소식(AI) + 공공데이터 강좌(PUBLIC) |
+| GET | `/api/news?area=&sort=` | 로그인 | 한 목록: 담당자가 올린 소식(ORG) + AI가 찾은 소식(AI) + 공공데이터 강좌(PUBLIC). `sort=new`면 올라온 순서가 최근인 것부터(없으면 내 동네 먼저·날짜 빠른 순) |
 | POST | `/api/events` | **ORG** | 소식 올리기 → 16.7 |
 | POST | `/api/events/{id}/close` | **ORG**(우리 기관) | 소식 내리기 → 16.7 |
 | POST | `/api/link-preview` | USER·ORG | `{url}` → `{url, title, image, description, siteName}`(저장 안 함) |
 
 - **EventView** `id, orgId, orgName, title, content, date, startHour, place, applyType("LINK" 고정), url, capacity(0이면 null), preview{title, image, description}|null, status(OPEN|CLOSED), owner(내 기관 것인지), createdAt, area, near, distanceKm`.
-- **GET `/api/news`** → `{items[{key, kind(ORG|AI|PUBLIC), id, title, orgName, date, startHour, when, place, area, near, url, capacity, image, aiFound, notice}], area, searchAvailable, aiNotice}`. 신청은 앱이 아니라 기관 페이지(`url`)에서 한다.
+- **GET `/api/news`** → `{items[{key, kind(ORG|AI|PUBLIC), id, title, orgName, date, startHour, when, place, area, near, url, capacity, image, aiFound, notice, createdAt}], area, searchAvailable, aiNotice}`. 신청은 앱이 아니라 기관 페이지(`url`)에서 한다.
 
 ### 15.2 기관 클래스(공공 강좌) 추천
 | 메서드 | 경로 | 권한 | 설명 |
@@ -928,15 +928,14 @@
 | 파일 저장 | 서버 로컬 폴더(무료 배포에서는 재시작 때 사라질 수 있음 — 배포 문서 확인 필요) |
 
 ### 18.3 문서(`docs/design/contract.md`)와 코드가 달랐던 곳
-1. 계약서에는 **7.20 절이 없다**(7.19가 마지막). 요청서에 적힌 "7.1~7.20"과 다르다.
-2. **관심 공고(북마크) API 3개**(`GET /api/posts/bookmarks`, `POST`·`DELETE /api/posts/{id}/bookmark`)와 공고 카드의 `bookmarked`는 계약서에 없다(커밋 전 작업).
-3. `GET /api/bank`의 `entries[].balanceAfter·counterpart·counterpartRole`은 계약서에 없다(커밋 전 작업).
-4. 계약서 5.10의 `GET /api/org/home` 본문 설명은 `counts{elders, pendingFinal, logsToConfirm, active}`만 적혀 있다. 코드는 `monthDone, flaggedReports, transfersIn`까지 7개를 준다(`monthDone`만 7.17에 덧붙여 있음).
-5. 계약서 7.11의 `POST /api/events/{id}/apply`·`/cancel`은 코드에 없다(7.17에서 삭제로 정리됨 — 앞 절을 그대로 믿으면 안 된다). `applyType`은 응답에서 늘 `"LINK"`다.
-6. 글자 크기: `PUT /api/me`는 `"BIG"`/`"NORMAL"`(대문자)로 저장하는데 새 계정의 기본값은 `"normal"`(소문자)이다. 화면은 대소문자를 가리지 않고 봐야 한다.
-7. 공지 고정(`pinned`)은 `POST`·`PUT /api/admin/notices` 본문으로는 못 바꾸고 `POST /api/admin/notices/{id}/pin`으로만 바꾼다.
-8. `POST /api/events`·`/api/events/{id}/close`는 담당자 전용인데 경로가 `/api/org/**`가 아니라서 인터셉터가 아니라 서비스가 403을 낸다(USER가 부르면 "기관 담당자만 동네 소식을 올릴 수 있어요").
-9. `db/README.md`·`db/schema.sql`은 표 40개로 적혀 있지만 엔티티는 42개다(`public_referrals`, `post_bookmarks` 빠짐) — ERD 문서 6장 참고.
+1. 관심 공고(북마크) API 3개, `GET /api/bank`의 `entries[].balanceAfter·counterpart·counterpartRole`, `GET /api/news?sort=new`는 쓰는 도중 계약서 **7.20**(커밋 `9f78dc4`)에 더해졌다. 코드와 같다(다른 곳 없음).
+2. 계약서 5.x 절의 본문은 처음 판 그대로이고 바뀐 내용은 7장에 덧붙이는 식이라, **5장만 보면 지금 코드와 다르다**(아래 3·4가 그 예).
+3. 계약서 5.10의 `GET /api/org/home` 본문 설명은 `counts{elders, pendingFinal, logsToConfirm, active}`만 적혀 있다. 코드는 `monthDone, flaggedReports, transfersIn`까지 7개를 준다(`monthDone`만 7.17에 덧붙여 있음).
+4. 계약서 7.11의 `POST /api/events/{id}/apply`·`/cancel`은 코드에 없다(7.17에서 삭제로 정리됨 — 앞 절을 그대로 믿으면 안 된다). `applyType`은 응답에서 늘 `"LINK"`다.
+5. 글자 크기: `PUT /api/me`는 `"BIG"`/`"NORMAL"`(대문자)로 저장하는데 새 계정의 기본값은 `"normal"`(소문자)이다. 화면은 대소문자를 가리지 않고 봐야 한다.
+6. 공지 고정(`pinned`)은 `POST`·`PUT /api/admin/notices` 본문으로는 못 바꾸고 `POST /api/admin/notices/{id}/pin`으로만 바꾼다.
+7. `POST /api/events`·`/api/events/{id}/close`는 담당자 전용인데 경로가 `/api/org/**`가 아니라서 인터셉터가 아니라 서비스가 403을 낸다(USER가 부르면 "기관 담당자만 동네 소식을 올릴 수 있어요").
+8. `db/schema.sql`은 표 41개(`post_bookmarks`는 `aeed99f`에서 더해짐), `db/README.md`는 "테이블 40개"로 적혀 있고, 엔티티는 42개다. **`public_referrals`가 schema.sql에 없다** — ERD 문서 6장 참고.
 
 ### 18.4 "(확인 필요)"로 남긴 것
 - 서비스 안에서 만드는 응답의 세부 칸: `PostService.decorate`, `ActivityAiService`(브리핑·메시지 도우미·판단 보조·목표 코치·월별 결산), `PlannerService`, `TimePlanService`, `PersonalInsightService`, `BundleService.recommend`, `EduService`, `PublicClassService`(추천·검색·대상별 추천), `AnalyticsService`·`AdminReportService`·`FinanceForecastService`·`OpsSafetyService`, `ai/*.java`의 AI 응답(post-chat·filter·difficulty·log-tidy·public-services·assistant·post-check), `OrgAi`의 초안 나머지 칸.
