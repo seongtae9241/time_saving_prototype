@@ -732,34 +732,6 @@ function ASuggestPc() {
 }
 export function ASuggest() { return usePc() ? <ASuggestPc /> : <M.ASuggest />; }
 
-/* ====================== A-11 공공 서비스 정보: 표 + 패널 ====================== */
-function APubPc() {
-  const { toast, confirm } = useUi();
-  const [list, reload] = useLoad(() => api('/admin/public-services'), []);
-  const [form, setForm] = useState(null); // 'new' 또는 고치는 서비스
-  const close = () => setForm(null);
-  return (
-    <Screen title="공공 서비스 정보" back={false} wide>
-      <div className="prw" style={{ marginBottom: 16 }}>
-        <span className="mu" style={{ flex: 1, fontSize: 13 }}>AI 공공 서비스 안내는 이 목록에서만 찾아요. 없는 서비스는 만들어 내지 않아요. 이름·신청 방법은 공식 사이트에서 확인 후 입력해요.</span>
-        <button type="button" className="pbtn pri" onClick={() => setForm('new')}><PIc k="plus" />서비스 등록</button>
-      </div>
-      <div className="pnl">
-        {list === undefined ? <Loading /> : <Tbl head={['서비스 이름', '대상', '신청 방법·신청처', '문의', '지역', '찾기 낱말', '']} plain empty="등록한 서비스가 없어요"
-          rows={(list || []).map((p) => ({ key: p.id, cells: [
-            <b key="n">{p.name}</b>, p.target, p.applyHow, p.contact || '-', p.region, arr(p.keywords).join(', '),
-            <span key="a" className="prw" style={{ gap: 12, justifyContent: 'flex-end' }}>
-              <button type="button" className="lk" onClick={() => setForm(p)}>수정</button>
-              <button type="button" className="lk" style={{ color: '#C25E48' }} onClick={async () => { if (await confirm('이 서비스를 지울까요?', p.name, '삭제', true)) { try { await del(`/admin/public-services/${p.id}`); reload(); toast('지웠어요'); } catch { /* 토스트 */ } } }}>삭제</button>
-            </span>,
-          ] }))} />}
-      </div>
-      {form && <PcDrawer title={form === 'new' ? '서비스 등록' : '서비스 수정'} onClose={close}><div className="mob inl noh"><M.PubForm p={form === 'new' ? undefined : form} onDone={() => { close(); reload(); }} /></div></PcDrawer>}
-    </Screen>
-  );
-}
-export function APub() { return usePc() ? <APubPc /> : <M.APub />; }
-
 /* ====================== 회원 관리(5판 메뉴에 없음): 검색 + 표 + 상세 ====================== */
 const U_ST = { ACTIVE: ['g', '정상'], SUSPENDED: ['r', '정지'], WITHDRAWN: ['k', '탈퇴'] };
 function AMembersPc() {

@@ -123,7 +123,6 @@ export const ADMIN_MENU = [
     ['/a/inquiries', '문의', 'chat'],
     ['/a/notices', '공지사항', 'mega'],
     ['/a/suggest', '카테고리 건의', 'tag'],
-    ['/a/pub', '공공 서비스 정보', 'building'],
   ]],
   ['설정', [
     ['/a/members', '회원 관리', 'users'],

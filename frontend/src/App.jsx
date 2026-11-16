@@ -18,7 +18,7 @@ import { News, EventDetail } from './screens/news.jsx';
 import { OSchedule } from './screens/schedulePc.jsx'; // 기능 O-11~O-13 돌봄 편성표 (PC: 일/주/월 캘린더, 좁으면 기존 표)
 import { Edu, EduCard, EduQuiz, EduRp, EduRpRes } from './screens/edu.jsx';
 import { AManage, APersona, AVerify } from './screens/admin.jsx';
-import { ADash, AStats, AApprove, AMgrApps, ASafety, AInquiries, ANotices, ASuggest, APub, AMembers, AManagers } from './screens/adminPc.jsx'; // 운영자 PC(5판, 계약서 7.24): 폭 901px 이상이면 PC 화면, 좁으면 기존 모바일 화면
+import { ADash, AStats, AApprove, AMgrApps, ASafety, AInquiries, ANotices, ASuggest, AMembers, AManagers } from './screens/adminPc.jsx'; // 운영자 PC(5판, 계약서 7.24): 폭 901px 이상이면 PC 화면, 좁으면 기존 모바일 화면
 import { MyInsight, CarePlan, MyReport, FamRecentReport } from './screens/insight.jsx';
 import { MemoToPosts } from './screens/opsai.jsx';
 import { ModeProvider } from './ui/proto.jsx';
@@ -148,7 +148,6 @@ function Shell() {
         <Route path="/a/managers" element={g(<AManagers />, A)} />
         <Route path="/a/inquiries" element={g(<AInquiries />, A)} />
         <Route path="/a/notices" element={g(<ANotices />, A)} />
-        <Route path="/a/pub" element={g(<APub />, A)} />
         <Route path="/a/verify" element={g(<AVerify />, A)} />
         <Route path="/a/suggest" element={g(<ASuggest />, A)} />
         <Route path="/a/persona" element={g(<APersona />, A)} />

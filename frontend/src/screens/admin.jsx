@@ -378,7 +378,6 @@ export function AManage() {
         <Mi t="대응 추천 · 특보 알림" s="모집 문구 초안 · 기상 특보 리포트와 전달" i="flag" onClick={() => nav('/a/weather')} />
         <Mi t="봉사 인증 항목 설정" s="신분증 · 첫 활동 교육 · 범죄경력(선택)" i="shield" onClick={() => nav('/a/verify')} />
         <Mi t="카테고리 건의" s="사용자·담당자가 건의한 새 종류 · 답변" i="flag" onClick={() => nav('/a/suggest')} />
-        <Mi t="공공 서비스 정보" s="AI 안내에 쓰는 DB" i="building" onClick={() => nav('/a/pub')} />
         <Mi t="기관 클래스" s="공공기관 강좌 · CSV 가져오기 · AI 다시 찾기" i="cap" onClick={() => nav('/a/classes')} />
         <Mi t="가상 상대 관리" s="AI 역할극 상대 · 숨은 시험 상황" i="users" onClick={() => nav('/a/persona')} />
         <Mi t="로그아웃" i="logout" onClick={logout} />
@@ -532,42 +531,6 @@ export function ANotices() {
           <a className="mute2" role="button" tabIndex={0} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }} onClick={async () => { try { await post(`/admin/notices/${n.id}/pin`, { pinned: !n.pinned }); reload(); toast(n.pinned ? '고정을 풀었어요' : '맨 위에 고정했어요'); } catch { /* 토스트 */ } }}>{n.pinned ? '고정 해제' : '고정'}</a>
           <a className="mute2" role="button" tabIndex={0} style={{ cursor: 'pointer' }} onClick={async () => { const full = await api(`/notices/${n.id}`); sheet(() => <NoticeForm n={full} onDone={done} />); }}>수정</a>
           <a className="mute2 danger" role="button" tabIndex={0} style={{ cursor: 'pointer' }} onClick={async () => { if (await confirm('공지를 지울까요?', n.title, '삭제', true)) { try { await del(`/admin/notices/${n.id}`); reload(); toast('지웠어요'); } catch { /* 토스트 */ } } }}>삭제</a>
-        </div>
-      ))}
-    </Screen>
-  );
-}
-
-/* ---------- 공공 서비스 정보 (P-02) ---------- */
-export function PubForm({ p, onDone }) {
-  const [f, setF] = useState(p ? { ...p, keywords: arr(p.keywords).join(', ') } : { name: '', target: '', content: '', applyHow: '', contact: '', region: '전국', keywords: '' });
-  const { toast } = useUi();
-  const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
-  return (
-    <>
-      <h2>{p ? '서비스 수정' : '서비스 등록'}</h2>
-      {[['name', '서비스 이름'], ['target', '대상'], ['content', '내용'], ['applyHow', '신청 방법·신청처'], ['contact', '문의처 (전화)'], ['region', '지역'], ['keywords', '찾기 낱말 (쉼표로)']].map(([k, l]) => <div key={k}><label className="f">{l}</label>{k === 'content' ? <textarea className="in" style={{ minHeight: 80 }} value={f[k] || ''} onChange={set(k)} /> : <input className="in" value={f[k] || ''} onChange={set(k)} />}</div>)}
-      <div className="mute2" style={{ marginTop: 8 }}>이름·신청 방법은 공식 사이트에서 확인한 뒤 입력해요.</div>
-      <button className="btn" style={{ marginTop: 12 }} onClick={async () => {
-        if (!f.name.trim()) return toast('서비스 이름을 적어 주세요');
-        const body = { name: f.name, target: f.target, content: f.content, applyHow: f.applyHow, contact: f.contact, region: f.region, keywords: f.keywords.split(',').map((x) => x.trim()).filter(Boolean) };
-        try { if (p) await put(`/admin/public-services/${p.id}`, body); else await post('/admin/public-services', body); onDone(); toast('저장했어요'); } catch { /* 토스트 */ }
-      }}>저장</button>
-    </>
-  );
-}
-export function APub() {
-  const { toast, confirm, sheet, closeSheet } = useUi();
-  const [list, reload] = useLoad(() => api('/admin/public-services'), []);
-  const done = () => { closeSheet(); reload(); };
-  return (
-    <Screen title="공공 서비스 정보" noTabs>
-      <p className="su-p" style={{ marginTop: 0 }}>AI 공공 서비스 안내는 이 목록에서만 찾아요. 없는 서비스는 만들어 내지 않아요. 이름·신청 방법은 공식 사이트에서 확인 후 입력해요.</p>
-      <button className="btn" onClick={() => sheet(() => <PubForm onDone={done} />)}><Ic h={I.plus} /> 서비스 등록</button>
-      {list === undefined ? <Loading /> : (list || []).map((p) => (
-        <div className="card" style={{ marginTop: 10 }} key={p.id}>
-          <div className="between"><span className="b">{p.name}</span><span><a className="mute2" role="button" tabIndex={0} style={{ cursor: 'pointer', marginRight: 10 }} onClick={() => sheet(() => <PubForm p={p} onDone={done} />)}>수정</a><a className="mute2 danger" role="button" tabIndex={0} style={{ cursor: 'pointer' }} onClick={async () => { if (await confirm('이 서비스를 지울까요?', p.name, '삭제', true)) { try { await del(`/admin/public-services/${p.id}`); reload(); toast('지웠어요'); } catch { /* 토스트 */ } } }}>삭제</a></span></div>
-          <div className="small muted" style={{ marginTop: 4 }}>대상: {p.target}<br />신청: {p.applyHow}{p.contact ? ` · ☎ ${p.contact}` : ''}<br />지역: {p.region} · 낱말: {arr(p.keywords).join(', ')}</div>
         </div>
       ))}
     </Screen>
