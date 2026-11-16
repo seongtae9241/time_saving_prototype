@@ -27,11 +27,8 @@ const Seg = ({ value, onChange, items, label }) => (
     {items.map(([k, t]) => <button key={k} type="button" role="tab" aria-selected={value === k} className={value === k ? 'on' : ''} onClick={() => onChange(k)}>{t}</button>)}
   </div>
 );
-const Kpi = ({ items }) => (
-  <div className="kpis" style={{ gridTemplateColumns: `repeat(${items.length},minmax(0,1fr))` }}>
-    {items.map(([k, v]) => <div key={k} className="kpi"><span>{k}</span><b>{v}</b></div>)}
-  </div>
-);
+/* 참고용 숫자: 큰 칸 대신 글자 크기만큼의 작은 줄 (2026-11-16) */
+const Stats = ({ items, label }) => <div className="ministat" aria-label={label}>{items.map(([k, v]) => <span key={k}>{k} <b>{v}</b></span>)}</div>;
 
 /* ================= 요청 상세 (O-POST-03): 위 줄 + 목록 340 + 상세 =================
    오른쪽 상세는 기존 RequestDetail 그대로다(대신 수락·거절, 최종 수락, 일지 확인·평가, 메시지, QR, 신고 … 버튼이 모두 거기 있다). */
@@ -155,9 +152,15 @@ function OWeatherPc() {
   const cur = L.find((x) => String(x.id) === sp.get('id')) || L[0];
   const go = (id) => setSp({ id: String(id) }, { replace: true });
   const guideOf = (a) => guides.find((g) => String(g.id) === String(a.id)) || (a.guide ? a : null);
-  const kp = (a) => <Kpi items={[['이 지역 내 담당 대상', a.mineArea ? `${a.myElders ?? 0}명` : '없음'], ['특보 기간 예정 활동', `${a.myActivities ?? 0}건`], ['운영자 안내', guideOf(a) || a.sent ? '받음' : '아직 없음']]} />;
+  const kp = (a) => <Stats label="특보 숫자" items={[['이 지역 내 담당 대상', a.mineArea ? `${a.myElders ?? 0}명` : '없음'], ['특보 기간 예정 활동', `${a.myActivities ?? 0}건`], ['운영자 안내', guideOf(a) || a.sent ? '받음' : '아직 없음']]} />;
+  const guideCard = (a) => guideOf(a) && (
+    <div className="pnl">
+      <div className="prw"><span className="bx-i"><PIc k="mega" /></span><div style={{ flex: 1, minWidth: 0 }}><b>{guideOf(a).guideTitle || '운영자 안내'}</b><div className="bx-s">운영자 안내{guideOf(a).sentAt ? ` · ${dshort(guideOf(a).sentAt)} 도착` : ''}</div></div></div>
+      <div style={{ marginTop: 8, whiteSpace: 'pre-line' }}>{guideOf(a).guide || '안내 내용이 없어요'}</div>
+    </div>
+  );
   const links = (
-    <div className="prw" style={{ gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+    <div className="prw" style={{ gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
       <button type="button" className="pbtn" onClick={() => nav('/o/elders')}>담당 대상 보기 ›</button>
       <button type="button" className="pbtn" onClick={() => nav('/o/schedule')}>편성표 ›</button>
       <button type="button" className="pbtn" onClick={() => nav('/o/public')}>공공 서비스 연계 ›</button>
@@ -165,11 +168,8 @@ function OWeatherPc() {
   );
   return (
     <Screen title="특보 알림" wide stay>
-      <div className="prw" style={{ marginBottom: 14, flexWrap: 'wrap', rowGap: 8 }}>
-        <span className="mu">날씨 특보와 그 특보에 운영자가 보낸 안내를 함께 보여 줘요. 재연락·방문·일정 조정은 담당자가 판단해요.</span>
-      </div>
-      {d === undefined ? <div className="pnl"><Loading /></div> : !d ? <div className="pnl pempty">불러오지 못했어요</div> : (
-        <div className="split">
+      {d === undefined ? <div><div className="pnl fit"><Loading /></div></div> : !d ? <div><div className="pnl pempty fit">불러오지 못했어요</div></div> : (
+        <div className="split nar">
           <div className="pnl lst">
             <div className="lst-t">기상 특보 · 운영자 안내</div>
             {L.length ? L.map((x) => {
@@ -188,25 +188,19 @@ function OWeatherPc() {
             <div className="notebox" style={{ marginTop: 10 }}>운영자가 특보를 보고 "이렇게 대비해 주세요" 하고 보낸 안내는 그 특보 안에 함께 보여요. 내 담당 지역 안내는 홈 위쪽에도 떠요.</div>
           </div>
           <div className="dcol">
-            {!cur ? <div className="pnl pempty">지금 내려진 특보가 없어요</div> : (
+            {!cur ? <div className="pnl pempty fit">지금 내려진 특보가 없어요</div> : (
               <>
                 <div className={cur.mineArea && cur.active !== false ? 'dangerbox' : 'notebox big'}>
                   <div className="prw"><span className="bx-i"><PIc k="snow" /></span><div style={{ flex: 1, minWidth: 0 }}><b style={{ fontSize: 16 }}>{wName(cur)} · {wArea(cur)}</b><div className="bx-s">{md(cur.from)} ~ {md(cur.to)} · {cur.active === false ? '지난 특보' : '진행 중'}{cur.sent ? ' · 운영자 안내 받음' : ''}</div></div></div>
                   <div style={{ marginTop: 8 }}>{cur.mineArea ? <>내 담당 대상 <b>{cur.myElders ?? 0}명</b>이 있는 지역이에요{cur.myActivities ? ` · 기간 안 예정 활동 ${cur.myActivities}건` : ''}.</> : '내 담당 대상이 있는 지역은 아니에요.'}</div>
                 </div>
-                {guideOf(cur) && (
-                  <div className="pnl">
-                    <div className="prw"><span className="bx-i"><PIc k="mega" /></span><div style={{ flex: 1, minWidth: 0 }}><b>{guideOf(cur).guideTitle || '운영자 안내'}</b><div className="bx-s">운영자 안내{guideOf(cur).sentAt ? ` · ${dshort(guideOf(cur).sentAt)} 도착` : ''}</div></div></div>
-                    <div style={{ marginTop: 8, whiteSpace: 'pre-line' }}>{guideOf(cur).guide || '안내 내용이 없어요'}</div>
-                  </div>
-                )}
                 {cur.mineArea ? (
                   <>
-                    {kp(cur)}
                     <div className="pnl">
                       <div className="ps-h"><b>이 지역의 담당 대상</b><button type="button" className="ps-a" onClick={() => nav('/o/elders')}>관리 대상에서 보기 ›</button></div>
                       {(cur.myElderNames || []).length ? <div className="ptags" style={{ marginTop: 0 }}>{cur.myElderNames.map((n) => <span key={n} className="ptag k">{n}</span>)}</div> : <div className="mu">이름을 불러오지 못했어요. 관리 대상에서 확인해 주세요.</div>}
                       <div className="mu" style={{ marginTop: 10 }}>안부 연락·방문·일정 조정은 담당자가 판단해요. 연락처는 앱에 저장하지 않아요.</div>
+                      {links}
                     </div>
                     {(cur.actions || []).length > 0 && (
                       <div className="ai">
@@ -215,9 +209,17 @@ function OWeatherPc() {
                         <div className="ai-why">특보 종류와 기간, 내 담당 대상의 지역·예정 활동을 기준으로 한 안내예요.</div>
                       </div>
                     )}
-                    <div className="pnl">{links}<div className="mu" style={{ marginTop: 10 }}>위급한 상황은 119에 먼저 알려 주세요. 여기 안내는 기록 정리이고 건강 판단이 아니에요.</div></div>
+                    {guideCard(cur)}
+                    {kp(cur)}
+                    <div className="mu">위급한 상황은 119에 먼저 알려 주세요. 여기 안내는 기록 정리이고 건강 판단이 아니에요.</div>
                   </>
-                ) : <div className="pnl"><div className="mu">내 담당 대상이 있는 지역이 아니라서 따로 할 일은 없어요.</div>{(cur.actions || []).length > 0 && <ul style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: 13 }}>{cur.actions.map((x, i) => <li key={i}>{x}</li>)}</ul>}</div>}
+                ) : (
+                  <>
+                    <div className="pnl"><div className="mu">내 담당 대상이 있는 지역이 아니라서 따로 할 일은 없어요.</div>{(cur.actions || []).length > 0 && <ul style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: 13 }}>{cur.actions.map((x, i) => <li key={i}>{x}</li>)}</ul>}</div>
+                    {guideCard(cur)}
+                  </>
+                )}
+                <div className="mu">날씨 특보와 그 특보에 운영자가 보낸 안내를 함께 보여 줘요. 재연락·방문·일정 조정은 담당자가 판단해요.</div>
               </>
             )}
           </div>
@@ -251,7 +253,7 @@ function PubDetail({ r, onDone }) {
         <div className="steps" aria-hidden="true">{PR_STEP.map((k, i) => <i key={k} className={i <= step ? 'on' : ''} />)}</div>
         <div className="stl">{PR_STEP.map((k, i) => <span key={k} className={i === step ? 'on' : ''}>{k === 'DONE' && r.status === 'NOT_ELIGIBLE' ? '대상이 아니에요' : PR_ST[k][1]}</span>)}</div>
       </div>
-      <div className="g2">
+      <div className="g2 g17">
         <div className="pnl">
           <div className="prw"><b style={{ flex: 1 }}>본인이 전달한 AI 대화</b><span className="ptag g">본인이 전달함 · {md(r.createdAt)}</span></div>
           <div className="notebox" style={{ margin: '8px 0' }}>앱에서 "담당자에게 전달하기"를 누른 대화만 보여요. 누르지 않은 대화와 찾아본 기록은 담당자에게 보이지 않아요.</div>
@@ -266,17 +268,8 @@ function PubDetail({ r, onDone }) {
         </div>
       </div>
       <div className="pnl">
-        <div className="prw"><b style={{ flex: 1 }}>AI가 찾은 서비스</b><span className="mu">전달한 대화에서 찾은 기록</span></div>
-        {svcs.length ? (
-          <table className="tbl sm plain" style={{ marginTop: 8 }} aria-label="AI가 찾은 서비스">
-            <thead><tr><th scope="col">서비스</th><th scope="col">대상</th><th scope="col">내용</th><th scope="col">신청</th></tr></thead>
-            <tbody>{svcs.map((s, i) => <tr key={i}><td><b>{svcName(s)}</b></td><td>{s.target || '-'}</td><td style={{ color: '#5B6576' }}>{s.summary || s.desc || s.description || '-'}</td><td>{[s.apply || s.agency || s.org, s.phone && `☎ ${s.phone}`].filter(Boolean).join(' · ') || '-'}</td></tr>)}</tbody>
-          </table>
-        ) : <div className="pempty">AI가 찾은 서비스가 없어요</div>}
-      </div>
-      <div className="pnl">
         <label className="plabel" htmlFor="pr-memo">처리 메모</label>
-        <textarea id="pr-memo" className="pin area" rows={2} value={memo} maxLength={500} onChange={(e) => setMemo(e.target.value)} placeholder="예) 11/14 통화, 주민센터 방문 신청 안내" />
+        <textarea id="pr-memo" className="pin area" style={{ maxWidth: 640 }} rows={2} value={memo} maxLength={500} onChange={(e) => setMemo(e.target.value)} placeholder="예) 11/14 통화, 주민센터 방문 신청 안내" />
         <div className="prw" style={{ gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
           {PR_NEXT.map(([k, t]) => (
             <button key={k} type="button" className={'pbtn lg ' + (r.status === k ? 'sel' : k === 'DONE' ? 'pri' : k === 'NOT_ELIGIBLE' ? 'sec2' : '')} aria-pressed={r.status === k} style={k === 'NOT_ELIGIBLE' ? { marginLeft: 'auto' } : undefined} disabled={busy}
@@ -284,6 +277,15 @@ function PubDetail({ r, onDone }) {
           ))}
         </div>
         <div className="mu" style={{ marginTop: 8 }}>상태를 바꾸면 {u.name || '사용자'} 님 앱에 알림이 가요.</div>
+      </div>
+      <div className="pnl">
+        <div className="prw"><b style={{ flex: 1 }}>AI가 찾은 서비스</b><span className="mu">전달한 대화에서 찾은 기록</span></div>
+        {svcs.length ? (
+          <table className="tbl sm plain" style={{ marginTop: 8 }} aria-label="AI가 찾은 서비스">
+            <thead><tr><th scope="col">서비스</th><th scope="col">대상</th><th scope="col">내용</th><th scope="col">신청</th></tr></thead>
+            <tbody>{svcs.map((s, i) => <tr key={i}><td><b>{svcName(s)}</b></td><td>{s.target || '-'}</td><td style={{ color: '#5B6576' }}>{s.summary || s.desc || s.description || '-'}</td><td>{[s.apply || s.agency || s.org, s.phone && `☎ ${s.phone}`].filter(Boolean).join(' · ') || '-'}</td></tr>)}</tbody>
+          </table>
+        ) : <div className="pempty">AI가 찾은 서비스가 없어요</div>}
       </div>
     </>
   );
@@ -301,13 +303,14 @@ function OPublicPc() {
   const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
   return (
     <Screen title="공공 서비스 연계" wide stay>
-      <Kpi items={[['새 요청', `${d ? d.newCount ?? items.filter((r) => r.status === 'NEW').length : '-'}건`], ['진행 중', `${d ? items.filter((r) => r.status === 'CONTACTED' || r.status === 'HELPING').length : '-'}건`], ['완료', `${d ? items.filter((r) => r.status === 'DONE').length : '-'}건`], ['연계 많은 서비스', top ? top[0] : '-']]} />
-      <div className="prw" style={{ margin: '0 0 14px', flexWrap: 'wrap', rowGap: 8 }}>
+      <div className="prw" style={{ margin: '0 0 16px', flexWrap: 'wrap', rowGap: 10 }}>
         <Seg label="처리 상태" value={seg} onChange={(k) => { setSeg(k); setSel(null); }} items={[['open', `진행 중 ${items.filter((r) => !closed(r)).length}`], ['done', `완료 ${items.filter(closed).length}`]]} />
         <span className="sp" />
-        <span className="mu">본인이 앱에서 "담당자에게 전달하기"를 눌렀을 때만 그 대화와 AI가 찾은 서비스가 여기로 와요</span>
+        <Stats label="연계 현황" items={[['새 요청', `${d ? d.newCount ?? items.filter((r) => r.status === 'NEW').length : '-'}건`], ['진행 중', `${d ? items.filter((r) => r.status === 'CONTACTED' || r.status === 'HELPING').length : '-'}건`], ['완료', `${d ? items.filter((r) => r.status === 'DONE').length : '-'}건`], ['연계 많은 서비스', top ? top[0] : '-']]} />
       </div>
-      {d === undefined ? <div className="pnl"><Loading /></div> : (
+      {d === undefined ? <div><div className="pnl fit"><Loading /></div></div> : !list.length ? (
+        <div><div className="pnl pempty fit">{seg === 'open' ? '처리할 연계 요청이 없어요' : '완료한 요청이 없어요'}</div></div>
+      ) : (
         <div className="split">
           <div className="pnl lst">
             {list.length ? list.map((x) => {
@@ -322,9 +325,10 @@ function OPublicPc() {
               );
             }) : <div className="pempty">{seg === 'open' ? '처리할 연계 요청이 없어요' : '완료한 요청이 없어요'}</div>}
           </div>
-          <div className="dcol">{cur ? <PubDetail key={cur.id} r={cur} onDone={reload} /> : <div className="pnl pempty">요청을 골라 주세요</div>}</div>
+          <div className="dcol">{cur ? <PubDetail key={cur.id} r={cur} onDone={reload} /> : <div className="pnl pempty fit">요청을 골라 주세요</div>}</div>
         </div>
       )}
+      <div className="mu pg-foot">본인이 앱에서 "담당자에게 전달하기"를 눌렀을 때만 그 대화와 AI가 찾은 서비스가 여기로 와요</div>
     </Screen>
   );
 }
@@ -353,12 +357,6 @@ function OReportPc() {
     <Screen title="관리 대상 리포트" wide stay>
       <div className="split r400">
         <div className="sidecol">
-          <div className="ai">
-            <div className="ai-h">관리 대상 리포트 AI</div>
-            <div><b>봉사 신청 내역</b>(성사·거절·만료)과 <b>활동 일지</b>를 모아 대상별 동향을 정리하고, <b>안부 확인 우선순위</b>를 매겼어요. 진단이나 건강 판단은 하지 않아요.</div>
-            <div className="ai-why">신청·활동 횟수와 순서는 시스템이 계산하고, AI는 봉사자 일지 내용만 정리해요.</div>
-            <RuleNote source={chg && chg.source} />
-          </div>
           <div className="pnl lst">
             <div className="prw" style={{ padding: '4px 6px 10px' }}><b style={{ flex: 1 }}>먼저 안부를 물어볼 순서</b><Seg label="기간" value={range} onChange={setRange} items={[['recent', `최근 ${(chg && chg.windowDays) || 30}일`], ['today', '오늘']]} /></div>
             {chg === undefined ? <Loading /> : items.length ? items.map((i) => {
@@ -372,6 +370,12 @@ function OReportPc() {
               );
             }) : <div className="pempty">{range === 'today' ? '오늘 들어온 일지가 없어요' : '담당 대상이 없어요'}</div>}
             {others.length > 0 && <><div className="lst-h">다른 담당 대상</div><div className="pchips wrap">{others.map((a) => <button key={a.id} type="button" className={'pchip ' + (String(a.id) === String(sel) ? 'on' : '')} onClick={() => pick(a.id)}>{elderName(a)}</button>)}</div></>}
+          </div>
+          <div className="ai sm">
+            <div className="ai-h">관리 대상 리포트 AI</div>
+            <div><b>봉사 신청 내역</b>(성사·거절·만료)과 <b>활동 일지</b>를 모아 대상별 동향을 정리하고, <b>안부 확인 우선순위</b>를 매겼어요. 진단이나 건강 판단은 하지 않아요.</div>
+            <div className="ai-why">신청·활동 횟수와 순서는 시스템이 계산하고, AI는 봉사자 일지 내용만 정리해요.</div>
+            <RuleNote source={chg && chg.source} />
           </div>
         </div>
         <div className="dcol">
@@ -440,16 +444,17 @@ function OEventsPc() {
     <Screen title="기관 행사" wide stay>
       <div className="split ev">
         <div className="dcol">
-          <div className="lst-t" style={{ padding: '0 2px 10px' }}>올린 행사 {(evs || []).length}<span className="mu" style={{ fontWeight: 500, marginLeft: 8 }}>사용자의 "동네 기관 소식"에 함께 보이고, 신청은 기관 페이지 링크에서 받아요</span></div>
+          <div className="lst-t" style={{ padding: '0 4px' }}>올린 행사 {(evs || []).length}</div>
           {evs === undefined ? <div className="pnl"><Loading /></div> : evs.length ? evs.map((e) => (
             <button key={e.id} type="button" className="pnl evc" onClick={() => nav(`/news/${e.id}`)}>
               <div className="prw"><span className={'ptag ' + (e.status === 'OPEN' ? 'g' : '')}>{e.status === 'OPEN' ? '올림' : '내림'}</span><span className="mu">{e.date ? `${dlabel(e.date)}${e.startHour != null ? ` ${hh(e.startHour)}` : ''}` : '날짜 미정'}</span></div>
               <div className="ev-t">{e.title}</div>
               <div className="mu">{[e.place, e.capacity ? `정원 ${e.capacity}명` : null, e.url ? host(e.url) : '링크 없음'].filter(Boolean).join(' · ')}</div>
             </button>
-          )) : <div className="pnl pempty">아직 올린 소식이 없어요</div>}
+          )) : <div className="pnl pempty fit">아직 올린 소식이 없어요</div>}
+          <div className="mu">사용자의 "동네 기관 소식"에 함께 보이고, 신청은 기관 페이지 링크에서 받아요</div>
         </div>
-        <div className="pnl">
+        <div className="pnl evform">
           <div className="ps-h"><b>새 기관 행사</b></div>
           <div className="mob"><EventFormBody key={ver} onDone={() => { reload(); setVer((v) => v + 1); }} /></div>
         </div>
@@ -467,11 +472,15 @@ function OMyPc() {
   const logout = useLogout();
   const org = (me && (me.orgName || (me.org && me.org.name))) || '기관';
   const G = [
-    ['돌봄', [
-      ['돌봄 편성표', '주간 일정 · 빈 칸 추천 · 공고 한꺼번에 올리기', 'cal', () => nav('/o/schedule')],
-      ['대상 정기 요청', '매주 같은 요일·시간으로 대신 등록한 요청 · 일시정지·해지', 'clock', () => nav('/recurring')],
-      ['특보 알림', '날씨 특보 · 운영자 안내', 'flag', () => nav('/o/weather')],
-      ['공공 서비스 연계', '사용자가 전달한 요청 처리', 'shield', () => nav('/o/public')],
+    ['알림 · 화면', [
+      ['알림', '대상 관련 알림을 대신 받아요', 'bell', () => nav('/notif')],
+      ['알림 설정', '담당 대상 관련 알림을 종류별로 켜고 꺼요', 'bell', () => nav('/my/noti')],
+      'text',
+    ]],
+    ['계정', [
+      ['내 정보 수정 · 비밀번호 변경', null, 'pen', () => nav('/my/info')],
+      ['로그아웃', null, 'logout', logout],
+      ['회원 탈퇴', '담당 대상을 이관·종료한 뒤 탈퇴할 수 있어요', 'flag', () => nav('/my/withdraw')],
     ]],
     ['기관', [
       ['기관 정보', org, 'building', () => toast(`${org} · 담당자 ${me && me.name}`)],
@@ -479,41 +488,42 @@ function OMyPc() {
       ['기관 소식 운영', '기관 행사·교실·모임 올리기', 'cal', () => nav('/o/events')],
       ['카테고리 건의', '6가지 종류에 없는 도움을 운영자에게 건의', 'flag', () => nav('/my/suggest')],
     ]],
-    ['알림 · 화면', [
-      ['알림', '대상 관련 알림을 대신 받아요', 'bell', () => nav('/notif')],
-      ['알림 설정', '담당 대상 관련 알림을 종류별로 켜고 꺼요', 'bell', () => nav('/my/noti')],
-      'text',
-    ]],
     ['도움말', [
       ['1:1 문의 · 신고 내역', null, 'msg', () => nav('/qna')],
       ['공지사항', null, 'file', () => nav('/notice')],
       ['공공 서비스 안내', null, 'shield', () => nav('/public')],
     ]],
-    ['계정', [
-      ['내 정보 수정 · 비밀번호 변경', null, 'pen', () => nav('/my/info')],
-      ['로그아웃', null, 'logout', logout],
-      ['회원 탈퇴', '담당 대상을 이관·종료한 뒤 탈퇴할 수 있어요', 'flag', () => nav('/my/withdraw')],
+    ['돌봄', [
+      ['돌봄 편성표', '주간 일정 · 빈 칸 추천 · 공고 한꺼번에 올리기', 'cal', () => nav('/o/schedule')],
+      ['대상 정기 요청', '매주 같은 요일·시간으로 대신 등록한 요청 · 일시정지·해지', 'clock', () => nav('/recurring')],
+      ['특보 알림', '날씨 특보 · 운영자 안내', 'flag', () => nav('/o/weather')],
+      ['공공 서비스 연계', '사용자가 전달한 요청 처리', 'shield', () => nav('/o/public')],
     ]],
   ];
   return (
     <Screen title="내 정보·설정" wide>
-      <div className="pnl">
-        <div className="prw">
-          <Avc n={me && me.name} cat="acc" size={56} />
-          <div style={{ flex: 1, minWidth: 0 }}><div className="d-t">{me && me.name}</div><div className="mu" style={{ fontSize: 13 }}>{org} · 담당자 계정{me && me.loginId ? ` · ${me.loginId}` : ''}</div></div>
-          <button type="button" className="pbtn" onClick={() => nav('/my/info')}>내 정보 수정</button>
-          <button type="button" className="pbtn" onClick={() => nav('/my/noti')}>알림 설정</button>
+      <div className="mywrap">
+        <div className="myside">
+          <div className="pnl mycard">
+            <Avc n={me && me.name} cat="acc" size={56} />
+            <div className="d-t">{me && me.name}</div>
+            <div className="mu" style={{ fontSize: 13 }}>{org} · 담당자 계정{me && me.loginId ? ` · ${me.loginId}` : ''}</div>
+            <div className="prw" style={{ gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+              <button type="button" className="pbtn" onClick={() => nav('/my/info')}>내 정보 수정</button>
+              <button type="button" className="pbtn" onClick={() => nav('/my/noti')}>알림 설정</button>
+            </div>
+          </div>
+          <div className="notebox">담당자 계정으로는 봉사할 수 없어요. 봉사하려면 사용자 계정을 따로 만들어 주세요.</div>
+        </div>
+        <div className="mycols">
+          {G.map(([g, rows]) => (
+            <div key={g} className="pnl">
+              <div className="ps-h"><b>{g}</b></div>
+              <div className="ml mob">{rows.map((r) => (r === 'text' ? <TextSizeRow key="text" /> : <Mi key={r[0]} t={r[0]} s={r[1]} i={r[2]} onClick={r[3]} />))}</div>
+            </div>
+          ))}
         </div>
       </div>
-      <div className="mygrid">
-        {G.map(([g, rows]) => (
-          <div key={g} className="pnl">
-            <div className="ps-h"><b>{g}</b></div>
-            <div className="ml mob">{rows.map((r) => (r === 'text' ? <TextSizeRow key="text" /> : <Mi key={r[0]} t={r[0]} s={r[1]} i={r[2]} onClick={r[3]} />))}</div>
-          </div>
-        ))}
-      </div>
-      <div className="notebox" style={{ marginTop: 18 }}>담당자 계정으로는 봉사할 수 없어요. 봉사하려면 사용자 계정을 따로 만들어 주세요.</div>
     </Screen>
   );
 }

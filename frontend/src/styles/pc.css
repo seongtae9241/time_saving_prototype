@@ -490,3 +490,92 @@ body.pcw-on.pcw-adm{--brand:#E0A23E;--pri:#E0A23E;--pri-2:#A6700F;--pri-soft:#FC
 .pcw .sch-wrap{width:100%;max-width:1080px;margin-left:auto;margin-right:auto}
 .pcw .sch-below{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:16px;align-items:stretch}
 .pcw .sch-below .sp-box{margin-top:0}
+
+/* 담당자 화면: 본문을 꽉 채우지 않고 양옆 여백을 둔다 (2026-11-16, 사용자 지시) */
+.pcw:not(.adm) .mbd{padding:28px 48px 56px}
+.pcw:not(.adm) .mbd>*{width:100%;max-width:1160px;margin-left:auto;margin-right:auto}
+.pcw:not(.adm) .pcw-col.bd{max-width:760px}
+.pcw:not(.adm) .pcw-col.fill.bd{max-width:none}
+
+/* ================= 담당자 PC 배치 다듬기 (2026-11-16, 사용자 지시) =================
+   중요한 것부터 위→아래, 내용에 맞는 크기, 일정한 간격(카드 사이 20 · 안쪽 22/24). 모두 .pcw:not(.adm) 아래 — 운영자·모바일은 그대로. */
+.pcw:not(.adm) .pnl:not(.lst):not(.ccal):not(.evc):not(.sp-box){padding:22px 24px}
+.pcw:not(.adm) :is(.split,.g2,.dcol,.sidecol){gap:20px}
+.pcw:not(.adm) .g2.in{gap:12px}
+.pcw:not(.adm) .split.ev .dcol{gap:12px}
+.pcw:not(.adm) .pnl.fit{max-width:520px}
+.pcw:not(.adm) .dcol>.pnl.fit{align-self:flex-start;width:100%}
+.pcw:not(.adm) .pg-foot{margin-top:16px}
+.pcw:not(.adm) .ministat{display:flex;flex-wrap:wrap;gap:6px 8px;font-size:12.5px;color:#6B7585}
+.pcw:not(.adm) .ministat span{background:#fff;border:1px solid #EDF0F4;border-radius:999px;padding:5px 12px;white-space:nowrap}
+.pcw:not(.adm) .ministat b{color:#1F2633;margin-left:3px}
+/* 목록 + 기존 본문(요청 상세·대신 요청), 글이 주인 화면(특보·행사·내 정보)은 본문을 더 좁게 */
+.pcw:not(.adm) .mbd:has(>.split>.pcw-col.fill)>*{max-width:1080px}
+.pcw:not(.adm) .split:has(>.pcw-col.fill){grid-template-columns:320px minmax(0,1fr)}
+.pcw:not(.adm) .mbd:has(>.split.nar)>*,.pcw:not(.adm) .mbd:has(>.mywrap)>*{max-width:1040px}
+.pcw:not(.adm) .split.nar{grid-template-columns:320px minmax(0,1fr)}
+.pcw:not(.adm) .ai.sm{font-size:13px;padding:16px 18px;box-shadow:none}
+
+/* 홈 */
+.pcw:not(.adm) .hm-top{margin-bottom:18px}
+.pcw:not(.adm) .hm-nbar{margin-bottom:20px;border-radius:14px;padding:11px 16px}
+.pcw:not(.adm) .hm{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+.pcw:not(.adm) :is(.hm-main,.hm-side){display:flex;flex-direction:column;gap:20px;min-width:0}
+.pcw:not(.adm) .hm .ps-h{margin-bottom:4px}
+.pcw:not(.adm) .hm .hrow:last-child{border-bottom:0;padding-bottom:2px}
+.pcw:not(.adm) .hm .pempty{text-align:left;padding:10px 0 2px}
+.pcw:not(.adm) .hm-side .hrow{padding:10px 2px}
+.pcw:not(.adm) .hm .dstrip{margin:8px 0 8px}
+.pcw:not(.adm) .hm .ds-m b{font-size:22px;letter-spacing:-.5px}
+.pcw:not(.adm) .hm .dstrip button b{font-size:15px}
+.pcw:not(.adm) .hm .slist{max-height:220px}
+.pcw:not(.adm) .hm-nums{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#EDF0F4;border:1px solid #EDF0F4;border-radius:16px;overflow:hidden}
+.pcw:not(.adm) .hm-nums button{display:flex;justify-content:space-between;align-items:baseline;gap:8px;border:0;background:#fff;padding:11px 14px;font-size:12.5px;color:#6B7585;cursor:pointer;text-align:left;white-space:nowrap}
+.pcw:not(.adm) .hm-nums button:hover{background:var(--acc-s)}
+.pcw:not(.adm) .hm-nums b{font-size:15px;color:#1F2633}
+.pcw:not(.adm) .hm-quick{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:24px}
+.pcw:not(.adm) .hm-quick>b{font-size:13px;color:#6B7585;margin-right:6px}
+.pcw:not(.adm) .ai.brief{margin-top:20px;padding:20px 24px}
+
+/* 요청 관리 보드: 빈 열은 좁고 낮게, 카드 머리 줄바꿈 없이 */
+.pcw:not(.adm) .kb{gap:16px}
+.pcw:not(.adm) .kcol{min-height:0}
+.pcw:not(.adm) .kcol.none{background:none;border-style:dashed}
+.pcw:not(.adm) .kcol.none .kc-h{padding-bottom:2px}
+.pcw:not(.adm) .kcol.none .kc-empty{padding:6px 0 8px;text-align:left;padding-left:6px}
+.pcw:not(.adm) .kc-top :is(b,small){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcw:not(.adm) .kc-top small{display:block}
+
+/* 관리 대상 상세 */
+.pcw:not(.adm) .ed-one .warnbox{max-width:640px}
+.pcw:not(.adm) .ed-ref{align-items:start}
+.pcw:not(.adm) .wk-c{min-height:58px}
+.pcw:not(.adm) .memo-in{flex-wrap:wrap}
+.pcw:not(.adm) .memo-in .pin{flex:1 1 100%;order:-1}
+.pcw:not(.adm) .memo-in>:first-child{margin-left:auto}
+.pcw:not(.adm) .dcol>.g2.g17{grid-template-columns:minmax(0,1fr) 320px}
+.pcw:not(.adm) .ed-ref .li{flex-wrap:wrap}
+.pcw:not(.adm) .ed-ref .li-t{flex:1 1 150px}
+.pcw:not(.adm) .ed-ref .li>.pbtn{margin-left:46px}
+
+/* 기관 행사: 폼은 520, 짧은 값 입력칸은 값 길이만큼 */
+.pcw:not(.adm) .mbd:has(>.split.ev)>*{max-width:1080px}
+.pcw:not(.adm) .split.ev{grid-template-columns:minmax(0,1fr) 520px}
+.pcw:not(.adm) .evform select.in{width:auto;min-width:180px}
+.pcw:not(.adm) .evform input.in[inputmode="numeric"]{max-width:180px}
+.pcw:not(.adm) .evform .btn.big-cta{width:auto;min-width:180px;padding:0 32px;margin-left:auto;display:flex}
+
+/* 내 정보·설정: 왼쪽 좁은 프로필 + 오른쪽 묶음(높이는 내용만큼) */
+.pcw:not(.adm) .mywrap{display:grid;grid-template-columns:280px minmax(0,1fr);gap:20px;align-items:start}
+.pcw:not(.adm) .myside{display:flex;flex-direction:column;gap:14px;min-width:0}
+.pcw:not(.adm) .mycard .d-t{margin-top:12px}
+.pcw:not(.adm) .mycols{columns:2;column-gap:20px}
+.pcw:not(.adm) .mycols>.pnl{break-inside:avoid;margin-bottom:20px}
+
+@media (max-width:1180px){
+  .pcw:not(.adm) :is(.hm,.mywrap,.split.ev,.split.nar),.pcw:not(.adm) .split:has(>.pcw-col.fill){grid-template-columns:minmax(0,1fr)}
+  .pcw:not(.adm) :is(.hm-main,.hm-side){display:contents}
+  .pcw:not(.adm) .hm-todo{order:1}.pcw:not(.adm) .hm-watch{order:2}.pcw:not(.adm) .hm-week{order:3}
+  .pcw:not(.adm) .hm-fresh{order:4}.pcw:not(.adm) .hm-logs{order:5}.pcw:not(.adm) .hm-nums{order:6}
+  .pcw:not(.adm) .mbd{padding:22px 24px 40px}
+}

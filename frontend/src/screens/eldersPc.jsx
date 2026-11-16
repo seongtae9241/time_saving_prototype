@@ -87,8 +87,14 @@ function ElderDetail({ id, onChanged }) {
       </div>
       {sigs[e.id] && sigs[e.id].flagged && <div className="mob"><SignalCard s={sigs[e.id]} who={who} /></div>}
 
-      {/* 방문 주의사항(확정된 봉사자에게만) · 단골 봉사자 */}
-      <div className="g2">
+      {/* 2026-11-16 배치: 머리 → 확인 권장·최근 변화 → 방문 주의사항 → 이번 주 돌봄 → 요청·메모 → (참고) 월간 리포트 · 단골 · 동의·관리 */}
+      <div className={myChange ? 'g2 g17' : 'ed-one'}>
+        {myChange && (
+          <div className="pnl mob">
+            <div className="ps-h"><b>최근 변화</b><button type="button" className="ps-a" onClick={() => nav(`/o/report?elder=${id}`)}>최근 활동 기록 · 월간 리포트 ›</button></div>
+            <ChangeCard x={myChange} />
+          </div>
+        )}
         <div className="warnbox">
           <b><PIc k="warn" />방문 주의사항</b> <span className="mu">일정이 확정된 봉사자에게만 보여요</span>
           <div style={{ marginTop: 6 }}>{e.caution || '적어 둔 주의사항이 없어요'}</div>
@@ -98,12 +104,6 @@ function ElderDetail({ id, onChanged }) {
               <button type="button" className="pbtn pri" disabled={busy} onClick={() => run(async () => { const v = cu.trim(); if (!v) return toast('주의사항을 적어 주세요'); await put(`/org/elders/${id}`, { caution: e.caution ? `${e.caution} / ${v}` : v }); setCu(''); await reload(); toast('봉사자에게 보내는 정보에 추가했어요'); })}>추가</button>
             </div>
           )}
-        </div>
-        <div className="pnl">
-          <div className="ps-h"><b>단골 봉사자</b>{!ended && regs.length > 0 && <button type="button" className="ps-a" onClick={() => nav(`/regular?elder=${id}`)}>단골에게 요청 ›</button>}</div>
-          {regs.length ? <div className="prw" style={{ flexWrap: 'wrap', gap: '8px 14px' }}>{regs.map((r) => <span key={r.id || r.name} className="prw" style={{ gap: 6 }}><Avc n={r.name} cat="acc" size={28} /><b>{r.name}</b><span className="ptag g">단골</span></span>)}</div>
-            : <div className="mu">아직 없어요. 같은 봉사자와 여러 번 함께하면 단골이 돼요.</div>}
-          <div className="mu" style={{ marginTop: 10 }}>이번 달 활동 <b style={{ color: '#1F2633' }}>{e.monthDone ?? 0}회</b> · 누적 {e.doneTotal ?? 0}회</div>
         </div>
       </div>
 
@@ -129,7 +129,7 @@ function ElderDetail({ id, onChanged }) {
       </div>
 
       {/* 받은 도움 기록 · 담당자 메모 */}
-      <div className="g2 g17">
+      <div className="g2 g17 ed-rec">
         <div className="pnl">
           <div className="ps-h"><b>받은 도움 기록 · 요청 <span className="cnt">{myReqs.length}</span></b></div>
           {myReqs.length ? (
@@ -146,7 +146,7 @@ function ElderDetail({ id, onChanged }) {
           {myReqs.length > 6 && <button type="button" className="pmore" onClick={() => setMore(!more)}>{more ? '접기' : `+ ${myReqs.length - 6}건 더 보기`}</button>}
         </div>
         <div className="pnl">
-          <div className="ps-h"><b>담당자 메모 <span className="mu" style={{ fontWeight: 500 }}>봉사자에게 안 보여요</span></b><button type="button" className="ps-a" onClick={() => (memos.length ? setTidyOpen(!tidyOpen) : toast('정리할 메모가 없어요'))}>AI 정리</button></div>
+          <div className="ps-h"><b>담당자 메모</b><button type="button" className="ps-a" onClick={() => (memos.length ? setTidyOpen(!tidyOpen) : toast('정리할 메모가 없어요'))}>AI 정리</button></div>
           {tidyOpen && memos.length > 0 && (
             <div className="ai" style={{ padding: '12px 14px', borderRadius: 16, boxShadow: 'none', marginBottom: 10 }}>
               <div className="ai-h">기록 정리 AI · 메모 {memos.length}건을 날짜순으로 정리했어요</div>
@@ -155,8 +155,9 @@ function ElderDetail({ id, onChanged }) {
               <RuleNote source={memos.some((m) => m.source === 'ai') ? 'ai' : 'rule'} />
             </div>
           )}
+          <div className="mu" style={{ margin: '-2px 0 6px' }}>봉사자에게 안 보여요</div>
           <div className="memos">{memos.length ? memos.map((m) => <div key={m.id} className="memo"><span className="mu">{day1(m.createdAt)}</span> {m.text}</div>) : <div className="mu">메모가 없어요</div>}</div>
-          <div className="prw mob" style={{ marginTop: 10 }}>
+          <div className="prw mob memo-in" style={{ marginTop: 10 }}>
             <MicButton onText={(t) => setMemo((x) => (x.trim() ? `${x.trim()} ${t}` : t))} />
             <input id="elder-memo-in" className="pin" placeholder="특이사항·방문하고 느낀 점 (병명은 적지 않아요)" value={memo} onChange={(x) => setMemo(x.target.value)} aria-label="담당자 메모" />
             <button type="button" className="pbtn pri" disabled={busy} onClick={() => run(async () => { if (!memo.trim()) return toast('메모를 적어 주세요'); await post(`/org/elders/${id}/memos`, { text: memo.trim() }); setMemo(''); reload(); toast('메모를 저장하고 읽기 쉽게 정리했어요'); })}>추가</button>
@@ -164,25 +165,32 @@ function ElderDetail({ id, onChanged }) {
         </div>
       </div>
 
-      {/* 변화 리포트 · 동의와 관리 */}
-      <div className="g2">
+      {/* 참고·관리: 월간 리포트 · 단골 봉사자 · 동의와 관리(이관·종료는 맨 아래) */}
+      <div className="g2 g17 ed-ref">
         <div className="pnl mob">
-          <div className="ps-h"><b>변화 리포트</b><button type="button" className="ps-a" onClick={() => nav(`/o/report?elder=${id}`)}>최근 활동 기록 · 월간 리포트 ›</button></div>
-          {myChange && <ChangeCard x={myChange} />}
-          <div style={{ marginTop: 10 }}>{rep ? <ReportView rep={rep} who={who} /> : <div className="pempty">아직 만들어진 리포트가 없어요</div>}</div>
+          <div className="ps-h"><b>월간 리포트</b>{!myChange && <button type="button" className="ps-a" onClick={() => nav(`/o/report?elder=${id}`)}>최근 활동 기록 · 월간 리포트 ›</button>}</div>
+          {rep ? <ReportView rep={rep} who={who} /> : <div className="pempty">아직 만들어진 리포트가 없어요</div>}
         </div>
-        <div className="pnl">
-          <div className="ps-h"><b>동의 · 관리</b></div>
-          <div className="li"><span className="li-i"><PIc k="check" /></span><div className="li-t">서비스 동의<small>{e.serviceConsentAt ? `받음 (${day1(e.serviceConsentAt)})` : '기록 없음'}</small></div>{!e.serviceConsentAt && !ended && <button type="button" className="pbtn" disabled={busy} onClick={consent}>동의 받음으로 기록</button>}</div>
-          <div className="li click" role="switch" aria-checked={!!e.reportConsent} tabIndex={0}
-            onClick={() => run(async () => { await put(`/org/elders/${id}/consent`, { reportConsent: !e.reportConsent }); await reload(); toast(!e.reportConsent ? '공유 동의를 입력했어요' : '공유 동의를 철회했어요'); })}
-            onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ev.currentTarget.click(); } }}>
-            <span className="li-i"><PIc k="file" /></span><div className="li-t">리포트 공유 동의<small>대상에게 확인 후 대신 입력 · {e.reportConsent ? '동의함' : '동의 안 함'}</small></div><span className={'toggle ' + (e.reportConsent ? 'on' : '')} />
+        <div className="sidecol">
+          <div className="pnl">
+            <div className="ps-h"><b>단골 봉사자</b>{!ended && regs.length > 0 && <button type="button" className="ps-a" onClick={() => nav(`/regular?elder=${id}`)}>단골에게 요청 ›</button>}</div>
+            {regs.length ? <div className="prw" style={{ flexWrap: 'wrap', gap: '8px 14px' }}>{regs.map((r) => <span key={r.id || r.name} className="prw" style={{ gap: 6 }}><Avc n={r.name} cat="acc" size={28} /><b>{r.name}</b><span className="ptag g">단골</span></span>)}</div>
+              : <div className="mu">아직 없어요. 같은 봉사자와 여러 번 함께하면 단골이 돼요.</div>}
+            <div className="mu" style={{ marginTop: 10 }}>이번 달 활동 <b style={{ color: '#1F2633' }}>{e.monthDone ?? 0}회</b> · 누적 {e.doneTotal ?? 0}회</div>
           </div>
-          {!ended && <button type="button" className="li click" onClick={() => sheet(() => <DoorCardSheet elderId={id} name={who} manage onClose={() => { closeSheet(); reload(); }} />)}><span className="li-i"><PIc k="qr" /></span><div className="li-t">현관 QR 카드<small>{e.qrIssuedAt ? `${day1(e.qrIssuedAt)} 발급 · 보기·인쇄·다시 발급` : '출력해 현관 안쪽에 붙여 두면 봉사자가 찍어 시작·종료를 기록해요'}</small></div><span className="ar">›</span></button>}
-          {!ended && <button type="button" className="li click" onClick={transfer}><span className="li-i"><PIc k="users" /></span><div className="li-t">다른 담당자에게 이관<small>받는 담당자가 수락해야 넘어가요</small></div><span className="ar">›</span></button>}
-          {!ended && <button type="button" className="li click" onClick={endCare}><span className="li-i" style={{ background: '#FDECEA', color: '#E5655B' }}><PIc k="flag" /></span><div className="li-t" style={{ color: '#D0483E' }}>지원 종료<small>기록은 남고 새 요청은 할 수 없어요</small></div><span className="ar">›</span></button>}
-          <div className="notebox" style={{ marginTop: 12 }}>봉사자에게는 가린 이름({maskN(e.alias)} 님)·동·도움 내용·시간까지만 보여요. 이름·주소·연락처는 앱에 저장하지 않아요.</div>
+          <div className="pnl">
+            <div className="ps-h"><b>동의 · 관리</b></div>
+            <div className="li"><span className="li-i"><PIc k="check" /></span><div className="li-t">서비스 동의<small>{e.serviceConsentAt ? `받음 (${day1(e.serviceConsentAt)})` : '기록 없음'}</small></div>{!e.serviceConsentAt && !ended && <button type="button" className="pbtn" disabled={busy} onClick={consent}>동의 받음으로 기록</button>}</div>
+            <div className="li click" role="switch" aria-checked={!!e.reportConsent} tabIndex={0}
+              onClick={() => run(async () => { await put(`/org/elders/${id}/consent`, { reportConsent: !e.reportConsent }); await reload(); toast(!e.reportConsent ? '공유 동의를 입력했어요' : '공유 동의를 철회했어요'); })}
+              onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ev.currentTarget.click(); } }}>
+              <span className="li-i"><PIc k="file" /></span><div className="li-t">리포트 공유 동의<small>대상에게 확인 후 대신 입력 · {e.reportConsent ? '동의함' : '동의 안 함'}</small></div><span className={'toggle ' + (e.reportConsent ? 'on' : '')} />
+            </div>
+            {!ended && <button type="button" className="li click" onClick={() => sheet(() => <DoorCardSheet elderId={id} name={who} manage onClose={() => { closeSheet(); reload(); }} />)}><span className="li-i"><PIc k="qr" /></span><div className="li-t">현관 QR 카드<small>{e.qrIssuedAt ? `${day1(e.qrIssuedAt)} 발급 · 보기·인쇄·다시 발급` : '출력해 현관 안쪽에 붙여 두면 봉사자가 찍어 시작·종료를 기록해요'}</small></div><span className="ar">›</span></button>}
+            {!ended && <button type="button" className="li click" onClick={transfer}><span className="li-i"><PIc k="users" /></span><div className="li-t">다른 담당자에게 이관<small>받는 담당자가 수락해야 넘어가요</small></div><span className="ar">›</span></button>}
+            {!ended && <button type="button" className="li click" onClick={endCare}><span className="li-i" style={{ background: '#FDECEA', color: '#E5655B' }}><PIc k="flag" /></span><div className="li-t" style={{ color: '#D0483E' }}>지원 종료<small>기록은 남고 새 요청은 할 수 없어요</small></div><span className="ar">›</span></button>}
+            <div className="notebox" style={{ marginTop: 12 }}>봉사자에게는 가린 이름({maskN(e.alias)} 님)·동·도움 내용·시간까지만 보여요. 이름·주소·연락처는 앱에 저장하지 않아요.</div>
+          </div>
         </div>
       </div>
       <div className="mob d-extra"><BlockList elderId={id} />{!ended && <ElderClasses elderId={id} />}</div>
@@ -228,16 +236,7 @@ function OEldersPc({ form }) {
         <div className="pnl lst">
           <input className="pin" style={{ width: '100%', marginBottom: 10 }} placeholder="별칭 검색" value={q} onChange={(e) => setQ(e.target.value)} aria-label="별칭 검색" />
           <div className="pchips wrap" style={{ marginBottom: 10 }}>{filters.map((x) => <button key={x} type="button" className={'pchip ' + (fp === x ? 'on' : '')} aria-pressed={fp === x} onClick={() => setFp(x)}>{x}</button>)}</div>
-          {chg && (chg.items || []).length > 0 && fp !== '지원 종료' && <div className="notebox" style={{ marginBottom: 10 }}><b>AI 우선순위 분석</b> · 최근 {chg.windowDays || 30}일 활동·메모 변화로 먼저 살펴볼 순서예요. 순위는 기록으로 계산하고 AI는 이유를 설명해요. 건강 판단이 아니에요.</div>}
-          {list === undefined ? <Loading /> : L.length ? L.map((x) => (
-            <button key={x.id} type="button" className={'lrow ' + (String(x.id) === String(selId) ? 'on' : '')} aria-current={String(x.id) === String(selId) ? 'true' : undefined} onClick={() => nav(`/o/elders/${x.id}`, { replace: !!id })}>
-              <Avc n={x.alias} cat="acc" size={32} />
-              <span className="lr-t"><b>{x.status !== 'ENDED' && pri[x.id] ? `${pri[x.id].rank}. ` : ''}{elderName(x)}</b> <span className="mu">{x.ageGroup} · {x.dong}</span>{x.status !== 'ENDED' && pri[x.id] && (pri[x.id].reasons || [])[0] ? <small style={{ whiteSpace: 'normal' }}>{pri[x.id].reasons[0]}</small> : null}<small>{x.monthDone != null ? `이번 달 ${x.monthDone}회` : ''}{x.regularCount != null ? ` · 단골 ${x.regularCount}명` : x.regulars ? ` · 단골 ${x.regulars.length}명` : ''}</small></span>
-              {x.status === 'ENDED' ? <span className="ptag">종료</span> : isTop(x) ? <span className="ptag r">우선</span> : x.flag || x.bigChange ? <span className="ptag r">변화 큼</span> : sigs[x.id] && sigs[x.id].flagged ? <span className="ptag a">확인 권장</span> : null}
-            </button>
-          )) : <div className="pempty">{all.length ? '조건에 맞는 분이 없어요' : '등록된 대상이 없어요'}</div>}
-          <button type="button" className="pbtn pri" style={{ width: '100%', marginTop: 12 }} onClick={() => nav('/o/elders/new')}><PIc k="plus" />관리 대상 등록</button>
-          {(incoming.length > 0 || outgoing.length > 0) && <div className="lst-h">이관 요청</div>}
+          {incoming.length > 0 && <div className="lst-h" style={{ paddingTop: 2 }}>받은 이관 요청 · 답해 주세요</div>}
           {incoming.map((t) => (
             <div key={t.id} className="trbox">
               <div className="prw"><Avc n={tName(t)} cat="acc" size={32} /><span className="lr-t"><b>{tName(t)} 님</b>{t.elder && t.elder.dong ? <span className="mu"> · {t.elder.dong}</span> : null}<small>{t.from ? t.from.name : '운영자'} 담당자가 이관을 요청했어요</small></span></div>
@@ -247,6 +246,17 @@ function OEldersPc({ form }) {
               </div>
             </div>
           ))}
+          {incoming.length > 0 && <div style={{ height: 10 }} />}
+          {chg && (chg.items || []).length > 0 && fp !== '지원 종료' && <div className="notebox" style={{ marginBottom: 10 }}><b>AI 우선순위 분석</b> · 최근 {chg.windowDays || 30}일 활동·메모 변화로 먼저 살펴볼 순서예요. 순위는 기록으로 계산하고 AI는 이유를 설명해요. 건강 판단이 아니에요.</div>}
+          {list === undefined ? <Loading /> : L.length ? L.map((x) => (
+            <button key={x.id} type="button" className={'lrow ' + (String(x.id) === String(selId) ? 'on' : '')} aria-current={String(x.id) === String(selId) ? 'true' : undefined} onClick={() => nav(`/o/elders/${x.id}`, { replace: !!id })}>
+              <Avc n={x.alias} cat="acc" size={32} />
+              <span className="lr-t"><b>{x.status !== 'ENDED' && pri[x.id] ? `${pri[x.id].rank}. ` : ''}{elderName(x)}</b> <span className="mu">{x.ageGroup} · {x.dong}</span>{x.status !== 'ENDED' && pri[x.id] && (pri[x.id].reasons || [])[0] ? <small style={{ whiteSpace: 'normal' }}>{pri[x.id].reasons[0]}</small> : null}<small>{x.monthDone != null ? `이번 달 ${x.monthDone}회` : ''}{x.regularCount != null ? ` · 단골 ${x.regularCount}명` : x.regulars ? ` · 단골 ${x.regulars.length}명` : ''}</small></span>
+              {x.status === 'ENDED' ? <span className="ptag">종료</span> : isTop(x) ? <span className="ptag r">우선</span> : x.flag || x.bigChange ? <span className="ptag r">변화 큼</span> : sigs[x.id] && sigs[x.id].flagged ? <span className="ptag a">확인 권장</span> : null}
+            </button>
+          )) : <div className="pempty">{all.length ? '조건에 맞는 분이 없어요' : '등록된 대상이 없어요'}</div>}
+          <button type="button" className="pbtn pri" style={{ width: '100%', marginTop: 12 }} onClick={() => nav('/o/elders/new')}><PIc k="plus" />관리 대상 등록</button>
+          {outgoing.length > 0 && <div className="lst-h">보낸 이관 요청</div>}
           {outgoing.map((t) => <div key={t.id} className="trbox prw"><span className="lr-t"><b>{tName(t)} 님 → {t.to && t.to.name}</b><small>받는 담당자의 수락을 기다려요</small></span><span className="ptag a">대기</span></div>)}
           <div className="notebox" style={{ marginTop: 12 }}><PIc k="shield" />이름·주소·연락처는 입력하지 않아요(기관이 따로 보관). 별칭은 담당자 화면에만 보이고 봉사자에게는 가려서 보여요.</div>
         </div>

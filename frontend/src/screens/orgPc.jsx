@@ -82,102 +82,98 @@ function OHomePc() {
   const mon = selDay ? Number(selDay.split('-')[1]) : new Date().getMonth() + 1;
   return (
     <Screen title="홈" back={false} wide>
-      <div className="hb-hero">
-        <div>
-          <div className="hb-hi">{me ? me.name : ''} 님, 오늘 처리할 일이 <b>{reqs === undefined ? (home && home.todo ? home.todo.length : '-') : todo.length}건</b> 있어요</div>
-          <div className="hb-sub">{b
-            ? `${b.type}${b.level ? ` ${b.level}` : ''} 기간이에요 · 담당 대상 ${b.myElders}명이 있는 지역이에요${b.myActivities ? ` · 기간 안 예정 활동 ${b.myActivities}건` : ''}`
-            : `이번 달 활동 ${counts.monthDone ?? 0}건 · 진행 중 ${counts.active ?? 0}건`}</div>
-        </div>
-        <div className="hb-kpi">{chips.map(([k, v, to, i]) => <button key={k} type="button" className="hk" onClick={() => nav(to)}><i className="hk-i"><PIc k={i} /></i><div><span>{k}</span><b>{v}</b></div></button>)}</div>
+      {/* 2026-11-16 배치: 중요한 순서로 위→아래. 가운데 큰 칸 = 지금 할 일·살펴볼 분·일지, 오른쪽 좁은 칸 = 이번 주 돌봄·새로 온 요청·현황 숫자, 맨 아래 = 바로 하기·브리핑 */}
+      <div className="hm-top">
+        <div className="hb-hi">{me ? me.name : ''} 님, 오늘 처리할 일이 <b>{reqs === undefined ? (home && home.todo ? home.todo.length : '-') : todo.length}건</b> 있어요</div>
+        <div className="hb-sub">{b
+          ? `${b.type}${b.level ? ` ${b.level}` : ''} 기간이에요 · 담당 대상 ${b.myElders}명이 있는 지역이에요${b.myActivities ? ` · 기간 안 예정 활동 ${b.myActivities}건` : ''}`
+          : `이번 달 활동 ${counts.monthDone ?? 0}건 · 진행 중 ${counts.active ?? 0}건`}</div>
       </div>
-      <div className="hb-grid">
-        <div className="pnl">
-          {b && (
-            <button type="button" className="nbar" onClick={() => nav('/o/weather')}>
-              <span className="nb-ic"><PIc k="mega" /></span>
-              <b>[{b.type}{b.level ? ` ${b.level}` : ''}] {md(b.from)}~{md(b.to)} {(b.areas || []).join('·')} · {(b.actions || [])[0] || '안부 확인과 일정 조정을 살펴 주세요'}</b>
-              <span className="nb-r">운영자 안내{b.sentAt ? ` · ${dshort(b.sentAt)}` : ''}</span>
-            </button>
-          )}
-          <div className="pg2">
-            <div className="psec">
-              <div className="ps-h"><b>오늘 처리할 일 <span className="cnt">{todo.length}</span></b><button type="button" className="ps-a" onClick={() => nav('/o/reqs')}>전체보기 ›</button></div>
-              {reqs === undefined ? <Loading /> : todo.length ? todo.slice(0, 3).map((r) => (
+      {b && (
+        <button type="button" className="nbar hm-nbar" onClick={() => nav('/o/weather')}>
+          <span className="nb-ic"><PIc k="mega" /></span>
+          <b>[{b.type}{b.level ? ` ${b.level}` : ''}] {md(b.from)}~{md(b.to)} {(b.areas || []).join('·')} · {(b.actions || [])[0] || '안부 확인과 일정 조정을 살펴 주세요'}</b>
+          <span className="nb-r">운영자 안내{b.sentAt ? ` · ${dshort(b.sentAt)}` : ''}</span>
+        </button>
+      )}
+      <div className="hm">
+        <div className="hm-main">
+          <div className="pnl hm-todo">
+            <div className="ps-h"><b>오늘 처리할 일 <span className="cnt">{todo.length}</span></b><button type="button" className="ps-a" onClick={() => nav('/o/reqs')}>전체보기 ›</button></div>
+            {reqs === undefined ? <Loading /> : todo.length ? todo.slice(0, 5).map((r) => (
+              <button key={r.id} type="button" className="hrow" onClick={() => nav(`/o/reqs/${r.id}`)}>
+                <StTag5 st={r.status} kind={r.kind} />
+                <span className="hr-t">{r.elder ? r.elder.displayName : '대상'} · {short(r.category)}<small>{todoTxt(r)}</small></span>
+                <span className="hr-d">{r.leftText ? `${r.leftText} 남음` : dlabel(r.date)}</span>
+              </button>
+            )) : <div className="pempty">지금 처리할 일이 없어요</div>}
+            {todo.length > 5 && <button type="button" className="pmore" onClick={() => nav('/o/reqs')}>+ {todo.length - 5}건 더 보기</button>}
+          </div>
+          <div className="pnl hm-watch">
+            <div className="ps-h"><b>먼저 안부 물어볼 분 <span className="cnt">{watch.length}</span></b><button type="button" className="ps-a" onClick={() => nav('/o/report')}>리포트 ›</button></div>
+            {chg === undefined ? <Loading /> : watch.length ? watch.slice(0, 3).map((x, i) => (
+              <button key={x.elderId} type="button" className="hrow" onClick={() => nav(`/o/report?elder=${x.elderId}`)}>
+                <Avc n={x.alias || x.displayName} cat="acc" />
+                <span className="hr-t">{x.displayName}<small>{[x.dong, (x.reasons && x.reasons[0]) || (x.changes && x.changes[0]) || x.summary].filter(Boolean).join(' · ')}</small></span>
+                {i < 2 ? <span className="stag" style={{ background: '#FDECE6', color: '#C25E48' }}>우선</span> : <span className="hr-d">›</span>}
+              </button>
+            )) : <div className="pempty">먼저 살펴볼 대상이 없어요</div>}
+          </div>
+          <div className="pnl hm-logs">
+            <div className="ps-h"><b>최근 도착한 일지 <span className="cnt">{logs.length}</span></b><button type="button" className="ps-a" onClick={() => nav('/o/reqs?view=list&seg=past')}>전체보기 ›</button></div>
+            {reqs === undefined ? <Loading /> : logs.length ? logs.slice(0, 3).map((r) => {
+              const txt = String(r.logText || r.logRaw || '');
+              return (
                 <button key={r.id} type="button" className="hrow" onClick={() => nav(`/o/reqs/${r.id}`)}>
-                  <StTag5 st={r.status} kind={r.kind} />
-                  <span className="hr-t">{r.elder ? r.elder.displayName : '대상'} · {short(r.category)}<small>{todoTxt(r)}</small></span>
-                  <span className="hr-d">{r.leftText ? `${r.leftText} 남음` : dlabel(r.date)}</span>
+                  <Avc n={r.volunteer && r.volunteer.name} cat={r.category} />
+                  <span className="hr-t">{r.volunteer ? r.volunteer.name : '봉사자'} → {r.elder ? r.elder.displayName : '대상'}<small>{txt.slice(0, 30)}{txt.length > 30 ? '…' : ''}</small></span>
+                  <span className="hr-d">{md(r.logSubmittedAt || r.date)}</span>
                 </button>
-              )) : <div className="pempty">지금 처리할 일이 없어요</div>}
-              {todo.length > 3 && <button type="button" className="pmore" onClick={() => nav('/o/reqs')}>+ {todo.length - 3}건 더 보기</button>}
-            </div>
-            <div className="psec">
-              <div className="ps-h"><b>새로 온 요청</b></div>
-              {fresh.map(([t, s, n, to, bg, fg]) => (
-                <button key={t} type="button" className="hrow" onClick={() => nav(to)}>
-                  <span className="hr-n" style={{ background: bg, color: fg }}>{n == null ? '-' : n}</span>
-                  <span className="hr-t">{t}<small>{s}</small></span><span className="hr-d">›</span>
-                </button>
-              ))}
-            </div>
-            <div className="psec">
-              <div className="ps-h"><b>먼저 안부 물어볼 분 <span className="cnt">{watch.length}</span></b><button type="button" className="ps-a" onClick={() => nav('/o/report')}>리포트 ›</button></div>
-              {chg === undefined ? <Loading /> : watch.length ? watch.slice(0, 3).map((x, i) => (
-                <button key={x.elderId} type="button" className="hrow" onClick={() => nav(`/o/report?elder=${x.elderId}`)}>
-                  <Avc n={x.alias || x.displayName} cat="acc" />
-                  <span className="hr-t">{x.displayName}<small>{[x.dong, (x.reasons && x.reasons[0]) || (x.changes && x.changes[0]) || x.summary].filter(Boolean).join(' · ')}</small></span>
-                  {i < 2 ? <span className="stag" style={{ background: '#FDECE6', color: '#C25E48' }}>우선</span> : <span className="hr-d">›</span>}
-                </button>
-              )) : <div className="pempty">먼저 살펴볼 대상이 없어요</div>}
-            </div>
-            <div className="psec">
-              <div className="ps-h"><b>최근 도착한 일지 <span className="cnt">{logs.length}</span></b><button type="button" className="ps-a" onClick={() => nav('/o/reqs?view=list&seg=past')}>전체보기 ›</button></div>
-              {reqs === undefined ? <Loading /> : logs.length ? logs.slice(0, 3).map((r) => {
-                const txt = String(r.logText || r.logRaw || '');
-                return (
-                  <button key={r.id} type="button" className="hrow" onClick={() => nav(`/o/reqs/${r.id}`)}>
-                    <Avc n={r.volunteer && r.volunteer.name} cat={r.category} />
-                    <span className="hr-t">{r.volunteer ? r.volunteer.name : '봉사자'} → {r.elder ? r.elder.displayName : '대상'}<small>{txt.slice(0, 30)}{txt.length > 30 ? '…' : ''}</small></span>
-                    <span className="hr-d">{md(r.logSubmittedAt || r.date)}</span>
-                  </button>
-                );
-              }) : <div className="pempty">아직 도착한 일지가 없어요</div>}
-            </div>
+              );
+            }) : <div className="pempty">아직 도착한 일지가 없어요</div>}
           </div>
         </div>
-        <div className="pnl">
-          <div className="ps-h"><b>이번 주 돌봄</b><button type="button" className="ps-a" onClick={() => nav('/o/schedule')}>편성표 ›</button></div>
-          {sch === undefined ? <Loading /> : !sch ? <div className="pempty">편성표를 불러오지 못했어요</div> : (
-            <>
-              <div className="dstrip">
-                <div className="ds-m"><b>{mon}</b>월</div>
-                {days.map((d) => <button key={d.date} type="button" className={selDay === d.date ? 'on' : ''} aria-pressed={selDay === d.date} onClick={() => setDay(d.date)}><b>{Number(d.date.split('-')[2])}</b><span>{d.dow}</span></button>)}
-              </div>
-              <div className="slist">
-                {evs.length ? evs.map((x) => {
-                  const [a, , bg] = dc5(x.cat);
-                  const key = x.gap ? `g${x.row.elderId}` : `${x.it.kind}${x.it.requestId || x.it.postId}`;
-                  const to = x.gap ? `/o/schedule?view=d&day=${selDay}` : x.it.kind === 'POST' ? `/post/${x.it.postId}` : `/o/reqs/${x.it.requestId}`;
-                  return (
-                    <button key={key} type="button" className="srow" onClick={() => nav(to)}>
-                      <span className="s-tm" style={x.gap ? { background: '#FDECE6', color: '#C25E48' } : { background: bg, color: a }}>{hh(x.st)}</span>
-                      <span className="s-t">{x.row.displayName} · {x.gap ? `빈칸 ${short(x.cat)}` : short(x.cat)}</span>
-                      <span className="s-v">{x.gap ? <em>대안 보기</em> : x.it.volunteerName || SCH_STATE[x.it.state]}</span>
-                    </button>
-                  );
-                }) : <div className="pempty">일정이 없어요</div>}
-              </div>
-            </>
-          )}
-          <div className="ps-h" style={{ marginTop: 18 }}><b>바로 하기</b></div>
-          {quick.map(([t, s, i, f]) => (
-            <button key={t} type="button" className="hrow" style={{ padding: '7px 2px' }} title={s} onClick={f}>
-              <span className="hr-i"><PIc k={i} /></span>
-              <span className="hr-t">{t}</span><span className="hr-d">›</span>
-            </button>
-          ))}
+        <div className="hm-side">
+          <div className="pnl hm-week">
+            <div className="ps-h"><b>이번 주 돌봄</b><button type="button" className="ps-a" onClick={() => nav('/o/schedule')}>편성표 ›</button></div>
+            {sch === undefined ? <Loading /> : !sch ? <div className="pempty">편성표를 불러오지 못했어요</div> : (
+              <>
+                <div className="dstrip">
+                  <div className="ds-m"><b>{mon}</b>월</div>
+                  {days.map((d) => <button key={d.date} type="button" className={selDay === d.date ? 'on' : ''} aria-pressed={selDay === d.date} onClick={() => setDay(d.date)}><b>{Number(d.date.split('-')[2])}</b><span>{d.dow}</span></button>)}
+                </div>
+                <div className="slist">
+                  {evs.length ? evs.map((x) => {
+                    const [a, , bg] = dc5(x.cat);
+                    const key = x.gap ? `g${x.row.elderId}` : `${x.it.kind}${x.it.requestId || x.it.postId}`;
+                    const to = x.gap ? `/o/schedule?view=d&day=${selDay}` : x.it.kind === 'POST' ? `/post/${x.it.postId}` : `/o/reqs/${x.it.requestId}`;
+                    return (
+                      <button key={key} type="button" className="srow" onClick={() => nav(to)}>
+                        <span className="s-tm" style={x.gap ? { background: '#FDECE6', color: '#C25E48' } : { background: bg, color: a }}>{hh(x.st)}</span>
+                        <span className="s-t">{x.row.displayName} · {x.gap ? `빈칸 ${short(x.cat)}` : short(x.cat)}</span>
+                        <span className="s-v">{x.gap ? <em>대안 보기</em> : x.it.volunteerName || SCH_STATE[x.it.state]}</span>
+                      </button>
+                    );
+                  }) : <div className="pempty">일정이 없어요</div>}
+                </div>
+              </>
+            )}
+          </div>
+          <div className="pnl hm-fresh">
+            <div className="ps-h"><b>새로 온 요청</b></div>
+            {fresh.map(([t, s, n, to, bg, fg]) => (
+              <button key={t} type="button" className="hrow" onClick={() => nav(to)}>
+                <span className="hr-n" style={{ background: bg, color: fg }}>{n == null ? '-' : n}</span>
+                <span className="hr-t">{t}<small>{s}</small></span><span className="hr-d">›</span>
+              </button>
+            ))}
+          </div>
+          <div className="hm-nums" aria-label="현황">{chips.map(([k, v, to]) => <button key={k} type="button" onClick={() => nav(to)}><span>{k}</span><b>{v}</b></button>)}</div>
         </div>
+      </div>
+      <div className="hm-quick">
+        <b>바로 하기</b>
+        {quick.map(([t, s, i, f]) => <button key={t} type="button" className="pchip" title={s} onClick={f}><PIc k={i} />{t}</button>)}
       </div>
       <OrgBriefing />
     </Screen>
@@ -194,7 +190,7 @@ export const BOARD_COLS = [
   ['일지 확인', ['LOG_SUBMITTED']],
   ['완료', ['DONE', 'REJECTED', 'DECLINED', 'EXPIRED', 'CANCELLED', 'NOSHOW']],
 ];
-const DONE_MAX = 12;
+const DONE_MAX = 5; // 2026-11-16: 완료 열이 보드를 길게 늘이지 않게(나머지는 목록에서)
 
 function KCard({ r }) {
   const nav = useNavigate();
@@ -239,19 +235,18 @@ function OReqsPc() {
           <button type="button" role="tab" aria-selected={view === 'board'} className={view === 'board' ? 'on' : ''} onClick={() => setView('board')}>보드</button>
           <button type="button" role="tab" aria-selected={view === 'list'} className={view === 'list' ? 'on' : ''} onClick={() => setView('list')}>목록</button>
         </div>
-        <span className="mu">카드를 누르면 상세로 가요 · 상태는 상세에서 바꿔요</span>
         <span className="sp" />
         <button type="button" className="pbtn" onClick={() => nav('/recurring')}>정기 요청</button>
         <button type="button" className="pbtn" onClick={() => pick('누구 대신 요청할까요?', elders, (e) => nav(`/board?elder=${e.id}`))}>도움 찾기</button>
         <button type="button" className="pbtn pri" onClick={() => pick('누구 대신 공고를 올릴까요?', elders, (e) => nav(`/write/need?elder=${e.id}`))}>+ 대리 요청</button>
       </div>
       {reqs === undefined ? <Loading /> : view === 'board' ? (
-        <div className="kb">
+        <div className="kb" style={{ gridTemplateColumns: BOARD_COLS.map(([, ss]) => (list.some((r) => ss.includes(r.status)) ? 'minmax(208px,1fr)' : 'minmax(132px,.5fr)')).join(' ') }}>
           {BOARD_COLS.map(([t, ss], ci) => {
             const all = list.filter((r) => ss.includes(r.status)).sort(ci === 4 ? (a, b) => byDate(b, a) : byDate);
             const L = ci === 4 ? all.slice(0, DONE_MAX) : all;
             return (
-              <section key={t} className="kcol" aria-label={`${t} ${all.length}건`}>
+              <section key={t} className={'kcol' + (all.length ? '' : ' none')} aria-label={`${t} ${all.length}건`}>
                 <div className="kc-h"><b>{t}</b><span>{all.length}</span></div>
                 {L.length ? L.map((r) => <KCard key={r.id} r={r} />) : <div className="kc-empty">없어요</div>}
                 {all.length > L.length && <button type="button" className="kc-more" onClick={() => setSp({ view: 'list', seg: 'past' }, { replace: true })}>+ {all.length - L.length}건 더 · 목록에서 보기</button>}
@@ -282,6 +277,7 @@ function OReqsPc() {
           ) : <div className="pempty">없어요</div>}
         </div>
       )}
+      <div className="mu pg-foot">카드를 누르면 상세로 가요 · 상태는 상세에서 바꿔요</div>
     </Screen>
   );
 }
