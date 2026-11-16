@@ -485,3 +485,8 @@ body.pcw-on.pcw-adm{--brand:#E0A23E;--pri:#E0A23E;--pri-2:#A6700F;--pri-soft:#FC
 .pcw .tools4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 24px}
 @media (max-width:1180px){.pcw .tools4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .pcw .pnl.mob>.card{background:none;padding:0;margin-top:0!important;border-radius:0}
+
+/* 편성표: 옆 칸들을 달력 아래로, 양옆 여백 (2026-11-16) */
+.pcw .sch-wrap{width:100%;max-width:1080px;margin-left:auto;margin-right:auto}
+.pcw .sch-below{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:16px;align-items:start}
+.pcw .sch-below .sp-box{margin-top:0}

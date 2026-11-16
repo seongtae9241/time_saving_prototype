@@ -189,7 +189,7 @@ function OSchedulePc() {
   const cnt = (data && data.counts) || {};
   return (
     <Screen title="돌봄 편성표" back={false} wide>
-      <div className="prw" style={{ marginBottom: 14, flexWrap: 'wrap', rowGap: 10 }}>
+      <div className="prw sch-wrap" style={{ marginBottom: 14, flexWrap: 'wrap', rowGap: 10 }}>
         <button type="button" className="pbtn" aria-label={view === 'm' ? '이전 달' : '이전 주'} disabled={!data} onClick={() => go(view === 'm' ? { week: shiftMonth(-1) } : { week: data.prevWeek, day: '' })}>‹</button>
         <b style={{ fontSize: 16, whiteSpace: 'nowrap' }}>{label}</b>
         <button type="button" className="pbtn" aria-label={view === 'm' ? '다음 달' : '다음 주'} disabled={!data} onClick={() => go(view === 'm' ? { week: shiftMonth(1) } : { week: data.nextWeek, day: '' })}>›</button>
@@ -202,24 +202,24 @@ function OSchedulePc() {
         <button type="button" className="pbtn pri" disabled={!gaps.length} onClick={() => openBulk(gaps.map(cellInfo))}>빈칸 {gaps.length}개 한꺼번에 공고 올리기</button>
       </div>
       {data === undefined ? <Loading /> : !data ? <div className="pnl pempty">편성표를 불러오지 못했어요</div> : (
-        <div className="g21c">
+        <div className="sch-wrap">{/* 2026-11-16: 오른쪽 칸들을 달력 아래로, 양옆 여백 */}
           <div className="pnl ccal">
             {view === 'm' ? <MonthGrid ym={ym} elderId={elderId} onDay={(date) => go({ view: 'd', week: date, day: date })} />
               : view === 'd' ? (
                 <>
                   <div className="cday-tabs">{days.map((d) => <button key={d.date} type="button" className={selDay && selDay.date === d.date ? 'on' : ''} onClick={() => go({ day: d.date })}>{d.dow} {d.label}</button>)}</div>
-                  {selDay && <TimeGrid data={data} days={[selDay]} gsel={gsel} cautions={cautions} onGap={(x) => setGsel(gapKey(x))} onDay={() => {}} />}
+                  {selDay && <TimeGrid data={data} days={[selDay]} gsel={gsel} cautions={cautions} onGap={(x) => { setGsel(gapKey(x)); setTimeout(() => { const el = document.getElementById('sch-below'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 60); }} onDay={() => {}} />}
                 </>
-              ) : <TimeGrid data={data} days={days} gsel={gsel} cautions={cautions} onGap={(x) => setGsel(gapKey(x))} onDay={(date) => go({ view: 'd', day: date })} />}
+              ) : <TimeGrid data={data} days={days} gsel={gsel} cautions={cautions} onGap={(x) => { setGsel(gapKey(x)); setTimeout(() => { const el = document.getElementById('sch-below'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 60); }} onDay={(date) => go({ view: 'd', day: date })} />}
             <div className="cleg">
               <span><i style={{ background: '#EDF3FE', borderColor: '#CFE0FC' }} />확정 {cnt.fixed ?? 0}</span>
               <span><i style={{ background: '#fff', borderColor: '#CFE0FC', borderStyle: 'dashed' }} />열린 공고 {cnt.open ?? 0}</span>
               <span>응답 대기 {cnt.pending ?? 0}</span>
-              <span><i className="g" />빈칸 {cnt.gaps ?? 0} · 누르면 오른쪽에 대안</span>
+              <span><i className="g" />빈칸 {cnt.gaps ?? 0} · 누르면 아래에 대안</span>
               <span><i style={{ background: '#D9705A', width: 10, height: 2, border: 0 }} />지금</span>
             </div>
           </div>
-          <div>
+          <div className="sch-below" id="sch-below">
             {picked && (
               <div className="pnl sp-box" role="region" aria-label="빈칸 상세">
                 <b>{picked.row.displayName} · {md(picked.c.date)}({WD[toDate(picked.c.date).getDay()]})</b>
