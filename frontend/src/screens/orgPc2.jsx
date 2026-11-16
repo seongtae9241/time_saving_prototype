@@ -150,11 +150,11 @@ function OWeatherPc() {
   // 진행 중인 특보 가운데 내 담당 대상이 있는 지역 것을 맨 위에(처음 열었을 때 그것이 골라지게), 지난 특보는 아래에
   const alerts = d ? [...(d.alerts || []).slice().sort((x, y) => Number(!!y.mineArea) - Number(!!x.mineArea)), ...(d.past || [])] : [];
   const guides = (d && d.guides) || [];
-  const tab = sp.get('tab') === 'guide' ? 'guide' : 'wx';
-  const L = tab === 'wx' ? alerts : guides;
+  // 기상 특보와 운영자 안내를 한 목록으로 본다(2026-11-16). 안내는 같은 특보(id)에 붙여 보여 주고, 목록에 없는 특보의 안내만 따로 줄을 만든다.
+  const L = [...alerts, ...guides.filter((g) => !alerts.some((a) => String(a.id) === String(g.id)))];
   const cur = L.find((x) => String(x.id) === sp.get('id')) || L[0];
-  const go = (t, id) => setSp(id != null ? { tab: t, id: String(id) } : { tab: t }, { replace: true });
-  const guideOf = (a) => guides.find((g) => String(g.id) === String(a.id));
+  const go = (id) => setSp({ id: String(id) }, { replace: true });
+  const guideOf = (a) => guides.find((g) => String(g.id) === String(a.id)) || (a.guide ? a : null);
   const kp = (a) => <Kpi items={[['이 지역 내 담당 대상', a.mineArea ? `${a.myElders ?? 0}명` : '없음'], ['특보 기간 예정 활동', `${a.myActivities ?? 0}건`], ['운영자 안내', guideOf(a) || a.sent ? '받음' : '아직 없음']]} />;
   const links = (
     <div className="prw" style={{ gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
@@ -166,37 +166,40 @@ function OWeatherPc() {
   return (
     <Screen title="특보 알림" wide stay>
       <div className="prw" style={{ marginBottom: 14, flexWrap: 'wrap', rowGap: 8 }}>
-        <Seg label="특보 종류" value={tab} onChange={(t) => go(t)} items={[['wx', `기상 특보 ${d ? (d.alerts || []).length : ''}`], ['guide', `운영자 안내 ${d ? guides.length : ''}`]]} />
-        <span className="mu">날씨 특보와 운영자가 보낸 안내를 여기서 확인해요. 재연락·방문·일정 조정은 담당자가 판단해요.</span>
+        <span className="mu">날씨 특보와 그 특보에 운영자가 보낸 안내를 함께 보여 줘요. 재연락·방문·일정 조정은 담당자가 판단해요.</span>
       </div>
       {d === undefined ? <div className="pnl"><Loading /></div> : !d ? <div className="pnl pempty">불러오지 못했어요</div> : (
         <div className="split">
           <div className="pnl lst">
-            <div className="lst-t">{tab === 'wx' ? '기상 특보' : '운영자가 보낸 안내'}</div>
+            <div className="lst-t">기상 특보 · 운영자 안내</div>
             {L.length ? L.map((x) => {
               const on = cur && x.id === cur.id;
               return (
-                <button key={x.id} type="button" className={'lrow ' + (on ? 'on' : '')} aria-current={on ? 'true' : undefined} onClick={() => go(tab, x.id)}>
-                  <span className="lr-i" style={x.active === false ? { background: '#F1F4F8', color: '#8A94A6' } : undefined}><PIc k={tab === 'wx' ? 'snow' : 'mega'} /></span>
+                <button key={x.id} type="button" className={'lrow ' + (on ? 'on' : '')} aria-current={on ? 'true' : undefined} onClick={() => go(x.id)}>
+                  <span className="lr-i" style={x.active === false ? { background: '#F1F4F8', color: '#8A94A6' } : undefined}><PIc k="snow" /></span>
                   <span className="lr-t">
-                    <b>{tab === 'wx' ? wName(x) : (x.guideTitle || `[특보] ${wArea(x)} ${wName(x)}`)}</b>
-                    <small>{tab === 'wx' ? `${wArea(x)} · ${md(x.from)} ~ ${md(x.to)}` : `${x.sentAt ? dshort(x.sentAt) : ''}${x.from ? ` · ${md(x.from)} ~ ${md(x.to)}` : ''}`}</small>
+                    <b>{wName(x)}</b>
+                    <small>{wArea(x)}{x.from ? ` · ${md(x.from)} ~ ${md(x.to)}` : ''}{guideOf(x) ? ' · 운영자 안내 있음' : ''}</small>
                   </span>
-                  {tab === 'wx'
-                    ? (x.active === false ? <span className="ptag">지난 특보</span> : x.mineArea ? <span className="ptag r">우리 지역</span> : <span className="ptag">다른 지역</span>)
-                    : (x.active === false ? <span className="ptag">종료</span> : <span className="ptag r">진행 중</span>)}
+                  {x.active === false ? <span className="ptag">지난 특보</span> : x.mineArea ? <span className="ptag r">우리 지역</span> : <span className="ptag">다른 지역</span>}
                 </button>
               );
-            }) : <div className="pempty">{tab === 'wx' ? '지금 내려진 특보가 없어요' : '운영자가 보낸 안내가 아직 없어요'}</div>}
-            <div className="notebox" style={{ marginTop: 10 }}>{tab === 'wx' ? '내 담당 대상이 있는 지역의 특보를 운영자가 안내로 보내면 홈 위쪽에도 보여요.' : '운영자가 특보를 보고 담당자에게 "이렇게 대비해 주세요" 하고 보낸 안내예요.'}</div>
+            }) : <div className="pempty">지금 내려진 특보가 없어요</div>}
+            <div className="notebox" style={{ marginTop: 10 }}>운영자가 특보를 보고 "이렇게 대비해 주세요" 하고 보낸 안내는 그 특보 안에 함께 보여요. 내 담당 지역 안내는 홈 위쪽에도 떠요.</div>
           </div>
           <div className="dcol">
-            {!cur ? <div className="pnl pempty">{tab === 'wx' ? '지금 내려진 특보가 없어요' : '운영자가 보낸 안내가 아직 없어요'}</div> : tab === 'wx' ? (
+            {!cur ? <div className="pnl pempty">지금 내려진 특보가 없어요</div> : (
               <>
                 <div className={cur.mineArea && cur.active !== false ? 'dangerbox' : 'notebox big'}>
                   <div className="prw"><span className="bx-i"><PIc k="snow" /></span><div style={{ flex: 1, minWidth: 0 }}><b style={{ fontSize: 16 }}>{wName(cur)} · {wArea(cur)}</b><div className="bx-s">{md(cur.from)} ~ {md(cur.to)} · {cur.active === false ? '지난 특보' : '진행 중'}{cur.sent ? ' · 운영자 안내 받음' : ''}</div></div></div>
                   <div style={{ marginTop: 8 }}>{cur.mineArea ? <>내 담당 대상 <b>{cur.myElders ?? 0}명</b>이 있는 지역이에요{cur.myActivities ? ` · 기간 안 예정 활동 ${cur.myActivities}건` : ''}.</> : '내 담당 대상이 있는 지역은 아니에요.'}</div>
                 </div>
+                {guideOf(cur) && (
+                  <div className="pnl">
+                    <div className="prw"><span className="bx-i"><PIc k="mega" /></span><div style={{ flex: 1, minWidth: 0 }}><b>{guideOf(cur).guideTitle || '운영자 안내'}</b><div className="bx-s">운영자 안내{guideOf(cur).sentAt ? ` · ${dshort(guideOf(cur).sentAt)} 도착` : ''}</div></div></div>
+                    <div style={{ marginTop: 8, whiteSpace: 'pre-line' }}>{guideOf(cur).guide || '안내 내용이 없어요'}</div>
+                  </div>
+                )}
                 {cur.mineArea ? (
                   <>
                     {kp(cur)}
@@ -205,12 +208,6 @@ function OWeatherPc() {
                       {(cur.myElderNames || []).length ? <div className="ptags" style={{ marginTop: 0 }}>{cur.myElderNames.map((n) => <span key={n} className="ptag k">{n}</span>)}</div> : <div className="mu">이름을 불러오지 못했어요. 관리 대상에서 확인해 주세요.</div>}
                       <div className="mu" style={{ marginTop: 10 }}>안부 연락·방문·일정 조정은 담당자가 판단해요. 연락처는 앱에 저장하지 않아요.</div>
                     </div>
-                    {guideOf(cur) && (
-                      <div className="pnl">
-                        <div className="prw"><b style={{ flex: 1 }}>이 특보에 대한 운영자 안내</b><button type="button" className="pbtn pri" onClick={() => go('guide', cur.id)}>안내 보기 ›</button></div>
-                        <div className="mu" style={{ marginTop: 6, fontSize: 13 }}>{String(guideOf(cur).guide || '').split('\n').slice(0, 2).join(' ')}</div>
-                      </div>
-                    )}
                     {(cur.actions || []).length > 0 && (
                       <div className="ai">
                         <div className="ai-h">권하는 조치</div>
@@ -221,20 +218,6 @@ function OWeatherPc() {
                     <div className="pnl">{links}<div className="mu" style={{ marginTop: 10 }}>위급한 상황은 119에 먼저 알려 주세요. 여기 안내는 기록 정리이고 건강 판단이 아니에요.</div></div>
                   </>
                 ) : <div className="pnl"><div className="mu">내 담당 대상이 있는 지역이 아니라서 따로 할 일은 없어요.</div>{(cur.actions || []).length > 0 && <ul style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: 13 }}>{cur.actions.map((x, i) => <li key={i}>{x}</li>)}</ul>}</div>}
-              </>
-            ) : (
-              <>
-                <div className={cur.active !== false ? 'dangerbox' : 'notebox big'}>
-                  <div className="prw"><span className="bx-i"><PIc k="mega" /></span><div style={{ flex: 1, minWidth: 0 }}><b style={{ fontSize: 16 }}>{cur.guideTitle || `[운영자 안내] ${wArea(cur)} ${wName(cur)}`}</b><div className="bx-s">운영자 안내{cur.from ? ` · ${md(cur.from)} ~ ${md(cur.to)}` : ''}{cur.sentAt ? ` · ${dshort(cur.sentAt)} 도착` : ''}</div></div></div>
-                  <div style={{ marginTop: 8, whiteSpace: 'pre-line' }}>{cur.guide || '안내 내용이 없어요'}</div>
-                </div>
-                {cur.mineArea && kp(cur)}
-                <div className="pnl">
-                  <div className="ps-h"><b>이어서 할 일</b></div>
-                  <div className="mu">{cur.mineArea ? '내 담당 대상이 있는 지역의 안내예요. 담당 대상과 편성표를 살펴 주세요.' : '내 담당 대상이 있는 지역은 아니에요.'}</div>
-                  {links}
-                  <div className="mu" style={{ marginTop: 10 }}>위급한 상황은 119에 먼저 알려 주세요. 여기 안내는 기록 정리이고 건강 판단이 아니에요.</div>
-                </div>
               </>
             )}
           </div>
