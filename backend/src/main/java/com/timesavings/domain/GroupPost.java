@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
  * 단체 봉사 공고(기능 U-10·U-11·O-07). 1:1 공고(Post)·요청(Request)과 섞지 않는 별도 표.
  * kind: RECRUIT(모집형 — 기관 담당자가 "이 일에 n명 필요") | OFFER(제공형 — 단체가 "우리 n명이 봉사 가능").
  * status: OPEN | DONE | CANCELLED. 날짜가 지났는지·정원이 찼는지는 저장하지 않고 볼 때 계산한다.
+ * 2026-11-16 기관 공고 3종(프로토타입 O-POST-05·07~09)도 이 표를 넓혀 쓴다: orgKind 가 있으면 "기관 공고"이고 신청 → 담당자 승인 흐름을 탄다.
+ *   VOLUNTEER(봉사자 모집, 1~2명, kind=RECRUIT) | GROUP(단체 봉사, kind=RECRUIT) | SERVICE(해 드려요 — 기관이 해 주는 도움, kind=SERVICE, 적립·차감 없음).
  */
 @Entity
 @Table(name = "group_posts", indexes = {@Index(name = "ix_group_posts_date", columnList = "date"), @Index(name = "ix_group_posts_owner", columnList = "owner_id")})
@@ -40,4 +42,17 @@ public class GroupPost {
     public Long doneBy;
     public LocalDateTime doneAt;
     public LocalDateTime createdAt = LocalDateTime.now();
+    /** 기관 공고 종류(VOLUNTEER | GROUP | SERVICE). null 이면 예전 단체 봉사 공고(선착순 참여) */
+    @Column(name = "org_kind", length = 10) public String orgKind;
+    /** 해 드려요: 가능한 때를 적은 글(예: 평일 오후 2~5시). date 는 신청을 받는 마지막 날 */
+    @Column(name = "when_text", length = 100) public String whenText;
+    /** 해 드려요 대상 안내: ANYONE | SENIOR65 | ALONE (안내 문구일 뿐, 신청자를 검사하지 않는다) */
+    @Column(length = 10) public String target;
+    /** 준비물 */
+    @Column(length = 100) public String supplies;
+    /** 단체 봉사: 동아리·모임(함께 오는 인원)도 받는지 */
+    @Column(name = "team_allowed") public Boolean teamAllowed;
+    /** 신청 마감(담당자가 누름). 마감해도 확정된 사람의 활동·방문은 그대로 진행된다 */
+    @Column(name = "closed_at") public LocalDateTime closedAt;
+    @Column(name = "closed_by") public Long closedBy;
 }

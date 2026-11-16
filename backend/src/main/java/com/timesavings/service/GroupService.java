@@ -71,7 +71,9 @@ public class GroupService {
     }
 
     private List<GroupParticipant> active(GroupPost g) {
-        return parts.findByGroupPostId(g.id).stream().filter(p -> !"LEFT".equals(p.status)).sorted(Comparator.comparing((GroupParticipant p) -> p.id)).toList();
+        // 기관 공고(2026-11-16)의 신청 대기(APPLIED)·거절(REJECTED)은 참여자로 세지 않는다
+        return parts.findByGroupPostId(g.id).stream().filter(p -> !"LEFT".equals(p.status) && !"APPLIED".equals(p.status) && !"REJECTED".equals(p.status))
+                .sorted(Comparator.comparing((GroupParticipant p) -> p.id)).toList();
     }
 
     private GroupParticipant mine(GroupPost g, User u) {
@@ -146,6 +148,7 @@ public class GroupService {
     // ---------------- 참여 신청·취소 (U-10) ----------------
     /** 참여할 수 없는 까닭(없으면 null). 화면 안내와 서버 검사에 같은 문장을 쓴다. */
     String joinBlock(GroupPost g, User u) {
+        if (g.orgKind != null) return "기관 공고는 신청한 뒤 담당자가 확정해요";
         if (u == null || u.role != Role.USER) return "사용자 계정만 참여할 수 있어요";
         if (u.status != UserStatus.ACTIVE) return "지금은 참여할 수 없는 계정이에요";
         if (!"OPEN".equals(g.status)) return "마감된 단체 공고예요";
@@ -232,6 +235,7 @@ public class GroupService {
     // ---------------- 참석 확인·완료 → 개인별 적립 ----------------
     public Map<String, Object> complete(User me, Long id, List<Long> attended) {
         GroupPost g = locked(id); // 두 담당자가 동시에 완료를 눌러 두 번 적립되는 것도 막는다
+        if (OrgNoticeService.SERVICE.equals(g.kind)) throw ApiException.bad("INVALID_KIND", "해 드려요 공고는 적립이 없어요. 신청별로 방문 완료를 눌러 주세요");
         if (!confirmSide(g, me)) {
             if (OFFER.equals(g.kind) && g.hostOrgId == null) throw ApiException.conflict("NOT_HOSTED", "아직 이 단체 봉사를 받기로 한 기관이 없어요");
             throw ApiException.forbidden(RECRUIT.equals(g.kind) ? "공고를 올린 기관의 담당자만 참석을 확인할 수 있어요" : "단체 봉사를 받은 기관의 담당자만 참석을 확인할 수 있어요");
@@ -275,7 +279,7 @@ public class GroupService {
         String orgName = orgName(g.orgId);
         String ownerName = orgName != null ? orgName : users.findById(g.ownerId).map(u -> u.name).orElse(null);
         String block = joinBlock(g, viewer);
-        Map<String, Object> m = Views.map("id", g.id, "kind", g.kind, "kindLabel", RECRUIT.equals(g.kind) ? "단체 모집" : "단체 봉사 가능",
+        Map<String, Object> m = Views.map("id", g.id, "kind", g.kind, "kindLabel", g.orgKind != null ? OrgNoticeService.kindLabel(g.orgKind) : RECRUIT.equals(g.kind) ? "단체 모집" : "단체 봉사 가능", "orgKind", g.orgKind,
                 "title", g.title, "detail", g.detail, "category", g.category, "date", g.date.toString(), "startHour", g.startHour, "hours", g.hours,
                 "endHour", g.startHour + g.hours, "area", g.area, "place", g.place, "groupName", g.groupName,
                 "capacity", g.capacity, "joined", list.size(), "left", Math.max(0, g.capacity - list.size()), "full", list.size() >= g.capacity,
@@ -315,6 +319,7 @@ public class GroupService {
     public List<Map<String, Object>> list(User viewer, String kind, String area, String cat) {
         List<Map<String, Object>> out = new ArrayList<>();
         posts.findByStatus("OPEN").stream()
+                .filter(g -> g.orgKind == null) // 기관 공고 3종은 /api/org-notices 로 따로 준다(신청 → 승인 흐름이 달라서)
                 .filter(g -> !past(g))
                 .filter(g -> kind == null || kind.isBlank() || kind.equals(g.kind))
                 .filter(g -> area == null || area.isBlank() || area.equals(g.area))
@@ -330,6 +335,7 @@ public class GroupService {
         parts.findByUserId(me.id).stream().filter(p -> !"LEFT".equals(p.status)).forEach(p -> joined.add(p.groupPostId));
         List<Map<String, Object>> out = new ArrayList<>();
         posts.findAll().stream()
+                .filter(g -> g.orgKind == null)
                 .filter(g -> ownerSide(g, me) || joined.contains(g.id) || (isOrg(me) && me.orgId.equals(g.hostOrgId)))
                 .sorted(Comparator.comparing((GroupPost g) -> g.date).reversed().thenComparing(g -> -g.id))
                 .forEach(g -> out.add(card(g, me)));
@@ -346,6 +352,7 @@ public class GroupService {
             if (!"JOINED".equals(p.status) && !"ATTENDED".equals(p.status)) continue;
             GroupPost g = posts.findById(p.groupPostId).orElse(null);
             if (g == null || "CANCELLED".equals(g.status) || (ym != null && !YearMonth.from(g.date).equals(ym))) continue;
+            if (OrgNoticeService.SERVICE.equals(g.kind)) continue; // 해 드려요는 봉사 일정이 아니다(받는 쪽, 적립 없음)
             String who = RECRUIT.equals(g.kind) ? orgName(g.orgId) : g.hostOrgId != null ? orgName(g.hostOrgId) : g.groupName;
             out.add(Views.map("kind", "give", "group", true, "date", g.date.toString(), "startHour", g.startHour, "hours", g.hours,
                     "category", g.category, "title", "[단체] " + g.title, "who", (who == null ? "단체 봉사" : who) + " · " + g.capacity + "명 단체",
