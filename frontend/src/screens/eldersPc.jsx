@@ -199,17 +199,22 @@ function OEldersPc({ form }) {
   const [list, reloadList] = useLoad(() => api('/org/elders'), []);
   const [tr, reloadTr] = useLoad(() => api('/org/transfers', { quiet: true }), []);
   const sigs = useCareSignals();
+  // 우선순위(2026-11-16): 리포트와 같은 /org/change-report 순위를 목록에도 쓴다. 순위·점수는 서버가 기록으로 셈하고 AI는 이유 글만 쓴다.
+  const [chg] = useLoad(() => api('/org/change-report', { quiet: true }).catch(() => null), []);
+  const pri = {}; ((chg && chg.items) || []).forEach((x) => { pri[x.elderId] = x; });
+  const isTop = (e) => !!(pri[e.id] && (pri[e.id].checkFirst || pri[e.id].level === 'HIGH'));
+  const rk = (e) => (pri[e.id] && pri[e.id].rank) || 9999;
   const [q, setQ] = useState('');
   const [fp, setFp] = useState('전체');
   const [ver, setVer] = useState(0);
   const [busy, run] = useBusy();
   const all = list || [];
-  const live = all.filter((e) => e.status !== 'ENDED');
+  const live = all.filter((e) => e.status !== 'ENDED').slice().sort((a, b) => rk(a) - rk(b));
   const ended = all.filter((e) => e.status === 'ENDED');
   const flagged = (e) => e.flag || e.bigChange || (sigs[e.id] && sigs[e.id].flagged);
   const dongs = [...new Set(live.map((e) => e.dong).filter(Boolean))];
-  const filters = ['전체', ...dongs, '살펴볼 분', ...(ended.length ? ['지원 종료'] : [])];
-  const L = (fp === '지원 종료' ? ended : live.filter((e) => fp === '전체' || e.dong === fp || (fp === '살펴볼 분' && flagged(e)))).filter((e) => !q.trim() || String(e.alias || '').includes(q.trim()));
+  const filters = ['전체', '우선순위 높음', ...dongs, '살펴볼 분', ...(ended.length ? ['지원 종료'] : [])];
+  const L = (fp === '지원 종료' ? ended : live.filter((e) => fp === '전체' || e.dong === fp || (fp === '우선순위 높음' && isTop(e)) || (fp === '살펴볼 분' && flagged(e)))).filter((e) => !q.trim() || String(e.alias || '').includes(q.trim()));
   const selId = id || (L[0] ? String(L[0].id) : live[0] ? String(live[0].id) : null);
   const isIn = (t) => (t.direction ? t.direction === 'in' : me && t.to && t.to.id === me.id);
   const incoming = (tr || []).filter((t) => t.status === 'PENDING' && isIn(t));
@@ -223,11 +228,12 @@ function OEldersPc({ form }) {
         <div className="pnl lst">
           <input className="pin" style={{ width: '100%', marginBottom: 10 }} placeholder="별칭 검색" value={q} onChange={(e) => setQ(e.target.value)} aria-label="별칭 검색" />
           <div className="pchips wrap" style={{ marginBottom: 10 }}>{filters.map((x) => <button key={x} type="button" className={'pchip ' + (fp === x ? 'on' : '')} aria-pressed={fp === x} onClick={() => setFp(x)}>{x}</button>)}</div>
+          {chg && (chg.items || []).length > 0 && fp !== '지원 종료' && <div className="notebox" style={{ marginBottom: 10 }}><b>AI 우선순위 분석</b> · 최근 {chg.windowDays || 30}일 활동·메모 변화로 먼저 살펴볼 순서예요. 순위는 기록으로 계산하고 AI는 이유를 설명해요. 건강 판단이 아니에요.</div>}
           {list === undefined ? <Loading /> : L.length ? L.map((x) => (
             <button key={x.id} type="button" className={'lrow ' + (String(x.id) === String(selId) ? 'on' : '')} aria-current={String(x.id) === String(selId) ? 'true' : undefined} onClick={() => nav(`/o/elders/${x.id}`, { replace: !!id })}>
               <Avc n={x.alias} cat="acc" size={32} />
-              <span className="lr-t"><b>{elderName(x)}</b> <span className="mu">{x.ageGroup} · {x.dong}</span><small>{x.monthDone != null ? `이번 달 ${x.monthDone}회` : ''}{x.regularCount != null ? ` · 단골 ${x.regularCount}명` : x.regulars ? ` · 단골 ${x.regulars.length}명` : ''}</small></span>
-              {x.status === 'ENDED' ? <span className="ptag">종료</span> : x.flag || x.bigChange ? <span className="ptag r">변화 큼</span> : sigs[x.id] && sigs[x.id].flagged ? <span className="ptag a">확인 권장</span> : null}
+              <span className="lr-t"><b>{x.status !== 'ENDED' && pri[x.id] ? `${pri[x.id].rank}. ` : ''}{elderName(x)}</b> <span className="mu">{x.ageGroup} · {x.dong}</span>{x.status !== 'ENDED' && pri[x.id] && (pri[x.id].reasons || [])[0] ? <small style={{ whiteSpace: 'normal' }}>{pri[x.id].reasons[0]}</small> : null}<small>{x.monthDone != null ? `이번 달 ${x.monthDone}회` : ''}{x.regularCount != null ? ` · 단골 ${x.regularCount}명` : x.regulars ? ` · 단골 ${x.regulars.length}명` : ''}</small></span>
+              {x.status === 'ENDED' ? <span className="ptag">종료</span> : isTop(x) ? <span className="ptag r">우선</span> : x.flag || x.bigChange ? <span className="ptag r">변화 큼</span> : sigs[x.id] && sigs[x.id].flagged ? <span className="ptag a">확인 권장</span> : null}
             </button>
           )) : <div className="pempty">{all.length ? '조건에 맞는 분이 없어요' : '등록된 대상이 없어요'}</div>}
           <button type="button" className="pbtn pri" style={{ width: '100%', marginTop: 12 }} onClick={() => nav('/o/elders/new')}><PIc k="plus" />관리 대상 등록</button>
