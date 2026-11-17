@@ -311,23 +311,33 @@ tr.off td{color:var(--ink-4)}
 
 /* ===== v5: 팀 프로토타입과 같은 결 (둥근 카드, 위쪽 제목 줄, 알약 탭) ===== */
 :root{
-  --canvas:#F3F5F9; --surface:#FFFFFF; --sunken:#F6F8FB; --hover:#F3F6FA; --select:#FFF6E3;
+  --canvas:#F3F5F9; --surface:#FFFFFF; --sunken:#F6F8FB; --hover:#F3F6FA; --select:#E9F5F0;
   --ink:#1B2230; --ink-2:#3C4555; --ink-3:#6A7384; --ink-4:#9AA2B0; --rule:#E5E9F0; --rule-2:#EEF1F5;
-  --acc:#F2B035; --acc-soft:#FFF3D9; --acc-ink:#8A5300; --on-acc:#2A1D04;
+  --acc:#2F8F77; --acc-soft:#E2F3EC; --acc-ink:#23705C; --on-acc:#FFFFFF;
   --shadow:0 1px 2px rgba(20,30,50,.04),0 4px 14px rgba(20,30,50,.04);
   --font:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --focus:#2F6FDB;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --canvas:#11141A; --surface:#191D25; --sunken:#1F242D; --hover:#222833; --select:#2E2615;
+  --canvas:#11141A; --surface:#191D25; --sunken:#1F242D; --hover:#222833; --select:#17302A;
   --ink:#EEF0F4; --ink-2:#C8CDD6; --ink-3:#98A0AD; --ink-4:#6E7684; --rule:#2A303A; --rule-2:#242A33;
-  --acc:#F2B035; --acc-soft:#33290F; --acc-ink:#F5C462; --on-acc:#241903;
+  --acc:#45BC9E; --acc-soft:#15302A; --acc-ink:#7FD6BF; --on-acc:#06231C;
   --shadow:0 1px 2px rgba(0,0,0,.25)}}
 :root[data-theme="dark"]{
-  --canvas:#11141A; --surface:#191D25; --sunken:#1F242D; --hover:#222833; --select:#2E2615;
+  --canvas:#11141A; --surface:#191D25; --sunken:#1F242D; --hover:#222833; --select:#17302A;
   --ink:#EEF0F4; --ink-2:#C8CDD6; --ink-3:#98A0AD; --ink-4:#6E7684; --rule:#2A303A; --rule-2:#242A33;
-  --acc:#F2B035; --acc-soft:#33290F; --acc-ink:#F5C462; --on-acc:#241903;
+  --acc:#45BC9E; --acc-soft:#15302A; --acc-ink:#7FD6BF; --on-acc:#06231C;
   --shadow:0 1px 2px rgba(0,0,0,.25)}
+/* 공공 서비스 연계: AI 안내 + 담당자 기록을 한 줄에 (2026-11-17) */
+.svrows{border-top:1px solid var(--rule-2)}
+.svrow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,1fr);gap:0;border-bottom:1px solid var(--rule-2)}
+.sv-ai{padding:16px 20px}.sv-me{padding:16px 20px;background:var(--sunken);border-left:1px solid var(--rule-2);display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.sv-t{display:flex;align-items:center;gap:8px;margin-bottom:8px}.sv-t b{font-weight:600;font-size:15px}
+.sv-ai dl{display:grid;grid-template-columns:44px 1fr;gap:4px 10px;margin:0;font-size:13.5px}.sv-ai dt{color:var(--ink-3)}.sv-ai dd{margin:0;color:var(--ink-2)}
+.sv-k{font-size:12.5px;font-weight:600;color:var(--ink-3);display:block}
+.sv-me input{width:100%}
+.sv-st{font-weight:600;border-radius:999px;padding:2px 8px;font-size:12px;background:var(--hover);color:var(--ink-2)}.sv-st.s1{background:var(--req-weak);color:var(--req)}.sv-st.s2{background:var(--vol-weak);color:var(--vol)}
+@media (max-width:1100px){.svrow{grid-template-columns:1fr}.sv-me{border-left:0;border-top:1px solid var(--rule-2)}}
 body{font-size:14.5px;letter-spacing:-.01em;word-break:keep-all}
 :focus-visible{border-radius:8px}
 
@@ -827,10 +837,10 @@ const STAFF=[['박지현','사회복지사','나'],['이수진','사회복지사
 const DELEG=[{to:'이수진',from:'11/20',until:'11/24',who:'전체 (5명)',why:'휴가',scope:'대신 수락 · 일지 확인 · 안부 확인',st:'예정'},{to:'최은호',from:'10/01',until:'계속',who:'오덕수',why:'병원 동행 전담',scope:'대신 공고 · 일지 확인',st:'위임 중'},{to:'최은호',from:'11/01',until:'계속',who:'윤금자',why:'청력 · 건강 확인 전담',scope:'일지 확인 · 안부 확인',st:'위임 중'}];
 const PUBR=[
  {id:'pb1',chat:[['me','혼자 사는데 쓰러지면 걱정돼요'],['bot','혼자 지내시는 분이 쓸 수 있는 서비스를 찾아 봤어요. 응급안전안심서비스는 화재·활동 감지 장비를 달아 응급 때 119와 연결해 줘요.'],['bot','노인맞춤돌봄서비스는 안부 확인과 외출 동행을 해 줘요. 주민센터에서 신청해요.'],['me','담당자님이 신청을 도와주면 좋겠어요']],e:'e5',q:'혼자 사는데 쓰러지면 걱정돼요',svc:['응급안전안심서비스','노인맞춤돌봄서비스'],d:'오늘 09:12',memo:'평일 오전에 전화 주세요',st:0},
- {id:'pb4',chat:[['me','반찬 만들기가 힘들어요'],['bot','행복동 주민센터에서 혼자 사는 어르신께 도시락을 배달해 줘요.']],e:'e8',q:'반찬 만들기가 힘들어요',svc:['노인맞춤돌봄서비스'],d:'어제 16:40',memo:'손녀분과 통화 후 신청',st:1},
+ {id:'pb4',chat:[['me','반찬 만들기가 힘들어요'],['bot','행복동 주민센터에서 혼자 사는 어르신께 도시락을 배달해 줘요.']],e:'e8',q:'반찬 만들기가 힘들어요',svc:['노인맞춤돌봄서비스'],d:'어제 16:40',memo:'손녀분과 통화 후 신청',st:1,sv:{'노인맞춤돌봄서비스':{st:'안내함',memo:'11/12 전화로 설명드림'}},note:'손녀분과 11/14 통화 예정'},
  {id:'pb2',chat:[['me','요즘 깜빡깜빡해요'],['bot','가까운 치매안심센터에서 무료로 검진과 상담을 받을 수 있어요.']],e:'e3',q:'요즘 깜빡깜빡해요',svc:['치매안심센터'],d:'11/11',memo:'',st:2},
  {id:'pb5',chat:[['me','밤에 혼자 있으면 무서워요'],['bot','응급안전안심서비스로 응급 상황을 바로 알릴 수 있어요.']],e:'e7',q:'밤에 혼자 있으면 무서워요',svc:['응급안전안심서비스'],d:'11/10',memo:'',st:2},
- {id:'pb3',chat:[['me','목욕을 도와줄 사람이 필요해요'],['bot','장기요양 등급이 있으면 방문요양·방문목욕을 받을 수 있어요. 등급이 없으면 국민건강보험공단에 신청해야 해요.']],e:'e5',q:'목욕을 도와줄 사람이 필요해요',svc:['장기요양 방문요양·방문목욕'],d:'11/05',memo:'',st:3,res:'국민건강보험공단 등급 신청 접수 (11/07) · 방문 조사 11/20'},
+ {id:'pb3',chat:[['me','목욕을 도와줄 사람이 필요해요'],['bot','장기요양 등급이 있으면 방문요양·방문목욕을 받을 수 있어요. 등급이 없으면 국민건강보험공단에 신청해야 해요.']],e:'e5',q:'목욕을 도와줄 사람이 필요해요',svc:['장기요양 방문요양·방문목욕'],d:'11/05',memo:'',st:3,sv:{'장기요양 방문요양·방문목욕':{st:'신청함',memo:'11/07 공단 등급 신청 접수'}},res:'국민건강보험공단 등급 신청 접수 (11/07) · 방문 조사 11/20'},
  {id:'pb6',chat:[['me','기억이 자꾸 깜빡해요'],['bot','치매안심센터에서 무료 검사를 받을 수 있어요.']],e:'e6',q:'기억이 자꾸 깜빡해요',svc:['치매안심센터'],d:'11/02',memo:'',st:3,res:'치매안심센터 검사 완료 (11/08) · 이상 없음'}
 ];
 const PST=['새 요청','연락함','신청 도움 중','완료'];
@@ -1227,11 +1237,17 @@ function pubDetail(r){
   return `<section class="panel"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="margin:0;align-items:center;flex-wrap:wrap"><div class="who">${av(e.n,'l')}<div><h3>${e.n}<span class="muted">${e.age}세 · ${e.dong} · ${e.home}</span></h3><div class="note tn">${r.d} 앱에서 전달 · ${e.tel}</div></div></div><div class="btns">${callBtn(e.tel,'전화')}<a class="btn sm" href="#care/${e.id}">관리 대상 정보</a></div></div>
       <p style="margin:14px 0 0;font-size:15px">"${r.q}"${r.memo?` <span class="muted small">· 담당자에게 남긴 말: ${r.memo}</span>`:''}</p>
       ${steps(PST,r.st)}
-      <div class="nextbox" style="margin-top:16px">${r.st===3?`<div class="k">완료</div><p>${r.res}</p>`:`<div class="k">다음 할 일 · ${['전화로 연락드리기','신청 도와드리기','신청 마무리하기'][r.st]}</div>${ta('처리 메모 · 예: 11/14 주민센터에 대신 신청 접수','','sm')}<div class="btns">${acts.map((a,i)=>`<button class="btn ${i===0?'primary':''}" type="button" onclick="pbadv('${r.id}',${a[1]})">${a[0]}</button>`).join('')}<button class="btn ghost" type="button" style="margin-left:auto" onclick="pbadv('${r.id}',3,1)">대상이 아니에요</button></div><div class="note">상태를 바꾸면 ${e.n} 님 앱에 알림이 가요.</div>`}</div></div></section>
-  <section class="panel"><div class="panel-h tight"><h2>AI가 찾은 서비스</h2><span class="sub">전달한 대화에서 찾은 기록</span></div><div class="tw"><table><thead><tr><th>서비스</th><th>대상</th><th>내용</th><th>신청</th></tr></thead><tbody>${r.svc.map(s=>`<tr><td><b style="font-weight:600">${s}</b></td><td>${SVC[s][0]}</td><td class="muted">${SVC[s][1]}</td><td>${SVC[s][2]}</td></tr>`).join('')}</tbody></table></div>
+      <div class="nextbox" style="margin-top:16px">${r.st===3?`<div class="k">완료</div><p>${r.res}</p>`:`<div class="k">다음 할 일 · ${['전화로 연락드리기','신청 도와드리기','신청 마무리하기'][r.st]}</div><div class="btns">${acts.map((a,i)=>`<button class="btn ${i===0?'primary':''}" type="button" onclick="pbadv('${r.id}',${a[1]})">${a[0]}</button>`).join('')}<button class="btn ghost" type="button" style="margin-left:auto" onclick="pbadv('${r.id}',3,1)">대상이 아니에요</button></div><div class="note">상태를 바꾸면 ${e.n} 님 앱에 알림이 가요.</div>`}</div></div></section>
+  <section class="panel"><div class="panel-h tight"><h2>AI가 찾은 서비스 · 처리 기록</h2><span class="sub">왼쪽은 AI 안내, 오른쪽은 담당자가 남긴 기록</span></div>
+    <div class="svrows">${r.svc.map((sv,i)=>{const k=svrec(r,sv);return `<div class="svrow"><div class="sv-ai"><div class="sv-t"><span class="ai-tag">AI 안내</span><b>${sv}</b></div><dl><dt>대상</dt><dd>${SVC[sv][0]}</dd><dt>내용</dt><dd>${SVC[sv][1]}</dd><dt>신청</dt><dd>${SVC[sv][2]}</dd></dl></div>
+      <div class="sv-me"><div class="sv-k">담당자 기록${k.st?` <span class="sv-st s${['','1','2','3'][['','안내함','신청함','해당 없음'].indexOf(k.st)]}">${k.st}</span>`:' <span class="muted small">아직 없음</span>'}</div><div class="seg" role="group" aria-label="${sv} 처리 상태">${['안내함','신청함','해당 없음'].map(o=>`<button type="button" class="${k.st===o?'on':''}" aria-pressed="${k.st===o}" onclick="pbsvc('${r.id}',${i},'${o}')">${o}</button>`).join('')}</div><input type="text" class="sm" aria-label="${sv} 메모" placeholder="이 서비스 메모 · 예: 11/14 주민센터에 대신 접수" value="${esc(k.memo||'')}" onchange="pbsvm('${r.id}',${i},this.value)"></div></div>`}).join('')}</div>
+    <div class="panel-b" style="padding-top:14px"><label class="sv-k" for="pbnote-${r.id}">전체 메모 <span class="muted small">서비스와 상관없는 내용 · 담당자만 봐요</span></label><textarea id="pbnote-${r.id}" class="sm" placeholder="예: 따님과 통화 예정 (11/15)" onchange="PUBR.find(x=>x.id==='${r.id}').note=this.value">${esc(r.note||'')}</textarea></div>
     <div class="panel-f">${insight(`<p>${e.age}세 · ${e.home} 사세요. <strong>${r.svc[0]}</strong>는 ${s0[0]}이 대상이에요. 해당하는지 아래 항목을 확인해 보세요.</p><div class="basis">확인할 것 · 기초연금 수급 여부, 장기요양 등급 여부</div>`,'관리 대상 정보 · 공공 서비스 DB (운영자 등록)','자격 미리 보기')}</div></section>
   ${fold('pbchat','본인이 전달한 AI 대화',`${r.chat.length}개 · ${r.d} 전달`,`<div class="panel-b" style="padding-top:0"><p class="note" style="margin:0 0 12px">앱에서 "담당자에게 전달하기"를 누른 대화만 보여요. 누르지 않은 대화와 찾아본 기록은 담당자에게 보이지 않아요.</p><div class="chat">${r.chat.map(m=>`<div class="msg ${m[0]==='me'?'me':'bot'}">${m[1]}</div>`).join('')}</div></div>`)}`;
 }
+function svrec(r,sv){r.sv=r.sv||{};return r.sv[sv]||(r.sv[sv]={st:'',memo:''})}
+function pbsvc(id,i,st){const r=PUBR.find(x=>x.id===id),k=svrec(r,r.svc[i]);k.st=k.st===st?'':st;toast(k.st?r.svc[i]+' · '+k.st+'으로 기록했어요':'기록을 지웠어요');render()}
+function pbsvm(id,i,v){const r=PUBR.find(x=>x.id===id);svrec(r,r.svc[i]).memo=v}
 function pbadv(id,d,no){const r=PUBR.find(x=>x.id===id);r.st=d;if(d===3)r.res=no?'대상이 아니어서 마쳤어요 (11/13)':'처리 완료 (11/13)';toast(['','연락함으로 바꿨어요','신청 도움 중으로 바꿨어요','완료했어요. '+EL(r.e).n+' 님께 알림이 가요'][d]);render()}
 
 /* ---------- O-POST-05 기관 공고 ---------- */
