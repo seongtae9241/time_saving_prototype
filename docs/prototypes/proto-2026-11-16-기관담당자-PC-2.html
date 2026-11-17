@@ -338,6 +338,26 @@ tr.off td{color:var(--ink-4)}
 .sv-me input{width:100%}
 .sv-st{font-weight:600;border-radius:999px;padding:2px 8px;font-size:12px;background:var(--hover);color:var(--ink-2)}.sv-st.s1{background:var(--req-weak);color:var(--req)}.sv-st.s2{background:var(--vol-weak);color:var(--vol)}
 @media (max-width:1100px){.svrow{grid-template-columns:1fr}.sv-me{border-left:0;border-top:1px solid var(--rule-2)}}
+/* 색 돌려 보기 (2026-11-17): 맨 아래 버튼으로 강조색을 바꿔 본다 */
+:root[data-acc="coral"]{--acc:#CF5F43;--acc-soft:#FCEBE5;--acc-ink:#A8452C;--on-acc:#FFFFFF;--select:#FBEEE9;--neg:#B3261E;--neg-weak:#F9E4E2;}
+@media (prefers-color-scheme:dark){:root[data-acc="coral"]:not([data-theme="light"]){--acc:#F08A6E;--acc-soft:#3A211A;--acc-ink:#F6A994;--on-acc:#14161A;--select:#33201B;}}
+:root[data-theme="dark"][data-acc="coral"]{--acc:#F08A6E;--acc-soft:#3A211A;--acc-ink:#F6A994;--on-acc:#14161A;--select:#33201B;}
+:root[data-acc="lavender"]{--acc:#6F5FD0;--acc-soft:#EEEBFB;--acc-ink:#5446B0;--on-acc:#FFFFFF;--select:#F1EFFC;--ai:#1F8A8A;--ai-weak:#E0F3F3;}
+@media (prefers-color-scheme:dark){:root[data-acc="lavender"]:not([data-theme="light"]){--acc:#A79AF0;--acc-soft:#262043;--acc-ink:#C3B9F7;--on-acc:#14161A;--select:#241F3C;--ai:#5CC9C9;--ai-weak:#14302F;}}
+:root[data-theme="dark"][data-acc="lavender"]{--acc:#A79AF0;--acc-soft:#262043;--acc-ink:#C3B9F7;--on-acc:#14161A;--select:#241F3C;--ai:#5CC9C9;--ai-weak:#14302F;}
+:root[data-acc="rose"]{--acc:#C95482;--acc-soft:#FBE9F0;--acc-ink:#A23D68;--on-acc:#FFFFFF;--select:#FCEEF3;}
+@media (prefers-color-scheme:dark){:root[data-acc="rose"]:not([data-theme="light"]){--acc:#EE8BB0;--acc-soft:#3A1C29;--acc-ink:#F5ABC6;--on-acc:#14161A;--select:#331B26;}}
+:root[data-theme="dark"][data-acc="rose"]{--acc:#EE8BB0;--acc-soft:#3A1C29;--acc-ink:#F5ABC6;--on-acc:#14161A;--select:#331B26;}
+:root[data-acc="teal"]{--acc:#1F8F8F;--acc-soft:#E0F3F3;--acc-ink:#176F6F;--on-acc:#FFFFFF;--select:#E6F5F5;}
+@media (prefers-color-scheme:dark){:root[data-acc="teal"]:not([data-theme="light"]){--acc:#4CC4C4;--acc-soft:#14302F;--acc-ink:#86DCDC;--on-acc:#14161A;--select:#152C2B;}}
+:root[data-theme="dark"][data-acc="teal"]{--acc:#4CC4C4;--acc-soft:#14302F;--acc-ink:#86DCDC;--on-acc:#14161A;--select:#152C2B;}
+.accbar{position:sticky;bottom:0;z-index:20;margin-top:24px;padding:8px 32px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;background:var(--surface);border-top:1px solid var(--rule);font-size:13px;color:var(--ink-3)}
+.accbar b{font-weight:600;color:var(--ink-2)}
+.accbar .acctabs{display:inline-flex;padding:3px;gap:2px;border-radius:999px;background:var(--sunken);box-shadow:0 0 0 1px var(--rule)}
+.accbar button{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 14px;border-radius:999px;border:0;background:none;color:var(--ink-3);font:inherit;font-weight:500;cursor:pointer;white-space:nowrap}
+.accbar button:hover{color:var(--ink)}
+.accbar button i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.accbar button.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(20,30,50,.10),0 0 0 1px var(--rule)}
 body{font-size:14.5px;letter-spacing:-.01em;word-break:keep-all}
 :focus-visible{border-radius:8px}
 
@@ -803,7 +823,7 @@ details.menu summary svg.i{width:15px;height:15px}
     <nav class="nav" id="nav" aria-label="담당자 메뉴"></nav>
     <div class="side-user"><div class="avatar">박</div><div>박지현<small>사회복지사</small></div><button class="btn sm" type="button" style="margin-left:auto" onclick="logout()">로그아웃</button></div>
   </aside>
-  <main class="main"><div class="topbar" id="top"></div><div class="wrap" id="main"></div></main>
+  <main class="main"><div class="topbar" id="top"></div><div class="wrap" id="main"></div><div class="accbar" id="accbar" role="group" aria-label="강조색 돌려 보기"></div></main>
 </div>
 <div id="aib"></div>
 <div id="layer"></div>
@@ -1535,6 +1555,14 @@ const _closeLayer=closeLayer;closeLayer=function(){_closeLayer();const {v,p}=rou
 let lastView=route().v;
 addEventListener('hashchange',()=>{if($('#layer').innerHTML)closeLayer();render();const v=route().v;if(v!==lastView){scrollTo(0,0);lastView=v}if(S.after){const t=S.after;S.after=null;openLayer(t)}});
 render();
+</script>
+<script>
+/* 강조색 돌려 보기: 팀원이 색을 바꿔 가며 볼 수 있게. 고른 색은 이 브라우저에만 기억한다. */
+(function(){const O=[["", "연두(지금)", "#2F8F77"], ["coral", "코랄·살구", "#CF5F43"], ["lavender", "라벤더", "#6F5FD0"], ["rose", "로즈 핑크", "#C95482"], ["teal", "청록", "#1F8F8F"]];const R=document.documentElement;let cur='';try{cur=localStorage.getItem('ts-proto-acc')||''}catch(e){}
+function draw(){if(cur)R.setAttribute('data-acc',cur);else R.removeAttribute('data-acc');const b=document.getElementById('accbar');if(!b)return;
+b.innerHTML='<b>색 돌려 보기</b><div class="acctabs" role="tablist">'+O.map(o=>'<button type="button" class="'+(o[0]===cur?'on':'')+'" aria-pressed="'+(o[0]===cur)+'" data-acc-pick="'+o[0]+'"><i style="background:'+o[2]+'"></i>'+o[1]+'</button>').join('')+'</div>'}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-acc-pick]');if(!t)return;cur=t.dataset.accPick;try{localStorage.setItem('ts-proto-acc',cur)}catch(e){}draw()});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',draw);else draw();})();
 </script>
 </body>
 </html>
