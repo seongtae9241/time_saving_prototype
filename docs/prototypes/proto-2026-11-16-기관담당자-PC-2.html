@@ -385,12 +385,13 @@ body{font-size:14.5px;letter-spacing:-.01em;word-break:keep-all}
 .panel>.tw:last-child{border-bottom-left-radius:18px;border-bottom-right-radius:18px}
 /* 위쪽 제목 줄 */
 .main{padding:0 0 64px}
-.topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--rule);padding:14px 32px}
-.topbar .pagehead{max-width:1240px;margin:0 auto;align-items:center}
+:root{--gut:clamp(24px,calc((100vw - 1000px)/5),96px);--maxw:1080px}
+.topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--rule);padding:14px var(--gut)}
+.topbar .pagehead{max-width:var(--maxw);margin:0 auto;align-items:center}
 .crumb{display:none}
 .pagehead h1{font-size:21px;font-weight:700}
 .pagehead .desc{font-size:13px;margin-top:2px}
-.wrap{padding:24px 32px 0;max-width:1304px}
+.wrap{padding:24px var(--gut) 0;max-width:calc(var(--maxw) + 2*var(--gut))}
 .wrap>.pagehead{display:none}
 
 /* 버튼 · 입력 */
@@ -653,7 +654,7 @@ dl.props.w{grid-template-columns:112px minmax(0,1fr)}
 .kc-empty{padding:14px 16px;font-size:12.5px;color:var(--ink-4);border-top:1px solid var(--rule-2)}
 .kcol .more{border-radius:0;margin-top:auto}
 /* 알림 창 · 서랍 폭 */
-.pop{position:fixed;top:64px;right:max(32px,calc((100vw - 240px - 1240px)/2 + 32px));width:min(400px,calc(100vw - 32px));background:var(--surface);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.22),0 0 0 1px var(--rule);z-index:41;overflow:hidden;max-height:calc(100vh - 90px);display:flex;flex-direction:column}
+.pop{position:fixed;top:64px;right:max(var(--gut),calc((100vw - 240px - var(--maxw))/2));width:min(400px,calc(100vw - 32px));background:var(--surface);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.22),0 0 0 1px var(--rule);z-index:41;overflow:hidden;max-height:calc(100vh - 90px);display:flex;flex-direction:column}
 .pop-h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 10px}
 .pop-h h3{margin:0;font-size:16px;font-weight:700}
 .pop-b{overflow-y:auto}
