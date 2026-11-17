@@ -446,7 +446,8 @@ tr.row.on td:first-child{box-shadow:inset 3px 0 0 var(--acc)}
 /* 창 */
 .dialog{border-radius:20px;padding:24px 24px 20px}
 .drawer{border-radius:20px 0 0 20px;border-left:none}
-.toast{border-radius:12px;padding:12px 18px;font-weight:500}
+.toast{border-radius:12px;padding:10px 18px;font-weight:500;bottom:auto;top:22px}
+.aib-top{color:var(--ai);border-color:color-mix(in srgb,var(--ai) 30%,var(--rule))}.aib-top svg{width:16px;height:16px}
 .tip{border-radius:10px}
 
 @media (max-width:860px){
@@ -981,7 +982,7 @@ function renderNav(cur){
    ['관리',[['dlg','권한 위임',DLGREQ.length],['report','리포트']]]];
   $('#nav').innerHTML=NAV.map(([gn,items])=>`<div class="nav-sec">${gn}</div>`+items.map(([id,n,c,u])=>`<a href="#${id}" class="${id===cur?'on':''}" ${id===cur?'aria-current="page"':''}>${icon(id)}<span>${n}</span>${c?`<span class="n ${u||''}">${c}</span>`:''}</a>`).join('')).join('');
 }
-function head(id,p){const [t,d]=TITLES[id];return `<header class="pagehead"><div><h1>${t}</h1><p class="desc">${d}</p></div><div class="head-tools"><span class="stamp tn" id="stamp">${sid(id,p)} · ${TODAY}</span><button class="iconbtn" type="button" aria-label="알림 ${unread()}건" onclick="openLayer('noti')">${icon('bell')}${unread()?'<span class="dot"></span>':''}</button><button class="btn sm" type="button" onclick="openLayer('me')">${icon('user')}박지현</button><button class="btn sm" type="button" onclick="toggleTheme()">밝기</button></div></header>`}
+function head(id,p){const [t,d]=TITLES[id];return `<header class="pagehead"><div><h1>${t}</h1><p class="desc">${d}</p></div><div class="head-tools"><span class="stamp tn" id="stamp">${sid(id,p)} · ${TODAY}</span><button class="btn sm aib-top" type="button" onclick="S.ai.open=true;S.ai.size='';drawAib()">${icon('spark')}AI 도우미</button><button class="iconbtn" type="button" aria-label="알림 ${unread()}건" onclick="openLayer('noti')">${icon('bell')}${unread()?'<span class="dot"></span>':''}</button><button class="btn sm" type="button" onclick="openLayer('me')">${icon('user')}박지현</button><button class="btn sm" type="button" onclick="toggleTheme()">밝기</button></div></header>`}
 
 /* ---------- 작은 그래프 ---------- */
 function spark(labels,vals,u=''){const W=300,H=100,pt=22,pb=20,mx=Math.max(...vals)*1.15,n=vals.length,X=i=>16+i*(W-32)/(n-1),Y=v=>pt+(H-pt-pb)*(1-v/mx);const pts=vals.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
@@ -1224,12 +1225,12 @@ function vFind(p){
 /* ---------- O-PUB-01 · 02 공공 서비스 연계 ---------- */
 function vPub(p){
   const sr=PUBR.find(x=>x.id===p),t=sr?(sr.st<3?'진행 중':'완료'):F('pbq','진행 중'),L=PUBR.filter(r=>t==='진행 중'?r.st<3:r.st===3),r=sr||L[0];
-  return head('pub',p)+`<div class="cols c-side"><section class="panel" style="align-self:start"><div class="panel-b" style="padding-bottom:12px"><div class="seg" role="group">${['진행 중','완료'].map(g=>`<button type="button" class="${t===g?'on':''}" aria-pressed="${t===g}" onclick="S.f.pbq='${g}';go('pub')">${g} <span class="tn" style="opacity:.7;font-weight:500">${PUBR.filter(x=>g==='진행 중'?x.st<3:x.st===3).length}</span></button>`).join('')}</div></div>
+  return head('pub',p)+`<div class="cols c-side"><div class="stackv"><section class="panel"><div class="panel-b" style="padding-bottom:12px"><div class="seg" role="group">${['진행 중','완료'].map(g=>`<button type="button" class="${t===g?'on':''}" aria-pressed="${t===g}" onclick="S.f.pbq='${g}';go('pub')">${g} <span class="tn" style="opacity:.7;font-weight:500">${PUBR.filter(x=>g==='진행 중'?x.st<3:x.st===3).length}</span></button>`).join('')}</div></div>
       <div style="border-top:1px solid var(--rule-2)">${L.map(x=>{const e=EL(x.e);return `<button type="button" class="lrow ${r&&x.id===r.id?'on':''}" onclick="go('pub','${x.id}')"><span class="sp"><span class="t">${e.n} 님 · ${x.svc[0]}</span><span class="d ellip">"${x.q}"</span><span class="d">${x.d}</span></span><span class="tag ${x.st===0?'neg':''}">${PST[x.st]}</span></button>`}).join('')||'<div class="empty line">없어요.</div>'}</div>
       <div class="panel-f line-note">본인이 앱에서 "담당자에게 전달하기"를 눌렀을 때만 여기로 와요.</div></section>
-    <div class="stackv">${r?pubDetail(r):'<section class="panel"><div class="empty line">요청을 골라 주세요.</div></section>'}</div></div>
-  ${fold('pbStat','이번 달 현황',`새 요청 ${PUBR.filter(x=>x.st===0).length}건 · 진행 중 ${PUBR.filter(x=>x.st>0&&x.st<3).length}건 · 완료 3건`,`<div class="panel-b" style="padding-top:0"><div class="figures">${[['새 요청',PUBR.filter(x=>x.st===0).length+'건'],['진행 중',PUBR.filter(x=>x.st>0&&x.st<3).length+'건'],['이번 달 완료','3건'],['연계 많은 서비스','노인맞춤돌봄']].map(([l,v])=>`<div><b style="${v.length>5?'font-size:15px;line-height:1.6':''}">${v}</b><small>${l}</small></div>`).join('')}</div>
-    <div class="split2" style="margin:8px -22px -22px"><div><h3 class="sec-t">월별 연계 건수</h3>${colsB(['6월','7월','8월','9월','10월','11월'],[1,2,2,3,4,5],5,'건')}</div><div><h3 class="sec-t">연계 서비스 <span class="sub">누적 17건</span></h3>${distBar([['노인맞춤돌봄',7],['응급안전',4],['치매안심',3],['방문요양',3]])}</div></div></div>`)}`;
+    ${fold('pbStat','이번 달 현황',`새 요청 ${PUBR.filter(x=>x.st===0).length}건 · 진행 중 ${PUBR.filter(x=>x.st>0&&x.st<3).length}건 · 완료 3건`,`<div class="panel-b" style="padding-top:0"><div class="figures" style="grid-template-columns:1fr 1fr">${[['새 요청',PUBR.filter(x=>x.st===0).length+'건'],['진행 중',PUBR.filter(x=>x.st>0&&x.st<3).length+'건'],['이번 달 완료','3건'],['연계 많은 서비스','노인맞춤돌봄']].map(([l,v])=>`<div><b style="${v.length>5?'font-size:15px;line-height:1.6':''}">${v}</b><small>${l}</small></div>`).join('')}</div>
+    <div class="split2" style="margin:8px -22px -22px;grid-template-columns:1fr"><div><h3 class="sec-t">월별 연계 건수</h3>${colsB(['6월','7월','8월','9월','10월','11월'],[1,2,2,3,4,5],5,'건')}</div><div><h3 class="sec-t">연계 서비스 <span class="sub">누적 17건</span></h3>${distBar([['노인맞춤돌봄',7],['응급안전',4],['치매안심',3],['방문요양',3]])}</div></div></div>`)}</div>
+    <div class="stackv">${r?pubDetail(r):'<section class="panel"><div class="empty line">요청을 골라 주세요.</div></section>'}</div></div>`;
 }
 function pubDetail(r){
   const e=EL(r.e),s0=SVC[r.svc[0]];
@@ -1386,7 +1387,7 @@ function aiAnswer(q){
   return {wk:'2초 동안 살펴봤어요',t:'관리 대상, 편성표, 요청, 리포트 중에 무엇을 도와드릴까요? 아래 예시를 눌러도 돼요.',card:''};
 }
 function drawAib(){const A=S.ai,w=$('#aib');
-  if(!A.open){w.innerHTML=`<button class="aib-fab" type="button" onclick="S.ai.open=true;S.ai.size='';drawAib()">${icon('spark')}AI 도우미</button>`;return}
+  if(!A.open){w.innerHTML='';return}
   const {v}=route();
   const body=A.msgs.length?A.msgs.map(m=>m.me?`<div class="aib-me">${esc(m.me)}</div><div class="aib-ctx">${m.ctx} 화면을 함께 봤어요</div>`:m.wait?`<div class="aib-wk"><span class="dots"><i></i><i></i><i></i></span> 정리하는 중…</div>`:`<div class="aib-wk">${m.wk}</div><div class="aib-ai">${m.t}</div>${m.card?`<div class="aib-card">${m.card}</div>`:''}`).join(''):`<div class="aib-ai"><b style="color:var(--ink)">무엇을 도와드릴까요?</b><br>지금 보고 있는 화면을 같이 보고 초안과 안내를 드려요. 올리거나 보내는 일은 담당자님이 확인하고 눌러요.</div>`;
   w.innerHTML=`<div class="aib ${A.size}" role="dialog" aria-label="AI 도우미"><div class="aib-h">${icon('spark')}<b>시간 적금 AI</b><span class="ai-tag" style="margin:0">담당자 도우미</span><span class="sp"></span><button type="button" title="접기" aria-label="접기" onclick="S.ai.size=S.ai.size==='min'?'':'min';drawAib()">${icon('min')}</button><button type="button" title="크게" aria-label="크게" onclick="S.ai.size=S.ai.size==='big'?'':'big';drawAib()">${icon('big')}</button><button type="button" title="닫기" aria-label="닫기" onclick="S.ai.open=false;drawAib()">${icon('x')}</button></div>
