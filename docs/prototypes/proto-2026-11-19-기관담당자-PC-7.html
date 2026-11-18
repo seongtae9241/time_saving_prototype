@@ -1934,6 +1934,125 @@ body.ai-open .nextp{display:none}
 .toast{border-radius:14px}
 .dialog,.pop{border-radius:16px!important}
 .drawer{border-radius:20px 0 0 20px!important}
+
+/* ===== 7판 2차 ===== */
+:root{--wall:#fff;--skin:color-mix(in srgb,var(--a200) 55%,#fff)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--wall:var(--a200);--skin:var(--a400)}}
+:root[data-theme="dark"]{--wall:var(--a200);--skin:var(--a400)}
+.il .w{fill:var(--wall)}.il .sk{fill:var(--skin)}.il .pth{fill:var(--wall);opacity:.7}
+.il .arm4,.il .arm6{fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}.il .arm4{stroke:var(--a400)}.il .arm6{stroke:var(--a600)}
+.il .rj6{stroke:var(--a600);stroke-width:3;stroke-linejoin:round}
+.hero7{grid-template-columns:minmax(0,1fr) 340px;background:linear-gradient(100deg,var(--surface) 0%,var(--surface) 45%,var(--a50) 100%);border-color:var(--rule)}
+.hero7 .il-hero{width:340px;margin:-14px -12px -18px 0;align-self:end}
+/* 분홍 세 겹 줄이기 */
+.side{background:var(--surface)}
+.banner.nb{background:var(--surface);border:1px solid color-mix(in srgb,var(--neg) 35%,var(--rule));box-shadow:inset 4px 0 0 var(--neg)}
+.side-art{opacity:.9}
+/* 링크: 로고 파랑과 겹치지 않게 강조색 진한 톤 */
+.link,.hlinks .link,a.link{color:var(--a700)}
+.link:hover{color:var(--a600);text-decoration:underline}
+.kcard .w.act{color:var(--a700)}
+/* 숫자 카드 줄 (표 화면) */
+.srow{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));grid-auto-flow:column;gap:14px;margin:0 0 14px}
+.sc7{display:flex;align-items:center;gap:12px;min-height:76px;padding:12px 16px;background:var(--surface);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--card);min-width:0}
+.sc7 .tile{width:40px;height:40px;border-radius:12px;background:var(--a100);color:var(--a700);display:grid;place-items:center;flex:none}
+.sc7 .tile svg{width:20px;height:20px}
+.sc7-t{display:grid;gap:0;min-width:0;flex:1}
+.sc7-t>span{font-size:calc(13px*var(--fz));font-weight:600;color:var(--ink-3);white-space:nowrap}
+.sc7-t b{font-size:calc(22px*var(--fz));font-weight:800;letter-spacing:-.02em;line-height:1.25}
+.sc7-t b small{font-family:var(--font);font-size:calc(14px*var(--fz));font-weight:500;color:var(--ink-3);margin-left:3px}
+.sc7 .pl{align-self:flex-end}
+@media (max-width:1300px){.sc7 .pl{display:none}}
+body.ai-open .sc7 .pl,body.ai-open .sc7 .tile{display:none}body.ai-open .sc7{min-height:0;padding:8px 12px}
+:root[data-fz="lg"] .sc7 .pl{display:none}
+/* 상세 머리: 프로필 카드 */
+.detail-h{background:var(--surface)!important;background-image:none!important}
+.detail-h .av,.detail-h .av.l{width:56px;height:56px;font-size:22px;background:var(--a100);box-shadow:0 0 0 4px var(--a50)}
+.detail-h h3{font-size:calc(22px*var(--fz));font-weight:800;letter-spacing:-.02em}
+/* 보드: 칸 머리 흰 카드 */
+.kc-h,.kc-h.c0,.kc-h.c1,.kc-h.c2,.kc-h.c3,.kc-h.c4{background:var(--surface)!important;border:1px solid var(--rule);color:var(--ink)!important;border-radius:12px!important}
+.kc-h b{color:var(--ink)!important}
+.kc-h>span{background:var(--a100)!important;color:var(--a700)!important}
+/* 편성표: 톤 면 블록 */
+.cev{background:var(--a100)!important;border:0!important;border-left:4px solid var(--a500)!important}
+.cev:nth-child(3n){background:var(--a200)!important}
+.cev.gap{background:var(--surface)!important;border:1.5px dashed var(--neg)!important}
+.cev.gap.sel{background:var(--neg-weak)!important}
+.cmore{border-radius:12px;background:var(--surface);border:1px solid var(--a300);color:var(--a700);font-weight:700}
+/* 그림 든 작은 카드 */
+.tipcard{display:grid;grid-template-columns:116px minmax(0,1fr);align-items:center;gap:12px;padding:10px 16px 10px 8px;background:linear-gradient(120deg,var(--a50),var(--surface));border:1px solid var(--rule);border-radius:16px;box-shadow:var(--card);text-decoration:none;color:var(--ink-2);font-size:calc(14px*var(--fz));line-height:1.5}
+.tipcard b{display:block;color:var(--ink);font-weight:700;margin-bottom:2px}
+.tipcard .il{width:116px}
+.tipcard:hover{border-color:var(--a300)}
+.tipc{display:flex;align-items:center;gap:12px;margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--a50);color:var(--ink-2);font-size:calc(14px*var(--fz))}
+.tipc p{margin:0}.tipc .il{width:72px;height:54px;flex:none}
+@media (max-width:1400px){.home2 .tipcard{display:none}}
+:root[data-fz="lg"] .home2 .tipcard{display:none}
+/* 기관 공고·행사: 진행 막대 */
+.pbar{height:8px;border-radius:999px;background:var(--a100)}.pbar i{border-radius:999px}
+.ev{border-radius:16px;border:1px solid var(--rule);box-shadow:var(--card)}
+/* AI 연 홈: 아이콘은 남김 */
+body.ai-open .st7 .tile{display:grid;width:22px;height:22px;border-radius:7px}body.ai-open .st7 .tile svg{width:13px;height:13px}
+/* 한꺼번에 올리기 창 4px */
+.bulkt td:last-child,.bulkt th:last-child{padding-right:24px}
+/* 가족 추가 잘림: 아래 버튼 줄 위 여백 */
+.drawer-b{padding-bottom:72px;scroll-padding-bottom:72px}
+@media (max-width:1400px){.hero7{grid-template-columns:minmax(0,1fr) 280px}.hero7 .il-hero{width:280px}}
+@media (max-width:1300px){.hero7{grid-template-columns:minmax(0,1fr) 230px}.hero7 .il-hero{width:230px;margin-bottom:-8px}}
+:root{--skin:color-mix(in srgb,var(--a200) 80%,#fff)}
+.hero7 .il-hero{width:318px;margin:-12px -12px -12px 0;align-self:end;-webkit-mask-image:linear-gradient(90deg,transparent,#000 22%);mask-image:linear-gradient(90deg,transparent,#000 22%)}
+.hero7{grid-template-columns:minmax(0,1fr) 318px;padding-top:10px;padding-bottom:10px}
+:root{--winc:var(--a200)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--winc:var(--lit)}}
+:root[data-theme="dark"]{--winc:var(--lit)}
+.il-hero rect.lit{fill:var(--winc)}
+.srow{display:flex}.sc7{flex:1 1 0}
+.kcard .kc-top b{flex:none}
+@container (max-width:240px){.kcard .duep.hot i{display:none}.kcard .duep.hot{padding:0 5px}}
+@container (max-width:200px){.kcard .duep:not(.hot){display:none}}
+
+/* ===== 그림 삭제 뒤 정리 ===== */
+.side-sp{margin-top:auto}
+.hero7{display:block;min-height:0;padding:16px 28px 16px;position:relative;background:
+ radial-gradient(circle at calc(100% - 70px) 135%,var(--a200) 0 62px,transparent 63px),
+ radial-gradient(circle at calc(100% - 70px) 135%,var(--a100) 0 112px,transparent 113px),
+ radial-gradient(circle at calc(100% - 210px) -45%,var(--a100) 0 58px,transparent 59px),
+ linear-gradient(100deg,var(--surface) 0%,var(--surface) 50%,var(--a50) 100%)}
+.hero7 .hero-s{margin:2px 0 10px}
+.artcard:not(.wide){display:none}
+.artcard.wide{grid-template-columns:minmax(0,1fr);background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:14px 18px}
+.evwrap{grid-template-columns:minmax(0,1fr)!important}.evart,.gapart,.aiart{display:none}
+.evs{grid-template-columns:repeat(2,minmax(0,1fr));display:grid;gap:14px}
+.empty.pic .tile,.notify .tile{width:40px;height:40px;border-radius:12px;background:var(--a100);color:var(--a700);display:grid;place-items:center;flex:none}
+.empty.pic .tile svg,.notify .tile svg{width:20px;height:20px}
+.notify .tile{background:var(--surface)}
+.toast .sp3{display:none}
+/* 상세 머리: 한 줄 */
+.panel.covered{background-image:none!important}
+.covered .detail-h{display:flex!important;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 20px!important;margin:0!important;border-radius:0}
+.covered .detail-h>.who{flex:1 1 260px;min-width:0}
+.covered .detail-h .mcard{background:none!important;border:0!important;box-shadow:none!important;padding:0 16px!important;margin:0!important;border-left:1px solid var(--rule)!important;border-radius:0!important;position:static!important;transform:none!important}
+.covered .detail-h>.btns{margin:0!important;flex:none}
+.panel.covered>.panel-b{padding-top:0}
+/* 원이 찌그러지지 않게 */
+.av,.avatar,.rank.tile,.nd,.tile,.itile,.pdot,.status::before{flex:none}
+.av,.avatar{aspect-ratio:1}
+/* 보드 완료 칸도 같은 모양 */
+.kb{--kbc:repeat(5,minmax(0,1fr))}
+@media (max-width:1300px){.kb{min-width:1000px}.kbwrap{overflow-x:auto}}
+.hero7{padding:12px 28px 14px;background:
+ radial-gradient(circle at calc(100% - 64px) 120%,var(--a300) 0 44px,transparent 45px),
+ radial-gradient(circle at calc(100% - 64px) 120%,var(--a200) 0 84px,transparent 85px),
+ radial-gradient(circle at calc(100% - 64px) 120%,var(--a100) 0 128px,transparent 129px),
+ radial-gradient(circle at calc(100% - 250px) -40%,var(--a100) 0 52px,transparent 53px),
+ linear-gradient(100deg,var(--surface) 0%,var(--surface) 50%,var(--a50) 100%)}
+.hero7 .hero-h{font-size:calc(28px*var(--fz));margin:0}
+.hero7 .hero-s{margin:0 0 8px}
+.covered .detail-h>.btns{flex:1 1 100%;justify-content:flex-end;border-top:1px solid var(--rule-2);padding-top:12px}
+.covered .detail-h .mcard{padding-right:0!important}
+#calltbl td:first-child .who>span.av{flex:none!important;display:grid!important;width:28px;min-width:28px}
+.empty.pic span.tile{flex:none!important;min-width:40px!important;width:40px}
+.hero7 .hero-d{display:none}
 :root[data-fz="lg"] .hero7{grid-template-columns:minmax(0,1fr) 240px}
 :root[data-fz="lg"] .hero7 .il-hero{width:240px}
 :root[data-fz="lg"] .home2{grid-template-columns:minmax(0,1fr)}
@@ -1950,18 +2069,7 @@ body.ai-open .nextp{display:none}
   <aside class="side">
     <div class="brand"><svg class="logo" viewBox="0 0 48 48" width="40" height="40" role="img" aria-label="되돌봄 로고"><rect width="48" height="48" rx="12" fill="#4C63F0"/><g fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M24 37C13 30 9.8 22.5 11.2 17.6c1.5-5 8-6.6 12.8-.4 4.8-6.2 11.3-4.6 12.8.4 1.2 4.2-1 10-7.6 15.4"/><path d="M35.1 33.1L29.2 33l1.1-5.7"/></g><circle cx="24" cy="37" r="3" fill="#FFB547"/></svg><div><b class="wordmark">되돌봄</b><span>행복요양원 기관 담당자</span></div></div>
     <nav class="nav" id="nav" aria-label="담당자 메뉴"></nav>
-    <svg class="il side-art" viewBox="0 0 220 86" aria-hidden="true">
-  <g class="day"><circle class="f1" cx="124" cy="15" r="14"/><circle class="f3" cx="124" cy="15" r="8"/></g>
-  <g class="night"><path class="f4" d="M128 6a10 10 0 1 0 7 17a8.5 8.5 0 0 1-7-17z"/><circle class="f3" cx="92" cy="12" r="1.3"/><circle class="f3" cx="160" cy="8" r="1.3"/><circle class="f3" cx="30" cy="20" r="1.2"/></g>
-  <path class="f1" d="M0 86V54l15-11 15 11v32zM38 86V42l20-15 20 15v44zM96 86V52l15-11 15 11v34zM148 86V38l22-16 22 16v48zM200 86V58l10-7 10 7v28z"/>
-  <circle class="f2" cx="64" cy="70" r="10"/><rect class="f3" x="62.5" y="72" width="3" height="14" rx="1.5"/><circle class="f2" cx="166" cy="72" r="9"/><rect class="f3" x="164.5" y="74" width="3" height="12" rx="1.5"/>
-  <rect class="f2" x="44" y="42" width="5" height="12" rx="1.5"/><path class="sm" d="M46.5 38c-3-3 3-6 0-10"/>
-  <path class="f2" d="M16 86V62l19-14 19 14v24zM72 86V58l20-15 20 15v28zM124 86V64l17-12 17 12v22zM172 86V60l19-14 19 14v26z"/>
-  <path class="f3" d="M12 64l23-17 23 17zM68 60l24-18 24 18zM120 66l21-15 21 15zM168 62l23-17 23 17z"/>
-  <rect class="lit" x="24" y="67" width="8" height="8" rx="1.5"/><rect class="f4" x="39" y="70" width="8" height="16" rx="1.5"/>
-  <rect class="lit" x="79" y="65" width="7" height="8" rx="1.5"/><rect class="lit" x="98" y="65" width="7" height="8" rx="1.5"/><path class="f4" d="M88 86V76a4 4 0 0 1 8 0v10z"/>
-  <rect class="lit" x="137" y="69" width="8" height="8" rx="1.5"/><rect class="lit" x="180" y="66" width="7" height="7" rx="1.5"/><rect class="lit" x="195" y="66" width="7" height="7" rx="1.5"/>
-  <path class="gl" d="M0 85.2h220"/></svg><div class="side-user"><div class="avatar">박</div><div class="su-n">박지현<small>사회복지사</small></div><button class="btn sm" type="button" style="margin-left:auto" onclick="logout()">로그아웃</button></div>
+    <div class="side-sp"></div><div class="side-user"><div class="avatar">박</div><div class="su-n">박지현<small>사회복지사</small></div><button class="btn sm" type="button" style="margin-left:auto" onclick="logout()">로그아웃</button></div>
   </aside>
   <main class="main"><div class="topbar" id="top"></div><div class="wrap" id="main"></div><div class="accbar" id="accbar" role="group" aria-label="강조색 돌려 보기"></div></main>
 </div>
@@ -2197,22 +2305,31 @@ const P2=(x,g,el,vo)=>`<g transform="translate(${x} ${g}) scale(1.28)"><ellipse 
 const HOUSE=(x,w,h,o={})=>{const g=112,t=g-h,m=x+w/2,rf=o.rf||Math.round(w*.48);return `${o.ch?`<rect class="f4" x="${x+w-12}" y="${t-rf-2}" width="6" height="${Math.round(rf*.8)}" rx="1.5"/>`:''}<rect class="f2" x="${x}" y="${t}" width="${w}" height="${h}" rx="2"/><rect class="f3" x="${x+w-8}" y="${t}" width="8" height="${h}" rx="2"/><path class="f5 rj" d="M${x-5} ${t+2}L${m} ${t-rf}L${x+w+5} ${t+2}z"/>`};
 const WIN=(x,y,w=9,h=10)=>`<rect class="lit" x="${x}" y="${y}" width="${w}" height="${h}" rx="2"/><path class="lw5" d="M${x+w/2} ${y}v${h}M${x} ${y+h/2}h${w}"/>`;
 const ART={
- hero:`<svg class="il il-hero" viewBox="0 0 220 130" role="img" aria-label="동네 집 앞에서 어르신과 봉사자가 손을 잡고 걷는 그림, 옆에 시계와 쌓인 시간 동전">
-  <path class="f1" d="M0 104C28 80 66 76 108 88s82 4 112-12v54H0z"/>
-  <g class="day"><circle class="f2" cx="30" cy="24" r="17"/><circle class="f4" cx="30" cy="24" r="10"/></g>
-  <g class="night"><path class="f5" d="M36 12a13 13 0 1 0 9 22a11 11 0 0 1-9-22z"/><circle class="f4" cx="64" cy="16" r="1.6"/><circle class="f4" cx="92" cy="30" r="1.3"/><circle class="f4" cx="14" cy="46" r="1.3"/><circle class="f4" cx="128" cy="14" r="1.4"/></g>
-  <path class="cl" d="M62 40a7 7 0 0 1 13-4a6.5 6.5 0 0 1 10 5a5 5 0 0 1 0 10H64a5.5 5.5 0 0 1-2-11z"/>
-  <ellipse class="f2" cx="108" cy="116" rx="106" ry="11"/>
-  <rect class="f5" x="13" y="86" width="4" height="26" rx="2"/><circle class="f3" cx="15" cy="78" r="14"/><circle class="f4" cx="21" cy="84" r="7"/>
-  ${HOUSE(30,38,30,{ch:1})}<path class="sm" d="M59 58c-4-4 3-7 0-12"/>${WIN(37,90)}<rect class="f5" x="52" y="95" width="10" height="17" rx="2"/><circle class="f0" cx="59.5" cy="104" r="1.1"/>
-  ${HOUSE(90,36,42,{rf:20})}${WIN(96,78,8,9)}${WIN(108,78,8,9)}<path class="f5" d="M103 112V99a5 5 0 0 1 10 0v13z"/><circle class="f0" cx="110.5" cy="105" r="1.1"/>
-  <circle class="f3" cx="133" cy="107" r="7"/><circle class="f4" cx="140" cy="110" r="5"/>
-  <path class="dot" d="M86 121c14 6 38 6 58 0"/>
-  ${P2(64,118,'f4','f6')}
-  <rect class="f5" x="165" y="84" width="5" height="30" rx="2"/><ellipse class="f3" cx="167.5" cy="114" rx="11" ry="2.6"/>
-  <circle class="lit" cx="167.5" cy="58" r="27"/><circle class="l" cx="167.5" cy="58" r="27"/><circle class="f1" cx="167.5" cy="58" r="20.5"/>
-  <path class="tk" d="M167.5 40.5v3M167.5 72.5v3M150 58h3M182 58h3"/><path class="l7 hand" d="M167.5 45v13l9 6"/><circle class="f7" cx="167.5" cy="58" r="2.6"/>
-  <g class="coins"><rect class="f4" x="186" y="110" width="13" height="6" rx="3"/><rect class="f4" x="201" y="110" width="13" height="6" rx="3"/><rect class="f5" x="201" y="103" width="13" height="6" rx="3"/><g class="cointop"><rect class="f6" x="201" y="96" width="13" height="6" rx="3"/><path class="pw" d="M205.5 99h4M207.5 97v4"/></g></g></svg>`,
+ hero:`<svg class="il il-hero" viewBox="0 0 360 170" role="img" aria-label="해가 뜬 동네 길에서 봉사자가 지팡이 짚은 어르신의 팔을 잡고 함께 걷는 그림. 뒤로 집 두 채와 거리 시계, 앞에 쌓인 시간 동전이 있다">
+  <g class="day"><circle class="f1" cx="292" cy="50" r="48"/><circle class="f2" cx="292" cy="50" r="34"/><circle class="f3" cx="292" cy="50" r="21"/></g>
+  <g class="night"><circle class="f1" cx="292" cy="50" r="42"/><path class="f5" d="M300 26a26 26 0 1 0 20 43a22 22 0 0 1-20-43z"/><circle class="f4" cx="232" cy="22" r="1.800"/><circle class="f4" cx="196" cy="44" r="1.400"/><circle class="f4" cx="120" cy="20" r="1.600"/><circle class="f4" cx="52" cy="40" r="1.400"/><circle class="f4" cx="340" cy="96" r="1.400"/></g>
+  <path class="cl" d="M40 42a9 9 0 0 1 17-5a8.500 8.500 0 0 1 13 6a6.500 6.500 0 0 1 0 13H42a7 7 0 0 1-2-14z"/><path class="cl" d="M196 26a6 6 0 0 1 11-3a5.500 5.500 0 0 1 9 4a4.500 4.500 0 0 1 0 9h-19a5 5 0 0 1-1-10z"/>
+  <path class="f1" d="M0 122C40 96 92 92 142 106s92 10 132-6 58-8 86 2v68H0z"/>
+  <path class="f2" d="M6 124V102l15-11 15 11v22zM214 116V92l17-12 17 12v24zM306 118V100l13-10 13 10v18z"/><path class="f3" d="M2 104l19-14 19 14zM210 94l21-15 21 15zM302 102l17-13 17 13z"/>
+  <path class="f2" d="M0 140C52 120 122 118 182 130s120 8 178-10v50H0z"/>
+  <rect class="f5" x="48" y="112" width="5" height="32" rx="2.500"/><circle class="f3" cx="50" cy="98" r="19"/><circle class="f4" cx="59" cy="107" r="10"/><circle class="f2" cx="43" cy="91" r="6"/>
+  <rect class="f5" x="112" y="70" width="8" height="20" rx="2"/><path class="sm" d="M116 64c-5-5 4-8 0-14s3-7 1-11"/>
+  <rect class="w" x="72" y="102" width="58" height="44" rx="2"/><rect class="f1" x="118" y="102" width="12" height="44" rx="2"/><path class="f5 rj" d="M66 104l35-29 35 29z"/>
+  <rect class="lit" x="80" y="112" width="14" height="13" rx="2.500"/><path class="lw5" d="M87 112v13M80 118.500h14"/><rect class="f4" x="78" y="126" width="18" height="4" rx="2"/><circle class="f3" cx="82" cy="125" r="2.600"/><circle class="f5" cx="87" cy="124.500" r="2.600"/><circle class="f3" cx="92" cy="125" r="2.600"/>
+  <rect class="f5" x="104" y="118" width="15" height="28" rx="2.500"/><circle class="f0" cx="115.500" cy="133" r="1.400"/><rect class="f4" x="100" y="145" width="23" height="3" rx="1.500"/>
+  <rect class="w" x="146" y="86" width="50" height="60" rx="2"/><rect class="f1" x="186" y="86" width="10" height="60" rx="2"/><path class="f6 rj6" d="M140 88l31-27 31 27z"/>
+  <rect class="lit" x="153" y="97" width="11" height="12" rx="2.500"/><rect class="lit" x="170" y="97" width="11" height="12" rx="2.500"/><path class="lw5" d="M158.500 97v12M153 103h11M175.500 97v12M170 103h11"/>
+  <path class="f5" d="M160 146v-18a7.500 7.500 0 0 1 15 0v18z"/><circle class="f0" cx="171" cy="136" r="1.400"/><path class="f4" d="M150 113h34v3h-34z"/>
+  <circle class="f3" cx="136" cy="141" r="9"/><circle class="f4" cx="144" cy="145" r="6"/><circle class="f3" cx="202" cy="143" r="7"/>
+  <path class="pth" d="M96 170c26-14 70-21 122-21s96 5 142 15v6z"/>
+  <rect class="f5" x="263" y="96" width="6" height="52" rx="3"/><ellipse class="f3" cx="266" cy="149" rx="14" ry="3.200"/><circle class="lit" cx="266" cy="72" r="26"/><circle class="l" cx="266" cy="72" r="26"/><circle class="f1" cx="266" cy="72" r="19.500"/><path class="tk" d="M266 55.500v3M266 85.500v3M249.500 72h3M279.500 72h3"/><path class="l7 hand" d="M266 60v12l8.500 5.500"/><circle class="f7" cx="266" cy="72" r="2.600"/>
+  <ellipse class="f3" cx="218" cy="159" rx="30" ry="3.400"/>
+  <rect class="f7" x="200.500" y="147" width="4.400" height="11" rx="2"/><rect class="f7" x="207.500" y="147" width="4.400" height="11" rx="2"/><path class="f4" d="M196 149c-1.500-13 1-24 10-24s11 11 9.500 24z"/><circle class="sk" cx="206" cy="117" r="7"/><path class="f3" d="M199 116.500a7 7 0 0 1 14 0c-3-3.500-11-3.500-14 0z"/><circle class="f3" cx="212.500" cy="112.500" r="2.800"/>
+  <path class="l7" d="M193 134v24M193 134q-3.500-4-6 0"/><path class="arm4" d="M200 131l-6.500 4"/>
+  <rect class="f7" x="222.500" y="145" width="4.600" height="13" rx="2"/><rect class="f7" x="230" y="145" width="4.600" height="13" rx="2"/><path class="f6" d="M217.500 147c-1.500-17 2-30 11-30s12.500 13 11 30z"/><path class="f3" d="M223 119h11l-2 6h-7z"/><circle class="sk" cx="228.500" cy="109" r="7.500"/><path class="f7" d="M221 108.500a7.500 7.500 0 0 1 15 0c-2-4.500-13-4.500-15 0z"/><path class="f7" d="M235 106c3 1 4 5 2.500 9c-1-3-2-5-3.500-6z"/>
+  <path class="arm6" d="M221 129q-5 5-9 3"/><path class="arm6" d="M237 129l4.500 9"/><path class="l" d="M237 139a5 5 0 0 1 10 0"/><path class="f5" d="M234.500 139h15l-1.800 10h-11.400z"/><circle class="f3" cx="239" cy="138" r="2.600"/><circle class="f2" cx="244.500" cy="137.500" r="2.800"/>
+  <path class="f5" d="M20 152h17l-2.200 13H22.200z"/><path class="f4" d="M28.500 152c-2-9-8-13-13-13c1 7 5 12 13 13zM28.500 152c0-10 3-16 8-19c2 7 0 15-8 19z"/><path class="f3" d="M28.500 152c3-6 8-8 13-7c-2 5-6 8-13 7z"/>
+  <g class="coins"><rect class="f4" x="296" y="155" width="20" height="7" rx="3.500"/><rect class="f5" x="296" y="147" width="20" height="7" rx="3.500"/><rect class="f4" x="320" y="155" width="20" height="7" rx="3.500"/><rect class="f5" x="320" y="147" width="20" height="7" rx="3.500"/><rect class="f4" x="320" y="139" width="20" height="7" rx="3.500"/><g class="cointop"><rect class="f6" x="320" y="131" width="20" height="7" rx="3.500"/><path class="pw" d="M327.500 134.500h5M330 132v5"/></g></g></svg>`,
  side:`<svg class="il side-art" viewBox="0 0 220 86" aria-hidden="true">
   <g class="day"><circle class="f1" cx="124" cy="15" r="14"/><circle class="f3" cx="124" cy="15" r="8"/></g>
   <g class="night"><path class="f4" d="M128 6a10 10 0 1 0 7 17a8.5 8.5 0 0 1-7-17z"/><circle class="f3" cx="92" cy="12" r="1.3"/><circle class="f3" cx="160" cy="8" r="1.3"/><circle class="f3" cx="30" cy="20" r="1.2"/></g>
@@ -2242,14 +2359,16 @@ const ART={
   <rect class="f3" x="226" y="16" width="56" height="40" rx="4"/><rect class="f0" x="232" y="22" width="20" height="14" rx="2"/><rect class="f0" x="256" y="22" width="20" height="26" rx="2"/><rect class="f0" x="232" y="40" width="20" height="10" rx="2"/><circle class="f6" cx="242" cy="22" r="2"/><circle class="f6" cx="266" cy="22" r="2"/><path class="l" d="M240 56l-6 14M268 56l6 14"/></svg>`,
  fest:`<svg class="il" viewBox="0 0 240 120" role="img" aria-label="깃발 줄 아래에서 세 사람이 모여 있는 행사 그림"><path class="f1" d="M0 96c40-14 80-14 120-8s80 4 120-8v40H0z"/><ellipse class="f2" cx="120" cy="108" rx="96" ry="8"/><path class="tk" d="M8 14c60 26 164 26 224 0"/>
   <path class="f3" d="M30 23l10 3-7 12z"/><path class="f5" d="M62 32l10 2-6 13z"/><path class="f4" d="M96 37l10 1-5 13z"/><path class="f6" d="M132 38l10-1-4 13z"/><path class="f3" d="M166 34l10-2-3 14z"/><path class="f5" d="M198 26l10-3-2 14z"/>
-  <path class="f3" d="M66 108c0-18 3-28 9-28s9 10 9 28z"/><circle class="f7" cx="75" cy="72" r="6.5"/><path class="f6" d="M104 108c0-24 4-36 11-36s11 12 11 36z"/><circle class="f7" cx="115" cy="62.500" r="7"/><path class="f4" d="M146 108c0-20 3-30 9.500-30s9.500 10 9.500 30z"/><circle class="f7" cx="155.500" cy="70" r="6.500"/><path class="l7" d="M84 92h20M126 90h20"/>
+  <path class="f3" d="M66 108c0-18 3-28 9-28s9 10 9 28z"/><circle class="f7" cx="75" cy="72" r="6.5"/><path class="f6" d="M104 108c0-24 4-36 11-36s11 12 11 36z"/><circle class="f7" cx="115" cy="62.500" r="7"/><path class="f4" d="M146 108c0-20 3-30 9.500-30s9.500 10 9.500 30z"/><circle class="f7" cx="155.500" cy="70" r="6.500"/><path class="arm6" d="M84 91q10 5 20 0M126 89q10 5 20 0"/>
   <path class="l" d="M196 84V62l14-4v20"/><ellipse class="f6" cx="192" cy="85" rx="4.500" ry="3.500"/><ellipse class="f6" cx="206" cy="80" rx="4.500" ry="3.500"/><path class="l" d="M34 78V60"/><ellipse class="f5" cx="30" cy="79" rx="4.500" ry="3.500"/><path class="f5" d="M34 60c5 0 8 3 8 8-3-3-5-3-8-3z"/></svg>`,
  plane:`<svg class="il" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><path class="f2" d="M3 15L29 4 20 28l-5-9z"/><path class="f4" d="M15 19L29 4 20 28z"/><path class="ls" d="M3 15L29 4 20 28l-5-9zM15 19L29 4"/><path class="dot" d="M4 24c3 2 6 2 8 0"/></svg>`,
  helper:`<svg class="il" viewBox="0 0 120 76" width="120" height="76" aria-hidden="true"><ellipse class="f2" cx="60" cy="70" rx="44" ry="4"/><rect class="f0" x="22" y="18" width="52" height="46" rx="6"/><rect class="l" x="22" y="18" width="52" height="46" rx="6"/><path class="f3" d="M22 24a6 6 0 0 1 6-6h40a6 6 0 0 1 6 6v6H22z"/><path class="tk" d="M31 40h30M31 48h22M31 56h26"/><path class="f6" d="M92 10l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/><path class="f4" d="M104 36l1.800 4.600 4.600 1.800-4.600 1.800-1.800 4.600-1.800-4.600-4.600-1.800 4.600-1.800z"/><path class="f0" d="M80 44h22a5 5 0 0 1 5 5v9a5 5 0 0 1-5 5H92l-6 5v-5h-6z"/><path class="ls" d="M80 44h22a5 5 0 0 1 5 5v9a5 5 0 0 1-5 5H92l-6 5v-5h-6z"/><path class="tk" d="M86 51h14M86 57h9"/></svg>`
 };
 const art=(k,cls='')=>ART[k].replace('<svg class="il','<svg class="'+(cls?cls+' ':'')+'il');
-const emptyArt=(k,text,btn='')=>`<div class="empty pic">${art(k)}<span>${text}</span>${btn}</div>`;
-const HERO_ART=ART.hero;
+const emptyArt=(k,text,btn='')=>`<div class="empty pic"><span class="tile">${icon(({mailbox:'search',chairs:'care',tea:'check'})[k]||'req')}</span><span>${text}</span>${btn}</div>`;
+Object.keys(ART).forEach(k=>ART[k]='');
+const HERO_ART='';
+const srow=cs=>`<div class="srow">${cs.map(([ic,l,v,u,sub])=>`<div class="sc7"><span class="tile">${icon(ic)}</span><span class="sc7-t"><span>${l}</span><b class="num">${v}<small>${u}</small></b></span>${sub?`<span class="pl">${sub}</span>`:''}</div>`).join('')}</div>`;
 const pri=e=>e.pri==='높음'?'<span class="tag neg">우선</span>':'';
 const pdot=e=>e.pri==='높음'?'<i class="pdot" title="우선"></i><span class="sr">우선 </span>':'';
 const ntags=cs=>cs.map(c=>`<span class="tag">${c}</span>`).join('');
@@ -2289,7 +2408,7 @@ function actRow(key,text,sub,verb,js,arrow,extra=''){const d=F(key);return `<div
 let DLG=null;
 function confirmBox({title,text,ok,danger,extra='',onOk}){
   S.layer=null;DLG={onOk};
-  $('#layer').innerHTML=`<div class="scrim" onclick="if(event.target===this)closeLayer()"><div class="dialog enter" role="dialog" aria-modal="true" aria-labelledby="dlgt"><div class="dlg-h">${itile(danger?'warn':'bell',danger?'neg':'')}<h3 id="dlgt">${title}</h3></div>${/알림이|전달돼요|알림 받/.test(text)?`<div class="notify">${ART.plane}<div><b>알림이 가요</b><p>${text}</p></div></div>`:`<p>${text}</p>`}${extra}<div class="err" id="dlgerr"></div><div class="btns"><button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn ${danger?'danger':'primary'}" id="dlgok" type="button" onclick="dlgOk()">${ok}</button></div></div></div>`;
+  $('#layer').innerHTML=`<div class="scrim" onclick="if(event.target===this)closeLayer()"><div class="dialog enter" role="dialog" aria-modal="true" aria-labelledby="dlgt"><div class="dlg-h">${itile(danger?'warn':'bell',danger?'neg':'')}<h3 id="dlgt">${title}</h3></div>${/알림이|전달돼요|알림 받/.test(text)?`<div class="notify"><span class="tile">${icon('bell')}</span><div><b>알림이 가요</b><p>${text}</p></div></div>`:`<p>${text}</p>`}${extra}<div class="err" id="dlgerr"></div><div class="btns"><button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn ${danger?'danger':'primary'}" id="dlgok" type="button" onclick="dlgOk()">${ok}</button></div></div></div>`;
   setTimeout(()=>{const b=$('#dlgok');b&&b.focus()},0);
 }
 function dlgOk(){if(DLG&&DLG.onOk()!==false)closeLayer()}
@@ -2484,7 +2603,7 @@ function vCare(p){
       <div><span class="ai-tag" style="margin:0" title="리포트 분석 기준으로 먼저 살펴볼 순서를 정했어요. 건강 상태를 판단한 것이 아니에요.">AI 우선순위 (건강 판단 아님)</span></div></div>
     <div style="border-top:1px solid var(--rule-2)">${lim('care',L,6).map(x=>{const w=(priOf(x.id)||[])[3];return `<button type="button" class="lrow ${e&&x.id===e.id?'on':''}" aria-pressed="${!!e&&x.id===e.id}" onclick="go('care','${x.id}')">${av(x.n)}<span class="sp"><span class="t">${pdot(x)}${x.n}</span> <span class="muted small meta">${mt(x.age+'세',x.dong,x.home)}</span><span class="d">${w?mt(...w.split(' · ')):mt('안부 '+x.call,'이번 달 '+x.month+'회')}</span></span><span class="rcol">${x.app?'<span class="tag">앱</span>':''}${pill(x.month,Math.max(x.prev,x.month,4),'이번 달 돌봄 '+x.month+'회, 지난달 '+x.prev+'회')}<span class="small tn">${x.month}회</span></span></button>`}).join('')||'<div class="empty line">조건에 맞는 분이 없어요.</div>'}</div>
     ${moreBtn('care',L.length,6)}</section>`;
-  return head('care',p)+`<div class="cols c-side keep">${list}<div class="stackv">${e?careDetail(e):`<section class="panel"><div class="panel-b">${emptyArt('mailbox','조건에 맞는 분이 없어요. 검색어나 거르기를 바꿔 보세요.',`<button class="link" type="button" onclick="S.f.eq='';S.f.ep='전체';render()">모두 보기</button>`)}</div></section>`}</div></div>`;
+  return head('care',p)+srow([['care','관리 대상',ELDERS.length,'명',''],['alerts','먼저 살펴볼 분',ELDERS.filter(x=>x.pri==='높음').length,'명','AI 우선순위'],['home','혼자 사는 분',lone().length,'명',''],['device','앱 쓰는 분',ELDERS.filter(x=>x.app).length,'명','나머지는 전화']])+`<div class="cols c-side keep">${list}<div class="stackv">${e?careDetail(e):`<section class="panel"><div class="panel-b">${emptyArt('mailbox','조건에 맞는 분이 없어요. 검색어나 거르기를 바꿔 보세요.',`<button class="link" type="button" onclick="S.f.eq='';S.f.ep='전체';render()">모두 보기</button>`)}</div></section>`}</div></div>`;
 }
 function careDetail(e){
   const sc=SCHED[e.id]||{},dgs=['최미경','김하늘'].slice(0,e.dg),called=F('called_'+e.id),w=(priOf(e.id)||[])[3],memos=memosOf(e.id);
@@ -2516,7 +2635,7 @@ function renderKeep(id){const el=$('#'+id);const pos=el.selectionStart;render();
 /* ---------- O-SCHED-01 돌봄 편성표 ---------- */
 const H0=8,H1=18,RH=54;
 function lanes(L){L=L.slice().sort((a,b)=>a.st-b.st);let cl=[],end=-1,le=[],out=[];
-  const flush=()=>{let n=le.length;if(n>=3&&!lanes.wide){cl.sort((a,b)=>(b.gap-a.gap)||a.st-b.st);const show=cl.slice(0,2),hid=cl.slice(2);show.forEach((x,i)=>{x.lane=i;x.n=2;x.more=1});out.push(...show,{moreN:hid.length,st:Math.min(...cl.map(x=>x.st)),en:Math.max(...cl.map(x=>x.st+x.du)),day:cl[0].day,names:hid.map(x=>x.e.n+' '+(x.c.c||x.c.gap)).join(', ')})}else{cl.forEach(x=>{x.n=n;x.more=0});out.push(...cl)}cl=[];le=[]};
+  const flush=()=>{let n=le.length;const K=S.ai.open?1:2;if(n>K&&!lanes.wide){cl.sort((a,b)=>(b.gap-a.gap)||a.st-b.st);const show=cl.slice(0,K),hid=cl.slice(K);show.forEach((x,i)=>{x.lane=i;x.n=K;x.more=1});out.push(...show,{moreN:hid.length,st:Math.min(...cl.map(x=>x.st)),en:Math.max(...cl.map(x=>x.st+x.du)),day:cl[0].day,names:hid.map(x=>x.e.n+' '+(x.c.c||x.c.gap)).join(', ')})}else{cl.forEach(x=>{x.n=n;x.more=0});out.push(...cl)}cl=[];le=[]};
   L.forEach(x=>{if(x.st>=end&&cl.length)flush();let li=le.findIndex(t=>t<=x.st);if(li<0){li=le.length;le.push(0)}le[li]=x.st+x.du;x.lane=li;cl.push(x);end=Math.max(end,x.st+x.du)});flush();return out}
 function evBlock(x,wide,sel){if(x.moreN)return `<button type="button" class="cmore" style="top:${(x.st-H0)*RH+1}px;height:${(x.en-x.st)*RH-3}px" title="이 시간대에 ${x.moreN}건 더: ${x.names}. 누르면 그날 하루 보기" aria-label="${x.moreN}건 더 보기" onclick="S.f.sview='일';S.f.sday=${x.day};S.f.gsel='';render()">+${x.moreN}</button>`;
   const w=100/(x.n||1),rs=x.more?' - 15px':'',pos=`left:calc(${x.lane*w}% + 3px${x.more&&x.lane?' - 15px':''});width:calc(${w}% - 6px${rs});top:${(x.st-H0)*RH+1}px;height:${x.du*RH-3}px`,tm=`${hm(x.st)}–${hm(x.st+x.du)}`,nar=x.n>1&&!wide;
@@ -2571,10 +2690,10 @@ function vReq(p){
   return head('req',p)+`<div class="toolbar">${tabs}<div class="filters">${tools}</div></div>`+(isApp?appPage(p):!p?reqBoard():reqList(p));
 }
 function reqBoard(){
-  const dn=!!S.open.kbDone;
+  const dn=true;
   return `<section class="panel lead"><div class="kbwrap"><div class="kb" style="--kbc:${dn?'repeat(5,minmax(0,1fr))':'repeat(4,minmax(0,1fr)) 76px'}">${COLS.map(([t,ss],ci)=>{const L=REQS.filter(r=>ss.includes(r.st));const key='kb'+ci;
     if(t==='완료'&&!dn)return `<button type="button" class="kcol kfold" aria-expanded="false" title="완료 ${L.length}건 펼치기" onclick="S.open.kbDone=true;render()"><b>완료</b><span class="tn">${L.length}</span><em>펼치기</em>${icon('go')}</button>`;
-    return `<div class="kcol"><div class="kc-h c${ci}"><b>${stg(ss[0])}${t}</b><span>${L.length}${t==='완료'?` <button type="button" class="link" style="margin-left:6px;font-size:calc(13px*var(--fz))" onclick="S.open.kbDone=false;render()">접기</button>`:''}</span></div>${lim(key,L,4).map(r=>{const e=EL(r.e);return `<button type="button" class="kcard" onclick="go('req','${r.id}')"><span class="kc-top"><b>${av(e.n,'s')}${pdot(e)}${e.n} 님</b>${DUE[r.id]&&[0,1,4].includes(r.st)?`<span class="duep ${DUE[r.id][1]===2?'hot':''}" title="${DUE[r.id][0]}">${icon('clock')}<i>${DUE[r.id][0].replace('오늘 ','')}</i></span>`:''}</span><span class="d tn">${r.d} ${r.tm.split('~')[0]}</span><span class="d ellip">${mt(r.cat,P[r.v].n)}</span><span class="w ${[0,1,4].includes(r.st)?'act':''}">${r.what}</span></button>`}).join('')||'<div class="kc-empty">없어요</div>'}${t==='진행 중'&&L.length<=1?art('walk'):''}${L.length>4?`<button type="button" class="more" onclick="S.more['${key}']=${!S.more[key]};render()">${S.more[key]?'접기':`더 보기 (${L.length-4}건)`}</button>`:''}</div>`}).join('')}</div></div>
+    return `<div class="kcol"><div class="kc-h c${ci}"><b>${stg(ss[0])}${t}</b><span>${L.length}</span></div>${lim(key,L,4).map(r=>{const e=EL(r.e);return `<button type="button" class="kcard" onclick="go('req','${r.id}')"><span class="kc-top"><b>${av(e.n,'s')}${pdot(e)}${e.n} 님</b>${DUE[r.id]&&[0,1,4].includes(r.st)?`<span class="duep ${DUE[r.id][1]===2?'hot':''}" title="${DUE[r.id][0]}">${icon('clock')}<i>${DUE[r.id][0].replace('오늘 ','')}</i></span>`:''}</span><span class="d tn">${r.d} ${r.tm.split('~')[0]}</span><span class="d ellip">${mt(r.cat,P[r.v].n)}</span><span class="w ${[0,1,4].includes(r.st)?'act':''}">${r.what}</span></button>`}).join('')||'<div class="kc-empty">없어요</div>'}${t==='진행 중'&&L.length<=1?art('walk'):''}${L.length>4?`<button type="button" class="more" onclick="S.more['${key}']=${!S.more[key]};render()">${S.more[key]?'접기':`더 보기 (${L.length-4}건)`}</button>`:''}</div>`}).join('')}</div></div>
     <div class="panel-f line-note">카드를 누르면 상세로 가요. 파란 글씨 ${todo().length}건이 담당자가 처리할 차례인 일이에요.</div></section>
   ${fold('rqStat','응답까지 걸린 시간',`이번 주 평균 ${RT[3]}시간 · 4주 전 ${RT[0]}시간`,`<div class="panel-b chartrow" style="padding-top:0"><div class="chartw">${lineChart1({labels:RTW,values:RT,unit:'시간',max:8,step:2,aria:'제안이나 일지가 도착한 뒤 담당자가 응답하기까지 걸린 시간의 주별 평균. 4주 전 6.2시간에서 이번 주 2.1시간으로 줄었어요.'})}${cap('기록 숫자 · 도착한 시각부터 응답한 시각까지 · 주별 평균 · 최근 4주')}</div>
     <dl class="props w" style="align-self:center"><dt>이번 주 평균</dt><dd class="tn"><b>${RT[3]}시간</b></dd><dt>4주 전 평균</dt><dd class="tn">${RT[0]}시간</dd><dt>응답 기한</dt><dd>제안 도착 뒤 24시간 안</dd><dt>지금 기다리는 일</dt><dd class="tn">${todo().length}건</dd></dl></div>`)}`;
@@ -2644,7 +2763,7 @@ function nrRun(){S.f.nrs='load';render();setTimeout(()=>{if(S.f.nrs==='load'){S.
 /* ---------- O-POST-04 도움 찾기 ---------- */
 function vFind(p){
   const E=EL(p)||EL('e1');
-  return head('find',p)+`<section class="panel"><div class="panel-b" style="padding-top:20px;display:grid;gap:14px">
+  return head('find',p)+srow([['search','봉사 가능 공고',OFFERS.length,'건',''],['care','활동 중 봉사자',VOLS.filter(v=>v[2]==='활동 중').length,'명',''],['clock','대기 중 봉사자',VOLS.filter(v=>v[2]==='대기').length,'명','']])+`<section class="panel"><div class="panel-b" style="padding-top:20px;display:grid;gap:14px">
       <div class="rowx" style="gap:16px"><label class="rowx"><span class="flabel">관리 대상</span><select class="sel" onchange="delete S.f['fcat_'+this.value];go('find',this.value)">${ORDER.map(EL).map(x=>`<option value="${x.id}" ${x.id===E.id?'selected':''}>${x.n}</option>`).join('')}</select></label>
         <span class="rowx"><span class="flabel">날짜</span>${seg('fd',['이번 주','다음 주','날짜 지정'],'이번 주')}</span><span class="rowx"><span class="flabel">지역</span>${seg('fdong',['같은 동','2km 이내','전체'],'같은 동')}</span></div>
       <div class="rowx"><span class="flabel">카테고리</span>${mch('fcat_'+E.id,CATS.map(c=>c.k),E.needs)}</div></div>
@@ -2655,7 +2774,7 @@ function vFind(p){
 /* ---------- O-PUB-01 · 02 공공 서비스 연계 ---------- */
 function vPub(p){
   const sr=PUBR.find(x=>x.id===p),t=sr?(sr.st<3?'진행 중':'완료'):F('pbq','진행 중'),L=PUBR.filter(r=>t==='진행 중'?r.st<3:r.st===3),r=sr||L[0];
-  return head('pub',p)+`<div class="cols c-side keep"><div class="stackv"><section class="panel"><div class="panel-b" style="padding-bottom:12px"><div class="seg" role="group">${['진행 중','완료'].map(g=>`<button type="button" class="${t===g?'on':''}" aria-pressed="${t===g}" onclick="S.f.pbq='${g}';go('pub')">${g} <span class="tn" style="opacity:.7;font-weight:500">${PUBR.filter(x=>g==='진행 중'?x.st<3:x.st===3).length}</span></button>`).join('')}</div></div>
+  return head('pub',p)+srow([['pub','새 요청',PUBR.filter(x=>x.st===0).length,'건','먼저 연락'],['phone','연락함',PUBR.filter(x=>x.st===1).length,'건',''],['req','신청 도움 중',PUBR.filter(x=>x.st===2).length,'건',''],['check','완료',PUBR.filter(x=>x.st===3).length,'건','']])+`<div class="cols c-side keep"><div class="stackv"><section class="panel"><div class="panel-b" style="padding-bottom:12px"><div class="seg" role="group">${['진행 중','완료'].map(g=>`<button type="button" class="${t===g?'on':''}" aria-pressed="${t===g}" onclick="S.f.pbq='${g}';go('pub')">${g} <span class="tn" style="opacity:.7;font-weight:500">${PUBR.filter(x=>g==='진행 중'?x.st<3:x.st===3).length}</span></button>`).join('')}</div></div>
       <div style="border-top:1px solid var(--rule-2)">${L.map(x=>{const e=EL(x.e);return `<button type="button" class="lrow ${r&&x.id===r.id?'on':''}" onclick="go('pub','${x.id}')"><span class="sp"><span class="t">${e.n} 님<span class="meta"> ${x.svc[0]}</span></span><span class="d ellip">"${x.q}"</span><span class="d">${x.d}</span></span><span class="tag ${x.st===0?'neg':''}">${PST[x.st]}</span></button>`}).join('')||'<div class="empty line">없어요.</div>'}</div>
       <div class="panel-f line-note">본인이 앱에서 "담당자에게 전달하기"를 눌렀을 때만 여기로 와요.</div></section>
     </div>
@@ -2686,7 +2805,7 @@ function pbadv(id,d,no){const r=PUBR.find(x=>x.id===id);r.st=d;if(d===3)r.res=no
 /* ---------- O-POST-05 기관 공고 ---------- */
 function vPosts(){
   const t=F('opk','전체'),L=OPOSTS.filter(p=>t==='전체'||p.kind===t).sort((a,b)=>(a.st==='마감')-(b.st==='마감'));
-  return head('posts')+`<div class="toolbar"><div class="tabs" role="tablist">${['전체','봉사자 모집','단체 봉사','해 드려요'].map(x=>`<button type="button" role="tab" aria-selected="${t===x}" class="${t===x?'on':''}" onclick="setF('opk','${x}')">${x}<span class="cnt">${x==='전체'?OPOSTS.length:OPOSTS.filter(p=>p.kind===x).length}</span></button>`).join('')}</div>
+  return head('posts')+srow([['posts','올린 공고',OPOSTS.length,'건',''],['sched','모집·신청 받는 중',OPOSTS.filter(o=>o.st!=='마감').length,'건',''],['care','신청',OPOSTS.reduce((a,o)=>a+o.app,0),'명','정원 '+OPOSTS.reduce((a,o)=>a+o.need,0)+'명'],['req','새 신청',newApps().length,'건','확인 전']])+`<div class="toolbar"><div class="tabs" role="tablist">${['전체','봉사자 모집','단체 봉사','해 드려요'].map(x=>`<button type="button" role="tab" aria-selected="${t===x}" class="${t===x?'on':''}" onclick="setF('opk','${x}')">${x}<span class="cnt">${x==='전체'?OPOSTS.length:OPOSTS.filter(p=>p.kind===x).length}</span></button>`).join('')}</div>
       <div class="filters"><button class="btn sm" type="button" onclick="S.f.ak='전체';go('req','apps')">신청 ${newApps().length}건 보기</button><button class="btn sm primary" type="button" onclick="openLayer('postKind')">${icon('plus')}공고 올리기</button></div></div>
   <section class="panel"><div class="tw"><table><thead><tr><th>종류</th><th>공고</th><th>일시</th><th style="width:170px">신청</th><th>상태</th><th></th></tr></thead><tbody>${lim('op',L,6).map(p=>`<tr class="${p.st==='마감'?'off':''}"><td>${kindTag(p.kind)}</td><td style="max-width:340px"><b style="font-weight:600">${p.t}</b><span class="muted small clamp2" title="${esc(p.txt)}">${p.cat}: ${p.txt}</span></td><td class="tn" style="white-space:nowrap">${p.d}<div class="muted small">${p.tm}</div></td><td><div class="rowx" style="flex-wrap:nowrap"><div class="pbar sp"><i style="width:${Math.min(100,p.app/p.need*100)}%${p.app>p.need?';background:var(--warn)':''}"></i></div><span class="tn small muted" style="white-space:nowrap">${p.app} / ${p.need}명</span></div></td><td style="white-space:nowrap"><span class="status ${p.st==='마감'?'':'ok'}">${p.st}</span>${p.app>p.need?'<div class="small warn-t">정원 넘음</div>':''}</td><td class="act"><div class="btns" style="justify-content:flex-end"><button class="btn sm" type="button" onclick="S.f.ak='${p.kind}';S.f.aq='처리할 일';go('req','apps')">신청 보기</button>${p.st==='마감'?'':`<details class="menu r"><summary class="iconbtn sm" aria-label="${p.t} 더 보기" title="더 보기">${icon('dots')}</summary><div class="menu-b"><button type="button" onclick="closePost('${p.id}')">마감하기</button></div></details>`}</div></td></tr>`).join('')}</tbody></table></div>${moreBtn('op',L.length,6)}
     <div class="panel-f line-note">특정 관리 대상 분을 위한 요청은 <a class="link" href="#newreq">요청 관리 › 대신 요청</a>에서 올려요. 여기는 기관 이름으로 동네 전체에 올리는 공고예요.</div></section>`;
@@ -2711,7 +2830,7 @@ function vDlg(p){
   if(t==='담당자 간 위임')return head('dlg',p)+top+`<section class="panel"><div class="panel-h tight"><h2>대리 담당자 · 이관</h2><span class="sub">휴가·출장 때 잠깐 맡기거나, 퇴사·업무 변경 때 넘겨요</span></div><div class="tw"><table><thead><tr><th>받는 담당자</th><th>기간</th><th>대상</th><th>사유</th><th>맡긴 일</th><th>상태</th><th></th></tr></thead><tbody>${DELEG.map((d,di)=>`<tr><td><b style="font-weight:600">${d.to}</b></td><td class="tn" style="white-space:nowrap">${d.from} ~ ${d.until}</td><td>${d.who}</td><td>${d.why}</td><td class="muted">${d.scope.replace(/ · /g,', ')}</td><td><span class="status ${d.st==='예정'?'wait':'ok'}">${d.st}</span></td><td class="act"><div class="btns" style="justify-content:flex-end"><button class="btn sm" type="button" onclick="openLayer('delegForm',${di})">고치기</button><button class="btn sm danger" type="button" onclick="delegStop(${di})">그만두기</button></div></td></tr>`).join('')||'<tr><td colspan="7" class="muted">맡긴 일이 없어요.</td></tr>'}</tbody></table></div></section>`;
   const L=[...ELDERS].sort((a,b)=>a.until.localeCompare(b.until)),e=EL(p)||L[0];
   if(L.indexOf(e)>=6)S.more.dl=true;
-  return head('dlg',p)+top+`<div class="cols c-list"><section class="panel" style="align-self:start"><div class="tw"><table><thead><tr><th>관리 대상</th><th>동의 방법</th><th class="num">맡긴 일</th><th>기간</th><th>상태</th></tr></thead><tbody>${lim('dl',L,6).map(x=>`<tr class="row ${x.id===e.id?'on':''}" tabindex="0" aria-selected="${x.id===e.id}" onclick="go('dlg','${x.id}')" onkeydown="if(event.key==='Enter')go('dlg','${x.id}')"><td style="white-space:nowrap"><b style="font-weight:600">${x.n}</b> <span class="muted small">${x.age}세</span>${x.app?' <span class="tag">앱</span>':''}</td><td style="white-space:nowrap;min-width:96px">${x.how}</td><td class="num">${x.scope.length}개</td><td class="tn" style="white-space:nowrap">~ ${dU(x.until)}<div class="small ${daysLeft(x.until)<=30?'':'muted'}" style="${daysLeft(x.until)<=30?'color:var(--warn-ink);font-weight:600':''}">${daysLeft(x.until)}일 남음</div></td><td>${dSt(x)}</td></tr>`).join('')}</tbody></table></div>${moreBtn('dl',L.length,6)}
+  return head('dlg',p)+srow([['dlg','위임 받은 분',ELDERS.filter(x=>!x.revoked).length,'명',''],['clock','만료 임박',ELDERS.filter(x=>!x.revoked&&x.until.startsWith('2026.12')).length,'명','30일 전 다시 동의'],['req','받은 요청',DLGREQ.length,'건','앱에서 옴'],['care','대리 담당자',DELEG.length,'건','']])+top+`<div class="cols c-list"><section class="panel" style="align-self:start"><div class="tw"><table><thead><tr><th>관리 대상</th><th>동의 방법</th><th class="num">맡긴 일</th><th>기간</th><th>상태</th></tr></thead><tbody>${lim('dl',L,6).map(x=>`<tr class="row ${x.id===e.id?'on':''}" tabindex="0" aria-selected="${x.id===e.id}" onclick="go('dlg','${x.id}')" onkeydown="if(event.key==='Enter')go('dlg','${x.id}')"><td style="white-space:nowrap"><b style="font-weight:600">${x.n}</b> <span class="muted small">${x.age}세</span>${x.app?' <span class="tag">앱</span>':''}</td><td style="white-space:nowrap;min-width:96px">${x.how}</td><td class="num">${x.scope.length}개</td><td class="tn" style="white-space:nowrap">~ ${dU(x.until)}<div class="small ${daysLeft(x.until)<=30?'':'muted'}" style="${daysLeft(x.until)<=30?'color:var(--warn-ink);font-weight:600':''}">${daysLeft(x.until)}일 남음</div></td><td>${dSt(x)}</td></tr>`).join('')}</tbody></table></div>${moreBtn('dl',L.length,6)}
       <div class="panel-f line-note">기간이 끝나기 30일 전에 본인(또는 보호자)에게 다시 동의를 받아요.</div></section>
     <div class="stackv"><section class="panel"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="align-items:center"><div class="who">${av(e.n)}<div><h3>${e.n}<span class="muted">${mt(e.age+'세',e.dong)}</span></h3><div class="note tn">${mt(`${e.how}`,`~ ${dU(e.until)}`)}</div></div></div>${dSt(e)}</div>
         ${ALLSCOPE.map(s=>`<div class="rowx" style="padding:8px 0;border-bottom:1px solid var(--rule-2);flex-wrap:nowrap"><span class="sp">${s}</span>${e.app?`<span class="muted small">${e.scope.includes(s)?'켜짐':'꺼짐'}</span><button type="button" class="tgl ${e.scope.includes(s)?'on':''}" role="switch" aria-checked="${e.scope.includes(s)}" aria-label="${s} (본인만 바꿀 수 있어요)" disabled></button>`:sw('sc_'+e.id+s,e.scope.includes(s),0,s)}</div>`).join('')}
@@ -2834,7 +2953,7 @@ function aiAnswer(q){
   if(/한파|특보/.test(q))return {wk:'3초 동안 정리했어요',b:'기상청 특보, 운영자 안내, 특보 기간 예정 돌봄',t:'한파주의보(11/12~11/14) 기간에 할 일을 정리했어요.',card:`<div class="ct">${icon('alerts')}<span class="sp">할 일 4개</span><button class="btn sm" type="button" onclick="go('alerts','wx1')">특보 알림</button></div>${[`혼자 사는 분 ${lone().length}명께 안부 전화`,'동행 일정은 실내 대기로 변경','장보기는 오후로 옮기기','난방비 지원 공공 서비스 안내'].map(x=>`<div class="cr"><span style="color:var(--ink-2)">· ${x}</span></div>`).join('')}`};
   return {wk:'2초 동안 살펴봤어요',t:'관리 대상, 편성표, 요청, 리포트 중에 무엇을 도와드릴까요? 아래 예시를 눌러도 돼요.',card:''};
 }
-function drawAib(){const A=S.ai,w=$('#aib');document.body.classList.toggle('ai-open',!!A.open);document.body.classList.toggle('ai-big',A.open&&A.size==='big');
+function drawAib(){const A=S.ai,w=$('#aib');if(location.hash.startsWith('#sched')&&document.body.classList.contains('ai-open')!==!!A.open){document.body.classList.toggle('ai-open',!!A.open);render()}document.body.classList.toggle('ai-open',!!A.open);document.body.classList.toggle('ai-big',A.open&&A.size==='big');
   if(!A.open){w.innerHTML='';return}
   const {v}=route();
   const body=A.msgs.length?A.msgs.map(m=>m.me?`<div class="aib-me">${esc(m.me)}</div><div class="aib-ctx">${m.ctx} 화면을 함께 봤어요</div>`:m.wait?`<div class="aib-wk"><span class="dots"><i></i><i></i><i></i></span> 정리하는 중…</div>`:`<div class="aib-wk">${m.wk}</div><div class="aib-ans"><h5>찾은 것</h5><div class="aib-ai">${m.t}</div>${m.card?`<h5>살펴볼 것</h5><div class="aib-card">${m.card}</div>`:''}<h5>근거</h5><div class="aib-ai small">${m.b||'지금 화면에 보이는 기록'}</div></div>`).join(''):`${art('helper','aiart')}<div class="aib-ai"><b style="color:var(--ink)">무엇을 도와드릴까요?</b><br>지금 보고 있는 화면을 같이 보고 초안과 안내를 드려요. 올리거나 보내는 일은 담당자님이 확인하고 눌러요.</div>`;
