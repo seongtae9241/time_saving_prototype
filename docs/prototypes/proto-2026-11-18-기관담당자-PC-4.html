@@ -1356,6 +1356,93 @@ body.ai-open .pagehead .desc{display:none}
 .wrap{padding-top:16px}
 .o1 .panel-h{padding-top:16px}
 .o1 .panel-h.tight{padding-bottom:10px}
+
+/* ===== 4판 다듬기 (3차 조사: 실제 서비스 화면) — 종류 타일, 가는 색 띠, 파스텔 칩, 단계 모양 ===== */
+:root{--bar-mute:color-mix(in srgb,var(--ink-4) 34%,var(--surface));--hov:0 2px 3px rgba(35,33,31,.05),0 18px 34px -22px color-mix(in srgb,var(--acc) 30%,rgba(20,20,20,.5))}
+/* 움직임 값 통일 */
+a.bt,.kcard{transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s var(--ease)}
+a.bt:hover,.kcard:hover{transform:translateY(-2px);box-shadow:var(--hov)}
+.btn.primary{transition:transform .18s var(--ease),box-shadow .18s var(--ease),background .18s}
+.btn.primary:hover{transform:translateY(-1px);box-shadow:0 10px 22px -12px color-mix(in srgb,var(--acc) 70%,transparent)}
+tr.row td,.lrow{transition:background .2s}
+.btn svg.i{transition:transform .3s var(--ease)}
+.actrow .btn:hover svg.i,.kfold:hover svg.i{transform:translateX(3px)}
+/* 인사 띠: 낮게, 특보가 떠 있으면 더 옅게 + 띠와 떨어뜨림 */
+.hero{min-height:64px;padding:8px 20px;gap:20px;border-radius:18px}
+.hero.calm{background:linear-gradient(120deg,color-mix(in srgb,var(--acc-soft) 45%,var(--surface)),var(--surface) 55%)}
+.banner+.hero{margin-top:0}
+.banner{border-radius:10px}
+.hero-p .pillbar{width:120px}
+.stages{display:flex;flex:none;border-radius:12px;overflow:hidden;background:var(--surface);box-shadow:0 0 0 1px var(--rule-2)}
+.sg{display:grid;justify-items:center;width:58px;padding:5px 0 6px;border-top:4px solid var(--ink-4);text-decoration:none;color:var(--ink-2);font-size:calc(13px*var(--fz));font-weight:600;line-height:1.25;transition:background .2s}
+.sg+.sg{border-left:1px solid var(--rule-2)}
+.sg b{font-size:calc(18px*var(--fz));font-weight:600;color:var(--ink)}
+.sg:hover{background:var(--hover)}
+.sg.s0,.sg.s1{border-top-color:var(--req)}.sg.s2,.sg.s3{border-top-color:var(--vol)}.sg.s4{border-top-color:var(--warn)}
+.sg.zero{border-top-color:var(--rule)}.sg.zero b,.sg.zero span{color:var(--ink-4);font-weight:400}
+/* 종류 타일 */
+.itile.ct{width:36px;height:36px;border-radius:8px}
+.itile.ct.gray{background:var(--sunken);color:var(--ink-2)}
+.itile.ct.cool{background:color-mix(in srgb,var(--req-weak) 55%,var(--sunken));color:var(--ink-2)}
+.itile.ct svg.i{width:19px;height:19px}
+table.tight1 tbody td{padding-top:6px;padding-bottom:6px}
+/* 최근 일지: 세로 점선 타임라인 */
+.tline{position:relative}
+.tline::before{content:"";position:absolute;left:25px;top:22px;bottom:22px;border-left:1.5px dotted var(--ink-4)}
+.tl-row{align-items:flex-start;gap:12px}
+.tl-dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--acc);background:var(--surface);flex:none;margin-top:6px;position:relative;z-index:1}
+/* 관리 대상 상세 머리: 표지 위에 이름·태그·이번 달 알약 */
+.covered>.panel-b{padding:0}
+.covered .detail-h{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px 16px;padding:16px 20px 18px;background:linear-gradient(90deg,var(--acc-soft),color-mix(in srgb,var(--acc-soft) 20%,var(--surface))) top/100% 84px no-repeat;border-radius:15px 15px 0 0}
+.covered .who{align-items:center;min-height:52px}
+.covered .av.l{width:48px;height:48px;font-size:calc(18px*var(--fz));margin:0;border:2px solid var(--surface);background:var(--surface);box-sizing:border-box}
+.covered .who>div{padding-top:0}
+.covered .mcard{margin:0;align-self:center;border-color:transparent;box-shadow:0 1px 2px rgba(35,33,31,.06)}
+.covered .btns{grid-column:1/-1;margin:0;justify-content:flex-end}
+.covered .tag{background:var(--surface)}
+.covered .tag.neg{background:var(--neg-weak)}
+.chips.sm{gap:4px}.chips.sm .chip{padding:0 7px}
+/* 편성표 */
+.cw-d.today b,.cm-c.today .cm-n{background:var(--acc);color:var(--on-acc);border-radius:999px;min-width:26px;text-align:center;padding:0 7px}
+.cm-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.cm-n{margin:0}
+.cm-k{font-size:calc(13px*var(--fz));font-weight:600;color:var(--ink-3)}
+.cm-e{background:var(--surface);border:1px solid var(--rule-2);border-left:3px solid var(--vol);border-radius:999px;padding:1px 8px}
+.cm-e.gap{background:var(--neg-weak);border-color:transparent;border-left:3px solid var(--neg)}
+.cm-c.today{background:color-mix(in srgb,var(--acc-soft) 40%,var(--surface))}
+/* 요청 보드 */
+.kc-h{padding:6px 10px;margin:0 0 10px;border-radius:999px;background:var(--surface)}
+.kc-h.c0{background:var(--req-weak)}.kc-h.c1,.kc-h.c2{background:var(--vol-weak)}.kc-h.c3{background:var(--warn-weak)}
+.kc-h span{background:none;padding:0;color:var(--ink-2)}
+.stg{width:15px;height:15px;flex:none;fill:none;stroke:var(--ink-3);stroke-width:1.6;vertical-align:-2px;margin-right:6px}
+.stg .f{fill:var(--ink-3);stroke:none}.stg .k{stroke:var(--surface);fill:none}
+.stg.s0,.stg.s1{stroke:var(--req)}.stg.s0 .f,.stg.s1 .f{fill:var(--req)}
+.stg.s2,.stg.s3{stroke:var(--vol)}.stg.s2 .f,.stg.s3 .f{fill:var(--vol)}
+.stg.s4{stroke:var(--warn)}.stg.s4 .f{fill:var(--warn)}
+.kc-top b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.kcard{gap:3px;padding:11px 12px}
+/* 알림 */
+.pop .lrow.unread{background:none}
+.nmore{display:block;border:none;background:none;margin:-4px 0 4px 62px;padding:2px 0;font-size:calc(13px*var(--fz));font-weight:600;color:var(--req)}
+.nmore:hover{text-decoration:underline}
+/* AI 도우미 옆 칸 380 */
+body.ai-open .app{grid-template-columns:240px minmax(0,1fr) 380px}
+.aib{width:380px}
+/* 빈 상태 두 가지 */
+.empty.line::before{width:44px;height:44px;border-radius:12px;background-size:32px}
+.empty.start{display:flex;align-items:center;gap:12px;padding:0;text-align:left;color:var(--ink-2);flex-wrap:wrap}
+.empty.start::before{content:"";width:44px;height:44px;flex:none;border-radius:12px;background:var(--acc-soft);-webkit-mask:none}
+.empty.start span{flex:1;min-width:160px}
+.empty.start{position:relative}
+.empty.start::after{content:"";position:absolute;left:10px;top:10px;width:24px;height:24px;background:var(--acc-ink);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='9' r='3.2'/%3E%3Cpath d='M3 19c.8-3.2 3-5 6-5s5.2 1.8 6 5M17 6v6M14 9h6'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='9' r='3.2'/%3E%3Cpath d='M3 19c.8-3.2 3-5 6-5s5.2 1.8 6 5M17 6v6M14 9h6'/%3E%3C/svg%3E") center/contain no-repeat}
+@media (max-width:1300px){:root[data-fz="lg"] td[style*="max-width:340px"] .ellip{display:none}:root[data-fz="lg"] td[style*="max-width:340px"]{max-width:150px!important;white-space:normal}:root[data-fz="lg"] th[style*="width:230px"]{width:120px!important}}
+@media (max-width:1180px){.stages{order:3}.covered .detail-h{grid-template-columns:minmax(0,1fr)}.covered .btns{justify-content:flex-start}}
+body.ai-open .stages{display:none}
+@media (prefers-reduced-motion:reduce){a.bt:hover,.kcard:hover,.btn.primary:hover,.btn:hover svg.i{transform:none!important}}
+.tline::before{border-left:2px dotted var(--ink-4)}
+@media (max-width:1300px){.covered .detail-h{grid-template-columns:minmax(0,1fr);background-size:100% 100%}.covered .mcard{justify-self:start}.covered .btns{justify-content:flex-start}.kc-ft{flex-wrap:wrap}.kcard .d.ellip{white-space:normal}.kcard .d .mt{flex-wrap:wrap}}
+:root[data-fz="lg"] .covered .detail-h{grid-template-columns:minmax(0,1fr);background-size:100% 100%}
+:root[data-fz="lg"] .covered .mcard{justify-self:start}
 </style>
 </head>
 <body>
@@ -1567,6 +1654,11 @@ const IC={
  big:'<path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/>',
  up:'<path d="M12 19V5M6 11l6-6 6 6"/>',
  warn:'<path d="M12 3l9.5 16.5H2.5z"/><path d="M12 10v4M12 17.2v.3"/>',
+ walk:'<circle cx="12" cy="5" r="2"/><path d="M12 8v6l3 6M12 14l-3 6M8 11l4-3 4 3"/>',
+ cart:'<path d="M4 5h2l2.5 10h9L20 8H7"/><circle cx="10" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>',
+ device:'<rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 17.5h2"/>',
+ talk:'<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
+ box:'<path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/>',
  dots:'<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
  tick:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
  edit:'<path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/>'
@@ -1579,6 +1671,10 @@ const whyT=w=>w?`<span class="tags why">${w.split(' · ').map(x=>`<span class="t
 const itile=(k,tone='')=>`<span class="itile ${tone}" aria-hidden="true">${icon(k)}</span>`;
 const pill=(v,max,label)=>`<span class="pillbar" role="img" aria-label="${label}" title="${label}"><i style="width:${Math.max(8,Math.min(100,v/max*100))}%"></i></span>`;
 const dU=u=>u.startsWith('2026.')?u.slice(5).replace('.','/'):u;
+const CATI={'동행':['walk','acc'],'장보기·심부름':['cart','gray'],'디지털 도움':['device','cool'],'말동무·정서':['talk','cool'],'생활 정리':['box','gray'],'가벼운 집안일':['home','gray']};
+const ctile=c=>{const [k,t]=CATI[c]||['req','gray'];return `<span class="itile ct ${t}" title="${c}" aria-hidden="true">${icon(k)}</span>`};
+/* 단계마다 모양이 다른 동그라미 (색에만 기대지 않게) */
+const stg=st=>`<svg class="stg s${st}" viewBox="0 0 16 16" aria-hidden="true">${['<circle cx="8" cy="8" r="6" stroke-dasharray="2.4 2.4"/>','<circle cx="8" cy="8" r="6"/>','<circle cx="8" cy="8" r="6"/><path d="M8 2a6 6 0 0 1 0 12z" class="f"/>','<circle cx="8" cy="8" r="6"/><path d="M8 2a6 6 0 1 1-6 6h6z" class="f"/>','<circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.6" class="f"/>','<circle cx="8" cy="8" r="6" class="f"/><path d="M5.2 8.2l2 2 3.6-4" class="k"/>'][st]}</svg>`;
 const pri=e=>e.pri==='높음'?'<span class="tag neg">우선</span>':'';
 const pdot=e=>e.pri==='높음'?'<i class="pdot" title="우선"></i><span class="sr">우선 </span>':'';
 const ntags=cs=>cs.map(c=>`<span class="tag">${c}</span>`).join('');
@@ -1693,7 +1789,7 @@ function colChart({labels,series,unit='건',w=360,h=150,max,step,aria,every=1,la
   labels.forEach((l,i)=>{const cx=L+band*(i+.5),x=cx-bw/2;let base=0,segs='';const last=i===n-1;
     series.forEach((s,si)=>{const v=s.values[i];if(!v)return;const top=series.slice(si+1).every(z=>!z.values[i]),y1=y(base),y0=y(base+v)+(si?0:0),hh=Math.max(1,y1-y0-(si?2:0)),yy=y1-hh-(si?2:0),r=top?Math.min(4,hh):0;
       const d=`M${x},${yy+hh} V${yy+r} Q${x},${yy} ${x+r},${yy} H${x+bw-r} Q${x+bw},${yy} ${x+bw},${yy+r} V${yy+hh} Z`;
-      segs+=`<path class="bar" d="${d}" style="fill:${s.color};opacity:${last||series.length>1?1:.55}"/>`+(series.length===1?`<path class="bar" d="${d}" fill="url(#gsh)"/>`:'')+(s.hatch?`<path d="${d}" fill="url(#hx)"/>`:'');base+=v});
+      segs+=`<path class="bar" d="${d}" style="fill:${last||series.length>1?s.color:'var(--bar-mute)'}"/>`+(series.length===1?`<path class="bar" d="${d}" fill="url(#gsh)"/>`:'')+(s.hatch?`<path d="${d}" fill="url(#hx)"/>`:'');base+=v});
     const tot=series.reduce((a,z)=>a+z.values[i],0);
     g+=segs+(last?`<text x="${cx}" y="${y(tot)-6}" text-anchor="middle" style="fill:var(--ink);font-size:calc(13px*var(--fz));font-weight:600">${series.length>1?series.map(z=>z.values[i]).join(' · '):tot+unit}</text>`:'');
     if(i%every===0||last)g+=`<text x="${cx}" y="${h-6}" text-anchor="middle" style="fill:var(--ink-3);font-size:calc(13px*var(--fz))">${l}</text>`;
@@ -1731,8 +1827,8 @@ function vHome(){
   const pastBtn=day===4&&pastN?`<button type="button" class="lrow pastfold" aria-expanded="${!hideP}" onclick="S.open.hPast=${hideP};render()"><span class="sp">지난 일정 ${pastN}건</span><span class="small">${hideP?'펼치기':'접기'}</span>${icon('chev')}</button>`:'';
   const rows=pastBtn+lim('hS',E.filter(x=>!(hideP&&past(x)&&!x.gap)),6).map(x=>{let pre='';if(day===4&&!nd&&!past(x)){nd=true;pre=nowline}
     return pre+`<button type="button" class="lrow ${past(x)&&!x.gap?'past':''}" onclick="${x.gap?`S.f.gsel='${x.e.id}|${x.k}';`:''}go('sched')"><span class="tn" style="width:46px;font-weight:600;color:${x.gap?'var(--neg)':'var(--ink-2)'}">${hm(x.st)}</span><span class="sp"><span class="t">${x.e.n} 님</span> <span class="muted">${x.gap?x.c.gap:x.c.c||x.c.gap}</span></span>${x.gap?'<span class="tag neg">빈칸, 대안 보기</span>':`<span class="muted small">${x.c.v||x.c.done}${x.c.dg?' (단골)':''}</span>`}</button>`}).join('')+(day===4&&!nd&&E.length?nowline:'');
-  const doneT=S.doneT||0,first=T[0],hero=T.length?`<section class="hero" aria-label="오늘 요약"><div class="hero-l"><p class="hero-t">박지현 님, 오늘 <b class="tn">${T.length}건</b> 남았어요. ${first?`먼저 <b>${EL(first.e).n} 님 ${first.cat}</b> (${(DUE[first.id]||['오늘'])[0].replace('오늘 ','')})`:''}</p><div class="hero-p"><span class="pillbar" role="img" aria-label="오늘 ${doneT+T.length}건 중 ${doneT}건 처리"><i style="width:${Math.max(3,doneT/(doneT+T.length)*100)}%"></i></span><span class="small tn">오늘 ${doneT+T.length}건 중 ${doneT}건 처리</span></div></div>
-    <div class="hero-n">${[[G.length,'빈칸','sched','neg'],[logs.length,'새 일지','req/list',''],[done,'이번 주 돌봄','sched','']].map(([n,l,to,c])=>`<a href="#${to}" class="${c}"><b class="tn">${n}</b><span>${l}</span></a>`).join('')}</div>
+  const doneT=S.doneT||0,first=T[0],hero=T.length?`<section class="hero ${F('alert',true)?'calm':''}" aria-label="오늘 요약"><div class="hero-l"><p class="hero-t">박지현 님, 오늘 <b class="tn">${T.length}건</b> 남았어요. ${first?`먼저 <b>${EL(first.e).n} 님 ${first.cat}</b> (${(DUE[first.id]||['오늘'])[0].replace('오늘 ','')})`:''}</p><div class="hero-p"><span class="pillbar" role="img" aria-label="오늘 ${doneT+T.length}건 중 ${doneT}건 처리">${doneT?`<i style="width:${doneT/(doneT+T.length)*100}%"></i>`:''}</span><span class="small tn">오늘 ${doneT+T.length}건 중 ${doneT}건 처리</span></div></div>
+    <div class="stages" role="group" aria-label="요청 단계별 건수">${['요청','수락','확정','진행','일지'].map((l,i)=>{const n=REQS.filter(r=>r.st===i).length;return `<a href="#req" class="sg s${i} ${n?'':'zero'}" title="${STN[i]} ${n}건, 요청 관리에서 보기"><b class="tn">${n}</b><span>${l}</span></a>`}).join('')}</div>
     <button class="btn primary" type="button" onclick="go('req','${first.id}')">가장 급한 것부터</button></section>`:'';
   return head('home')+`
   ${F('alert',true)?`<div class="banner nb" role="status">${icon('warn')}<span class="sp"><strong>${a.k}</strong> <span class="tn">11/12~11/14 ${a.area}</span><span class="b-msg">운영자 안내: 혼자 사는 분 <b class="tn">${lone().length}</b>명께 안부 전화를 먼저, 동행은 실내 대기로</span></span><span class="rowx nw"><a class="link" style="margin:0" href="#alerts/wx1">대응 보기</a><button class="btn sm ghost" type="button" onclick="setF('alert',false)">닫기</button></span></div>`:''}
@@ -1741,7 +1837,7 @@ function vHome(){
     <div class="stackv">
     <section class="panel lead o1"><div class="panel-h tight"><h2>오늘 처리할 일 <span class="tn cnt-n">${T.length}</span></h2><div class="hlinks"><span class="flabel">새로 온 것</span>${links.map(([to,l,c])=>`<a class="link" href="#${to}">${l} <b class="tn">${c}</b></a>`).join('')}</div></div>
       <div class="tw"><table class="tight1"><thead><tr><th>관리 대상</th><th>할 일</th><th>일시</th><th>응답 기한</th><th></th></tr></thead><tbody>
-      ${T.length?lim('hT',T,5).map(r=>{const du=DUE[r.id]||['—',0];return `<tr class="row ${du[1]===2?'urgent':''}" tabindex="0" onclick="go('req','${r.id}')" onkeydown="if(event.key==='Enter')go('req','${r.id}')"><td><span class="who" style="gap:9px">${av(EL(r.e).n,'s')}<b style="font-weight:600">${EL(r.e).n}</b></span></td><td>${mt(r.cat,short(r))}<div class="muted small">봉사자 ${P[r.v].n}</div></td><td class="tn">${r.d} ${r.tm.split('~')[0]}</td><td class="tn"><span class="duep ${du[1]===2?'hot':du[1]?'today':''}">${du[1]===2?icon('clock'):''}${du[0]}</span></td><td class="act">${reqActBtn(r)}</td></tr>`}).join(''):`<tr><td colspan="5" class="muted">오늘 할 일을 다 처리했어요.</td></tr>`}</tbody></table></div>
+      ${T.length?lim('hT',T,5).map(r=>{const du=DUE[r.id]||['—',0];return `<tr class="row ${du[1]===2?'urgent':''}" tabindex="0" onclick="go('req','${r.id}')" onkeydown="if(event.key==='Enter')go('req','${r.id}')"><td><span class="who" style="gap:10px">${ctile(r.cat)}<b style="font-weight:600">${EL(r.e).n}</b></span></td><td>${mt(r.cat,short(r))}<div class="muted small">봉사자 ${P[r.v].n}</div></td><td class="tn">${r.d} ${r.tm.split('~')[0]}</td><td class="tn"><span class="duep ${du[1]===2?'hot':du[1]?'today':''}">${du[1]===2?icon('clock'):''}${du[0]}</span></td><td class="act">${reqActBtn(r)}</td></tr>`}).join(''):`<tr><td colspan="5" class="muted">오늘 할 일을 다 처리했어요.</td></tr>`}</tbody></table></div>
       ${T.length>5?`<button type="button" class="more" onclick="go('req','list')">요청 관리에서 전체 보기 (${T.length}건)</button>`:''}</section>
     <section class="panel o3"><div class="panel-h tight"><h2>${day===4?'오늘 일정':DAYS[day].split(' ')[1]+' ('+DAYS[day].split(' ')[0]+') 일정'}</h2><div class="rowx nw"><div class="seg" role="group" aria-label="요일">${DAYS.map((d,i)=>{const [w,dt]=d.split(' ');return `<button type="button" class="${i===day?'on':''}" aria-pressed="${i===day}" onclick="setF('hd',${i})">${w} ${+dt.split('/')[1]}${i===4?' (오늘)':''}</button>`}).join('')}</div><a class="link" href="#sched">편성표</a></div></div>
       <div>${E.length?rows:'<div class="empty line">이 날은 일정이 없어요.</div>'}</div>
@@ -1752,7 +1848,7 @@ function vHome(){
         <div style="padding:8px 0 0">${PRI.slice(0,3).map(([id,,,w],i)=>{const e=EL(id);return `<button type="button" class="lrow" onclick="go('report','${id}')"><span class="rank tile ${i===0?'first':''}">${i+1}</span><span class="sp"><span class="t">${e.n}</span> <span class="muted small">${mt(e.age+'세',e.dong)}</span><span class="d">${mt(...w.split(' · '))}</span></span></button>`}).join('')}</div>
         <div class="panel-f line-note">리포트 분석 기준, 건강 판단 아님 <a class="link" href="#report" style="margin-left:auto">리포트</a></div></section>
       <section class="panel o4"><div class="panel-h"><h2>최근 도착한 일지</h2><a class="link" href="#req/list">전체 ${logs.length}건</a></div>
-      <div style="padding-top:8px">${logs.slice(0,3).map(r=>`<button type="button" class="lrow" onclick="go('req','${r.id}')"><span class="sp"><span class="t">${EL(r.e).n}</span> <span class="muted small">${mt(`${r.d.split(' ')[0]} ${r.cat}`,`${P[r.v].n}`)}</span><span class="d ellip">"${r.log}"</span></span></button>`).join('')||'<div class="empty line">도착한 일지가 없어요.</div>'}</div></section>
+      <div class="tline" style="padding-top:8px">${logs.slice(0,3).map(r=>`<button type="button" class="lrow tl-row" onclick="go('req','${r.id}')"><i class="tl-dot" aria-hidden="true"></i><span class="sp"><span class="t">${EL(r.e).n}</span>${r.st===4?' <span class="tag warn">확인 전</span>':''} <span class="muted small">${mt(`${r.d.split(' ')[0]} ${r.cat}`,`${P[r.v].n}`)}</span><span class="d ellip">"${r.log}"</span></span></button>`).join('')||'<div class="empty line">도착한 일지가 없어요.</div>'}</div></section>
     </div>
   </div>
   ${fold('hStat','이번 주 현황',`관리 대상 ${ELDERS.length}명 · 돌봄 ${done}건 · 빈칸 ${G.length}개`,`<div class="panel-b" style="padding-top:0"><div class="bento"><a class="bt fill" href="#sched">${itile('sched')}<span class="bt-l">이번 주 돌봄</span><b class="tn">${done}<small>건 확정</small></b><span class="pillbar on" role="img" aria-label="편성 ${done+G.length}칸 중 ${done}건 확정"><i style="width:${done/(done+G.length)*100}%"></i></span><span class="bt-s">편성 ${done+G.length}칸 중 ${done}건 확정</span></a>
@@ -1809,7 +1905,7 @@ function vCare(p){
 function careDetail(e){
   const sc=SCHED[e.id]||{},dgs=['최미경','김하늘'].slice(0,e.dg),called=F('called_'+e.id),w=(priOf(e.id)||[])[3],memos=memosOf(e.id);
   const week=DAYS.map((d,i)=>[d,[0,1].map(a=>[a,sc[i*2+a]]).filter(x=>x[1])]).filter(x=>x[1].length);
-  return `<section class="panel lead covered"><div class="cover" aria-hidden="true"></div><div class="panel-b" style="padding-top:0"><div class="detail-h" style="margin:0;align-items:center;flex-wrap:wrap"><div class="who">${av(e.n,'l')}<div><h3>${e.n}<span class="muted">${mt(e.age+'세',e.dong,e.home)}</span></h3><div class="tags" style="margin-top:5px">${pri(e)}${ntags(e.needs)}</div></div></div>
+  return `<section class="panel lead covered"><div class="panel-b" style="padding-top:0"><div class="detail-h" style="margin:0;align-items:center;flex-wrap:wrap"><div class="who">${av(e.n,'l')}<div><h3>${e.n}<span class="muted">${mt(e.age+'세',e.dong,e.home)}</span></h3><div class="tags" style="margin-top:5px">${pri(e)}${ntags(e.needs)}</div></div></div>
       <div class="mcard"><span class="small">이번 달 돌봄</span><b class="tn">${e.month}회</b>${pill(e.month,Math.max(e.prev,e.month,4),'이번 달 '+e.month+'회, 지난달 '+e.prev+'회')}<span class="small tn">지난달 ${e.prev}회</span></div>
       <div class="btns"><button class="btn sm" type="button" onclick="openLayer('careForm','${e.id}')">정보 수정</button><button class="btn sm" type="button" onclick="go('find','${e.id}')">도움 찾기</button><button class="btn sm primary" type="button" onclick="go('newreq','${e.id}')">대신 요청 올리기</button></div></div></div>
     ${e.pri==='높음'&&w?`<div class="panel-f rowx"><span class="ai-tag" style="margin:0">먼저 살펴볼 이유</span>${whyT(w)}<a class="link" href="#report/${e.id}" style="margin-left:auto">리포트에서 보기</a></div>`:''}</section>
@@ -1826,8 +1922,8 @@ function careDetail(e){
     <div><h3 class="sec-t">담당자 메모 <span class="sub">봉사자에게 안 보여요</span></h3><table class="vars" style="width:100%"><tbody>${memos.map(m=>`<tr><td class="tn" style="width:52px;color:var(--ink-3)">${m[0]}</td><td style="text-align:left">${esc(m[1])}</td></tr>`).join('')}</tbody></table>
       <div class="rowx" style="margin-top:10px;flex-wrap:nowrap"><input type="text" class="sm sp" id="memoIn" placeholder="메모 남기기" aria-label="메모 남기기" onkeydown="if(event.key==='Enter')addMemo('${e.id}')"><button class="btn sm" type="button" onclick="addMemo('${e.id}')">추가</button></div></div></div></section>
   <section class="panel"><div class="split2">
-    <div><h3 class="sec-t">단골 봉사자</h3>${dgs.length?`<div class="rowx" style="gap:16px">${dgs.map(n=>`<span class="who" style="gap:8px">${av(n,'s')}<b style="font-weight:600">${n}</b><span class="tag vol">단골</span></span>`).join('')}</div>`:'<p class="muted" style="margin:0">아직 없어요. 같은 봉사자와 3번 함께하면 자동으로 단골이 돼요.</p>'}</div>
-    <div><h3 class="sec-t">권한 위임 <a class="link" href="#dlg/${e.id}">위임 관리</a></h3><dl class="props"><dt>동의 방법</dt><dd>${e.how}</dd><dt>기간</dt><dd class="tn">~ ${e.until}</dd><dt>맡긴 일</dt><dd><span class="tags">${e.scope.map(s=>`<span class="tag">${s}</span>`).join('')}</span></dd></dl>
+    <div><h3 class="sec-t">단골 봉사자</h3>${dgs.length?`<div class="rowx" style="gap:16px">${dgs.map(n=>`<span class="who" style="gap:8px">${av(n,'s')}<b style="font-weight:600">${n}</b><span class="tag vol">단골</span></span>`).join('')}</div>`:`<div class="empty start"><span>아직 없어요. 같은 봉사자와 3번 함께하면 자동으로 단골이 돼요.</span><button class="btn sm" type="button" onclick="go('find','${e.id}')">도움 찾기</button></div>`}</div>
+    <div><h3 class="sec-t">권한 위임 <a class="link" href="#dlg/${e.id}">위임 관리</a></h3><dl class="props"><dt>동의 방법</dt><dd>${e.how}</dd><dt>기간</dt><dd class="tn">~ ${dU(e.until)}</dd><dt>맡긴 일</dt><dd><span class="tags">${e.scope.map(s=>`<span class="tag">${s}</span>`).join('')}</span></dd></dl>
       <p class="hint">${e.app?'앱을 쓰시는 분이라 맡긴 일은 본인이 앱에서 켜고 꺼요.':'앱을 안 쓰셔서 서면·보호자 동의로 위임했어요.'}</p></div></div></section>`;
 }
 function addMemo(id){const el=$('#memoIn');const v=el.value.trim();if(!v){el.focus();return}memosOf(id).unshift(['11/13',v]);render();toast('메모를 남겼어요')}
@@ -1850,7 +1946,7 @@ function monthView(L){const E=evs(L),first=new Date(2026,10,1).getDay(),cells=[]
   const extra={16:[['이순례','말동무','최미경']],17:[['이순례','동행','김하늘']],18:[['정말순','장보기','이도윤']],19:[['한영자','디지털','김하늘']],20:[['오덕수','장보기','이도윤'],['정말순','생활 정리','최미경']],23:[['오덕수','동행',null]],24:[['한영자','디지털','김하늘']],25:[['이순례','말동무','최미경']],27:[['정말순','장보기','이도윤']],3:[['이순례','말동무','최미경']],4:[['정말순','생활 정리','최미경']],5:[['오덕수','장보기','이도윤']],6:[['한영자','디지털','김하늘']],2:[['오덕수','동행','김하늘']]};
   const byDay=d=>d>=9&&d<=13?E.filter(x=>x.day===d-9).sort((a,b)=>b.gap-a.gap||a.st-b.st).map(x=>[x.e.n,x.gap?CKS(x.c.gap):x.c.c||CKS(x.c.gap),x.gap?null:x.c.v||x.c.done,x.gap]):(extra[d]||[]).filter(r=>L.some(e=>e.n===r[0])).map(r=>[r[0],r[1],r[2],!r[2]]);
   return `<div class="cm"><div class="cm-hd">${['월','화','수','목','금','토','일'].map(w=>`<div>${w}</div>`).join('')}</div><div class="cm-g">${cells.map(d=>{if(!d)return '<div class="cm-c we"></div>';const L2=byDay(d),wk=(first+d-1)%7,we=wk===0||wk===6,tap=d>=9&&d<=13;
-    return `<div class="cm-c ${d===13?'today':''} ${we?'we':''} ${tap?'tap':''}" ${tap?`tabindex="0" title="${d}일 하루 보기" onclick="S.f.sview='일';S.f.sday=${d-9};render()" onkeydown="if(event.key==='Enter')this.click()"`:''}><div class="cm-n ${L2.length?'has':''}">${d}</div>${L2.slice(0,3).map(r=>`<div class="cm-e ${r[3]?'gap':''}" title="${r[0]} 님 ${r[1]}${r[2]?' 봉사자 '+r[2]:' 빈칸'}">${r[3]?'빈칸 ':''}${r[0]} ${r[1]}</div>`).join('')}${L2.length>3?`<div class="cm-more">+${L2.length-3}</div>`:''}</div>`}).join('')}</div></div>`}
+    return `<div class="cm-c ${d===13?'today':''} ${we?'we':''} ${tap?'tap':''}" ${tap?`tabindex="0" title="${d}일 하루 보기" onclick="S.f.sview='일';S.f.sday=${d-9};render()" onkeydown="if(event.key==='Enter')this.click()"`:''}><div class="cm-top"><span class="cm-n">${d}</span>${L2.length?`<span class="cm-k tn">${L2.length}건</span>`:''}</div>${L2.slice(0,3).map(r=>`<div class="cm-e ${r[3]?'gap':''}" title="${r[0]} 님 ${r[1]}${r[2]?' 봉사자 '+r[2]:' 빈칸'}">${r[3]?'빈칸 ':''}${r[0]} ${r[1]}</div>`).join('')}${L2.length>3?`<div class="cm-more">+${L2.length-3}</div>`:''}</div>`}).join('')}</div></div>`}
 function gridView(L,sel){return `<div class="tl" role="table" aria-label="사람별 편성"><div class="tl-h" role="row"><span></span>${DAYS.map((d,i)=>`<span class="${i===4?'today':''}">${d.split(' ')[0]} ${+d.split('/')[1]}${i===4?' (오늘)':''}</span>`).join('')}</div>
   ${L.map(e=>`<div class="tl-r" role="row"><span class="tl-n"><b>${e.n}</b><small>${e.dong}</small></span>${DAYS.map((d,i)=>`<span class="tl-c ${i===4?'today':''}">${[0,1].map(a=>{const k=i*2+a,c=(SCHED[e.id]||{})[k];if(!c)return '<i class="tl-e"></i>';const ap=a?'오후':'오전';return c.gap&&!c.done?`<button type="button" class="tl-b gap ${sel===e.id+'|'+k?'sel':''}" title="${ap} 빈칸 ${c.gap}" onclick="pickGap('${e.id}|${k}')"><b>빈칸</b>${c.gap.split(' ')[0]}</button>`:`<span class="tl-b ${c.done?'reqd':''}" title="${ap} ${c.c||c.gap} ${c.v||c.done}"><b>${c.c||c.gap.split(' ')[0]}</b>${c.v||c.done}</span>`}).join('')}</span>`).join('')}</div>`).join('')}</div>`}
 function pickGap(s){S.f.gsel=s;render();const el=$('#gapd');if(el){const r=el.getBoundingClientRect();if(r.bottom>innerHeight||r.top<90)el.scrollIntoView({block:r.height>innerHeight-110?'start':'end'})}}
@@ -1894,7 +1990,7 @@ function reqBoard(){
   const dn=!!S.open.kbDone;
   return `<section class="panel lead"><div class="kbwrap"><div class="kb" style="--kbc:${dn?'repeat(5,minmax(0,1fr))':'repeat(4,minmax(0,1fr)) 76px'}">${COLS.map(([t,ss],ci)=>{const L=REQS.filter(r=>ss.includes(r.st));const key='kb'+ci;
     if(t==='완료'&&!dn)return `<button type="button" class="kcol kfold" aria-expanded="false" title="완료 ${L.length}건 펼치기" onclick="S.open.kbDone=true;render()"><b>완료</b><span class="tn">${L.length}</span>${icon('go')}</button>`;
-    return `<div class="kcol"><div class="kc-h"><b><i class="cdot c${ci}"></i>${t}</b><span>${L.length}${t==='완료'?` <button type="button" class="link" style="margin-left:6px;font-size:calc(13px*var(--fz))" onclick="S.open.kbDone=false;render()">접기</button>`:''}</span></div>${lim(key,L,4).map(r=>{const e=EL(r.e);return `<button type="button" class="kcard" onclick="go('req','${r.id}')"><span class="kc-top"><span class="tag">${r.cat}</span>${DUE[r.id]&&[0,1,4].includes(r.st)?`<span class="duep ${DUE[r.id][1]===2?'hot':''}">${DUE[r.id][0]}</span>`:''}</span><b>${pdot(e)}${e.n} 님</b><span class="d ellip tn">${r.d} ${r.tm.split('~')[0]}</span><span class="kc-ft"><span class="vchip">${av(P[r.v].n,'s')}${P[r.v].n}</span><span class="st5" role="img" aria-label="6단계 중 ${r.st+1}단계: ${STN[r.st]}">${STN.map((x,i)=>`<i class="${i<=r.st?'on':''}"></i>`).join('')}</span></span><span class="w ${[0,1,4].includes(r.st)?'act':''}">${r.what}</span></button>`}).join('')||'<div class="kc-empty">없어요</div>'}${L.length>4?`<button type="button" class="more" onclick="S.more['${key}']=${!S.more[key]};render()">${S.more[key]?'접기':`더 보기 (${L.length-4}건)`}</button>`:''}</div>`}).join('')}</div></div>
+    return `<div class="kcol"><div class="kc-h c${ci}"><b>${stg(ss[0])}${t}</b><span>${L.length}${t==='완료'?` <button type="button" class="link" style="margin-left:6px;font-size:calc(13px*var(--fz))" onclick="S.open.kbDone=false;render()">접기</button>`:''}</span></div>${lim(key,L,4).map(r=>{const e=EL(r.e);return `<button type="button" class="kcard" onclick="go('req','${r.id}')"><span class="kc-top"><b>${stg(r.st)}${pdot(e)}${e.n} 님</b></span><span class="d ellip">${mt(r.cat,r.d+' '+r.tm.split('~')[0])}</span><span class="kc-ft"><span class="vchip">${av(P[r.v].n,'s')}${P[r.v].n}</span>${DUE[r.id]&&[0,1,4].includes(r.st)?`<span class="duep ${DUE[r.id][1]===2?'hot':''}">${DUE[r.id][0]}</span>`:''}</span><span class="w ${[0,1,4].includes(r.st)?'act':''}">${r.what}</span></button>`}).join('')||'<div class="kc-empty">없어요</div>'}${L.length>4?`<button type="button" class="more" onclick="S.more['${key}']=${!S.more[key]};render()">${S.more[key]?'접기':`더 보기 (${L.length-4}건)`}</button>`:''}</div>`}).join('')}</div></div>
     <div class="panel-f line-note">카드를 누르면 상세로 가요. 파란 글씨 ${todo().length}건이 담당자가 처리할 차례인 일이에요.</div></section>
   ${fold('rqStat','응답까지 걸린 시간',`이번 주 평균 ${RT[3]}시간 · 4주 전 ${RT[0]}시간`,`<div class="panel-b chartrow" style="padding-top:0"><div class="chartw">${lineChart1({labels:RTW,values:RT,unit:'시간',max:8,step:2,aria:'제안이나 일지가 도착한 뒤 담당자가 응답하기까지 걸린 시간의 주별 평균. 4주 전 6.2시간에서 이번 주 2.1시간으로 줄었어요.'})}${cap('기록 숫자 · 도착한 시각부터 응답한 시각까지 · 주별 평균 · 최근 4주')}</div>
     <dl class="props w" style="align-self:center"><dt>이번 주 평균</dt><dd class="tn"><b>${RT[3]}시간</b></dd><dt>4주 전 평균</dt><dd class="tn">${RT[0]}시간</dd><dt>응답 기한</dt><dd>제안 도착 뒤 24시간 안</dd><dt>지금 기다리는 일</dt><dd class="tn">${todo().length}건</dd></dl></div>`)}`;
@@ -2033,7 +2129,7 @@ function vDlg(p){
   if(L.indexOf(e)>=6)S.more.dl=true;
   return head('dlg',p)+top+`<div class="cols c-list"><section class="panel" style="align-self:start"><div class="tw"><table><thead><tr><th>관리 대상</th><th>동의 방법</th><th class="num">맡긴 일</th><th>기간</th><th>상태</th></tr></thead><tbody>${lim('dl',L,6).map(x=>`<tr class="row ${x.id===e.id?'on':''}" tabindex="0" aria-selected="${x.id===e.id}" onclick="go('dlg','${x.id}')" onkeydown="if(event.key==='Enter')go('dlg','${x.id}')"><td style="white-space:nowrap"><b style="font-weight:600">${x.n}</b> <span class="muted small">${x.age}세</span>${x.app?' <span class="tag">앱</span>':''}</td><td style="white-space:nowrap;min-width:96px">${x.how}</td><td class="num">${x.scope.length}개</td><td class="tn" style="white-space:nowrap">~ ${dU(x.until)}<div class="small ${daysLeft(x.until)<=30?'':'muted'}" style="${daysLeft(x.until)<=30?'color:var(--warn-ink);font-weight:600':''}">${daysLeft(x.until)}일 남음</div></td><td>${dSt(x)}</td></tr>`).join('')}</tbody></table></div>${moreBtn('dl',L.length,6)}
       <div class="panel-f line-note">기간이 끝나기 30일 전에 본인(또는 보호자)에게 다시 동의를 받아요.</div></section>
-    <div class="stackv"><section class="panel"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="align-items:center"><div class="who">${av(e.n)}<div><h3>${e.n}<span class="muted">${mt(e.age+'세',e.dong)}</span></h3><div class="note tn">${mt(`${e.how}`,`~ ${e.until}`)}</div></div></div>${dSt(e)}</div>
+    <div class="stackv"><section class="panel"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="align-items:center"><div class="who">${av(e.n)}<div><h3>${e.n}<span class="muted">${mt(e.age+'세',e.dong)}</span></h3><div class="note tn">${mt(`${e.how}`,`~ ${dU(e.until)}`)}</div></div></div>${dSt(e)}</div>
         ${ALLSCOPE.map(s=>`<div class="rowx" style="padding:8px 0;border-bottom:1px solid var(--rule-2);flex-wrap:nowrap"><span class="sp">${s}</span>${e.app?`<span class="muted small">${e.scope.includes(s)?'켜짐':'꺼짐'}</span><button type="button" class="tgl ${e.scope.includes(s)?'on':''}" role="switch" aria-checked="${e.scope.includes(s)}" aria-label="${s} (본인만 바꿀 수 있어요)" disabled></button>`:sw('sc_'+e.id+s,e.scope.includes(s),0,s)}</div>`).join('')}
         <p class="hint">${e.app?'앱을 쓰시는 분이라 본인이 앱에서만 바꿀 수 있어요.':'서면·보호자 동의라 담당자가 바꾸고, 바꾸면 보호자에게 문자가 가요.'}</p>
         <div class="btns" style="margin-top:14px"><button class="btn sm" type="button" onclick="toast('연장 동의 요청을 보냈어요')">기간 연장 요청</button>${e.revoked?'':`<button class="btn sm danger" type="button" style="margin-left:auto" onclick="dlgRevoke('${e.id}')">해지</button>`}</div></div></section>
@@ -2075,7 +2171,7 @@ function vReport(p){
 /* ---------- 서랍 · 창 ---------- */
 const LAYERS={
  /* O-HOME-02 알림 */
- noti:()=>`<div class="drawer-scrim" style="background:none" onclick="closeLayer()"></div><div class="pop" role="dialog" aria-modal="true" aria-label="알림"><div class="pop-h"><h3>알림</h3><button class="link" type="button" onclick="NOTI.forEach(n=>n[4]=0);render();toast('모두 읽었어요')">모두 읽음</button></div><div class="pop-b">${lim('noti',NOTI,6).map((n,i)=>`<button type="button" class="lrow ${n[4]?'unread':''}" ${i===0?'data-focus':''} onclick="notiGo(${i})">${itile(n[0],n[5])}<span class="sp"><span style="font-weight:${n[4]?600:400}">${n[1]}</span><span class="d">${n[2]}</span></span>${n[4]?'<span class="udot" aria-label="안 읽음"></span>':''}</button>`).join('')}</div>${NOTI.length>6?`<button type="button" class="more" onclick="S.more.noti=${!S.more.noti};drawLayer()">${S.more.noti?'접기':`지난 알림 더 보기 (${NOTI.length-6}건)`}</button>`:''}</div>`,
+ noti:()=>`<div class="drawer-scrim" style="background:none" onclick="closeLayer()"></div><div class="pop" role="dialog" aria-modal="true" aria-label="알림"><div class="pop-h"><h3>알림</h3><button class="link" type="button" onclick="NOTI.forEach(n=>n[4]=0);render();toast('모두 읽었어요')">모두 읽음</button></div><div class="pop-b">${lim('noti',notiRows(),6).map(([n,i,more],k)=>`<button type="button" class="lrow ${n[4]?'unread':''}" ${k===0?'data-focus':''} onclick="notiGo(${i})">${itile(n[0],n[5])}<span class="sp"><span style="font-weight:${n[4]?600:400}">${n[1]}</span><span class="d">${n[2]}</span></span>${n[4]?'<span class="udot" aria-label="안 읽음"></span>':''}</button>${more?`<button type="button" class="nmore" onclick="S.more['ng${n[0]}']=1;drawLayer()">같은 알림 +${more}건 더</button>`:''}`).join('')}</div>${notiRows().length>6?`<button type="button" class="more" onclick="S.more.noti=${!S.more.noti};drawLayer()">${S.more.noti?'접기':`지난 알림 더 보기 (${notiRows().length-6}건)`}</button>`:''}</div>`,
  /* O-HOME-03 내 정보 */
  me:()=>drawer('담당자 정보',`<div class="who" style="margin-bottom:18px">${av('박지현','l')}<div><h3>박지현</h3><div class="note">${mt(`사회복지사`,`010-****-1234`)}</div></div></div>
    <dl class="props" style="margin-bottom:22px"><dt>소속 기관</dt><dd>행복요양원</dd><dt>기관 종류</dt><dd>요양원</dd><dt>주소</dt><dd>서울 행복구 행복동</dd><dt>승인일</dt><dd class="tn">2026.10.02</dd></dl>
@@ -2133,6 +2229,7 @@ const LAYERS={
    `<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="saveDeleg(${d?i:-1})">${d?'고친 내용 저장':'지정하기'}</button>`,true)}
 };
 const famRow=f=>`<div class="rowx" style="flex-wrap:nowrap;margin-bottom:8px"><input type="text" style="width:84px" placeholder="관계" aria-label="관계" value="${esc(f[0])}"><input type="text" style="width:110px" placeholder="이름" aria-label="이름" value="${esc(f[1])}"><input type="text" class="sp" placeholder="010-0000-0000" aria-label="전화번호" value="${esc(f[2])}"></div>`;
+function notiRows(){const seen={},out=[];NOTI.forEach((n,i)=>{const k=n[0];if(S.more['ng'+k]||!n[4]||!['hand','memo'].includes(k)){out.push([n,i,0]);return}if(seen[k]){seen[k][2]++}else{seen[k]=[n,i,0];out.push(seen[k])}});return out}
 function notiGo(i){const n=NOTI[i];n[4]=0;closeLayer();if(n[3]==='me'){render();openLayer('me')}else{const [v,p]=n[3].split('/');go(v,p)}}
 function bulkT(k){const a=[...F('bo',[])];const i=a.indexOf(k);i>=0?a.splice(i,1):a.push(k);S.f.bo=a;drawLayer()}
 function bulkDraft(x){const k=x.id+x.k;if(S.f['bd_'+k]!==undefined)return S.f['bd_'+k];const e=EL(x.id),d=DAYS[Math.floor(x.k/2)].split(' ');return `${d[1]} (${d[0]}) ${x.k%2?'14:00~16:00':'10:00~12:00'}, ${e.dong}에서 ${x.c.gap} 도와주실 분을 찾아요.`}
