@@ -2079,7 +2079,7 @@ body.ai-open .st7 .tile{display:grid;width:22px;height:22px;border-radius:7px}bo
 <script>
 /* ---------- 예시 데이터 (proto-2026-11-16-기관담당자-PC.html 의 데모 자료 그대로) ---------- */
 const TODAY='2026.11.13 (금)';
-const CATS=[{k:'말동무·정서',w:1.0,lv:'기본'},{k:'디지털 도움',w:1.0,lv:'기본'},{k:'생활 정리',w:1.0,lv:'기본'},{k:'장보기·심부름',w:1.2,lv:'수고'},{k:'가벼운 집안일',w:1.2,lv:'수고'},{k:'동행',w:1.0,lv:'기본'}];
+const CATS=[{k:'말동무·정서'},{k:'디지털 도움'},{k:'생활 정리'},{k:'장보기·심부름'},{k:'가벼운 집안일'},{k:'동행'}];
 const cw=k=>CATS.find(c=>c.k===k)||CATS[0];
 const P={
  hn:{n:'김하늘',ag:'20대',dong:'행복동',rate:4.9,bd:['교육 수료','신원 확인'],cnt:12,dg:1},
@@ -2715,7 +2715,7 @@ function reqDetail(r){
    `<div class="k">다음 할 일: 일지 확인하고 평가하기</div><p><b style="font-weight:600">${v.n} 님의 일지</b><br>${r.log||''}</p><div class="note">${mt(`영수증 사진 1장`,`QR 10:01 ~ 11:03 (1시간 2분)`)}</div>
     <div class="rowx"><div class="stars" role="group" aria-label="별점 (비공개)">${[1,2,3,4,5].map(i=>`<button type="button" class="${i<=stars?'on':''}" aria-label="${i}점" onclick="setF('ostars_${r.id}',${i===stars?0:i})">★</button>`).join('')}</div><span class="note">${stars?stars+'점. ':'별점을 눌러 주세요. '}평가는 비공개예요</span></div>
     ${mch('good_'+r.id,['시간 약속을 잘 지켜요','친절해요','꼼꼼해요'],[])}<div class="btns"><button class="btn primary" type="button" onclick="orate('${r.id}')">확인했어요</button></div>`,
-   r.what==='대신 거절'?`<div class="k">대신 거절했어요</div><p>봉사자에게 알림이 갔어요.</p>`:`<div class="k">완료</div><p>QR 10:01 ~ 11:03 · ${v.n} 님 적립 ${h1(1*cw(r.cat).w)}시간 (1.0시간 × ${cw(r.cat).w.toFixed(1)})</p>`][r.st]||'';
+   r.what==='대신 거절'?`<div class="k">대신 거절했어요</div><p>봉사자에게 알림이 갔어요.</p>`:`<div class="k">완료</div><p>QR 10:01 ~ 11:03 · ${v.n} 님 1시간 적립</p>`][r.st]||'';
   return `<section class="panel lead"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="margin:0"><div><h3>${e.n} 님 ${r.cat}</h3><div class="note tn">${mt(`${r.d} ${r.tm}`,`${e.dong}`)}</div></div><a class="link" href="#care/${e.id}">관리 대상 정보</a></div>${steps(STN,r.st)}<div class="nextbox" style="margin-top:16px">${next}</div></div></section>
   <section class="panel"><div class="split2"><div><h3 class="sec-t">봉사자</h3>${pcard(r.v)}</div><div><h3 class="sec-t">이슈 메모 <span class="sub">확정된 봉사자에게만 보여요</span></h3><p style="margin:0;color:var(--ink-2)">${r.issue||'<span class="muted">남긴 메모가 없어요.</span>'}</p></div></div></section>
   ${fold('rmsg','메시지',`${e.n} 님 대신 보내요 · 최근 "1층 로비에서 기다리실 거예요"`,`<div class="panel-b" style="padding-top:0"><div class="chat"><div class="msg">안녕하세요, ${r.d.split(' ')[0]}에 뵐게요!</div><div class="msg me">감사합니다. 1층 로비에서 기다리실 거예요.</div></div><div class="rowx" style="margin-top:12px;flex-wrap:nowrap"><input type="text" class="sm sp" placeholder="메시지 보내기" aria-label="메시지"><button class="btn sm" type="button" onclick="toast('보냈어요')">보내기</button></div></div>`)}`;
@@ -2732,12 +2732,12 @@ function appPage(p){
     <div class="stackv">${a?appDetail(a):'<section class="panel"><div class="empty line">신청을 골라 주세요.</div></section>'}</div></div>`;
 }
 function appDetail(a){
-  const give=a.kind!=='해 드려요',op=OPOSTS.find(o=>o.t===a.post),du=durTxt(a.tm),w=op?cw(op.cat).w:1.0;
+  const give=a.kind!=='해 드려요',op=OPOSTS.find(o=>o.t===a.post),du=durTxt(a.tm);
   const next=a.st===0?(give?`<div class="k">다음 할 일: 참여 신청에 응답하기</div><p>수락하면 일정이 확정돼요. 당일 기관에서 QR로 시작·종료를 찍고, 봉사자는 활동 시간만큼 적립해요. 기관 공고라 받는 쪽 차감은 없어요.</p><div class="btns"><button class="btn primary" type="button" onclick="aadv('${a.id}',2)">수락</button><button class="btn" type="button" onclick="aadv('${a.id}',-1)">거절</button></div>`
     :`<div class="k">다음 할 일: 방문 날짜 정해 알려 드리기</div><p>기관이 해 드리는 도움이라 시간이 적립·차감되지 않아요.</p><div class="field2" style="max-width:420px">${fld('방문 날짜',inp('','11/17 (월)','sm'))}${fld('시간',inp('','14:00~15:00','sm'))}</div><div class="btns"><button class="btn primary" type="button" onclick="aadv('${a.id}',2)">일정 정해 확정</button><button class="btn" type="button" onclick="aadv('${a.id}',-1)">어려워요</button></div>`)
    :a.st<4?`<div class="k">확정됐어요</div><p>${a.d} ${a.tm} · 신청자에게 알림을 보냈어요.</p>`
    :a.rej?`<div class="k">거절했어요</div><p>신청자에게 알림이 갔어요.</p>`
-   :`<div class="k">완료</div><p>${give?(du?`활동 ${du.t} × ${w.toFixed(1)} = 봉사자 적립 ${h1(du.h*w)}시간`:'봉사자 적립 완료'):'방문 상담 기록 저장됨'}</p>`;
+   :`<div class="k">완료</div><p>${give?(du?`활동 ${du.t}, 봉사자 ${h1(du.h)}시간 적립`:'봉사자 적립 완료'):'방문 상담 기록 저장됨'}</p>`;
   return `<section class="panel lead"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="margin:0"><div>${kindTag(a.kind)}<h3 style="margin-top:6px">${a.post}</h3><div class="note tn">${mt(`${a.d} ${a.tm}`,`행복요양원`)}</div></div><a class="link" href="#posts">공고 보기</a></div><div class="nextbox" style="margin-top:16px">${next}</div></div></section>
   <section class="panel"><div class="split2"><div><h3 class="sec-t">${give?'신청한 봉사자':'신청한 분'}</h3>${pcard(a.who)}${a.n>1?`<p class="hint">함께 오는 인원 ${a.n}명</p>`:''}</div><div><h3 class="sec-t">신청 메시지 <span class="sub">${a.at} 신청</span></h3><p style="margin:0;color:var(--ink-2)">${a.msg||'<span class="muted">메시지 없음</span>'}</p></div></div></section>`;
 }
