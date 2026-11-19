@@ -2062,6 +2062,14 @@ body.ai-open .st7 .tile{display:grid;width:22px;height:22px;border-radius:7px}bo
 :root[data-fz="lg"] .home2 .o2 .lrow .d{display:none}
 :root[data-fz="lg"] .home2 .o2 .panel-f{display:none}
 :root[data-fz="lg"] .home2 .o2 .lrow{padding-top:0;padding-bottom:0;height:44px;align-items:center}
+
+/* 셀렉트: 기본 화살표 대신 안쪽으로 띄운 화살표 (2026-11-19 사용자 요청) */
+select.sel{-webkit-appearance:none;appearance:none;padding:0 42px 0 14px;background-color:var(--surface);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1.5 1.5 6 6l4.5-4.5' fill='none' stroke='%236B7280' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;background-size:12px 8px;cursor:pointer;color:var(--ink);min-width:120px}
+select.sel:hover{border-color:color-mix(in srgb,var(--ink-3) 45%,var(--rule))}
+.field select.sel{width:100%;max-width:360px}
+select.fsel{width:100%;margin:2px 0 4px}
+:root[data-theme="dark"] select.sel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1.5 1.5 6 6l4.5-4.5' fill='none' stroke='%23A3A8B3' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) select.sel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1.5 1.5 6 6l4.5-4.5' fill='none' stroke='%23A3A8B3' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}}
 </style>
 </head>
 <body>
@@ -2376,7 +2384,7 @@ const kindTag=k=>`<span class="tag kd k${['봉사자 모집','단체 봉사','�
 function fold(key,title,sub,body,open0){const o=S.open[key]??!!open0;return `<section class="panel fold ${o?'open':''}"><button type="button" class="fold-h" aria-expanded="${o}" onclick="S.open['${key}']=${!o};S.grow=${!o}?'${key}':'';render()"><h2>${title}</h2><span class="sub">${sub&&!sub.includes('<')?mt(...sub.split(' · ')):sub||''}</span>${icon('chev')}</button>${o?`<div class="foldb ${S.grow===key?'grow':''}">${body}</div>`:''}</section>`}
 const lim=(key,arr,n)=>S.more[key]?arr:arr.slice(0,n);
 function moreBtn(key,total,n,label='더 보기'){if(total<=n)return '';const o=!!S.more[key];return `<button type="button" class="more" aria-expanded="${o}" onclick="S.more['${key}']=${!o};render()">${o?'접기':`${label} (${total-n}건)`}</button>`}
-function fch(k,opts,d,rr){const c=F(k,d);return `<div class="chips" role="group">${opts.map(o=>`<button type="button" class="chip ${c===o?'on':''}" aria-pressed="${c===o}" onclick="pick(this,'${k}','${o}',${rr?1:0})">${o}</button>`).join('')}</div>`}
+function fch(k,opts,d,rr){const c=F(k,d);return `<select class="sel" onchange="S.f['${k}']=this.value;${rr?'render()':''}">${opts.map(o=>`<option ${c===o?'selected':''}>${o}</option>`).join('')}</select>`}
 function pick(el,k,v,rr){S.f[k]=v;if(rr)return render();[...el.parentNode.children].forEach(b=>{b.classList.toggle('on',b===el);b.setAttribute('aria-pressed',b===el)})}
 function mch(k,opts,d){if(S.f[k]===undefined)S.f[k]=[...(d||[])];const a=S.f[k];return `<div class="chips" role="group">${opts.map(o=>`<button type="button" class="chip ${a.includes(o)?'on':''}" aria-pressed="${a.includes(o)}" onclick="pickM(this,'${k}','${o}')">${o}</button>`).join('')}</div>`}
 function pickM(el,k,v){const a=S.f[k];const i=a.indexOf(v);i>=0?a.splice(i,1):a.push(v);el.classList.toggle('on',i<0);el.setAttribute('aria-pressed',i<0)}
@@ -2598,8 +2606,7 @@ function vCare(p){
   const e=L.length?(EL(p)||L[0]):null;
   if(e&&L.indexOf(e)>=6)S.more.care=true;
   const list=`<section class="panel" style="align-self:start"><div class="panel-b" style="padding-bottom:12px;display:grid;gap:10px;grid-template-columns:minmax(0,1fr)"><div class="rowx nw"><input class="search sp" id="eq" type="text" style="width:auto" placeholder="이름 · 전화번호" aria-label="관리 대상 찾기" value="${esc(F('eq',''))}" oninput="S.f.eq=this.value;renderKeep('eq')"><button class="btn sm" type="button" style="height:42px" onclick="openLayer('careForm')">${icon('plus')}등록</button></div>
-      <div class="chips sm only-wide" role="group" aria-label="거르기">${FL.map(([v,l])=>`<button type="button" class="chip ${fp===v?'on':''}" aria-pressed="${fp===v}" title="${v}" onclick="setF('ep','${v}')">${l}</button>`).join('')}</div>
-      <select class="sel only-narrow" aria-label="거르기" onchange="setF('ep',this.value)">${FL.map(([v])=>`<option ${fp===v?'selected':''}>${v}</option>`).join('')}</select>
+      <select class="sel fsel" aria-label="거르기" onchange="setF('ep',this.value)">${FL.map(([v])=>`<option ${fp===v?'selected':''}>${v}</option>`).join('')}</select>
       <div><span class="ai-tag" style="margin:0" title="리포트 분석 기준으로 먼저 살펴볼 순서를 정했어요. 건강 상태를 판단한 것이 아니에요.">AI 우선순위 (건강 판단 아님)</span></div></div>
     <div style="border-top:1px solid var(--rule-2)">${lim('care',L,6).map(x=>{const w=(priOf(x.id)||[])[3];return `<button type="button" class="lrow ${e&&x.id===e.id?'on':''}" aria-pressed="${!!e&&x.id===e.id}" onclick="go('care','${x.id}')">${av(x.n)}<span class="sp"><span class="t">${pdot(x)}${x.n}</span> <span class="muted small meta">${mt(x.age+'세',x.dong,x.home)}</span><span class="d">${w?mt(...w.split(' · ')):mt('안부 '+x.call,'이번 달 '+x.month+'회')}</span></span><span class="rcol">${x.app?'<span class="tag">앱</span>':''}${pill(x.month,Math.max(x.prev,x.month,4),'이번 달 돌봄 '+x.month+'회, 지난달 '+x.prev+'회')}<span class="small tn">${x.month}회</span></span></button>`}).join('')||'<div class="empty line">조건에 맞는 분이 없어요.</div>'}</div>
     ${moreBtn('care',L.length,6)}</section>`;
@@ -2727,7 +2734,7 @@ function appPage(p){
   const L=APPS.filter(a=>AGRP[t].includes(a.st)&&(fk==='전체'||a.kind===fk)),a=sa||L[0];
   if(L.indexOf(a)>=6)S.more.al=true;
   return `<div class="cols c-side"><section class="panel" style="align-self:start"><div class="panel-b" style="padding-bottom:12px;display:grid;gap:10px"><div class="seg" role="group">${Object.keys(AGRP).map(g=>`<button type="button" class="${t===g?'on':''}" aria-pressed="${t===g}" onclick="S.f.aq='${g}';go('req','apps')">${g} <span class="tn" style="opacity:.7;font-weight:500">${APPS.filter(x=>AGRP[g].includes(x.st)).length}</span></button>`).join('')}</div>
-      <div class="chips sm">${['전체','봉사자 모집','단체 봉사','해 드려요'].map(k=>`<button type="button" class="chip ${fk===k?'on':''}" aria-pressed="${fk===k}" onclick="S.f.ak='${k}';go('req','apps')">${k}</button>`).join('')}</div></div>
+      <select class="sel" aria-label="공고 종류" onchange="S.f.ak=this.value;go('req','apps')">${['전체','봉사자 모집','단체 봉사','해 드려요'].map(k=>`<option ${fk===k?'selected':''}>${k}</option>`).join('')}</select></div>
     <div style="border-top:1px solid var(--rule-2)">${lim('al',L,6).map(x=>`<button type="button" class="lrow ${a&&x.id===a.id?'on':''}" onclick="go('req','${x.id}')"><span class="sp"><span class="t">${P[x.who].n}${x.n>1?` 외 ${x.n-1}명`:''} ${x.kind==='해 드려요'?'신청':'참여 신청'}</span><span class="d">${mt(x.kind,x.post)}</span><span class="d">${mt(x.d,x.at+' 신청')}</span></span></button>`).join('')||'<div class="empty line">없어요.</div>'}</div>${moreBtn('al',L.length,6)}</section>
     <div class="stackv">${a?appDetail(a):'<section class="panel"><div class="empty line">신청을 골라 주세요.</div></section>'}</div></div>`;
 }
@@ -2908,7 +2915,7 @@ const LAYERS={
      <details class="opt"><summary>선택 항목 <span class="note">${mt(`준비물`,`팀 신청`)}</span></summary>${fld('준비물',inp('','편한 신발'))}${fld('팀 신청',fch('opteam',['개인만','동아리·모임도 받기'],'동아리·모임도 받기'))}</details>`
    :`${fld('어떤 도움을 해 드리나요?',inp('','요양보호사 방문 상담 (무료)'))}${fld('내용',ta('','혼자 씻기·거동이 힘든 분 댁에 요양보호사가 찾아가 상담하고, 장기요양 등급 신청을 도와드려요.','sm'))}<div class="field2">${fld('가능한 때',inp('','평일 오후 2~5시'))}${fld('받을 수 있는 인원',inp('','이번 달 6명'))}</div>
      <details class="opt"><summary>선택 항목 <span class="note">${mt(`대상`,`신청 방법`,`노출 범위`)}</span></summary>${fld('대상',fch('optg',['누구나','65세 이상','혼자 사는 분'],'65세 이상'))}${fld('신청 방법',fch('opway',['앱에서 신청','전화 신청도 받기'],'전화 신청도 받기'))}${fld('노출 범위',fch('opr',['1km','3km','구 전체'],'3km'))}</details>`;
-  return drawer(`${k} 공고 쓰기`,`<div class="field"><label>유형</label><div class="chips">${Object.keys(OKIND).map(x=>`<button type="button" class="chip ${x===k?'on':''}" aria-pressed="${x===k}" onclick="openLayer('postForm','${x}')">${x}</button>`).join('')}</div></div>
+  return drawer(`${k} 공고 쓰기`,`<div class="field"><label>유형</label><select class="sel" aria-label="유형" onchange="openLayer('postForm',this.value)">${Object.keys(OKIND).map(x=>`<option ${x===k?'selected':''}>${x}</option>`).join('')}</select></div>
    <div class="callout plain" style="margin-bottom:16px">${icon('clock')}<div>${v[1]}<br><b>${v[2]}</b></div></div>${form}`,
    `<button class="btn ai" type="button" style="margin-right:auto" onclick="toast('AI가 제목과 내용을 다듬었어요. 확인하고 올려 주세요')">${icon('spark')}AI로 문장 다듬기</button><button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="closeLayer();toast('공고를 올렸어요')">올리기</button>`,true)},
  /* 기관 행사 쓰기 (O-POST-06 안의 작성 폼) */
