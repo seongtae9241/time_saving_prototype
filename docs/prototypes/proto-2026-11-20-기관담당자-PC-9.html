@@ -3392,6 +3392,17 @@ body.ai-open .flow7 a>span{display:inline!important}
 .panel.fold>.foldb>:first-child:not(.panel-b){margin-top:18px}
 .chat{gap:10px!important}
 </style>
+<style id="v9-nowdot">
+/* 지금 표시: 줄·글자 대신 반짝이는 동그라미만 (옆 표시가 가려지지 않게) */
+@keyframes nowPulse9{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--neg,#C8372D) 55%,transparent)}70%{box-shadow:0 0 0 8px color-mix(in srgb,var(--neg,#C8372D) 0%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
+.nowline{position:relative!important;height:0!important;margin:0!important;padding:0!important;border:0!important;background:none!important;overflow:visible!important}
+.nowline::before,.nowline::after{display:none!important}
+.nowline>span{position:absolute!important;left:30px!important;top:-5px!important;width:10px!important;height:10px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:var(--neg,#C8372D)!important;font-size:0!important;color:transparent!important;border:0!important;animation:nowPulse9 1.8s ease-out infinite;z-index:2}
+.cnow{height:0!important;border:0!important;background:none!important;left:0!important;right:auto!important;overflow:visible!important;z-index:5}
+.cnow::before,.cnow::after{display:none!important}
+.cnow>span{position:absolute!important;left:-6px!important;top:-6px!important;width:12px!important;height:12px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:var(--neg,#C8372D)!important;font-size:0!important;color:transparent!important;border:2px solid var(--surface,#fff)!important;box-sizing:border-box;animation:nowPulse9 1.8s ease-out infinite}
+@media (prefers-reduced-motion:reduce){.nowline>span,.cnow>span{animation:none}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -3846,7 +3857,7 @@ function vHome(){
   const links=[['alerts/wx1','특보',1],['pub','공공 연계',PUBR.filter(x=>x.st===0).length],['req/apps','기관 공고 신청',newApps().length],['dlg/inbox','권한 위임 요청',DLGREQ.length]].filter(x=>x[2]);
   const short=r=>r.st===0?'제안 도착':r.st===1?'최종 수락 필요':'일지 도착';
   const past=x=>day<4||(day===4&&x.st+x.du<=NOW);
-  const nowline='<div class="nowline" role="separator"><span>지금 15:50</span></div>';let nd=false;
+  const nowline='<div class="nowline" role="separator" aria-label="지금 15:50"><span>지금 15:50</span></div>';let nd=false;
   const pastN=E.filter(x=>past(x)&&!x.gap).length,hideP=day===4&&pastN>0&&!S.open.hPast;
   const pastBtn=day===4&&pastN?`<button type="button" class="lrow pastfold" aria-expanded="${!hideP}" onclick="S.open.hPast=${hideP};render()"><span class="sp">지난 일정 ${pastN}건</span><span class="small">${hideP?'펼치기':'접기'}</span>${icon('chev')}</button>`:'';
   const rows=pastBtn+lim('hS',E.filter(x=>!(hideP&&past(x)&&!x.gap)),6).map(x=>{let pre='';if(day===4&&!nd&&!past(x)){nd=true;pre=nowline}
@@ -3976,7 +3987,7 @@ function evBlock(x,wide,sel){if(x.moreN)return `<button type="button" class="cmo
   const who=x.c.v||x.c.done,cat=x.c.c||x.c.gap.split(' ')[0];return `<div class="cev ${x.c.done?'reqd':''}" style="${pos}" title="${x.e.n} 님 ${x.c.c||x.c.gap} ${tm} ${who}">${nar?`<b>${x.e.n}</b><span>${cat}</span>`:`<b>${x.e.n} ${cat}</b><span>${wide?tm:hm(x.st)} ${who}${x.c.dg?' (단골)':''}</span>`}${wide?`<span>${x.e.caution}</span>`:''}</div>`}
 function weekView(L,days,sel){const E=evs(L),one=days.length===1;let hrs='';for(let t=H0;t<H1;t++)hrs+=`<div style="height:${RH}px">${String(t).padStart(2,'0')}:00</div>`;
   return `<div class="cw" style="--cols:${days.length};--rh:${RH}px"><div class="cw-hd"><div></div>${days.map(d=>{const [w,dt]=DAYS[d].split(' ');return `<button type="button" class="cw-d ${d===4?'today':''}" title="${dt} 하루만 보기" onclick="S.f.sview='일';S.f.sday=${d};render()"><span>${w}</span><b>${+dt.split('/')[1]}</b></button>`}).join('')}</div>
-  <div class="cw-bd" style="padding-top:10px"><div class="ct">${hrs}</div>${days.map(d=>`<div class="cw-col ${d===4?'today':''}" style="height:${(H1-H0)*RH}px">${(lanes.wide=one,lanes(E.filter(x=>x.day===d))).map(x=>evBlock(x,one,sel)).join('')}${d===4?`<div class="cnow" style="top:${(15+50/60-H0)*RH}px"><span>15:50</span></div>`:''}</div>`).join('')}</div></div>`}
+  <div class="cw-bd" style="padding-top:10px"><div class="ct">${hrs}</div>${days.map(d=>`<div class="cw-col ${d===4?'today':''}" style="height:${(H1-H0)*RH}px">${(lanes.wide=one,lanes(E.filter(x=>x.day===d))).map(x=>evBlock(x,one,sel)).join('')}${d===4?`<div class="cnow" role="separator" aria-label="지금 15:50" style="top:${(15+50/60-H0)*RH}px"><span>지금 15:50</span></div>`:''}</div>`).join('')}</div></div>`}
 const CKS=c=>/동행/.test(c)?'동행':/장보기/.test(c)?'장보기':/말동무/.test(c)?'말동무':/디지털/.test(c)?'디지털':/정리/.test(c)?'생활 정리':'집안일';
 function monthView(L){const E=evs(L),first=new Date(2026,10,1).getDay(),cells=[];for(let i=0;i<(first+6)%7;i++)cells.push(null);for(let d=1;d<=30;d++)cells.push(d);while(cells.length%7)cells.push(null);
   const extra={16:[['이순례','말동무','최미경']],17:[['이순례','동행','김하늘']],18:[['정말순','장보기','이도윤']],19:[['한영자','디지털','김하늘']],20:[['오덕수','장보기','이도윤'],['정말순','생활 정리','최미경']],23:[['오덕수','동행',null]],24:[['한영자','디지털','김하늘']],25:[['이순례','말동무','최미경']],27:[['정말순','장보기','이도윤']],3:[['이순례','말동무','최미경']],4:[['정말순','생활 정리','최미경']],5:[['오덕수','장보기','이도윤']],6:[['한영자','디지털','김하늘']],2:[['오덕수','동행','김하늘']]};
