@@ -3886,7 +3886,7 @@ function sid(v,p){if(S.layer)return {noti:'O-HOME-02',me:'O-HOME-03',careForm:'O
 function sid2(v,p){return {home:'O-HOME-01',alerts:'O-ALERT-01',care:p?'O-CARE-02':'O-CARE-01',sched:'O-SCHED-01',req:!p?'O-POST-01':/^ap/.test(p)?'O-POST-09':'O-POST-03',newreq:'O-POST-02',find:'O-POST-04',pub:p?'O-PUB-02':'O-PUB-01',posts:'O-POST-05',events:'O-POST-06',dlg:p&&/^e/.test(p)?'O-DLG-02':'O-DLG-01',report:p?'O-RPT-02':'O-RPT-01'}[v]}
 function renderNav(cur){
   const g=gapList().length,t=todo().length+newApps().length,pb=PUBR.filter(x=>x.st===0).length;
-  const NAV=[['돌봄',[['home','홈'],['alerts','특보 알림','진행 1','urgent'],['care','관리 대상',ELDERS.length],['sched','돌봄 편성표',g?'빈칸 '+g:'',''],['req','요청 관리',t],['pub','공공 서비스 연계',pb]]],
+  const NAV=[['돌봄',[['home','홈'],['alerts','특보 알림','진행 1','urgent'],['care','관리 대상',ELDERS.length],['sched','돌봄 편성표',g?'빈칸 '+g:'',g?'urgent':''],['req','요청 관리',t],['pub','공공 서비스 연계',pb]]],
    ['기관 공고',[['posts','기관 공고'],['events','기관 행사']]],
    ['관리',[['dlg','권한 위임',DLGREQ.length],['report','리포트']]]];
   $('#nav').innerHTML=NAV.map(([gn,items])=>`<div class="nav-sec">${gn}</div>`+items.map(([id,n,c,u])=>`<a href="#${id}" class="${id===cur?'on':''}" ${id===cur?'aria-current="page"':''}>${icon(id)}<span>${n}</span>${c?`<span class="n ${u||''}">${c}</span>`:''}</a>`).join('')).join('');
