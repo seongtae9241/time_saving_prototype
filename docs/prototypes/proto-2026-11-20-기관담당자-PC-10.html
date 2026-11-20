@@ -4199,10 +4199,10 @@ function careDetail(e){
     <div><h3 class="sec-t">이번 주 돌봄 <button class="link" type="button" onclick="S.f.se='${e.id}';go('sched')">편성표에서 보기</button></h3>
       ${week.length?`<table class="vars" style="width:100%"><tbody>${week.map(([d,it])=>it.map(([a,c])=>`<tr><td class="tn" style="width:96px;color:var(--ink-3)">${d} ${a?'오후':'오전'}</td><td style="text-align:left">${c.gap&&!c.done?`<span class="flag-neg">${c.gap} 빈칸</span>`:`<b style="font-weight:600">${c.c||c.gap}</b> <span class="muted">${c.v||c.done}${c.dg?' (단골)':''}</span>`}</td></tr>`).join('')).join('')}</tbody></table>`:'<p class="muted" style="margin:0">이번 주에는 잡힌 돌봄이 없어요.</p>'}</div></div></section>
   <section class="panel"><div class="split2">
-    <div><h3 class="sec-t">받은 도움 기록</h3><table class="vars" style="width:100%"><tbody>${HELPLOG.map(r=>`<tr><td class="tn" style="width:52px;color:var(--ink-3)">${r[0]}</td><td style="width:64px;text-align:left;font-weight:600">${r[1]}</td><td style="text-align:left">${r[2]}</td></tr>`).join('')}</tbody></table>
-      <h4 class="sec-t" style="margin-top:22px">월별 돌봄 횟수 <span class="sub">최근 6개월</span></h4><div class="carechart">${colChart({labels:MONL,series:[{name:'돌봄',color:'var(--a500)',values:MON[e.id]}],unit:'회',w:360,h:140,prevTint:1,max:6,step:2,lastNote:'(13일까지)',aria:`${e.n} 님 월별 돌봄 횟수, 최근 6개월: ${MON[e.id].map((v,i)=>MONL[i]+' '+v+'회').join(', ')}. 11월은 13일까지 센 값이에요.`})}</div>${cap('기록 숫자 · 완료된 돌봄 횟수 · 11월은 13일까지')}</div>
+    <div><h3 class="sec-t">받은 도움 기록</h3><table class="vars" style="width:100%"><tbody>${HELPLOG.map(r=>`<tr><td class="tn" style="width:52px;color:var(--ink-3)">${r[0]}</td><td style="width:64px;text-align:left;font-weight:600">${r[1]}</td><td style="text-align:left">${r[2]}</td></tr>`).join('')}</tbody></table></div>
     <div><h3 class="sec-t">담당자 메모 <span class="sub">봉사자에게 안 보여요</span></h3><table class="vars" style="width:100%"><tbody>${memos.map(m=>`<tr><td class="tn" style="width:52px;color:var(--ink-3)">${m[0]}</td><td style="text-align:left">${esc(m[1])}</td></tr>`).join('')}</tbody></table>
-      <div class="rowx" style="margin-top:10px;flex-wrap:nowrap"><input type="text" class="sm sp" id="memoIn" placeholder="메모 남기기" aria-label="메모 남기기" onkeydown="if(event.key==='Enter')addMemo('${e.id}')"><button class="btn sm" type="button" onclick="addMemo('${e.id}')">추가</button></div></div></div></section>
+      <div class="rowx" style="margin-top:10px;flex-wrap:nowrap"><input type="text" class="sm sp" id="memoIn" placeholder="메모 남기기" aria-label="메모 남기기" onkeydown="if(event.key==='Enter')addMemo('${e.id}')"><button class="btn sm" type="button" onclick="addMemo('${e.id}')">추가</button></div></div></div>
+    <div class="care10-chart"><div><h4 class="sec-t">월별 돌봄 횟수 <span class="sub">최근 6개월</span></h4><div class="carechart">${colChart({labels:MONL,series:[{name:'돌봄',color:'var(--a500)',values:MON[e.id]}],unit:'회',w:360,h:140,prevTint:1,max:6,step:2,lastNote:'(13일까지)',aria:`${e.n} 님 월별 돌봄 횟수, 최근 6개월: ${MON[e.id].map((v,i)=>MONL[i]+' '+v+'회').join(', ')}. 11월은 13일까지 센 값이에요.`})}</div>${cap('기록 숫자 · 완료된 돌봄 횟수 · 11월은 13일까지')}</div><dl class="care10-sum"><div><dt>최근 6개월 합계</dt><dd class="tn">${MON[e.id].reduce((a,b)=>a+b,0)}회</dd></div><div><dt>월 평균 (6~10월)</dt><dd class="tn">${(MON[e.id].slice(0,5).reduce((a,b)=>a+b,0)/5).toFixed(1)}회</dd></div><div><dt>이번 달 (13일까지)</dt><dd class="tn">${MON[e.id][5]}회</dd></div></dl></div></section>
   <section class="panel"><div class="split2">
     <div><h3 class="sec-t">단골 봉사자</h3>${dgs.length?`<div class="rowx" style="gap:16px">${dgs.map(n=>`<span class="who" style="gap:8px">${av(n,'s')}<b style="font-weight:600">${n}</b><span class="tag vol">단골</span></span>`).join('')}</div>`:emptyArt('chairs','아직 없어요. 같은 봉사자와 3번 함께하면 자동으로 단골이 돼요.',`<button class="btn sm" type="button" onclick="go('find','${e.id}')">도움 찾기</button>`)}</div>
     <div><h3 class="sec-t">권한 위임 <a class="link" href="#dlg/${e.id}">위임 관리</a></h3><dl class="props dl10"><dt>동의 방법</dt><dd>${e.how}</dd><dt>기간</dt><dd class="tn">~ ${dU(e.until)}</dd><dt>맡긴 일</dt><dd><span class="tags">${e.scope.slice(0,3).map(s=>`<span class="tag">${s}</span>`).join('')}${e.scope.length>3?`<span class="tag more10" title="${e.scope.slice(3).join(', ')}">외 ${e.scope.length-3}</span>`:''}</span></dd></dl>
@@ -4439,8 +4439,8 @@ function vReport(p){
   const e=EL(p)||EL(PRI[0][0]),pr=priOf(e.id)||[e.id,'특별한 변화가 없어요','—',''],c=F('called_'+e.id);
   if(PRI.findIndex(x=>x[0]===e.id)>=5)S.more.rp=true;
   return head('report',p)+`<div class="bento rp"><section class="bt wide static">${insight('<p><strong>돌봄 9건 중 7건이 완료됐어요.</strong> 희망동 두 분(오덕수, 한영자)의 활동이 줄었고, 한파로 동행 취소가 늘 수 있어요.</p>','최근 4주 요청 32건 · 일지 12건','이번 주 요약')}</section>
-    <div class="bt static ringbt">${ring(7,9,{label:'이번 주 돌봄 9건 중 7건 완료'})}<span><span class="bt-l">이번 주 돌봄</span><b class="num">7<small> / 9건 완료</small></b></span></div>
-    <div class="bt static">${itile('report')}<span class="bt-l">지난달보다 줄어든 분</span><b class="tn">${ORDER.filter(i=>MON[i][5]<MON[i][4]).length}<small>명</small></b><span class="bt-s">그대로이거나 늘어난 분 ${ORDER.filter(i=>MON[i][5]>=MON[i][4]).length}명</span></div></div>
+    <div class="bt static rp10k"><div class="label">이번 주 돌봄</div><div class="value tn">7<span class="of"> / 9</span><span class="u">건</span></div><div class="meta"><span>완료 78% · 9건 중 7건</span></div>${ring(7,9,{label:'이번 주 돌봄 9건 중 7건 완료'})}</div>
+    <div class="bt static rp10k">${itile('report')}<div class="label">지난달보다 줄어든 분</div><div class="value tn">${ORDER.filter(i=>MON[i][5]<MON[i][4]).length}<span class="u">명</span></div><div class="meta"><span>그대로이거나 늘어난 분 ${ORDER.filter(i=>MON[i][5]>=MON[i][4]).length}명</span></div></div></div>
   ${fold('rpAll','관리 대상별 돌봄 횟수 비교',`지난달보다 줄어든 분 ${ORDER.filter(i=>MON[i][5]<MON[i][4]).length}명 · 그대로이거나 늘어난 분 ${ORDER.filter(i=>MON[i][5]>=MON[i][4]).length}명`,`<div class="panel-b" style="padding-top:0"><p class="sumline">${[['줄어든 분',i=>MON[i][5]<MON[i][4]],['그대로인 분',i=>MON[i][5]===MON[i][4]],['늘어난 분',i=>MON[i][5]>MON[i][4]]].map(([l,f])=>{const a=ORDER.filter(f);return `<span><b>${l} ${a.length}명</b> ${a.map(i=>EL(i).n).join(', ')||'없음'}</span>`}).join('')}</p><div style="max-width:560px">${dumbRows(ORDER.map(i=>[EL(i).n,MON[i][4],MON[i][5],i]))}${cap('기록 숫자 · 완료된 돌봄 횟수 · 11월은 13일까지 센 값이라 달이 끝나면 늘 수 있어요 · 줄을 누르면 그분 리포트로 가요')}</div></div>`)}
   <div class="cols c-side" style="grid-template-columns:400px minmax(0,1fr)"><section class="panel" style="align-self:start"><div class="panel-h tight"><h2>먼저 안부를 물어볼 순서</h2><span class="ai-tag">AI 우선순위</span></div>
       ${lim('rp',PRI,5).map(([id,w],i)=>{const x=EL(id),cc=F('called_'+id);return `<button type="button" class="lrow ${id===e.id?'on':''}" style="align-items:flex-start" aria-pressed="${id===e.id}" onclick="go('report','${id}')"><span class="rank">${i+1}</span><span class="sp"><span class="t">${pdot(x)}${x.n}</span> <span class="muted small">${mt(x.age+'세',x.dong)}</span>${cc?' <span class="tag vol">안부 확인함</span>':''}<span class="d">${w}</span>
@@ -4843,10 +4843,130 @@ function fc(){const v=(location.hash||'#home').slice(1).split('/')[0];
   const t=F('opk','전체');const n=OPOSTS.filter(p=>(t==='전체'||p.kind===t)&&((ost==='모집 중'&&p.st!=='마감')||(ost==='신청 있음'&&p.app>0)||(ost==='새 신청'&&APPS.some(a=>a.st===0&&a.post===p.t)))).length;
   const tb=document.querySelector('#main .toolbar .tabs');if(tb&&!document.querySelector('#main .fchip10'))tb.insertAdjacentHTML('afterend',chip(PN[ost],n,"S.f.ost='전체';render()"))}
  if(v==='care'){const ep=F('ep','전체');if(ep==='전체'||!CN[ep])return;const n=document.querySelectorAll('#main .c-side .lrow').length;const L=ORDER.map(EL).filter(e=>e.dong===ep||(ep==='우선순위 높음'&&e.pri==='높음')||(ep==='혼자 사는 분'&&e.home==='혼자')||(ep==='앱 쓰는 분'&&e.app)).length;
-  const sel=document.querySelector('#main select.fsel');if(sel&&!document.querySelector('#main .fchip10'))sel.insertAdjacentHTML('afterend',`<div>${chip(CN[ep],L,"S.f.ep='전체';render()")}</div>`)}}
+  /* 10판 3차: 관리 대상은 드롭다운이 필터 자체라 칩을 따로 두지 않는다 (v10c에서 드롭다운에 고른 상태 표시) */}}
 const _r10=render;render=function(){_r10.apply(this,arguments);try{fc()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(()=>{try{fc()}catch(e){}},0));
 })();
 
 </script>
+<style id="v10c">
+/* ===== 10판 3차: 판사 지적 반영 ===== */
+/* A 끌기 손잡이: 평소 거의 안 보임(.2) → 카드에 올리거나 제목에 초점일 때만 진하게.
+      늘 카드 제목 왼쪽(카드 왼쪽 끝에서 10px, 제목과 8px), 제목 첫 줄 가운데. 누를 곳 24×24 */
+html body .dg9-grip,html body .dg9-grip.dg9-grip{opacity:.2!important;position:absolute!important;left:2px!important;top:var(--g10t,50%)!important;transform:translateY(-50%)!important;width:24px!important;height:24px!important;display:flex!important;align-items:center;justify-content:center;pointer-events:auto!important;cursor:grab;border-radius:6px;color:var(--ink-3)!important;transition:opacity .15s,background .15s}
+html body .panel:hover>.dg9-h .dg9-grip,html body .panel:hover>.dg9-corner .dg9-grip,html body .dg9-h:focus-visible .dg9-grip,html body .dg9-h:focus .dg9-grip,html body .dg9-h.dg9-h:hover .dg9-grip{opacity:1!important}
+html body .dg9-grip:hover{background:var(--hover)}
+/* 특보 내용 카드: 오른쪽 위 → 왼쪽 위, 첫 제목 줄과 같은 높이 */
+html body .panel>.dg9-corner{left:2px!important;right:auto!important;top:var(--g10t,30px)!important;transform:translateY(-50%);width:24px!important;height:24px!important;background:none!important}
+html body .panel>.dg9-corner .dg9-grip{position:static!important;transform:none!important}
+html body .panel>.dg9-corner+.panel-b{padding-top:20px!important}
+.w10-before{box-shadow:0 -4px 0 0 var(--acc)!important;border-radius:16px}
+.w10-after{box-shadow:0 4px 0 0 var(--acc)!important;border-radius:16px}
+/* 1 기관 공고: 숫자 카드 필터가 켜지면 종류 탭의 '전체'는 테두리만 → 칩만 주 강조 */
+html body .toolbar.kf10 .tabs button.on{background:transparent!important;color:var(--acc-text)!important;box-shadow:inset 0 0 0 1.5px var(--acc)!important}
+html body .toolbar.kf10 .tabs button.on .cnt,html body .toolbar.kf10 .tabs button.on .tn{background:color-mix(in srgb,var(--acc) 12%,transparent)!important;color:var(--acc-text)!important}
+html body .toolbar.kf10 .tabs{margin-right:0}
+html body .toolbar.kf10 .fchip10{margin-left:10px}
+/* 2 관리 대상: 드롭다운이 필터 자체 → 칩 없이 드롭다운에 고른 상태 표시 + ✕ */
+.fsel10{display:flex;gap:8px;align-items:center}
+.fsel10 select{flex:1 1 auto;min-width:0}
+html body select.fsel.on10{border-color:var(--acc)!important;background-color:color-mix(in srgb,var(--acc) 7%,var(--surface))!important;color:var(--acc-text)!important;font-weight:600}
+.fsel10 .clr10{flex:none;width:32px;height:32px;border-radius:50%;border:1px solid var(--line9);background:var(--surface);color:var(--ink-3);display:grid;place-items:center;cursor:pointer;font:inherit;font-size:calc(13px*var(--fz));padding:0}
+.fsel10 .clr10:hover{background:var(--hover);color:var(--ink)}
+.cnt10{display:flex;align-items:center;gap:10px}
+.cnt10 .small{margin-left:auto;font-size:calc(13px*var(--fz));color:var(--ink-3);white-space:nowrap}
+/* 3 관리 대상 상세 아래: 받은 도움 기록 | 담당자 메모 같은 높이, 월별 그래프는 아래 한 줄 전체 */
+.care10-chart{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:28px;align-items:center;border-top:1px solid var(--rule-2);padding:20px 22px 22px}
+.care10-chart .carechart svg.chart{max-width:420px!important}
+.care10-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0}
+.care10-sum>div{border:1px solid var(--line9);border-radius:12px;padding:14px 16px}
+.care10-sum dt{font-size:calc(13px*var(--fz));color:var(--ink-3)}
+.care10-sum dd{margin:4px 0 0;font-size:calc(18px*var(--fz));font-weight:700;color:var(--ink)}
+@media (max-width:1300px){.care10-chart{grid-template-columns:minmax(0,1fr)}}
+body.ai-open .care10-chart{grid-template-columns:minmax(0,1fr)}
+.carechart path.bar{fill:color-mix(in srgb,var(--acc) 30%,var(--surface))!important}
+.carechart path.bar[style*="fill:var(--a500)"]{fill:var(--acc)!important}
+/* 4 기관 행사: 지난 행사 (예시 데이터) */
+.pastev10 .prow{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 28px;border-top:1px solid var(--rule-2)}
+.pastev10 .prow:first-of-type{border-top:0}
+.pastev10 .pd{display:grid;justify-items:center;border-radius:10px;background:var(--sunken,#F4F5F7);padding:6px 0;line-height:1.3;color:var(--ink-3);font-size:calc(13px*var(--fz))}
+.pastev10 .pd b{font-size:calc(18px*var(--fz));font-weight:700;color:var(--ink-2)}
+.pastev10 .pt{display:grid;gap:2px;min-width:0}
+.pastev10 .pt b{font-size:calc(15px*var(--fz));font-weight:600;color:var(--ink)}
+.pastev10 .pt span{font-size:calc(13px*var(--fz));color:var(--ink-3)}
+.pastev10 .pn{display:flex;gap:18px;align-items:baseline;white-space:nowrap;font-size:calc(13px*var(--fz));color:var(--ink-3)}
+.pastev10 .pn b{font-size:calc(15px*var(--fz));font-weight:700;color:var(--ink);margin-left:4px}
+/* 5 리포트 위 카드: 다른 숫자 카드와 같은 모양(높이 157, 이름·숫자·보조 줄, 링·아이콘은 오른쪽 위) */
+html body .bento.rp>.bt{min-height:157px;border-color:transparent!important;box-shadow:0 1px 2px rgba(16,24,40,.04)!important;border-radius:16px}
+html body .bento.rp>.bt.rp10k{display:block!important;position:relative;padding:24px 26px 22px!important}
+.rp10k .label{font-size:calc(15px*var(--fz));font-weight:500;color:var(--ink-3);line-height:1.6;padding-right:56px}
+.rp10k .value{font-size:calc(32px*var(--fz));font-weight:700;line-height:1.3;margin-top:12px;color:var(--ink);letter-spacing:-.02em}
+.rp10k .value .u,.rp10k .value .of{font-size:calc(15px*var(--fz));font-weight:500;color:var(--ink-3);margin-left:3px}
+.rp10k .value .of{margin-left:4px;font-size:calc(18px*var(--fz))}
+.rp10k .meta{font-size:calc(13px*var(--fz));color:var(--ink-3);margin-top:12px;line-height:1.5}
+html body .rp10k>.ring{position:absolute!important;top:20px;right:22px;width:40px!important;height:40px!important;margin:0!important}
+html body .rp10k>.ring b{display:none!important}
+html body .rp10k>.itile{position:absolute!important;top:20px;right:22px;margin:0!important}
+/* 6 홈 오늘 처리할 일: 제목 ↔ 단계 칩 24px */
+html body .o1>.flow10{margin-top:10px!important}
+/* 7 특보 목록: '우리 지역'은 제목 줄 오른쪽, 지역·날짜는 한 줄 → 모든 줄 같은 높이 */
+html body .stickl .lrow{display:grid!important;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:4px;align-items:center}
+html body .stickl .lrow>.sp{display:contents!important}
+html body .stickl .lrow>.sp>.sev{grid-column:1;grid-row:1;min-width:0}
+html body .stickl .lrow>.tag{grid-column:2;grid-row:1;margin:0!important}
+html body .stickl .lrow>.sp>.d{grid-column:1/3;grid-row:2;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;margin:0!important}
+html body .stickl .lrow>.sp>.d .mt{flex-wrap:nowrap!important;white-space:nowrap}
+/* 8 요청 보드: 할 일이 없는 카드에도 회색 상태 줄 → 날짜·종류 간격과 카드 높이 같게 */
+html body .kcard .w.g10{color:var(--ink-3)!important;font-weight:400!important}
+</style>
+<script id="v10c-js">
+/* 10판 3차: 끌기 손잡이 위치·범위, 필터 표시, 지난 행사, 요청 보드 상태 줄 */
+(function(){
+const view=()=>((location.hash||'#home').slice(1).split('/')[0]||'home');
+const KEY='ts-layout:staff-1001';
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}};
+const save=o=>{try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}};
+const grip='<span class="dg9-grip" aria-hidden="true"><svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></svg></span>';
+const ttl=p=>{const h=p.querySelector(':scope>.panel-h h2,:scope>.fold-h h2,:scope>.panel-h h3');if(!h)return '';let t='';h.childNodes.forEach(n=>{if(n.nodeType===3)t+=n.textContent});return (t.trim()?t:h.textContent).replace(/[0-9]+/g,'').replace(/\s+/g,' ').trim()};
+/* A-1 손잡이를 제목 첫 줄 가운데에 맞춘다 */
+function gripPos(){document.querySelectorAll('#main .dg9-h').forEach(h=>{if(!h.offsetParent)return;const corner=h.classList.contains('dg9-corner');const box=corner?h.parentElement:h;const t=corner?box.querySelector('h3,h2'):h.querySelector('h2,h3');if(!t)return;const br=box.getBoundingClientRect(),tr=t.getBoundingClientRect();const lh=parseFloat(getComputedStyle(t).lineHeight)||tr.height;const y=tr.top-br.top+Math.min(tr.height,lh)/2;h.style.setProperty('--g10t',Math.round(y)+'px')})}
+/* A-2 한 칸에 이름 있는 카드가 하나뿐인 화면(공공 연계 '이번 달 현황' 등)도 위아래로 옮길 수 있게 */
+let wd=null;
+function toast(msg,undo){document.querySelectorAll('.dg9-toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='dg9-toast';t.setAttribute('role','status');t.innerHTML=`<span>${msg}</span><button type="button" data-u>되돌리기</button><button type="button" data-r>이 화면 기본 배치로</button>`;document.body.appendChild(t);t.querySelector('[data-u]').onclick=()=>{undo();t.remove()};t.querySelector('[data-r]').onclick=()=>{const s=load();Object.keys(s).filter(k=>k.startsWith(view()+':')).forEach(k=>delete s[k]);save(s);t.remove();render()};clearTimeout(toast._h);toast._h=setTimeout(()=>t.remove(),5000)}
+function wrapDrag(){const wrap=document.querySelector('#main .wrap');if(!wrap||wrap.dataset.w10)return;wrap.dataset.w10='1';
+ const items=[...wrap.children].filter(c=>c.classList.contains('cols')||c.classList.contains('panel'));const tp=items.filter(c=>c.classList.contains('panel')&&ttl(c));
+ if(items.length<2||tp.length!==1)return; /* 2개 이상이면 v9-drag가 맡는다 */
+ items.forEach((c,i)=>c.dataset.w10i=i);const K=view()+':wrap';
+ const ord=load()[K];if(ord&&ord.length===items.length){const slots=items.map(k=>{const m=document.createComment('w');k.before(m);return m});ord.map(i=>items[i]).forEach((k,i)=>{if(k)slots[i].replaceWith(k)});slots.forEach(m=>m.isConnected&&m.remove())}
+ const cur=()=>[...wrap.children].filter(c=>c.dataset.w10i!=null);
+ const commit=old=>{const st=load();st[K]=cur().map(c=>+c.dataset.w10i);save(st);toast('배치를 저장했어요. 다음에도 이 순서로 보여요.',()=>{const s=load();if(old)s[K]=old;else delete s[K];save(s);render()})};
+ const p=tp[0],h=p.querySelector(':scope>.panel-h,:scope>.fold-h');if(!h||h.dataset.dg9)return;h.dataset.dg9='1';h.classList.add('dg9-h');h.setAttribute('draggable','true');h.title='끌어서 순서 바꾸기';h.insertAdjacentHTML('afterbegin',grip);if(h.tagName!=='BUTTON'&&!h.hasAttribute('tabindex'))h.tabIndex=0;
+ const clr=()=>wrap.querySelectorAll('.w10-before,.w10-after').forEach(x=>x.classList.remove('w10-before','w10-after'));
+ h.addEventListener('dragstart',e=>{wd=p;p.classList.add('dg9-src');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',ttl(p))}catch(_){}});
+ h.addEventListener('dragend',()=>{clr();p.classList.remove('dg9-src');wd=null});
+ h.addEventListener('keydown',e=>{if(!e.altKey||(e.key!=='ArrowUp'&&e.key!=='ArrowDown'))return;e.preventDefault();const L=cur(),j=L.indexOf(p)+(e.key==='ArrowUp'?-1:1);if(j<0||j>=L.length)return;const old=load()[K];if(e.key==='ArrowUp')L[j].before(p);else L[j].after(p);commit(old);h.focus()});
+ items.forEach(t=>{t.addEventListener('dragover',e=>{if(!wd||t===wd)return;e.preventDefault();e.stopPropagation();const r=t.getBoundingClientRect();clr();t.classList.add(e.clientY<r.top+r.height/2?'w10-before':'w10-after')});
+  t.addEventListener('drop',e=>{if(!wd||t===wd)return;e.preventDefault();e.stopPropagation();const after=t.classList.contains('w10-after');clr();const old=load()[K];if(after)t.after(wd);else t.before(wd);wd.classList.remove('dg9-src');wd=null;commit(old);gripPos()})});
+}
+/* 1 기관 공고: 칩이 있으면 탭 '전체'를 테두리만 */
+function postsTabs(){const tb=document.querySelector('#main .toolbar');if(!tb)return;tb.classList.toggle('kf10',!!tb.querySelector('.fchip10'))}
+/* 2·3 관리 대상: 드롭다운 상태 표시, 목록 횟수 기준 안내 */
+function careUi(){if(view()!=='care')return;const sel=document.querySelector('#main select.fsel');const ep=(S.f&&S.f.ep)||'전체';
+ if(sel&&!sel.dataset.v10c){sel.dataset.v10c='1';if(ep!=='전체'){const w=document.createElement('div');w.className='fsel10';sel.before(w);w.appendChild(sel);sel.classList.add('on10');w.insertAdjacentHTML('beforeend',`<button type="button" class="clr10" aria-label="${ep} 필터 지우기" title="필터 지우기 (전체 보기)" onclick="S.f.ep='전체';render()">✕</button>`)}}
+ const ai=document.querySelector('#main .c-side>.panel .ai-tag');if(ai&&!ai.parentElement.classList.contains('cnt10')){ai.parentElement.classList.add('cnt10');ai.insertAdjacentHTML('afterend','<span class="small">막대·횟수는 이번 달 기준</span>')}
+ document.querySelectorAll('#main .c-side .rcol').forEach(r=>{const m=r.querySelector('.mo10'),b=r.querySelector('.pillbar');if(m&&!m.title){m.title='이번 달 '+m.textContent.trim()+(b?' ('+b.title.split('/')[1].trim()+')':'')}})}
+/* 4 기관 행사: 지난 행사 — 예시 데이터(실제 서비스는 끝난 행사 기록에서 가져온다) */
+const PAST=[['10','24','토','나들이','가을 나들이 · 서울숲 산책','행복요양원 앞 출발 · 휠체어 동행 4명',18,142],['9','23','수','교실','추석 송편 빚기','행복요양원 1층 강당 · 가족 함께',24,96],['9','5','토','교실','어르신 건강 체조 교실','2층 프로그램실 · 강사 초청',15,71]];
+function pastEv(){if(view()!=='events')return;const w=document.querySelector('#main .evwrap');if(!w||document.querySelector('#main .pastev10'))return;
+ w.insertAdjacentHTML('afterend',`<section class="panel pastev10"><div class="panel-h tight"><h2>지난 행사 <span class="tn cnt-n">${PAST.length}</span></h2><span class="small muted">최근 3개월 · 참여 인원은 담당자가 행사 뒤 적은 값</span></div>
+ ${PAST.map(p=>`<div class="prow"><div class="pd"><span>${p[0]}월</span><b class="tn">${p[1]}</b><span>${p[2]}요일</span></div><div class="pt"><span class="tag" style="justify-self:start">${p[3]}</span><b>${p[4]}</b><span>${p[5]}</span></div><div class="pn tn"><span>참여<b>${p[6]}명</b></span><span>조회<b>${p[7]}</b></span></div></div>`).join('')}</section>`)}
+/* 8 요청 보드: 할 일 줄이 없는 카드에 회색 상태 줄 */
+function kcards(){document.querySelectorAll('#main .kcol').forEach(col=>{const h=col.querySelector('.kc-h b');const st=h?h.textContent.trim():'';col.querySelectorAll('.kcard').forEach(k=>{if(k.querySelector('.w'))return;const v=k.querySelector('.d .mt>span:last-child');const vn=v?v.textContent.trim():'';const line=st==='완료'?'완료 · 일지 확인함':st+(vn?' · 봉사자 '+vn:'');k.insertAdjacentHTML('beforeend',`<span class="w g10">${line}</span>`)})})}
+function run(){try{postsTabs()}catch(e){console.warn(e)}try{careUi()}catch(e){console.warn(e)}try{pastEv()}catch(e){console.warn(e)}try{kcards()}catch(e){console.warn(e)}try{wrapDrag()}catch(e){console.warn(e)}try{gripPos()}catch(e){console.warn(e)}}
+const _r10c=render;render=function(){_r10c.apply(this,arguments);run()};
+addEventListener('load',()=>setTimeout(run,30));addEventListener('resize',()=>{try{gripPos()}catch(e){}});
+document.addEventListener('toggle',()=>setTimeout(gripPos,0),true);
+})();
+</script>
+
 </body>
 </html>
