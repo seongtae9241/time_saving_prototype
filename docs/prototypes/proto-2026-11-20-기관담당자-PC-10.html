@@ -5118,12 +5118,22 @@ function note(msg,snap){document.querySelectorAll('.dg9-toast').forEach(t=>t.rem
  t.querySelector('[data-u]').onclick=()=>{try{save(JSON.parse(snap))}catch(e){}t.remove();render()};
  t.querySelector('[data-r]').onclick=()=>{const s=load();Object.keys(s).filter(k=>k.startsWith(view()+':')).forEach(k=>delete s[k]);save(s);t.remove();render()};
  clearTimeout(note._h);note._h=setTimeout(()=>t.remove(),6000)}
+/* 카드 가장자리에 닿는 바탕색 있는 자식(보드 판·꼬리 줄·표 머리 등)은 카드 모서리 둥글기에 맞춘다:
+   카드 모서리에 닿으면 같은 둥글기, 옆 가장자리 중간에 닿으면 그쪽 모서리는 각지게 → 모서리 흰 틈·삐져나옴 없음 */
+const bgOf=e=>{const cs=getComputedStyle(e);const c=cs.backgroundColor;const has=(c&&c!=='transparent'&&!/rgba\([^)]*,\s*0\)$/.test(c))||cs.backgroundImage!=='none';return has?c+'|'+cs.backgroundImage:null};
+function corners(root){(root||document).querySelectorAll('#main .panel,#layer .panel').forEach(P=>{if(!P.getClientRects().length)return;const cs=getComputedStyle(P);const pr=R(P);const bl=parseFloat(cs.borderLeftWidth)||0,bt=parseFloat(cs.borderTopWidth)||0;const pb=bgOf(P);
+ const rad={tl:parseFloat(cs.borderTopLeftRadius)||0,tr:parseFloat(cs.borderTopRightRadius)||0,bl:parseFloat(cs.borderBottomLeftRadius)||0,br:parseFloat(cs.borderBottomRightRadius)||0};if(!rad.tl&&!rad.tr&&!rad.bl&&!rad.br)return;
+ const L=pr.left+bl,T=pr.top+bt,Rr=pr.right-bl,B=pr.bottom-bt;
+ P.querySelectorAll('*').forEach(e=>{if(e.closest('.dg11-top,.dg11-sh,svg'))return;const r=R(e);if(!r.width||!r.height)return;const dl=r.left-L,dt=r.top-T,dr=Rr-r.right,db=B-r.bottom;if(dl>18&&dt>18&&dr>18&&db>18)return;
+  const b=bgOf(e);if(!b||b===pb)return;const es=getComputedStyle(e);
+  [['tl',dl,dt,'borderTopLeftRadius'],['tr',dr,dt,'borderTopRightRadius'],['bl',dl,db,'borderBottomLeftRadius'],['br',dr,db,'borderBottomRightRadius']].forEach(([k,a,c,prop])=>{const Rk=rad[k];if(!Rk||Math.min(a,c)>1||a<-1||c<-1)return;const need=Math.max(0,Rk-Math.max(a,c));const cur=parseFloat(es[prop])||0;if(Math.abs(cur-need)>0.5){e.style.setProperty(prop.replace(/[A-Z]/g,m=>'-'+m.toLowerCase()),Math.round(need)+'px','important');e.dataset.dg11r='1'}})})})}
 /* 화면 폭에 따라: 위아래로 쌓인 좌우 칸, 한 줄로 합쳐진 홈 칸(저장된 순서는 order로) */
 function refresh(){const st=load();
  C.forEach((c,i)=>{if(!c.isConnected)return;const md=mode(c);c.classList.toggle('dg11-stk',md==='stack');const L=st[V+':g'+i];
   flatPanels(c).forEach(p=>{if(md==='flat'&&Array.isArray(L)){const k=L.indexOf(tok(p));p.style.order=k<0?'':String(k+1);p.dataset.dg11o='1'}else if(p.dataset.dg11o){p.style.order='';delete p.dataset.dg11o}})});
  Z.forEach(z=>z.classList.toggle('dg11-empty',C.includes(z.parentElement)&&!items(z).length));
- try{window.__gripPos10&&window.__gripPos10()}catch(e){}}
+ try{window.__gripPos10&&window.__gripPos10()}catch(e){}
+ try{corners()}catch(e){}}
 const _rV11=render;render=function(){_rV11.apply(this,arguments);try{setup()}catch(e){console.warn(e)}};
 addEventListener('load',()=>setTimeout(()=>{try{setup()}catch(e){console.warn(e)}},60));
 let rq=0;const ro=()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{try{if(M()&&C.length)refresh()}catch(e){}})};
