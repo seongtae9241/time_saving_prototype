@@ -3376,6 +3376,23 @@ body.ai-open .flow7 a>span{display:inline!important}
 .kpi:first-child{padding-left:22px!important}
 .ht9{display:none!important}
 </style>
+<style id="v9-flow-gap">/* 단계 칩 줄 위아래 여백 (사용자 지적: 너무 붙어 있음) */
+.panel>nav.flow7{margin:20px 24px 22px!important;gap:10px!important}
+</style>
+<style id="v9-insight-air">
+/* AI 안내 상자: 위아래 여백·줄 간격 (빽빽하다는 지적) */
+.insight{padding:18px 22px!important;gap:14px!important;align-items:flex-start!important;line-height:1.6!important}
+.insight p{margin:0!important;line-height:1.6!important}
+.insight .basis{margin-top:10px!important;line-height:1.6!important}
+.insight .ai-tag{margin-top:2px}
+</style>
+<style id="v9-fold-air">
+/* 접는 카드: 제목 줄과 내용 사이 띄우기 (제목·메시지가 붙어 있다는 지적) */
+.panel.fold.open>.fold-h{border-bottom:1px solid var(--line9,var(--rule))!important}
+.panel.fold>.foldb>.panel-b{padding-top:22px!important}
+.panel.fold>.foldb>:first-child:not(.panel-b){margin-top:18px}
+.chat{gap:10px!important}
+</style>
 <style id="v10">
 /* ===== 10판: 팀원 운영자 콘솔(ref-팀원디자인-2026-11-19) 느낌을 더 강하게 =====
    회색 바탕 #F4F5F7 + 흰 평면 카드(모서리 16, 선 없음) · 넉넉한 안쪽 여백 · 카드 사이 24px
@@ -3467,6 +3484,59 @@ input[type=text],input[type=search],input[type=tel],input[type=date],input[type=
 .kcard{border:1px solid var(--line9)!important;border-radius:14px!important}
 .kcard>:last-child{border-top:1px solid var(--rule-2)!important}
 .kcard>:last-child::before,.kcard>:last-child::after{display:none!important;content:none!important}
+
+/* ---- 2차: 뭉치지 않게 ---- */
+.panel>.panel-b:first-child{padding-top:26px!important}
+/* 단계 칩 줄(홈 처리할 일): 제목·표 머리와 20px 이상 떨어지게, 칩 사이 10px */
+.panel>nav.flow7{margin:22px var(--px10) 26px!important;gap:10px!important;flex-wrap:wrap}
+.flow7 a{height:38px!important;padding:0 10px 0 16px!important;font-size:calc(14px*var(--fz))!important;gap:10px!important}
+/* 카드 안 표: 좌우 끝을 카드 안쪽 여백(28px)에 맞춤 */
+.panel table th:first-child,.panel table td:first-child{padding-left:var(--px10)!important}
+.panel table th:last-child,.panel table td:last-child{padding-right:var(--px10)!important}
+/* 목록 줄 */
+.lrow{padding:16px 24px!important;gap:14px!important}
+.more,button.more{padding:14px!important;font-size:calc(14px*var(--fz))!important;border-top:1px solid var(--rule-2)!important}
+/* 요청 보드: 칸 사이 넓게, 바탕 가라앉은 면 */
+.kb{gap:16px!important;padding:20px!important;background:var(--sunken)}
+.kcard{padding:16px!important}
+.kc-h{font-size:calc(14px*var(--fz))!important}
+/* 탭 · 세그먼트 */
+.tabs button{font-size:calc(14px*var(--fz))!important;height:40px!important}
+.toolbar{gap:16px!important;min-height:48px}
+.fold-h{padding:20px var(--px10)!important}
+.fold-h .sub{font-size:calc(13.5px*var(--fz))!important}
+
+/* ---- 3차: 글자 점검 결과 고침 ---- */
+.kpi .value{line-height:1.25!important}
+.kpi .meta,.kpi .meta>span{overflow:visible!important;text-overflow:clip!important}
+.kpi .meta>span:not(.up){white-space:normal!important}
+.seg button.on .tn,.tabs button.on .tn,.seg button.on .cnt,.tabs button.on .cnt{color:#fff!important;opacity:1!important}
+.seg button .tn{font-size:calc(13px*var(--fz))!important}
+.dialog .detail-h,.drawer .detail-h,.dialog-h,.drawer-h{align-items:center!important}
+td .who{align-items:center!important}
+.sp>.d{line-height:1.6!important}
+.chips.ck{margin:14px 0 16px!important}
+.field>label+.chips,.field>label+.seg{margin-top:6px}
+.tag.kd{width:auto!important;max-width:none!important;padding:2px 10px!important}
+/* AI 도우미를 열어 본문이 좁아지면 숫자 카드는 2칸씩 */
+@media (max-width:1560px){body.ai-open .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+/* 1400px 이하 홈: '먼저 살펴볼 분'은 한 줄 띠 — 10판 여백 규칙이 띠를 깨지 않게 다시 정함 */
+@media (max-width:1400px){
+  .home2 .o2{height:auto!important;min-height:72px;overflow:hidden;display:flex!important;align-items:center;padding:0!important;margin:0!important}
+  .home2 .o2>.panel-h:first-child{padding:0 8px 0 var(--px10)!important;display:flex!important;flex-direction:column;align-items:flex-start!important;gap:4px!important;flex:none}
+  .home2 .o2>.panel-h h2{font-size:calc(16px*var(--fz))!important}
+  .home2 .o2>div:nth-child(2){display:flex!important;flex:1;min-width:0;padding:0 12px 0 0!important}
+  .home2 .o2 .lrow{flex:1;min-width:0;padding:14px 12px!important;border-top:0!important;align-items:center}
+  .home2 .o2 .lrow+.lrow{border-left:1px solid var(--rule-2)!important}
+}
+body.ai-open .home2 .o2{height:auto!important;display:block!important}
+/* 본문 문장은 14.5px, 보조 줄은 13.5px */
+.kpi .value,.ev-d .num,.ev-d b{line-height:1.3!important}
+.muted.small,.small.muted{font-size:calc(13.5px*var(--fz))!important;line-height:1.55}
+.lrow .d,.sp>.d,.tline .d,.b-msg,.banner .b-msg,dl dd,.nextbox .note,.empty.pic>span,p.note,p.cap,ol.how li,details.opt>summary,.aib-note,.panel-b>p,.sv-me .sv-k{font-size:calc(14.5px*var(--fz))!important;line-height:1.6}
+.banner .sp,.banner .sp *{font-size:calc(14.5px*var(--fz))!important}
+#main div>p:not([class]){font-size:calc(14.5px*var(--fz))}
+.field>label+.chips{margin-top:8px!important}
 
 </style>
 </head>
@@ -4104,7 +4174,7 @@ function reqBoard(){
   return `<section class="panel lead"><div class="kbwrap"><div class="kb" style="--kbc:${dn?'repeat(5,minmax(0,1fr))':'repeat(4,minmax(0,1fr)) 76px'}">${COLS.map(([t,ss],ci)=>{const L=REQS.filter(r=>ss.includes(r.st));const key='kb'+ci;
     if(t==='완료'&&!dn)return `<button type="button" class="kcol kfold" aria-expanded="false" title="완료 ${L.length}건 펼치기" onclick="S.open.kbDone=true;render()"><b>완료</b><span class="tn">${L.length}</span><em>펼치기</em>${icon('go')}</button>`;
     return `<div class="kcol"><div class="kc-h c${ci}"><b>${stg(ss[0])}${t}</b><span>${L.length}</span></div>${lim(key,L,4).map(r=>{const e=EL(r.e);return `<button type="button" class="kcard" onclick="go('req','${r.id}')"><span class="kc-top"><b>${av(e.n,'s')}${pdot(e)}${e.n} 님</b>${DUE[r.id]&&[0,1,4].includes(r.st)?`<span class="duep ${DUE[r.id][1]===2?'hot':''}" title="${DUE[r.id][0]}">${icon('clock')}<i>${DUE[r.id][0].replace('오늘 ','')}</i></span>`:''}</span><span class="d tn">${r.d} ${r.tm.split('~')[0]}</span><span class="d ellip">${mt(r.cat,P[r.v].n)}</span><span class="w ${[0,1,4].includes(r.st)?'act':''}">${r.what}</span></button>`}).join('')||'<div class="kc-empty">없어요</div>'}${t==='진행 중'&&L.length<=1?art('walk'):''}${L.length>4?`<button type="button" class="more" onclick="S.more['${key}']=${!S.more[key]};render()">${S.more[key]?'접기':`더 보기 (${L.length-4}건)`}</button>`:''}</div>`}).join('')}</div></div>
-    <div class="panel-f line-note">카드를 누르면 상세로 가요. 파란 글씨 ${todo().length}건이 담당자가 처리할 차례인 일이에요.</div></section>
+    <div class="panel-f line-note">카드를 누르면 상세로 가요. 주황 글씨 ${todo().length}건이 담당자가 처리할 차례인 일이에요.</div></section>
   ${fold('rqStat','응답까지 걸린 시간',`이번 주 평균 ${RT[3]}시간 · 4주 전 ${RT[0]}시간`,`<div class="panel-b chartrow" style="padding-top:0"><div class="chartw">${lineChart1({labels:RTW,values:RT,unit:'시간',max:8,step:2,aria:'제안이나 일지가 도착한 뒤 담당자가 응답하기까지 걸린 시간의 주별 평균. 4주 전 6.2시간에서 이번 주 2.1시간으로 줄었어요.'})}${cap('기록 숫자 · 도착한 시각부터 응답한 시각까지 · 주별 평균 · 최근 4주')}</div>
     <dl class="props w" style="align-self:center"><dt>이번 주 평균</dt><dd class="tn"><b>${RT[3]}시간</b></dd><dt>4주 전 평균</dt><dd class="tn">${RT[0]}시간</dd><dt>응답 기한</dt><dd>제안 도착 뒤 24시간 안</dd><dt>지금 기다리는 일</dt><dd class="tn">${todo().length}건</dd></dl></div>`)}`;
 }
@@ -4392,6 +4462,28 @@ function tiles9(root){(root||document).querySelectorAll('.panel>.panel-h:first-c
 {const _r9=render;render=function(){_r9.apply(this,arguments);try{tiles9($('#main'))}catch(e){console.warn(e)}}}
 
 render();
+</script>
+<style id="v9-catcolor">
+/* 편성표 분류별 색 (같은 코랄 톤이라 구분이 어렵다는 지적) — 확정은 진한 면, 요청·공고 올림은 흰 면+점선 왼쪽 막대 */
+.cev.k-go{--kb:#E6EEFC;--kl:#3B6FD1}
+.cev.k-shop{--kb:#E2F3EA;--kl:#1F8A5B}
+.cev.k-talk{--kb:#EEEAFB;--kl:#6A55C9}
+.cev.k-digi{--kb:#DFF2F5;--kl:#0F7F8E}
+.cev.k-tidy{--kb:#FBF0D9;--kl:#A8740C}
+.cev.k-home{--kb:#FBE6EE;--kl:#B5456F}
+.cev[class*="k-"]:not(.gap){background:var(--kb)!important;border-left:4px solid var(--kl)!important}
+.cev[class*="k-"]:not(.gap) b{color:var(--ink)}
+.cev[class*="k-"].reqd{background:var(--surface,#fff)!important;border-left-style:dashed!important;outline:1px solid var(--kb)}
+:root[data-theme="dark"] .cev[class*="k-"]:not(.gap):not(.reqd){background:color-mix(in srgb,var(--kl) 26%,var(--surface,#171A20))!important}
+.catleg9{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.catleg9 i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+</style>
+<script>
+(function(){const K=[[/동행|병원/,'go','동행'],[/장보기|심부름/,'shop','장보기·심부름'],[/말동무|정서/,'talk','말동무·정서'],[/디지털/,'digi','디지털 도움'],[/생활 정리|정리/,'tidy','생활 정리'],[/집안일|청소/,'home','집안일']];
+function cat9(){document.querySelectorAll('.cev:not(.gap)').forEach(e=>{if(/\bk-/.test(e.className))return;const t=e.getAttribute('title')||e.textContent;const m=K.find(([re])=>re.test(t));if(m)e.classList.add('k-'+m[1])});
+document.querySelectorAll('.sw.box').forEach(sw=>{const row=sw.parentElement&&sw.parentElement.parentElement;if(!row||row.querySelector('.catleg9'))return;if(!/확정/.test(row.textContent))return;row.insertAdjacentHTML('beforeend','<span class="catleg9">'+K.map(k=>`<span><i style="background:var(--kb);border-left:3px solid var(--kl)" class="k-${k[1]} cev-sw"></i>${k[2]}</span>`).join('')+'</span>')});
+document.querySelectorAll('.cev-sw').forEach(i=>{const m={go:['#E6EEFC','#3B6FD1'],shop:['#E2F3EA','#1F8A5B'],talk:['#EEEAFB','#6A55C9'],digi:['#DFF2F5','#0F7F8E'],tidy:['#FBF0D9','#A8740C'],home:['#FBE6EE','#B5456F']}[i.className.match(/k-(\w+)/)[1]];i.style.background=m[0];i.style.borderLeftColor=m[1]})}
+const _r=render;render=function(){_r.apply(this,arguments);try{cat9()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(cat9,0));})();
 </script>
 </body>
 </html>
