@@ -5125,7 +5125,7 @@ function corners(root){(root||document).querySelectorAll('#main .panel,#layer .p
  const rad={tl:parseFloat(cs.borderTopLeftRadius)||0,tr:parseFloat(cs.borderTopRightRadius)||0,bl:parseFloat(cs.borderBottomLeftRadius)||0,br:parseFloat(cs.borderBottomRightRadius)||0};if(!rad.tl&&!rad.tr&&!rad.bl&&!rad.br)return;
  const L=pr.left+bl,T=pr.top+bt,Rr=pr.right-bl,B=pr.bottom-bt;
  P.querySelectorAll('*').forEach(e=>{if(e.closest('.dg11-top,.dg11-sh,svg'))return;const r=R(e);if(!r.width||!r.height)return;const dl=r.left-L,dt=r.top-T,dr=Rr-r.right,db=B-r.bottom;if(dl>18&&dt>18&&dr>18&&db>18)return;
-  const b=bgOf(e);if(!b||b===pb)return;const es=getComputedStyle(e);
+  const es=getComputedStyle(e);const b=bgOf(e);const clip=es.overflow!=='visible'&&e.firstElementChild&&bgOf(e.firstElementChild);if(!clip&&(!b||b===pb))return;
   [['tl',dl,dt,'borderTopLeftRadius'],['tr',dr,dt,'borderTopRightRadius'],['bl',dl,db,'borderBottomLeftRadius'],['br',dr,db,'borderBottomRightRadius']].forEach(([k,a,c,prop])=>{const Rk=rad[k];if(!Rk||Math.min(a,c)>1||a<-1||c<-1)return;const need=Math.max(0,Rk-Math.max(a,c));const cur=parseFloat(es[prop])||0;if(Math.abs(cur-need)>0.5){e.style.setProperty(prop.replace(/[A-Z]/g,m=>'-'+m.toLowerCase()),Math.round(need)+'px','important');e.dataset.dg11r='1'}})})})}
 /* 화면 폭에 따라: 위아래로 쌓인 좌우 칸, 한 줄로 합쳐진 홈 칸(저장된 순서는 order로) */
 function refresh(){const st=load();
