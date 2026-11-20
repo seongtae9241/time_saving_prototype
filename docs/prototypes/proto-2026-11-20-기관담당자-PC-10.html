@@ -3398,7 +3398,7 @@ body.ai-open .flow7 a>span{display:inline!important}
 @keyframes nowPulse9{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--neg,#C8372D) 55%,transparent)}70%{box-shadow:0 0 0 8px color-mix(in srgb,var(--neg,#C8372D) 0%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
 .nowline{position:relative!important;height:0!important;margin:0!important;padding:0!important;border:0!important;background:none!important;overflow:visible!important}
 .nowline::before,.nowline::after{display:none!important}
-.nowline>span{position:absolute!important;left:6px!important;top:-5px!important;width:10px!important;height:10px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:var(--neg,#C8372D)!important;font-size:0!important;color:transparent!important;border:0!important;animation:nowPulse9 1.8s ease-out infinite;z-index:2}
+.nowline>span{position:absolute!important;left:30px!important;top:-5px!important;width:10px!important;height:10px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:var(--neg,#C8372D)!important;font-size:0!important;color:transparent!important;border:0!important;animation:nowPulse9 1.8s ease-out infinite;z-index:2}
 .cnow{height:0!important;border:0!important;background:none!important;left:0!important;right:auto!important;overflow:visible!important;z-index:5}
 .cnow::before,.cnow::after{display:none!important}
 .cnow>span{position:absolute!important;left:-6px!important;top:-6px!important;width:12px!important;height:12px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:var(--neg,#C8372D)!important;font-size:0!important;color:transparent!important;border:2px solid var(--surface,#fff)!important;box-sizing:border-box;animation:nowPulse9 1.8s ease-out infinite}
@@ -3563,14 +3563,34 @@ body.ai-open .home2 .o2{height:auto!important;display:block!important}
 .subrows .sub-h{padding:4px 0 6px!important;font-size:calc(13.5px*var(--fz))!important}
 .subrows .lrow{padding:12px 0!important}
 .ev-b{gap:6px!important}
-.detail-h h3{margin-bottom:6px!important}
+
 body.ai-open .home2 .o2>.panel-h:first-child{padding:26px var(--px10) 14px!important;flex-direction:row!important;align-items:center!important}
 body.ai-open .home2 .o2>div:nth-child(2){display:block!important;padding:0!important}
 body.ai-open .home2 .o2 .lrow{padding:16px 24px!important}
 body.ai-open .home2 .o2 .lrow+.lrow{border-left:0!important;border-top:1px solid var(--rule-2)!important}
 body.ai-open .home2 .o2 .panel-f{display:flex!important}
-.detail-h h3{margin-bottom:10px!important}
+.detail-h>div>h3{margin-bottom:10px!important}
+.detail-h>h3{margin:0!important}
+h3+.note{margin-top:10px}
 .ev-b h3{margin-bottom:4px!important}
+.catleg9 i.cev-sw{width:16px!important;height:14px!important;border-left-width:4px!important;border-left-style:solid!important;border-radius:3px!important}
+/* 5차: 화면 확인 */
+.panel.fold{background:var(--surface)!important}
+.stickl{margin-top:0!important;top:86px}
+.bento.rp{gap:var(--g10)!important}
+.bento .bt{padding:24px 26px!important;align-content:center}
+.bento .bt.wide{padding:0!important;overflow:hidden}
+.bento .bt.wide>.insight{border-radius:0!important;height:100%;padding:24px 28px!important;background:var(--surface)!important}
+.bt-l,.bt-s{font-size:calc(13.5px*var(--fz))!important}
+.toolbar{align-items:center!important}
+.toolbar>.filters{padding-bottom:0!important}
+.panel.evwrap{padding:24px var(--px10) 0!important;gap:20px!important}
+.panel.evwrap>.panel-f{margin:4px calc(-1 * var(--px10)) 0!important}
+/* 카드 끌기 손잡이(9판 v9-drag): 제목 앞 자리를 차지하지 않게 왼쪽 여백 안에 띄움 → 제목과 내용 왼쪽 끝이 맞음 */
+.dg9-h{position:relative}
+.dg9-h .dg9-grip{position:absolute!important;left:7px;top:50%;transform:translateY(-50%);margin:0!important;height:18px!important}
+.panel-h h2,.fold-h h2{line-height:1.5!important}
+.panel .detail-h h3{margin-bottom:10px!important}
 
 </style>
 </head>
@@ -4208,7 +4228,7 @@ function reqBoard(){
   return `<section class="panel lead"><div class="kbwrap"><div class="kb" style="--kbc:${dn?'repeat(5,minmax(0,1fr))':'repeat(4,minmax(0,1fr)) 76px'}">${COLS.map(([t,ss],ci)=>{const L=REQS.filter(r=>ss.includes(r.st));const key='kb'+ci;
     if(t==='완료'&&!dn)return `<button type="button" class="kcol kfold" aria-expanded="false" title="완료 ${L.length}건 펼치기" onclick="S.open.kbDone=true;render()"><b>완료</b><span class="tn">${L.length}</span><em>펼치기</em>${icon('go')}</button>`;
     return `<div class="kcol"><div class="kc-h c${ci}"><b>${stg(ss[0])}${t}</b><span>${L.length}</span></div>${lim(key,L,4).map(r=>{const e=EL(r.e);return `<button type="button" class="kcard" onclick="go('req','${r.id}')"><span class="kc-top"><b>${av(e.n,'s')}${pdot(e)}${e.n} 님</b>${DUE[r.id]&&[0,1,4].includes(r.st)?`<span class="duep ${DUE[r.id][1]===2?'hot':''}" title="${DUE[r.id][0]}">${icon('clock')}<i>${DUE[r.id][0].replace('오늘 ','')}</i></span>`:''}</span><span class="d tn">${r.d} ${r.tm.split('~')[0]}</span><span class="d ellip">${mt(r.cat,P[r.v].n)}</span><span class="w ${[0,1,4].includes(r.st)?'act':''}">${r.what}</span></button>`}).join('')||'<div class="kc-empty">없어요</div>'}${t==='진행 중'&&L.length<=1?art('walk'):''}${L.length>4?`<button type="button" class="more" onclick="S.more['${key}']=${!S.more[key]};render()">${S.more[key]?'접기':`더 보기 (${L.length-4}건)`}</button>`:''}</div>`}).join('')}</div></div>
-    <div class="panel-f line-note">카드를 누르면 상세로 가요. 주황 글씨 ${todo().length}건이 담당자가 처리할 차례인 일이에요.</div></section>
+    <div class="panel-f line-note">카드를 누르면 상세로 가요. 파란 글씨 ${todo().length}건이 담당자가 처리할 차례인 일이에요.</div></section>
   ${fold('rqStat','응답까지 걸린 시간',`이번 주 평균 ${RT[3]}시간 · 4주 전 ${RT[0]}시간`,`<div class="panel-b chartrow" style="padding-top:0"><div class="chartw">${lineChart1({labels:RTW,values:RT,unit:'시간',max:8,step:2,aria:'제안이나 일지가 도착한 뒤 담당자가 응답하기까지 걸린 시간의 주별 평균. 4주 전 6.2시간에서 이번 주 2.1시간으로 줄었어요.'})}${cap('기록 숫자 · 도착한 시각부터 응답한 시각까지 · 주별 평균 · 최근 4주')}</div>
     <dl class="props w" style="align-self:center"><dt>이번 주 평균</dt><dd class="tn"><b>${RT[3]}시간</b></dd><dt>4주 전 평균</dt><dd class="tn">${RT[0]}시간</dd><dt>응답 기한</dt><dd>제안 도착 뒤 24시간 안</dd><dt>지금 기다리는 일</dt><dd class="tn">${todo().length}건</dd></dl></div>`)}`;
 }
@@ -4518,6 +4538,86 @@ function cat9(){document.querySelectorAll('.cev:not(.gap)').forEach(e=>{if(/\bk-
 document.querySelectorAll('.sw.box').forEach(sw=>{const row=sw.parentElement&&sw.parentElement.parentElement;if(!row||row.querySelector('.catleg9'))return;if(!/확정/.test(row.textContent))return;row.insertAdjacentHTML('beforeend','<span class="catleg9">'+K.map(k=>`<span><i style="background:var(--kb);border-left:3px solid var(--kl)" class="k-${k[1]} cev-sw"></i>${k[2]}</span>`).join('')+'</span>')});
 document.querySelectorAll('.cev-sw').forEach(i=>{const m={go:['#E6EEFC','#3B6FD1'],shop:['#E2F3EA','#1F8A5B'],talk:['#EEEAFB','#6A55C9'],digi:['#DFF2F5','#0F7F8E'],tidy:['#FBF0D9','#A8740C'],home:['#FBE6EE','#B5456F']}[i.className.match(/k-(\w+)/)[1]];i.style.background=m[0];i.style.borderLeftColor=m[1]})}
 const _r=render;render=function(){_r.apply(this,arguments);try{cat9()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(cat9,0));})();
+</script>
+<style id="v9-drag">
+/* 카드 제목을 끌어 위치 바꾸기 (담당자별 저장) — 위아래 순서, 좌우 칸 바꾸기 */
+.dg9-h{cursor:grab;position:relative}
+.dg9-h:active{cursor:grabbing}
+.dg9-grip{position:absolute;left:6px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:12px;height:20px;color:var(--ink-4,#9CA3AF);opacity:0;transition:opacity .15s;pointer-events:none}
+.dg9-h:hover .dg9-grip,.dg9-h:focus-visible .dg9-grip{opacity:1}
+.panel.dg9-src{opacity:.45}
+.panel.dg9-before{box-shadow:0 -4px 0 0 var(--acc,#C2502F)!important}
+.panel.dg9-after{box-shadow:0 4px 0 0 var(--acc,#C2502F)!important}
+.dg9-col-l{box-shadow:-5px 0 0 0 var(--acc,#C2502F)!important;border-radius:16px}
+.dg9-col-r{box-shadow:5px 0 0 0 var(--acc,#C2502F)!important;border-radius:16px}
+.cols.dg9-rev{direction:rtl}
+.cols.dg9-rev>*{direction:ltr}
+.dg9-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1F2433;color:#fff;border-radius:999px;padding:10px 12px 10px 20px;display:flex;gap:12px;align-items:center;font-size:14.5px;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.dg9-toast button{border:0;border-radius:999px;padding:6px 12px;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:14.5px;cursor:pointer}
+.dg9-toast button:hover{background:rgba(255,255,255,.24)}
+</style>
+<script>
+/* 담당자별 카드 배치 저장
+   - 같은 칸 안의 카드: 제목을 끌어 위아래 순서를 바꾼다.
+   - 좌우로 나뉜 화면(특보 알림·관리 대상·공공 연계·리포트·권한 위임·홈): 제목을 다른 칸 쪽으로 끌면 왼쪽·오른쪽 칸이 바뀐다.
+   - 키보드: 제목에 초점 → Alt+↑/↓ 순서, Alt+←/→ 좌우.
+   - 프로토타입은 브라우저 저장소에 담당자 ID별로 저장한다.
+     실제 서비스는 서버에 저장: GET/PUT /api/org/me/layout  {"home:0":["오늘 일정","오늘 처리할 일"],"alerts:cols":"rev"} */
+(function(){
+const ME_ID='staff-1001'; /* 로그인한 담당자(박지현) */
+const KEY='ts-layout:'+ME_ID;
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}};
+const save=o=>{try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}};
+const view=()=>((location.hash||'#home').slice(1).split('/')[0]||'home');
+const title=p=>{const h=p.querySelector(':scope>.panel-h h2,:scope>.fold-h h2,:scope>.panel-h h3');if(!h)return '';let t='';h.childNodes.forEach(n=>{if(n.nodeType===3)t+=n.textContent});t=(t.trim()?t:h.textContent).replace(/[0-9]+/g,'').replace(/\s+/g,' ').trim();return t};
+const head=p=>p.querySelector(':scope>.panel-h,:scope>.fold-h');
+const titled=par=>[...par.children].filter(c=>c.classList.contains('panel')&&title(c));
+const cols=()=>[...document.querySelectorAll('#main .cols')].filter(c=>[...c.children].filter(k=>k.offsetWidth>0).length===2);
+const colOf=p=>{const c=p.closest('.cols');if(!c||!cols().includes(c))return null;let x=p;while(x.parentElement!==c)x=x.parentElement;return {c,col:x}};
+const groupKey=par=>{const all=new Set([...document.querySelectorAll('#main .panel')].map(x=>x.parentElement));let i=0,k=null;all.forEach(q=>{if(titled(q).length<2)return;if(q===par)k=view()+':'+i;i++});return k};
+const colKey=c=>view()+':cols'+cols().indexOf(c);
+const grip='<span class="dg9-grip" aria-hidden="true"><svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></svg></span>';
+let drag=null;
+const clear=()=>document.querySelectorAll('.dg9-before,.dg9-after,.dg9-col-l,.dg9-col-r').forEach(x=>x.classList.remove('dg9-before','dg9-after','dg9-col-l','dg9-col-r'));
+const isRev=c=>c.classList.contains('dg9-rev');
+/* 화면에서 이 칸이 왼쪽인지 */
+const isLeft=(c,col)=>{const first=[...c.children].find(k=>k.offsetWidth>0);return (col===first)!==isRev(c)};
+function setSide(c,col,left){if(isLeft(c,col)===left)return false;const before=load()[colKey(c)];c.classList.toggle('dg9-rev');const st=load();st[colKey(c)]=isRev(c)?'rev':'';save(st);note('왼쪽·오른쪽 칸을 바꿨어요. 다음에도 이 배치로 보여요.',()=>{const s=load();s[colKey(c)]=before||'';save(s);render()});return true}
+function moveV(p,ref,after){const par=p.parentElement;const old=load()[groupKey(par)];if(after)ref.after(p);else ref.before(p);const st=load();st[groupKey(par)]=titled(par).map(title);save(st);note('배치를 저장했어요. 다음에도 이 순서로 보여요.',()=>{const s=load();if(old)s[groupKey(par)]=old;else delete s[groupKey(par)];save(s);render()})}
+function apply(){const st=load();
+ /* 저장된 위아래 순서 */
+ new Set([...document.querySelectorAll('#main .panel')].map(x=>x.parentElement)).forEach(par=>{const kids=titled(par);if(kids.length<2)return;const ord=st[groupKey(par)];if(!ord||!ord.length)return;const sorted=[...kids].sort((a,b)=>{const ia=ord.indexOf(title(a)),ib=ord.indexOf(title(b));return (ia<0?99:ia)-(ib<0?99:ib)});const slots=kids.map(k=>{const m=document.createComment('s');k.before(m);return m});sorted.forEach((k,i)=>slots[i].replaceWith(k))});
+ /* 저장된 좌우 */
+ cols().forEach(c=>c.classList.toggle('dg9-rev',st[colKey(c)]==='rev'));
+ /* 끌 수 있는 카드: 같은 칸에 2개 이상이거나, 좌우 칸 안에 있는 카드 */
+ document.querySelectorAll('#main .panel').forEach(p=>{if(!title(p))return;const canV=titled(p.parentElement).length>=2;const cc=colOf(p);if(!canV&&!cc)return;const h=head(p);if(!h||h.dataset.dg9)return;h.dataset.dg9='1';
+  h.classList.add('dg9-h');h.setAttribute('draggable','true');h.title=(canV?'끌어서 순서 바꾸기':'')+(canV&&cc?' · ':'')+(cc?'옆 칸으로 끌면 좌우 바꾸기':'');h.insertAdjacentHTML('afterbegin',grip);
+  if(h.tagName!=='BUTTON'&&!h.hasAttribute('tabindex'))h.tabIndex=0;
+  h.addEventListener('dragstart',e=>{drag={p};p.classList.add('dg9-src');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',title(p))}catch(_){}});
+  h.addEventListener('dragend',()=>{clear();p.classList.remove('dg9-src');drag=null});
+  h.addEventListener('keydown',e=>{if(!e.altKey)return;const k=e.key;if(k==='ArrowUp'||k==='ArrowDown'){if(!canV)return;e.preventDefault();const sib=titled(p.parentElement);const j=sib.indexOf(p)+(k==='ArrowUp'?-1:1);if(j<0||j>=sib.length)return;moveV(p,sib[j],k==='ArrowDown');h.focus()}
+   else if((k==='ArrowLeft'||k==='ArrowRight')&&cc){e.preventDefault();const o=colOf(p);setSide(o.c,o.col,k==='ArrowLeft');h.focus()}});
+ });
+ /* 놓을 곳 */
+ document.querySelectorAll('#main .cols, #main .panel').forEach(t=>{if(t.dataset.dg9t)return;t.dataset.dg9t='1';
+  t.addEventListener('dragover',e=>{if(!drag)return;const src=drag.p;
+   if(t.classList.contains('panel')&&t!==src&&t.parentElement===src.parentElement){e.preventDefault();e.stopPropagation();const r=t.getBoundingClientRect();clear();t.classList.add(e.clientY<r.top+r.height/2?'dg9-before':'dg9-after');return}
+   const sc=colOf(src);if(!sc)return;const c=t.classList.contains('cols')?t:t.closest('.cols');if(c!==sc.c)return;
+   let tc=e.target;while(tc&&tc.parentElement!==c)tc=tc.parentElement;if(!tc||tc===sc.col)return;
+   e.preventDefault();e.stopPropagation();clear();const r=c.getBoundingClientRect();const left=e.clientX<r.left+r.width/2;tc.classList.add(left?'dg9-col-l':'dg9-col-r');drag.side={c,col:sc.col,left}});
+  t.addEventListener('drop',e=>{if(!drag)return;const src=drag.p;
+   if(t.classList.contains('panel')&&t!==src&&t.parentElement===src.parentElement&&(t.classList.contains('dg9-before')||t.classList.contains('dg9-after'))){e.preventDefault();e.stopPropagation();const after=t.classList.contains('dg9-after');clear();moveV(src,t,after);return}
+   if(drag.side&&document.querySelector('.dg9-col-l,.dg9-col-r')){e.preventDefault();e.stopPropagation();const s=drag.side;clear();setSide(s.c,s.col,s.left)}});
+ });
+}
+function note(msg,undo){document.querySelectorAll('.dg9-toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='dg9-toast';t.setAttribute('role','status');t.innerHTML=`<span>${msg}</span><button type="button" data-u>되돌리기</button><button type="button" data-r>이 화면 기본 배치로</button>`;document.body.appendChild(t);
+ t.querySelector('[data-u]').onclick=()=>{undo();t.remove()};
+ t.querySelector('[data-r]').onclick=()=>{const s=load();Object.keys(s).filter(k=>k.startsWith(view()+':')).forEach(k=>delete s[k]);save(s);t.remove();render()};
+ clearTimeout(note._h);note._h=setTimeout(()=>t.remove(),5000)}
+document.addEventListener('click',e=>{if(document.querySelector('.dg9-src'))e.stopPropagation()},true);
+const _rD=render;render=function(){_rD.apply(this,arguments);try{apply()}catch(e){console.warn(e)}};
+addEventListener('load',()=>setTimeout(()=>{try{apply()}catch(e){}},0));
+})();
 </script>
 </body>
 </html>

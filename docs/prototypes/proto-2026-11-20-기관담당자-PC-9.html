@@ -4349,5 +4349,103 @@ document.querySelectorAll('.sw.box').forEach(sw=>{const row=sw.parentElement&&sw
 document.querySelectorAll('.cev-sw').forEach(i=>{const m={go:['#E6EEFC','#3B6FD1'],shop:['#E2F3EA','#1F8A5B'],talk:['#EEEAFB','#6A55C9'],digi:['#DFF2F5','#0F7F8E'],tidy:['#FBF0D9','#A8740C'],home:['#FBE6EE','#B5456F']}[i.className.match(/k-(\w+)/)[1]];i.style.background=m[0];i.style.borderLeftColor=m[1]})}
 const _r=render;render=function(){_r.apply(this,arguments);try{cat9()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(cat9,0));})();
 </script>
+<style id="v9-drag">
+/* 카드 제목을 끌어 위치 바꾸기 (담당자별 저장) — 위아래 순서, 좌우 칸 바꾸기 */
+.dg9-h{cursor:grab;position:relative}
+.dg9-h:active{cursor:grabbing}
+.dg9-grip{position:absolute;left:6px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:12px;height:20px;color:var(--ink-4,#9CA3AF);opacity:0;transition:opacity .15s;pointer-events:none}
+.dg9-h:hover .dg9-grip,.dg9-h:focus-visible .dg9-grip{opacity:1}
+.panel.dg9-src{opacity:.45}
+.panel.dg9-before{box-shadow:0 -4px 0 0 var(--acc,#C2502F)!important}
+.panel.dg9-after{box-shadow:0 4px 0 0 var(--acc,#C2502F)!important}
+.dg9-col-l{box-shadow:-5px 0 0 0 var(--acc,#C2502F)!important;border-radius:16px}
+.dg9-col-r{box-shadow:5px 0 0 0 var(--acc,#C2502F)!important;border-radius:16px}
+.cols.dg9-rev{direction:rtl}
+.cols.dg9-rev>*{direction:ltr}
+.dg9-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1F2433;color:#fff;border-radius:999px;padding:10px 12px 10px 20px;display:flex;gap:12px;align-items:center;font-size:14.5px;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.dg9-toast button{border:0;border-radius:999px;padding:6px 12px;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:13.5px;cursor:pointer}
+.dg9-toast button:hover{background:rgba(255,255,255,.24)}
+</style>
+<script>
+/* 담당자별 카드 배치 저장
+   - 같은 칸 안의 카드: 제목을 끌어 위아래 순서를 바꾼다.
+   - 좌우로 나뉜 화면(특보 알림·관리 대상·공공 연계·리포트·권한 위임·홈): 제목을 다른 칸 쪽으로 끌면 왼쪽·오른쪽 칸이 바뀐다.
+   - 키보드: 제목에 초점 → Alt+↑/↓ 순서, Alt+←/→ 좌우.
+   - 프로토타입은 브라우저 저장소에 담당자 ID별로 저장한다.
+     실제 서비스는 서버에 저장: GET/PUT /api/org/me/layout  {"home:0":["오늘 일정","오늘 처리할 일"],"alerts:cols":"rev"} */
+(function(){
+const ME_ID='staff-1001'; /* 로그인한 담당자(박지현) */
+const KEY='ts-layout:'+ME_ID;
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}};
+const save=o=>{try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}};
+const view=()=>((location.hash||'#home').slice(1).split('/')[0]||'home');
+const title=p=>{const h=p.querySelector(':scope>.panel-h h2,:scope>.fold-h h2,:scope>.panel-h h3');if(!h)return '';let t='';h.childNodes.forEach(n=>{if(n.nodeType===3)t+=n.textContent});t=(t.trim()?t:h.textContent).replace(/[0-9]+/g,'').replace(/\s+/g,' ').trim();return t};
+const head=p=>p.querySelector(':scope>.panel-h,:scope>.fold-h');
+const titled=par=>[...par.children].filter(c=>c.classList.contains('panel')&&title(c));
+const cols=()=>[...document.querySelectorAll('#main .cols')].filter(c=>[...c.children].filter(k=>k.offsetWidth>0).length===2);
+const colOf=p=>{const c=p.closest('.cols');if(!c||!cols().includes(c))return null;let x=p;while(x.parentElement!==c)x=x.parentElement;return {c,col:x}};
+const groupKey=par=>{const all=new Set([...document.querySelectorAll('#main .panel')].map(x=>x.parentElement));let i=0,k=null;all.forEach(q=>{if(titled(q).length<2)return;if(q===par)k=view()+':'+i;i++});return k};
+const colKey=c=>view()+':cols'+cols().indexOf(c);
+const grip='<span class="dg9-grip" aria-hidden="true"><svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></svg></span>';
+let drag=null;
+const clear=()=>document.querySelectorAll('.dg9-before,.dg9-after,.dg9-col-l,.dg9-col-r').forEach(x=>x.classList.remove('dg9-before','dg9-after','dg9-col-l','dg9-col-r'));
+const isRev=c=>c.classList.contains('dg9-rev');
+/* 화면에서 이 칸이 왼쪽인지 */
+const isLeft=(c,col)=>{const first=[...c.children].find(k=>k.offsetWidth>0);return (col===first)!==isRev(c)};
+function setSide(c,col,left){if(isLeft(c,col)===left)return false;const before=load()[colKey(c)];c.classList.toggle('dg9-rev');const st=load();st[colKey(c)]=isRev(c)?'rev':'';save(st);note('왼쪽·오른쪽 칸을 바꿨어요. 다음에도 이 배치로 보여요.',()=>{const s=load();s[colKey(c)]=before||'';save(s);render()});return true}
+function moveV(p,ref,after){const par=p.parentElement;const old=load()[groupKey(par)];if(after)ref.after(p);else ref.before(p);const st=load();st[groupKey(par)]=titled(par).map(title);save(st);note('배치를 저장했어요. 다음에도 이 순서로 보여요.',()=>{const s=load();if(old)s[groupKey(par)]=old;else delete s[groupKey(par)];save(s);render()})}
+function apply(){const st=load();
+ /* 저장된 위아래 순서 */
+ new Set([...document.querySelectorAll('#main .panel')].map(x=>x.parentElement)).forEach(par=>{const kids=titled(par);if(kids.length<2)return;const ord=st[groupKey(par)];if(!ord||!ord.length)return;const sorted=[...kids].sort((a,b)=>{const ia=ord.indexOf(title(a)),ib=ord.indexOf(title(b));return (ia<0?99:ia)-(ib<0?99:ib)});const slots=kids.map(k=>{const m=document.createComment('s');k.before(m);return m});sorted.forEach((k,i)=>slots[i].replaceWith(k))});
+ /* 저장된 좌우 */
+ cols().forEach(c=>c.classList.toggle('dg9-rev',st[colKey(c)]==='rev'));
+ /* 끌 수 있는 카드: 같은 칸에 2개 이상이거나, 좌우 칸 안에 있는 카드 */
+ document.querySelectorAll('#main .panel').forEach(p=>{if(!title(p))return;const canV=titled(p.parentElement).length>=2;const cc=colOf(p);if(!canV&&!cc)return;const h=head(p);if(!h||h.dataset.dg9)return;h.dataset.dg9='1';
+  h.classList.add('dg9-h');h.setAttribute('draggable','true');h.title=(canV?'끌어서 순서 바꾸기':'')+(canV&&cc?' · ':'')+(cc?'옆 칸으로 끌면 좌우 바꾸기':'');h.insertAdjacentHTML('afterbegin',grip);
+  if(h.tagName!=='BUTTON'&&!h.hasAttribute('tabindex'))h.tabIndex=0;
+  h.addEventListener('dragstart',e=>{drag={p};p.classList.add('dg9-src');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',title(p))}catch(_){}});
+  h.addEventListener('dragend',()=>{clear();p.classList.remove('dg9-src');drag=null});
+  h.addEventListener('keydown',e=>{if(!e.altKey)return;const k=e.key;if(k==='ArrowUp'||k==='ArrowDown'){if(!canV)return;e.preventDefault();const sib=titled(p.parentElement);const j=sib.indexOf(p)+(k==='ArrowUp'?-1:1);if(j<0||j>=sib.length)return;moveV(p,sib[j],k==='ArrowDown');h.focus()}
+   else if((k==='ArrowLeft'||k==='ArrowRight')&&cc){e.preventDefault();const o=colOf(p);setSide(o.c,o.col,k==='ArrowLeft');h.focus()}});
+ });
+ /* 놓을 곳 */
+ document.querySelectorAll('#main .cols, #main .panel').forEach(t=>{if(t.dataset.dg9t)return;t.dataset.dg9t='1';
+  t.addEventListener('dragover',e=>{if(!drag)return;const src=drag.p;
+   if(t.classList.contains('panel')&&t!==src&&t.parentElement===src.parentElement){e.preventDefault();e.stopPropagation();const r=t.getBoundingClientRect();clear();t.classList.add(e.clientY<r.top+r.height/2?'dg9-before':'dg9-after');return}
+   const sc=colOf(src);if(!sc)return;const c=t.classList.contains('cols')?t:t.closest('.cols');if(c!==sc.c)return;
+   let tc=e.target;while(tc&&tc.parentElement!==c)tc=tc.parentElement;if(!tc||tc===sc.col)return;
+   e.preventDefault();e.stopPropagation();clear();const r=c.getBoundingClientRect();const left=e.clientX<r.left+r.width/2;tc.classList.add(left?'dg9-col-l':'dg9-col-r');drag.side={c,col:sc.col,left}});
+  t.addEventListener('drop',e=>{if(!drag)return;const src=drag.p;
+   if(t.classList.contains('panel')&&t!==src&&t.parentElement===src.parentElement&&(t.classList.contains('dg9-before')||t.classList.contains('dg9-after'))){e.preventDefault();e.stopPropagation();const after=t.classList.contains('dg9-after');clear();moveV(src,t,after);return}
+   if(drag.side&&document.querySelector('.dg9-col-l,.dg9-col-r')){e.preventDefault();e.stopPropagation();const s=drag.side;clear();setSide(s.c,s.col,s.left)}});
+ });
+}
+function note(msg,undo){document.querySelectorAll('.dg9-toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='dg9-toast';t.setAttribute('role','status');t.innerHTML=`<span>${msg}</span><button type="button" data-u>되돌리기</button><button type="button" data-r>이 화면 기본 배치로</button>`;document.body.appendChild(t);
+ t.querySelector('[data-u]').onclick=()=>{undo();t.remove()};
+ t.querySelector('[data-r]').onclick=()=>{const s=load();Object.keys(s).filter(k=>k.startsWith(view()+':')).forEach(k=>delete s[k]);save(s);t.remove();render()};
+ clearTimeout(note._h);note._h=setTimeout(()=>t.remove(),5000)}
+document.addEventListener('click',e=>{if(document.querySelector('.dg9-src'))e.stopPropagation()},true);
+const _rD=render;render=function(){_rD.apply(this,arguments);try{apply()}catch(e){console.warn(e)}};
+addEventListener('load',()=>setTimeout(()=>{try{apply()}catch(e){}},0));
+})();
+</script>
+<style id="v9-kpifilter">
+/* 관리 대상: 숫자 카드를 누르면 목록 필터가 바뀐다. 색칠된 카드 = 지금 고른 필터 */
+.kpis.kf9 .kpi{cursor:pointer;transition:border-color .15s,background .15s}
+.kpis.kf9 .kpi:hover{border-color:var(--acc-line,#F8D4C9)!important}
+.kpis.kf9 .kpi:focus-visible{outline:2px solid var(--acc,#C2502F);outline-offset:2px}
+.kpis.kf9 .kpi:first-child:not(.on){background:var(--surface,#fff)!important;border-color:var(--line9,#E3E8EF)!important}
+.kpis.kf9 .kpi:first-child:not(.on) .label,.kpis.kf9 .kpi:first-child:not(.on) .value{color:inherit!important}
+.kpis.kf9 .kpi.on{background:var(--hero,#FDEEE9)!important;border-color:var(--acc-line,#F8D4C9)!important}
+.kpis.kf9 .kpi.on .label{color:var(--acc-text,#A8432A)!important}
+.kpis.kf9 .kpi.on .value{color:var(--hero-ink,#94432A)!important}
+</style>
+<script>
+(function(){const MAP=['전체','우선순위 높음','혼자 사는 분','앱 쓰는 분'];
+function kf(){if(((location.hash||'').slice(1).split('/')[0])!=='care')return;const row=document.querySelector('#main .kpis');if(!row||row.dataset.kf)return;row.dataset.kf='1';row.classList.add('kf9');const cur=(S.f&&S.f.ep)||'전체';
+ [...row.children].forEach((k,i)=>{const v=MAP[i];if(!v)return;k.setAttribute('role','button');k.tabIndex=0;k.setAttribute('aria-pressed',String(cur===v));if(cur===v)k.classList.add('on');k.title=v==='전체'?'전체 보기':v+'만 보기';
+  const go=()=>{S.f.ep=(cur===v&&v!=='전체')?'전체':v;render()};k.addEventListener('click',go);k.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})})}
+const _rK=render;render=function(){_rK.apply(this,arguments);try{kf()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(()=>{try{kf()}catch(e){}},0));})();
+</script>
 </body>
 </html>
