@@ -4921,6 +4921,19 @@ body.dg11-on #main [data-dgz].dg11-empty{min-height:96px;outline:2px dashed var(
 .panel:hover>.dg11-top .dg11-grip,.dg11-top:focus-visible .dg11-grip,.dg11-top:focus .dg11-grip,[data-dg11s]:hover>.dg11-sh .dg11-grip,.dg11-sh:focus .dg11-grip,.dg11-sh:focus-visible .dg11-grip{opacity:1}
 /* 위쪽 가운데 손잡이 줄(24px): 카드 위 여백을 그만큼 늘리고, 첫 내용은 8px 띄운다(JS가 원래 여백에 더함) */
 .panel.dg11-tp{position:relative}
+/* 제목 앞 색 네모와 글자 8px, 제목→설명(메타) 줄 6px */
+html body .sev{gap:8px}
+html body h3>.sev,html body h2>.sev{margin-right:4px}
+html body .detail-h h3+.note,html body .detail-h h3+div,html body .who h3+.note,html body .who h3+div{margin-top:6px}
+/* 사이드바 로고: '되돌봄'과 '기관 담당자' 배지를 한 줄로 */
+html body .brand{flex-wrap:nowrap!important;white-space:nowrap;gap:8px!important;min-width:0}
+html body .brand>.brand-mark{flex-shrink:0}
+html body .brand>div:last-child{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;min-width:0;white-space:nowrap}
+html body .brand b{white-space:nowrap;flex-shrink:0}
+html body .brand span{flex-shrink:0;white-space:nowrap;font-size:13px!important;padding:2px 7px!important}
+html body .nav a,html body .nav a .n{white-space:nowrap}
+/* 좌우 화면 왼쪽 칸은 스크롤해도 따라오지 않는다(따라오면 좌우 바꾼 뒤 상세 카드와 겹침) */
+html body .stickl,html body .c-side.keep>section:first-child,html body .c-side.keep>.stackv:first-child,html body .c-side>section.panel:first-child,html body .c-side.narrow>section:first-child{position:static!important;top:auto!important}
 /* 아바타(동그란 이름 글자)와 이름 사이 12px, 이름 줄과 평점·정보 줄 사이 3px — 봉사자·관리 대상·요청 카드 공통 */
 html body .who{gap:12px!important}
 html body .who>div>div:not([class])+div,html body .who>span>.small[style*="block"]{margin-top:3px}
