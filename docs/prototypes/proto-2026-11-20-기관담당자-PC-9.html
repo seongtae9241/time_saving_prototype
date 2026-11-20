@@ -4170,7 +4170,7 @@ function pbadv(id,d,no){const r=PUBR.find(x=>x.id===id);r.st=d;if(d===3)r.res=no
 
 /* ---------- O-POST-05 기관 공고 ---------- */
 function vPosts(){
-  const t=F('opk','전체'),L=OPOSTS.filter(p=>t==='전체'||p.kind===t).sort((a,b)=>(a.st==='마감')-(b.st==='마감'));
+  const t=F('opk','전체'),ost=F('ost','전체'),L=OPOSTS.filter(p=>(t==='전체'||p.kind===t)&&(ost==='전체'||(ost==='모집 중'&&p.st!=='마감')||(ost==='신청 있음'&&p.app>0)||(ost==='새 신청'&&APPS.some(a=>a.st===0&&a.post===p.t)))).sort((a,b)=>(a.st==='마감')-(b.st==='마감'));
   return head('posts')+srow([['posts','올린 공고',OPOSTS.length,'건',''],['sched','모집·신청 받는 중',OPOSTS.filter(o=>o.st!=='마감').length,'건',''],['care','신청',OPOSTS.reduce((a,o)=>a+o.app,0),'명','정원 '+OPOSTS.reduce((a,o)=>a+o.need,0)+'명'],['req','새 신청',newApps().length,'건','확인 전']])+`<div class="toolbar"><div class="tabs" role="tablist">${['전체','봉사자 모집','단체 봉사','해 드려요'].map(x=>`<button type="button" role="tab" aria-selected="${t===x}" class="${t===x?'on':''}" onclick="setF('opk','${x}')">${x}<span class="cnt">${x==='전체'?OPOSTS.length:OPOSTS.filter(p=>p.kind===x).length}</span></button>`).join('')}</div>
       <div class="filters"><button class="btn sm" type="button" onclick="S.f.ak='전체';go('req','apps')">신청 ${newApps().length}건 보기</button><button class="btn sm primary" type="button" onclick="openLayer('postKind')">${icon('plus')}공고 올리기</button></div></div>
   <section class="panel"><div class="tw"><table><thead><tr><th>종류</th><th>공고</th><th>일시</th><th style="width:170px">신청</th><th>상태</th><th></th></tr></thead><tbody>${lim('op',L,6).map(p=>`<tr class="${p.st==='마감'?'off':''}"><td>${kindTag(p.kind)}</td><td style="max-width:340px"><b style="font-weight:600">${p.t}</b><span class="muted small clamp2" title="${esc(p.txt)}">${p.cat}: ${p.txt}</span></td><td class="tn" style="white-space:nowrap">${p.d}<div class="muted small">${p.tm}</div></td><td><div class="rowx" style="flex-wrap:nowrap"><div class="pbar sp"><i style="width:${Math.min(100,p.app/p.need*100)}%${p.app>p.need?';background:var(--warn)':''}"></i></div><span class="tn small muted" style="white-space:nowrap">${p.app} / ${p.need}명</span></div></td><td style="white-space:nowrap"><span class="status ${p.st==='마감'?'':'ok'}">${p.st}</span>${p.app>p.need?'<div class="small warn-t">정원 넘음</div>':''}</td><td class="act"><div class="btns" style="justify-content:flex-end"><button class="btn sm" type="button" onclick="S.f.ak='${p.kind}';S.f.aq='처리할 일';go('req','apps')">신청 보기</button>${p.st==='마감'?'':`<details class="menu r"><summary class="iconbtn sm" aria-label="${p.t} 더 보기" title="더 보기">${icon('dots')}</summary><div class="menu-b"><button type="button" onclick="closePost('${p.id}')">마감하기</button></div></details>`}</div></td></tr>`).join('')}</tbody></table></div>${moreBtn('op',L.length,6)}
@@ -4463,10 +4463,14 @@ addEventListener('load',()=>setTimeout(()=>{try{apply()}catch(e){}},0));
 .kpis.kf9 .kpi.on .value{color:var(--hero-ink,#94432A)!important}
 </style>
 <script>
-(function(){const MAP=['전체','우선순위 높음','혼자 사는 분','앱 쓰는 분'];
-function kf(){if(((location.hash||'').slice(1).split('/')[0])!=='care')return;const row=document.querySelector('#main .kpis');if(!row||row.dataset.kf)return;row.dataset.kf='1';row.classList.add('kf9');const cur=(S.f&&S.f.ep)||'전체';
- [...row.children].forEach((k,i)=>{const v=MAP[i];if(!v)return;k.setAttribute('role','button');k.tabIndex=0;k.setAttribute('aria-pressed',String(cur===v));if(cur===v)k.classList.add('on');k.title=v==='전체'?'전체 보기':v+'만 보기';
-  const go=()=>{S.f.ep=(cur===v&&v!=='전체')?'전체':v;render()};k.addEventListener('click',go);k.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})})}
+(function(){
+/* 숫자 카드를 누르면 그 화면 목록 필터가 바뀐다 (색칠된 카드 = 지금 고른 필터, 다시 누르면 전체) */
+const MAPS={care:{k:'ep',v:['전체','우선순위 높음','혼자 사는 분','앱 쓰는 분'],t:['전체 보기','먼저 살펴볼 분만 보기','혼자 사는 분만 보기','앱 쓰는 분만 보기']},
+ posts:{k:'ost',v:['전체','모집 중','신청 있음','새 신청'],t:['전체 보기','모집·신청 받는 중인 공고만 보기','신청이 있는 공고만 보기','새 신청(확인 전)이 있는 공고만 보기']}};
+function kf(){const view=(location.hash||'').slice(1).split('/')[0];const M=MAPS[view];if(!M)return;const row=document.querySelector('#main .kpis');if(!row||row.dataset.kf)return;row.dataset.kf='1';row.classList.add('kf9');const cur=(S.f&&S.f[M.k])||'전체';
+ [...row.children].forEach((k,i)=>{const v=M.v[i];if(!v)return;k.setAttribute('role','button');k.tabIndex=0;k.setAttribute('aria-pressed',String(cur===v));if(cur===v)k.classList.add('on');k.title=M.t[i];
+  const go=()=>{S.f[M.k]=(cur===v&&v!=='전체')?'전체':v;if(S.more)delete S.more.op;render()};k.addEventListener('click',go);k.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})});
+ if(view==='posts'&&cur!=='전체'){const tb=document.querySelector('#main .toolbar .tabs');if(tb&&!tb.parentElement.querySelector('.kfnote')){tb.insertAdjacentHTML('afterend',`<span class="kfnote small muted" style="margin-left:12px">${M.t[M.v.indexOf(cur)].replace(' 보기','')} 중 · <button class="link" type="button" onclick="S.f.ost='전체';render()">전체 보기</button></span>`)}}}
 const _rK=render;render=function(){_rK.apply(this,arguments);try{kf()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(()=>{try{kf()}catch(e){}},0));})();
 </script>
 <style id="v9-panscroll">
