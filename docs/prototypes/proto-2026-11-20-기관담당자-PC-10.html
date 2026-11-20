@@ -4852,11 +4852,11 @@ const _r10=render;render=function(){_r10.apply(this,arguments);try{fc()}catch(e)
 /* ===== 10판 3차: 판사 지적 반영 ===== */
 /* A 끌기 손잡이: 평소 거의 안 보임(.2) → 카드에 올리거나 제목에 초점일 때만 진하게.
       늘 카드 제목 왼쪽(카드 왼쪽 끝에서 10px, 제목과 8px), 제목 첫 줄 가운데. 누를 곳 24×24 */
-html body .dg9-grip,html body .dg9-grip.dg9-grip{opacity:.2!important;position:absolute!important;left:2px!important;top:var(--g10t,50%)!important;transform:translateY(-50%)!important;width:24px!important;height:24px!important;display:flex!important;align-items:center;justify-content:center;pointer-events:auto!important;cursor:grab;border-radius:6px;color:var(--ink-3)!important;transition:opacity .15s,background .15s}
+html body .dg9-grip,html body .dg9-grip.dg9-grip{opacity:.2!important;position:absolute!important;left:3px!important;top:var(--g10t,50%)!important;transform:translateY(-50%)!important;width:24px!important;height:24px!important;display:flex!important;align-items:center;justify-content:center;pointer-events:auto!important;cursor:grab;border-radius:6px;color:var(--ink-3)!important;transition:opacity .15s,background .15s}
 html body .panel:hover>.dg9-h .dg9-grip,html body .panel:hover>.dg9-corner .dg9-grip,html body .dg9-h:focus-visible .dg9-grip,html body .dg9-h:focus .dg9-grip,html body .dg9-h.dg9-h:hover .dg9-grip{opacity:1!important}
 html body .dg9-grip:hover{background:var(--hover)}
 /* 특보 내용 카드: 오른쪽 위 → 왼쪽 위, 첫 제목 줄과 같은 높이 */
-html body .panel>.dg9-corner{left:2px!important;right:auto!important;top:var(--g10t,30px)!important;transform:translateY(-50%);width:24px!important;height:24px!important;background:none!important}
+html body .panel>.dg9-corner{left:3px!important;right:auto!important;top:var(--g10t,30px)!important;transform:translateY(-50%);width:24px!important;height:24px!important;background:none!important}
 html body .panel>.dg9-corner .dg9-grip{position:static!important;transform:none!important}
 html body .panel>.dg9-corner+.panel-b{padding-top:20px!important}
 .w10-before{box-shadow:0 -4px 0 0 var(--acc)!important;border-radius:16px}
@@ -4865,7 +4865,9 @@ html body .panel>.dg9-corner+.panel-b{padding-top:20px!important}
 html body .toolbar.kf10 .tabs button.on{background:transparent!important;color:var(--acc-text)!important;box-shadow:inset 0 0 0 1.5px var(--acc)!important}
 html body .toolbar.kf10 .tabs button.on .cnt,html body .toolbar.kf10 .tabs button.on .tn{background:color-mix(in srgb,var(--acc) 12%,transparent)!important;color:var(--acc-text)!important}
 html body .toolbar.kf10 .tabs{margin-right:0}
-html body .toolbar.kf10 .fchip10{margin-left:10px}
+html body .toolbar.kf10{justify-content:flex-start!important}
+html body .toolbar.kf10 .fchip10{margin-left:0!important;margin-right:0!important}
+html body .toolbar.kf10 .filters{margin-left:auto!important}
 /* 2 관리 대상: 드롭다운이 필터 자체 → 칩 없이 드롭다운에 고른 상태 표시 + ✕ */
 .fsel10{display:flex;gap:8px;align-items:center}
 .fsel10 select{flex:1 1 auto;min-width:0}
@@ -4877,18 +4879,20 @@ html body select.fsel.on10{border-color:var(--acc)!important;background-color:co
 /* 3 관리 대상 상세 아래: 받은 도움 기록 | 담당자 메모 같은 높이, 월별 그래프는 아래 한 줄 전체 */
 .care10-chart{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:28px;align-items:center;border-top:1px solid var(--rule-2);padding:20px 22px 22px}
 .care10-chart .carechart svg.chart{max-width:420px!important}
-.care10-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0}
-.care10-sum>div{border:1px solid var(--line9);border-radius:12px;padding:14px 16px}
-.care10-sum dt{font-size:calc(13px*var(--fz));color:var(--ink-3)}
-.care10-sum dd{margin:4px 0 0;font-size:calc(18px*var(--fz));font-weight:700;color:var(--ink)}
+.care10-sum{display:grid;gap:0;margin:0;border:1px solid var(--line9);border-radius:12px;padding:4px 18px}
+.care10-sum>div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 0;border-top:1px solid var(--rule-2)}
+.care10-sum>div:first-child{border-top:0}
+.care10-sum dt{font-size:calc(13px*var(--fz));color:var(--ink-3);white-space:nowrap}
+.care10-sum dd{margin:0;font-size:calc(18px*var(--fz));font-weight:700;color:var(--ink);white-space:nowrap}
+.care10-sum>div:last-child dd{color:var(--acc-text)}
 @media (max-width:1300px){.care10-chart{grid-template-columns:minmax(0,1fr)}}
 body.ai-open .care10-chart{grid-template-columns:minmax(0,1fr)}
 .carechart path.bar{fill:color-mix(in srgb,var(--acc) 30%,var(--surface))!important}
 .carechart path.bar[style*="fill:var(--a500)"]{fill:var(--acc)!important}
 /* 4 기관 행사: 지난 행사 (예시 데이터) */
-.pastev10 .prow{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 28px;border-top:1px solid var(--rule-2)}
+.pastev10 .prow{display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 28px;border-top:1px solid var(--rule-2)}
 .pastev10 .prow:first-of-type{border-top:0}
-.pastev10 .pd{display:grid;justify-items:center;border-radius:10px;background:var(--sunken,#F4F5F7);padding:6px 0;line-height:1.3;color:var(--ink-3);font-size:calc(13px*var(--fz))}
+.pastev10 .pd{display:grid;justify-items:center;border-radius:10px;background:var(--sunken,#F4F5F7);padding:12px 0 11px;line-height:1.3;color:var(--ink-3);font-size:calc(13px*var(--fz))}
 .pastev10 .pd b{font-size:calc(18px*var(--fz));font-weight:700;color:var(--ink-2)}
 .pastev10 .pt{display:grid;gap:2px;min-width:0}
 .pastev10 .pt b{font-size:calc(15px*var(--fz));font-weight:600;color:var(--ink)}
@@ -4898,7 +4902,7 @@ body.ai-open .care10-chart{grid-template-columns:minmax(0,1fr)}
 /* 5 리포트 위 카드: 다른 숫자 카드와 같은 모양(높이 157, 이름·숫자·보조 줄, 링·아이콘은 오른쪽 위) */
 html body .bento.rp>.bt{min-height:157px;border-color:transparent!important;box-shadow:0 1px 2px rgba(16,24,40,.04)!important;border-radius:16px}
 html body .bento.rp>.bt.rp10k{display:block!important;position:relative;padding:24px 26px 22px!important}
-.rp10k .label{font-size:calc(15px*var(--fz));font-weight:500;color:var(--ink-3);line-height:1.6;padding-right:56px}
+.rp10k .label{font-size:calc(15px*var(--fz));font-weight:500;color:var(--ink-3);line-height:1.6;padding-right:44px;white-space:nowrap}
 .rp10k .value{font-size:calc(32px*var(--fz));font-weight:700;line-height:1.3;margin-top:12px;color:var(--ink);letter-spacing:-.02em}
 .rp10k .value .u,.rp10k .value .of{font-size:calc(15px*var(--fz));font-weight:500;color:var(--ink-3);margin-left:3px}
 .rp10k .value .of{margin-left:4px;font-size:calc(18px*var(--fz))}
@@ -4909,7 +4913,7 @@ html body .rp10k>.itile{position:absolute!important;top:20px;right:22px;margin:0
 /* 6 홈 오늘 처리할 일: 제목 ↔ 단계 칩 24px */
 html body .o1>.flow10{margin-top:10px!important}
 /* 7 특보 목록: '우리 지역'은 제목 줄 오른쪽, 지역·날짜는 한 줄 → 모든 줄 같은 높이 */
-html body .stickl .lrow{display:grid!important;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:4px;align-items:center}
+html body .stickl .lrow{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px!important;align-items:center;align-content:center}
 html body .stickl .lrow>.sp{display:contents!important}
 html body .stickl .lrow>.sp>.sev{grid-column:1;grid-row:1;min-width:0}
 html body .stickl .lrow>.tag{grid-column:2;grid-row:1;margin:0!important}
@@ -4932,8 +4936,8 @@ function gripPos(){document.querySelectorAll('#main .dg9-h').forEach(h=>{if(!h.o
 /* A-2 한 칸에 이름 있는 카드가 하나뿐인 화면(공공 연계 '이번 달 현황' 등)도 위아래로 옮길 수 있게 */
 let wd=null;
 function toast(msg,undo){document.querySelectorAll('.dg9-toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='dg9-toast';t.setAttribute('role','status');t.innerHTML=`<span>${msg}</span><button type="button" data-u>되돌리기</button><button type="button" data-r>이 화면 기본 배치로</button>`;document.body.appendChild(t);t.querySelector('[data-u]').onclick=()=>{undo();t.remove()};t.querySelector('[data-r]').onclick=()=>{const s=load();Object.keys(s).filter(k=>k.startsWith(view()+':')).forEach(k=>delete s[k]);save(s);t.remove();render()};clearTimeout(toast._h);toast._h=setTimeout(()=>t.remove(),5000)}
-function wrapDrag(){const wrap=document.querySelector('#main .wrap');if(!wrap||wrap.dataset.w10)return;wrap.dataset.w10='1';
- const items=[...wrap.children].filter(c=>c.classList.contains('cols')||c.classList.contains('panel'));const tp=items.filter(c=>c.classList.contains('panel')&&ttl(c));
+function wrapDrag(){const wrap=document.querySelector('#main');if(!wrap)return;
+ const items=[...wrap.children].filter(c=>c.classList.contains('cols')||c.classList.contains('panel'));if(items.some(c=>c.dataset.w10i!=null))return;const tp=items.filter(c=>c.classList.contains('panel')&&ttl(c));
  if(items.length<2||tp.length!==1)return; /* 2개 이상이면 v9-drag가 맡는다 */
  items.forEach((c,i)=>c.dataset.w10i=i);const K=view()+':wrap';
  const ord=load()[K];if(ord&&ord.length===items.length){const slots=items.map(k=>{const m=document.createComment('w');k.before(m);return m});ord.map(i=>items[i]).forEach((k,i)=>{if(k)slots[i].replaceWith(k)});slots.forEach(m=>m.isConnected&&m.remove())}
@@ -4952,7 +4956,7 @@ function postsTabs(){const tb=document.querySelector('#main .toolbar');if(!tb)re
 /* 2·3 관리 대상: 드롭다운 상태 표시, 목록 횟수 기준 안내 */
 function careUi(){if(view()!=='care')return;const sel=document.querySelector('#main select.fsel');const ep=(S.f&&S.f.ep)||'전체';
  if(sel&&!sel.dataset.v10c){sel.dataset.v10c='1';if(ep!=='전체'){const w=document.createElement('div');w.className='fsel10';sel.before(w);w.appendChild(sel);sel.classList.add('on10');w.insertAdjacentHTML('beforeend',`<button type="button" class="clr10" aria-label="${ep} 필터 지우기" title="필터 지우기 (전체 보기)" onclick="S.f.ep='전체';render()">✕</button>`)}}
- const ai=document.querySelector('#main .c-side>.panel .ai-tag');if(ai&&!ai.parentElement.classList.contains('cnt10')){ai.parentElement.classList.add('cnt10');ai.insertAdjacentHTML('afterend','<span class="small">막대·횟수는 이번 달 기준</span>')}
+ const ai=document.querySelector('#main .c-side>.panel .ai-tag');if(ai&&!ai.parentElement.classList.contains('cnt10')){ai.parentElement.classList.add('cnt10');ai.insertAdjacentHTML('afterend','<span class="small" title="오른쪽 막대와 횟수는 이번 달(11/1~13) 돌봄 기준이에요">이번 달 기준</span>')}
  document.querySelectorAll('#main .c-side .rcol').forEach(r=>{const m=r.querySelector('.mo10'),b=r.querySelector('.pillbar');if(m&&!m.title){m.title='이번 달 '+m.textContent.trim()+(b?' ('+b.title.split('/')[1].trim()+')':'')}})}
 /* 4 기관 행사: 지난 행사 — 예시 데이터(실제 서비스는 끝난 행사 기록에서 가져온다) */
 const PAST=[['10','24','토','나들이','가을 나들이 · 서울숲 산책','행복요양원 앞 출발 · 휠체어 동행 4명',18,142],['9','23','수','교실','추석 송편 빚기','행복요양원 1층 강당 · 가족 함께',24,96],['9','5','토','교실','어르신 건강 체조 교실','2층 프로그램실 · 강사 초청',15,71]];
