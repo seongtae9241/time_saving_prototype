@@ -4905,14 +4905,8 @@ document.addEventListener('toggle',()=>setTimeout(gripPos,0),true);
 html body #main .carechart svg.chart{max-width:none!important}
 </style>
 <style id="v11-drag">
-/* 11판 카드 끌기: 제목(제목 없는 카드는 위쪽 손잡이)을 끌어 같은 화면 어디로든 — 다른 카드 앞·뒤, 다른 칸, 아래 구역 */
+/* 11판 카드 끌기: 카드 맨 위 가운데 손잡이(띠는 왼쪽)나 제목 줄을 끌어 줄 단위로 배치 — 위·아래 가장자리=새 줄, 옆 가장자리=2분할 */
 .dg11-ind{position:fixed;z-index:9998;pointer-events:none;background:var(--acc,#C2502F);border-radius:3px;display:none;box-shadow:0 0 0 2px var(--panel,#fff)}
-.dg11-swapt{outline:2px dashed var(--acc,#C2502F)!important;outline-offset:4px;border-radius:16px}
-body.dg11-on #main [data-dgz].dg11-empty{min-height:96px;outline:2px dashed var(--line,#E5E7EB);outline-offset:-2px;border-radius:16px}
-#main [data-dgz]{min-width:0}
-#main [data-dgz]>.panel{min-width:0;max-width:100%}
-.cols.dg9-rev.dg11-stk{direction:ltr}
-.cols.dg9-rev.dg11-stk>:first-child{order:2}
 .panel[data-dg11v]{position:relative}
 .dg11-top{position:absolute;top:0;left:50%;transform:translateX(-50%);width:72px;height:24px;border-radius:0 0 8px 8px;cursor:grab;z-index:2;color:var(--ink-3)}
 .dg11-top:active,.dg11-sh:active{cursor:grabbing}
@@ -4921,17 +4915,90 @@ body.dg11-on #main [data-dgz].dg11-empty{min-height:96px;outline:2px dashed var(
 .panel:hover>.dg11-top .dg11-grip,.dg11-top:focus-visible .dg11-grip,.dg11-top:focus .dg11-grip,[data-dg11s]:hover>.dg11-sh .dg11-grip,.dg11-sh:focus .dg11-grip,.dg11-sh:focus-visible .dg11-grip{opacity:1}
 /* 위쪽 가운데 손잡이 줄(24px): 카드 위 여백을 그만큼 늘리고, 첫 내용은 8px 띄운다(JS가 원래 여백에 더함) */
 .panel.dg11-tp{position:relative}
+html body #main .panel.dg11-tp,html body #main [data-dg11s]{position:relative!important}
+/* 줄 단위 배치 (11판) */
+.dg12{display:grid;min-width:0}
+.dg12-row{display:grid;gap:20px;min-width:0;align-items:start}
+.dg12-row>*{min-width:0;max-width:100%}
+.dg12-row.dg12-one{grid-template-columns:minmax(0,1fr)}
+.dg12-row.dg12-half{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.dg12-row.dg12-hid{display:none!important}
+.dg12-row.dg12-home{grid-template-columns:minmax(0,1fr) 316px}
+@media (max-width:1400px){.dg12-row.dg12-home{grid-template-columns:minmax(0,1fr)}}
+body.ai-open .dg12-row.dg12-home,:root[data-fz="lg"] .dg12-row.dg12-home{grid-template-columns:minmax(0,1fr)}
+.dg12-row>.dg12-cell{display:grid;gap:20px;min-width:0}
+/* 반쪽(2분할) 칸에서는 카드 안 2단 영역을 한 단으로, 칩 줄은 줄바꿈 */
+html body #main .dg12-row:not(.dg12-one) .split2{grid-template-columns:minmax(0,1fr)!important}
+html body #main .dg12-row:not(.dg12-one) .split2>*+*{border-left:0!important;border-top:1px solid var(--rule-2,#EEF0F3)}
+html body #main .dg12-row:not(.dg12-one) .tags{flex-wrap:wrap}
+html body #main .dg12-row:not(.dg12-one) .panel-h{flex-wrap:wrap;row-gap:8px}
+html body #main .dg12-row:not(.dg12-one) .rowx.nw,html body #main .dg12-row:not(.dg12-one) .nw{flex-wrap:wrap!important}
+html body #main .dg12-row:not(.dg12-one) .seg{max-width:100%;overflow-x:auto;scrollbar-width:none}
+html body #main .dg12-row:not(.dg12-one) .evs,html body #main .dg12-row:not(.dg12-one) .care10-chart{min-width:0;grid-template-columns:minmax(0,1fr)!important}
+html body #main .dg12-row:not(.dg12-one) .evs>*{min-width:0}
+/* 카드 자기 폭 기준 배치(@container): 2분할로 카드가 좁아지면 카드 안 배치가 모바일식으로 바뀐다 */
+#main .panel[data-dgk]{container-type:inline-size;container-name:card}
+@container card (max-width:640px){
+ .bento,.bento.rp,.figures,.figures.three{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .bento>:first-child,.figures.three>:first-child{grid-column:1/-1!important}
+ .split2,.gapgrid,.svrow,.evs,.care10-chart,.insight{grid-template-columns:minmax(0,1fr)!important}
+ .split2>*+*,.gapgrid>*+*,.svrow>*+*{border-left:0!important}
+ .tw>table{min-width:720px}
+ td.tn,th.tn{white-space:nowrap}
+ td{word-break:keep-all}
+ .kb{min-width:1000px!important}
+ .panel-h,.toolbar,.btns,.rowx{flex-wrap:wrap;row-gap:8px}
+}
+@container card (max-width:420px){
+ .bento,.bento.rp,.figures,.figures.three{grid-template-columns:minmax(0,1fr)!important}
+ .props,.props.w,.props.dl10{grid-template-columns:minmax(0,1fr)!important;row-gap:2px}
+}
+/* 탭·세그먼트 통일: 흰 바탕 알약 + 회색 테두리, 꺼진 탭 짙은 회색, 켜진 탭 연한 코랄 면·진한 코랄 글자(주 버튼과 구분) */
+html body #main .tabs,html body #main .seg{background:#fff!important;border:1px solid #E4E7EC!important;border-radius:999px!important;padding:3px!important;box-shadow:none!important}
+html body #main .tabs>button,html body #main .seg>button,html body #main .tabs>a,html body #main .seg>a{color:var(--ink-2,#3D434F)!important;background:transparent!important;border-radius:999px!important}
+html body #main .tabs>:not(.on):hover,html body #main .seg>:not(.on):hover{background:#F6F7F9!important}
+html body #main .tabs>.on,html body #main .seg>.on,html body #main .tabs>[aria-pressed="true"],html body #main .seg>[aria-pressed="true"],html body #main .tabs>[aria-selected="true"],html body #main .flow7>button.on{background:#FCE7E0!important;color:#A8432A!important;box-shadow:inset 0 0 0 1px #F5C9BB!important;border-color:#F5C9BB!important;font-weight:600!important}
+html body #main .tabs>:not(.on),html body #main .seg>:not(.on){box-shadow:none!important}
+/* 탭 숫자: 동그라미 바탕 없이 글자만. 꺼짐 회색 500, 켜짐 진한 코랄 700, 급한 숫자는 빨간 글자 */
+html body #main .tabs>*,html body #main .seg>*,html body #main .flow7>button{gap:5px!important}
+html body #main .tabs>button,html body #main .seg>button,html body #main .tabs>a,html body #main .seg>a{display:inline-flex!important;align-items:center;justify-content:center;white-space:nowrap}
+html body #main .tabs .cnt,html body #main .seg .cnt,html body #main .seg .tn,html body #main .tabs .tn,html body #main .flow7>button .c{background:transparent!important;padding:0!important;margin-left:0!important;min-width:0!important;width:auto!important;height:auto!important;border:0!important;box-shadow:none!important;opacity:1!important;color:var(--ink-3,#5F6672)!important;font-weight:500!important}
+html body #main .tabs>.on .cnt,html body #main .seg>.on .cnt,html body #main .seg>.on .tn,html body #main .tabs>.on .tn,html body #main .flow7>button.on .c,html body #main .flow7>button.on .c.urgent{color:#A8432A!important;font-weight:700!important}
+html body #main .flow7>button:not(.on) .c.urgent{color:var(--neg,#C4321F)!important;font-weight:700!important}
+html body #main .flow7>button.on:hover{background:#FCE7E0!important;color:#A8432A!important}
+:root[data-theme="dark"] body #main .tabs,:root[data-theme="dark"] body #main .seg{background:var(--surface)!important;border-color:var(--rule)!important}
+:root[data-theme="dark"] body #main .tabs>:not(.on):hover,:root[data-theme="dark"] body #main .seg>:not(.on):hover{background:var(--hover)!important}
+/* 편성표 달력: 이웃한 날 칸의 일정 버튼 사이 8px 이상 */
+html body #main .cw-bd .cev{right:4px!important}
+/* 특보 띠: 오른쪽 여백 20px, '대응 보기'와 '닫기' 12px, 좁으면 안내 문장이 줄바꿈해 버튼 자리를 지킨다 */
+html body #main .banner{padding-right:20px!important;min-width:0}
+html body #main .banner .rowx{gap:12px!important;flex:none!important;flex-wrap:nowrap!important;white-space:nowrap}
+html body #main .banner .link{margin-left:0}
+html body #main .banner>.sp{flex:1 1 auto;min-width:0}
+html body #main .banner>.sp,html body #main .banner>.sp *{white-space:normal}
+html body #main.m-one .dg12-row,html body #main.m-narrow .dg12-row,html body #main .dg12-row.dg11-1col{grid-template-columns:minmax(0,1fr)!important;direction:ltr}
+html body #main.m-one .dg12-row.dg9-rev>:first-child,html body #main.m-narrow .dg12-row.dg9-rev>:first-child,html body #main .dg12-row.dg11-1col.dg9-rev>:first-child{order:2}
+.dg12-prev{position:fixed;z-index:9997;pointer-events:none;display:none;border-radius:16px;background:color-mix(in srgb,var(--acc,#C2502F) 12%,transparent);outline:2px dashed var(--acc,#C2502F);outline-offset:-2px}
+.dg12-seg{display:inline-flex;align-items:center;border:1px solid var(--rule);border-radius:10px;padding:2px;gap:2px;background:var(--surface)}
+.dg12-seg[hidden]{display:none}
+.dg12-seg button{width:30px;height:28px;border:0;border-radius:8px;background:none;color:var(--ink-3);display:grid;place-items:center;cursor:pointer}
+.dg12-seg button:hover{background:var(--hover);color:var(--ink)}
+.dg12-seg button[aria-pressed="true"]{background:var(--acc-soft,#FEF2EE);color:var(--acc-text,#A8432A)}
+.dg12-seg.dg12-auto [data-cm="2"]{opacity:.4}
 /* 본문이 좁을 때 한 칸으로 (JS narrow()) */
 html body #main.m-narrow .cols,html body #main .cols.dg11-1col{grid-template-columns:minmax(0,1fr)!important;direction:ltr}
 html body #main.m-narrow .cols>*,html body #main .cols.dg11-1col>*{position:static!important}
 html body #main.m-narrow .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 html body #main.m-narrow .cal-under,html body #main.m-narrow .bento,html body #main.m-narrow .bento.rp{grid-template-columns:minmax(0,1fr)!important}
 html body #main.m-narrow .bento>*{grid-column:auto!important}
+html body #main.m-narrow .kb{min-width:1000px!important}
+html body #main.m-narrow .tw>table{min-width:880px}
+html body #main.m-narrow .gapdet .insight{grid-template-columns:minmax(0,1fr)!important}
 html body #main.m-narrow .cols.dg9-rev>:first-child,html body #main .cols.dg11-1col.dg9-rev>:first-child{order:2}
-/* 제목 앞 색 네모와 글자 8px, 제목→설명(메타) 줄 6px */
+/* 제목 앞 색 네모와 글자 8px, 제목→설명(메타) 줄 8px */
 html body .sev{gap:8px}
 html body h3>.sev,html body h2>.sev{margin-right:4px}
-html body .detail-h h3+.note,html body .detail-h h3+div,html body .who h3+.note,html body .who h3+div{margin-top:6px}
+html body #main .detail-h h3+.note,html body #main .detail-h h3+div{margin-top:8px}
 /* 사이드바 로고: '되돌봄'과 '기관 담당자' 배지를 한 줄로 */
 html body .brand{flex-wrap:nowrap!important;white-space:nowrap;gap:8px!important;min-width:0}
 html body .brand>.brand-mark{flex-shrink:0}
@@ -4952,19 +5019,21 @@ html body .side-user{column-gap:12px!important}
 #main .cnt10>.small{white-space:nowrap;word-break:keep-all}
 [data-dg11s]{position:relative}
 .dg11-sh{position:absolute;top:50%;transform:translateY(-50%);width:20px;height:24px;border-radius:6px;cursor:grab;z-index:2;color:var(--ink-3)}
-#main [data-dgz]>[data-dg11s]{min-width:0;max-width:100%}
-#main .stackv>.banner[data-dg11s],#main .stickl>.banner[data-dg11s]{flex-wrap:wrap}
-#main .stackv>.banner[data-dg11s] .nw,#main .stickl>.banner[data-dg11s] .nw{white-space:normal;flex-wrap:wrap}
+#main .dg12-row>.banner[data-dg11s],#main .stackv>.banner[data-dg11s],#main .stickl>.banner[data-dg11s]{flex-wrap:wrap}
+#main .dg12-half>.banner[data-dg11s] .nw,#main .dg12-row:not(.dg12-one)>.banner[data-dg11s] .nw,#main .stackv>.banner[data-dg11s] .nw,#main .stickl>.banner[data-dg11s] .nw{white-space:normal;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){.dg11-top .dg11-grip,.dg11-sh .dg11-grip{transition:none}}
 </style>
 <script id="v11-drag-js">
-/* 담당자별 카드 배치 저장 (11판)
-   - 카드 제목(또는 제목 없는 큰 카드 위쪽 손잡이)을 끌어 같은 화면의 다른 카드 앞·뒤, 다른 칸, 아래 넓은 구역 어디로든 옮긴다.
-     놓일 자리는 코랄색 4px 막대로 보인다. 칸 아래 빈 곳에 놓으면 그 칸 맨 아래로 간다.
-   - 한 칸에 카드가 하나뿐인 좌우 화면(특보 알림·관리 대상·공공 연계·리포트·권한 위임)은 반대쪽 칸으로 끌면 왼쪽·오른쪽이 바뀐다.
-   - 키보드: 손잡이(제목)에 초점 → Alt+↑/↓ 순서(칸 끝에서는 칸 밖으로), Alt+←/→ 왼쪽·오른쪽 칸으로.
-   - 저장: 화면별·구역별 카드 제목 순서. 프로토타입은 브라우저 저장소에 담당자 ID별로 둔다.
-     실제 서비스는 서버에 저장: GET/PUT /api/org/me/layout  {"home:z0":["오늘 일정","먼저 살펴볼 분"],"alerts:cols0":"rev"} */
+/* 담당자별 카드 배치 (11판, 줄 단위)
+   - 화면 본문 = 줄 목록. 한 줄에 카드 1개(전체 폭) 또는 2개(2분할).
+   - 카드 손잡이(카드 맨 위 가운데, 띠는 왼쪽) 또는 제목 줄을 끌어 놓는다.
+     · 다른 카드의 위·아래 가장자리 → 그 줄 앞·뒤에 새 줄(전체 폭). 가로 코랄 막대.
+     · 다른 카드의 왼쪽·오른쪽 가장자리 → 같은 줄 옆(2분할). 세로 막대 + 반쪽 미리보기. 이미 2개면 그 자리 카드와 바꾼다.
+     · 2분할 줄에서 빼면 남은 카드는 전체 폭. 자기 줄 짝 카드 위·아래에 놓아도 두 줄로 나뉜다.
+   - 머리의 [한 칸 | 두 칸] 버튼: 한 칸이면 모든 줄을 위아래로 펼친다(줄 구성은 저장된 그대로). 본문이 좁으면 자동으로 한 칸.
+   - 키보드: 손잡이에 초점 → Alt+↑/↓ 줄 이동, Alt+←/→ 옆으로 붙이기·바꾸기·떼기.
+   - 저장: 'ts-layout:담당자ID' 에 {"home:rows":[["특보 띠"],["#p0"],["오늘 처리할 일","먼저 살펴볼 분"],...],"home:cols-mode":"1"}
+     (#p는 숫자 카드 같은 고정 줄). 실제 서비스는 GET/PUT /api/org/me/layout */
 (function(){
 const ME_ID='staff-1001'; /* 로그인한 담당자(박지현) */
 const KEY='ts-layout:'+ME_ID;
@@ -4972,185 +5041,189 @@ const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch
 const save=o=>{try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}};
 const view=()=>((location.hash||'#home').slice(1).split('/')[0]||'home');
 const M=()=>document.getElementById('main');
-/* 제목 없는 큰 카드: 화면 안 위치로 이름을 붙이고 위쪽에 손잡이를 단다 (화면 위→아래 순서) */
 const NAMES={care:['관리 대상 목록','관리 대상 정보','연락처 · 돌봄 편성','받은 도움 · 메모','단골 봉사자 · 위임'],sched:['편성표 달력'],req:['요청 보드'],pub:['공공 연계 목록','대상자 정보'],posts:['공고 목록'],events:['행사 목록'],dlg:['위임 목록','위임 상세'],report:['대상자 정보']};
+const STRIPS=[['.banner','특보 띠'],['.callout','방문 주의사항'],['.artcard','운영자 안내']];
 const isP=e=>!!e&&e.nodeType===1&&e.classList.contains('panel');
 const ownT=p=>{const h=p.querySelector(':scope>.panel-h h2,:scope>.fold-h h2,:scope>.panel-h h3');if(!h)return '';let t='';h.childNodes.forEach(n=>{if(n.nodeType===3)t+=n.textContent});return (t.trim()?t:h.textContent).replace(/[0-9]+/g,'').replace(/\s+/g,' ').trim()};
 const title=p=>(p.dataset&&p.dataset.dg9Title)||ownT(p);
 const R=e=>e.getBoundingClientRect();
-const vis=e=>!!e&&e.isConnected&&getComputedStyle(e).display!=='contents'&&e.getClientRects().length>0;
-const GRIP='<span class="dg9-grip" aria-hidden="true"><svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></svg></span>';
+const shown=e=>!!e&&e.isConnected&&e.getClientRects().length>0;
+const cardIn=u=>u&&(u.dataset.dgk?u:u.querySelector('[data-dgk]'))||u;
+const uShown=u=>{const c=cardIn(u);return shown(c)&&(c===u||R(c).height>0)};
+const narrowMQ=()=>matchMedia('(max-width:900px)').matches;
 const GRIPT='<span class="dg11-grip" aria-hidden="true"><svg width="18" height="10" viewBox="0 0 18 10" fill="currentColor"><circle cx="2.5" cy="2.5" r="1.5"/><circle cx="9" cy="2.5" r="1.5"/><circle cx="15.5" cy="2.5" r="1.5"/><circle cx="2.5" cy="7.5" r="1.5"/><circle cx="9" cy="7.5" r="1.5"/><circle cx="15.5" cy="7.5" r="1.5"/></svg></span>';
-const GRIPH='<span class="dg11-grip" aria-hidden="true"><svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></svg></span>';
-/* 카드 모양이 아닌 띠·상자도 옮긴다 (고정 이름) */
-const STRIPS=[['.banner','특보 띠'],['.callout','방문 주의사항'],['.artcard','운영자 안내']];
-let Z=[],C=[],T=[],V='',drag=null,downT=null,sup=0,supEl=null;
+const GRIPV='<span class="dg11-grip" aria-hidden="true"><svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></svg></span>';
+let V='',CT=null,U={},ROWS=[],DEF=[],COLSCLS=[],drag=null,downT=null,sup=0,supEl=null;
 const done=new WeakSet();
-/* 구역 안 '자리 기준' = 이름 있는 카드 + 좌우 칸 묶음 */
-const items=z=>[...z.children].filter(c=>c.dataset.dgk||c.dataset.dgc!=null);
-const tok=e=>e.dataset.dgk||('#c'+e.dataset.dgc);
-const kids=c=>[...c.children];
-const single=col=>isP(col)||[...col.children].filter(isP).length===1;
-const swapType=c=>kids(c).some(single);
-function mode(c){const [a,b]=kids(c);if(!a||!b)return 'none';if(getComputedStyle(a).display==='contents'||getComputedStyle(b).display==='contents')return 'flat';const ra=R(a),rb=R(b);return Math.abs(ra.left-rb.left)<20?'stack':'side'}
-const colOf=p=>{const c=C.find(c=>kids(c).some(k=>k===p||(k.contains(p)&&p.parentElement===k)));return c?{c,col:kids(c).find(k=>k===p||k.contains(p))}:null};
-/* 화면에서 왼쪽(또는 위)에 보이는 칸이 첫 번째인지 */
-const visFirst=(c,col)=>{const [a,b]=kids(c);const ra=R(a),rb=R(b);const aFirst=mode(c)==='stack'?ra.top<=rb.top:ra.left<=rb.left;return (col===a)===aFirst};
-const flatPanels=c=>kids(c).flatMap(k=>isP(k)?[k]:[...k.children].filter(x=>x.dataset.dgk));
-const visSort=a=>a.filter(vis).sort((x,y)=>{const rx=R(x),ry=R(y);return Math.abs(rx.top-ry.top)>4?rx.top-ry.top:rx.left-ry.left});
-
+const units=()=>Object.keys(U);
+/* ---------- 처음 배치 읽기 ---------- */
 function setup(){const m=M();if(!m)return;
- if([...m.children].some(c=>done.has(c))&&V===view()){refresh();return}
- [...m.children].forEach(c=>done.add(c));V=view();const v=V;delete m.dataset.dgz;
+ if(CT&&CT.isConnected&&V===view()){refresh();return}
+ if([...m.children].some(c=>done.has(c))&&V===view()&&!CT){refresh();return}
+ [...m.children].forEach(c=>done.add(c));V=view();const v=V;CT=null;U={};ROWS=[];DEF=[];COLSCLS=[];delete m.dataset.dgz;
  const tops=[...m.querySelectorAll('.panel')].filter(p=>!p.parentElement.closest('.panel'));
+ const names=NAMES[v]||[];let ni=0;tops.forEach(p=>{if(title(p))return;const n=names[ni++];if(n){p.dataset.dg9Title=n;p.dataset.dg11v='1'}});
  const strips=[];STRIPS.forEach(([q,n])=>m.querySelectorAll(q).forEach(e=>{if(e.closest('.panel')||strips.includes(e))return;if(e.parentElement!==m&&!e.parentElement.matches('.stackv,.stickl,.cols>*'))return;e.dataset.dg9Title=n;e.dataset.dg11s='1';strips.push(e)}));
- const names=NAMES[v]||[];let ni=0;
- tops.forEach(p=>{if(title(p))return;const n=names[ni++];if(n){p.dataset.dg9Title=n;p.dataset.dg11v='1'}});
- C=[...m.querySelectorAll('.cols')].filter(c=>c.children.length===2&&!c.parentElement.closest('.panel'));C.forEach((c,i)=>c.dataset.dgc=i);
- const cnt={};T=tops.filter(p=>title(p)).concat(strips);T.forEach(p=>{const t=title(p);cnt[t]=(cnt[t]||0)+1;p.dataset.dgk=cnt[t]>1?t+'#'+cnt[t]:t});
- Z=[];T.forEach(p=>{const par=p.parentElement;if(C.includes(par))return;const pc=par.parentElement;if(isP(p)&&C.includes(pc)&&single(par)&&swapType(pc))return;if(!Z.includes(par))Z.push(par)});
- Z.forEach((z,i)=>z.dataset.dgz=i);
- applySaved();
- const total=Z.reduce((s,z)=>s+items(z).length,0);
- T.forEach(p=>{const inZ=Z.includes(p.parentElement);const cc=colOf(p);const inSwap=!!(isP(p)&&cc&&swapType(cc.c));if(!inSwap&&!(inZ&&(total>=2)))return;addHandle(p,inSwap)});
+ const cards=tops.filter(p=>title(p)).concat(strips);const cnt={};cards.forEach(p=>{const t=title(p);cnt[t]=(cnt[t]||0)+1;p.dataset.dgk=cnt[t]>1?t+'#'+cnt[t]:t});
+ const isCard=e=>!!(e&&e.dataset&&e.dataset.dgk);
+ const hasCard=e=>isCard(e)||!!e.querySelector('[data-dgk]');
+ /* 위→아래로 줄 목록 만들기 */
+ const kids=[...m.children];const first=kids.findIndex(hasCard);if(first<0)return;
+ const rows=[];let pin=0;
+ const unitOf=(card,wrapCls,att)=>{let u=card;if(wrapCls){u=document.createElement('div');u.className=wrapCls;u.dataset.dg12w='1';card.before(u);u.appendChild(card);(att||[]).forEach(a=>u.appendChild(a))}else (att||[]).forEach(a=>card.after(a));u.dataset.dg12u=card.dataset.dgk;U[card.dataset.dgk]=u;return card.dataset.dgk};
+ kids.slice(first).forEach(ch=>{
+  if(isCard(ch)){rows.push([unitOf(ch)]);return}
+  if(ch.classList.contains('cols')&&ch.children.length===2&&hasCard(ch)){const k=COLSCLS.length;COLSCLS.push([...ch.classList].filter(c=>c!=='home2'&&c!=='dg9-rev'&&c!=='enter').join(' ')+(ch.classList.contains('home2')?' dg12-home':''));
+   const side=[[],[]];const extra=[];[...ch.children].forEach((col,ci)=>{
+    if(isCard(col)){side[ci].push(unitOf(col));U[col.dataset.dgk].dataset.dg12c=k+':'+ci;return}
+    const cs=[...col.children];let cur=null;const groups=[];const lead=[];
+    cs.forEach(e=>{if(isCard(e)){cur={card:e,att:[]};groups.push(cur)}else if(cur)cur.att.push(e);else lead.push(e)});
+    if(!groups.length){/* 카드 없는 칸: 통째로 고정 줄 */const t='#p'+(pin++);col.dataset.dg12u=t;U[t]=col;extra.push(t);return}
+    if(lead.length)groups[0].att=lead.concat(groups[0].att);
+    const wc=[...col.classList].join(' ')||'';
+    groups.forEach(g=>{const t=unitOf(g.card,wc||'dg12-cell',g.att);U[t].dataset.dg12c=k+':'+ci;side[ci].push(t)})});
+   const vis=side.map(s=>s.filter(t=>uShown(U[t])));const hid=side.map(s=>s.filter(t=>!uShown(U[t])));
+   for(let i=0;i<Math.max(vis[0].length,vis[1].length);i++)rows.push([vis[0][i],vis[1][i]].filter(Boolean));
+   hid.flat().forEach(t=>rows.push([t]));extra.forEach(t=>rows.push([t]));
+   ch.dataset.dg12old='1';return}
+  /* 숫자 카드·도구 줄 같은 고정 줄 */
+  const t='#p'+(pin++);ch.dataset.dg12u=t;U[t]=ch;rows.push([t])});
+ DEF=rows.map(r=>r.slice());
+ /* 저장된 줄 */
+ const st=load();let sv=st[v+':rows'];
+ if(Array.isArray(sv)){const seen=new Set();const out=[];sv.forEach(r=>{if(!Array.isArray(r))return;const rr=r.filter(t=>U[t]&&!seen.has(t)&&(seen.add(t),true)).slice(0,2);if(rr.length)out.push(rr)});
+  DEF.forEach((r,i)=>r.forEach(t=>{if(!seen.has(t)){seen.add(t);out.splice(Math.min(i,out.length),0,[t])}}));ROWS=out}else ROWS=DEF.map(r=>r.slice());
+ CT=document.createElement('div');CT.className='dg12';CT.style.gap=getComputedStyle(m).rowGap||'20px';
+ const anchor=kids[first];anchor.before(CT);
+ build();
+ m.querySelectorAll('[data-dg12old]').forEach(c=>{if(!c.querySelector('[data-dgk]'))c.remove()});
+ /* 손잡이 */
+ units().forEach(t=>{if(t.startsWith('#p'))return;const card=U[t].dataset.dgk?U[t]:U[t].querySelector('[data-dgk]');if(card&&units().length>=2)addHandle(card)});
  refresh();
 }
-function applySaved(){const st=load(),v=V;
- const find=t=>t.startsWith('#c')?C[+t.slice(2)]:T.find(p=>p.dataset.dgk===t);
- Z.forEach((z,i)=>{const L=st[v+':z'+i];if(!Array.isArray(L))return;const els=[];L.forEach(t=>{const e=find(t);if(e&&!els.includes(e)&&!e.contains(z))els.push(e)});if(!els.length)return;
-  const slots=items(z).filter(e=>els.includes(e)).map(e=>{const k=document.createComment('dg');e.before(k);return k});
-  let prev=null;els.forEach((e,j)=>{if(j<slots.length)slots[j].replaceWith(e);else if(prev)prev.after(e);else{const its=items(z);if(its.length)its[its.length-1].after(e);else z.append(e)}prev=e});
-  slots.forEach(k=>k.isConnected&&k.remove())});
- C.forEach((c,i)=>c.classList.toggle('dg9-rev',st[v+':cols'+i]==='rev'));
-}
-function addHandle(p,inSwap){const t=title(p);const hs=[];
- if(p.dataset.dg11s){const h=document.createElement('span');h.className='dg11-sh';h.innerHTML=GRIPH;p.prepend(h);const pl=parseFloat(getComputedStyle(p).paddingLeft)||0;const g=Math.max(2,pl-8);h.style.left=g+'px';p.style.setProperty('padding-left',(g+20+8)+'px','important');hs.push(h)}
+function rowCls(r){if(r.length===1)return 'dg12-row dg12-one'+(r[0].startsWith('#p')?' dg12-pin':'');
+ const a=(U[r[0]].dataset.dg12c||'').split(':'),b=(U[r[1]].dataset.dg12c||'').split(':');
+ /* 처음 화면의 좌우 짝 그대로일 때만 원래 칸 비율, 그 밖의 2분할은 반반 */
+ if(a[0]!==''&&a[0]===b[0]&&a[1]==='0'&&b[1]==='1')return 'dg12-row '+COLSCLS[+a[0]];
+ return 'dg12-row dg12-half'}
+function build(){if(!CT)return;const els=ROWS.map(r=>{const d=document.createElement('div');d.className=rowCls(r);r.forEach(t=>d.appendChild(U[t]));return d});CT.replaceChildren(...els)}
+/* ---------- 손잡이 ---------- */
+function addHandle(p){const t=title(p);const hs=[];
+ if(p.dataset.dg11s){const h=document.createElement('span');h.className='dg11-sh';h.innerHTML=GRIPV;p.prepend(h);const pl=parseFloat(getComputedStyle(p).paddingLeft)||0;const g=Math.max(2,pl-8);h.style.left=g+'px';p.style.setProperty('padding-left',(g+20+8)+'px','important');hs.push(h)}
  else{const old=p.querySelector(':scope>.dg9-corner');if(old)old.remove();
-  /* 손잡이는 카드 맨 위 가운데(가로형). 제목 줄도 그대로 끌 수 있다 */
   const f=p.firstElementChild;const pt=parseFloat(getComputedStyle(p).paddingTop)||0;
   if(f&&f.matches('.panel-h,.panel-b,.fold-h')){f.style.setProperty('padding-top','8px','important');p.style.setProperty('padding-top',(pt+24)+'px','important')}
   else{const cp=f?parseFloat(getComputedStyle(f).paddingTop)||0:0;p.style.setProperty('padding-top',(pt+24+Math.max(0,8-pt-cp))+'px','important')}
   const h=document.createElement('span');h.className='dg11-top';h.innerHTML=GRIPT;p.prepend(h);p.classList.add('dg11-tp');hs.push(h);
   const hd=p.querySelector(':scope>.panel-h,:scope>.fold-h');if(hd){hd.classList.add('dg9-h');hs.push(hd)}}
- hs.forEach(h=>{if(h.dataset.dg9)return;h.dataset.dg9='1';
-  h.setAttribute('draggable','true');if(h.tagName!=='BUTTON'&&!h.classList.contains('panel-h')&&!h.hasAttribute('tabindex'))h.tabIndex=0;
-  if(h.classList.contains('panel-h')&&!h.hasAttribute('tabindex'))h.tabIndex=-1;
-  if(h.classList.contains('dg11-top')||h.classList.contains('dg11-sh')){h.setAttribute('role','button');h.setAttribute('aria-label',t+' 카드 옮기기 (끌거나 Alt+화살표)')}
-  h.title='끌어서 옮기기'+(inSwap?' · 반대쪽 칸으로 끌면 좌우 바꾸기':'')+' · Alt+화살표';
+ hs.forEach(h=>{if(h.dataset.dg9)return;h.dataset.dg9='1';h.setAttribute('draggable','true');
+  if(h.classList.contains('dg11-top')||h.classList.contains('dg11-sh')){h.tabIndex=0;h.setAttribute('role','button');h.setAttribute('aria-label',t+' 카드 옮기기 (끌거나 Alt+화살표)')}
+  h.title='끌어서 옮기기 · 옆 가장자리에 놓으면 2분할 · Alt+화살표';
   h.addEventListener('dragstart',e=>start(e,p,h));
   h.addEventListener('dragend',()=>{end();sup=Date.now()+400;supEl=p});
-  h.addEventListener('keydown',e=>key(e,p,h))});
-}
-/* 놓일 자리 막대 */
-let IND=null;
-function ind(){if(!IND||!IND.isConnected){IND=document.createElement('div');IND.className='dg11-ind';IND.setAttribute('aria-hidden','true');document.body.appendChild(IND)}return IND}
-function bar(x,y,w,h){const b=ind();b.style.cssText=`display:block;left:${Math.round(x)}px;top:${Math.round(y)}px;width:${Math.round(w)}px;height:${Math.round(h)}px`}
-function hideInd(){if(IND)IND.style.display='none';document.querySelectorAll('.dg11-swapt').forEach(x=>x.classList.remove('dg11-swapt'))}
-function end(){hideInd();if(drag){drag.p.classList.remove('dg9-src')}document.body.classList.remove('dg11-on');drag=null}
+  h.addEventListener('keydown',e=>key(e,p,h))})}
+/* ---------- 끌기 ---------- */
+let IND=null,PRV=null;
+function els(){if(!IND||!IND.isConnected){IND=document.createElement('div');IND.className='dg11-ind';IND.setAttribute('aria-hidden','true');document.body.appendChild(IND)}if(!PRV||!PRV.isConnected){PRV=document.createElement('div');PRV.className='dg12-prev';PRV.setAttribute('aria-hidden','true');document.body.appendChild(PRV)}}
+function bar(x,y,w,h){els();IND.style.cssText=`display:block;left:${Math.round(x)}px;top:${Math.round(y)}px;width:${Math.round(w)}px;height:${Math.round(h)}px`}
+function prev(r){els();if(!r){PRV.style.display='none';return}PRV.style.cssText=`display:block;left:${Math.round(r.left)}px;top:${Math.round(r.top)}px;width:${Math.round(r.width)}px;height:${Math.round(r.height)}px`}
+function hideInd(){if(IND)IND.style.display='none';if(PRV)PRV.style.display='none'}
+function end(){hideInd();if(drag)drag.p.classList.remove('dg9-src');document.body.classList.remove('dg11-on');drag=null}
+const tokOf=p=>p.dataset.dgk;
+const oneCol=()=>{const m=M();return !!m&&(m.classList.contains('m-one')||m.classList.contains('m-narrow'))};
 function start(e,p,h){
- if(matchMedia('(max-width:900px)').matches){e.preventDefault();return} /* 좁은 화면에서는 끌기 끔(저장된 배치만 적용) */
+ if(narrowMQ()){e.preventDefault();return} /* 좁은 화면에서는 끌기 끔(저장된 배치만 적용) */
  const it=downT&&downT.closest&&downT.closest('a,button,input,select,textarea,label,[role="button"],[onclick],.chip,.fchip10');
  if(it&&it!==h&&h.contains(it)){e.preventDefault();return}
- drag={p,h,snap:JSON.stringify(load()),t:null};
+ drag={p,h,tok:tokOf(p),snap:JSON.stringify(load()),t:null};
  try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',title(p));const r=R(p);if(r.height<720)e.dataTransfer.setDragImage(p,Math.max(0,e.clientX-r.left),Math.max(0,e.clientY-r.top))}catch(_){}
  setTimeout(()=>{if(drag&&drag.p===p){p.classList.add('dg9-src');document.body.classList.add('dg11-on')}},0);
- /* 화면 위·아래 끝에 가까이 끌면 저절로 스크롤 */
  const d=drag;const loop=()=>{if(drag!==d)return;const y=d.y,E=80;let dy=0;if(y!=null){if(y<E)dy=-Math.ceil((E-y)/4);else if(y>innerHeight-E)dy=Math.ceil((y-innerHeight+E)/4)}
   if(dy){const b=scrollY;scrollBy(0,dy);if(scrollY!==b){const t=hit(d.x,d.y);d.t=t;if(t)show(t);else hideInd()}}requestAnimationFrame(loop)};requestAnimationFrame(loop);
 }
-const inR=(r,x,y,pad=0)=>x>=r.left-pad&&x<=r.right+pad&&y>=r.top-pad&&y<=r.bottom+pad;
-function nearest(list,x,y,axis){let best=null,bd=1e9;list.forEach(k=>{const r=R(k);const d=axis==='y'?(y<r.top?r.top-y:y>r.bottom?y-r.bottom:0):(x<r.left?r.left-x:x>r.right?x-r.right:0);if(d<bd){bd=d;best=k}});return best}
-function slotIn(z,y,isCol){const p=drag.p;const its=items(z).filter(e=>e!==p&&vis(e));
- if(!isCol&&its.length&&y<R(its[0]).top-30)return null;
- for(const e of its){const r=R(e);if(y<r.top+r.height/2)return {type:'zone',z,before:e,isCol}}
- return {type:'zone',z,before:null,isCol}}
-function hit(x,y){const p=drag.p;const pc=colOf(p);const onlySwap=!!(isP(p)&&pc&&swapType(pc.c)&&single(pc.col));
- for(const c of C){if(!c.isConnected||!vis(c))continue;const r=R(c);if(!inR(r,x,y,4))continue;const md=mode(c);
-  if(md==='flat'){const ps=visSort(flatPanels(c)).filter(e=>e!==p);for(const e of ps){const q=R(e);if(y<q.top+q.height/2)return {type:'flat',c,before:e}}return {type:'flat',c,before:null}}
-  if(md==='none')continue;
-  const col=nearest(kids(c),x,y,md==='stack'?'y':'x');const src=kids(c).find(k=>k===p||k.contains(p));
-  if(isP(p)&&swapType(c)&&src&&col!==src&&(single(col)||single(src)))return {type:'swap',c,src,col,md};
-  if(onlySwap)return col===src&&Z.includes(col)?slotIn(col,y,true):null;
-  if(Z.includes(col))return slotIn(col,y,true);
-  return null}
- if(onlySwap)return null;
- let best=null;Z.forEach(z=>{if(C.includes(z.parentElement)||!vis(z))return;if(inR(R(z),x,y)&&(!best||best.contains(z)))best=z});
- return best?slotIn(best,y,false):null}
-function gapOf(z){const g=parseFloat(getComputedStyle(z).rowGap);return isNaN(g)?20:g}
-function show(t){hideInd();const p=drag.p;
- if(t.type==='swap'){t.col.classList.add('dg11-swapt');const rc=R(t.c),rt=R(t.col);const first=visFirst(t.c,t.col);
-  if(t.md==='stack'){bar(rc.left,first?rt.top-12:rt.bottom+8,rc.width,4)}
-  else{const top=Math.max(rt.top,0),bot=Math.min(rt.bottom,innerHeight);bar(first?rc.left-12:rc.right+8,top,4,Math.max(40,bot-top))}return}
- if(t.type==='flat'){const ps=visSort(flatPanels(t.c)).filter(e=>e!==p);const rc=R(t.c);
-  if(t.before){const i=ps.indexOf(t.before),r=R(t.before);const pr=i>0?R(ps[i-1]):null;bar(r.left,pr&&pr.bottom<=r.top?(pr.bottom+r.top)/2-2:r.top-12,r.width,4)}
-  else{const l=ps[ps.length-1];const r=l?R(l):rc;bar(r.left,(l?r.bottom:rc.top)+8,r.width,4)}return}
- const z=t.z,g=gapOf(z),rz=vis(z)?R(z):null;
- if(t.before){const r=R(t.before);let pr=t.before.previousElementSibling;while(pr&&(pr===p||!vis(pr)))pr=pr.previousElementSibling;const y=pr?(R(pr).bottom+r.top)/2-2:r.top-Math.min(12,g/2)-2;const L=t.isCol&&rz?rz:r;bar(L.left,y,L.width,4)}
- else{const ch=[...z.children].filter(e=>e!==p&&vis(e));const its=items(z).filter(e=>e!==p&&vis(e));const l=t.isCol?ch[ch.length-1]:its[its.length-1];
-  if(l){const r=R(l);const L=t.isCol&&rz?rz:r;bar(L.left,r.bottom+Math.min(10,g/2)-2,L.width,4)}else if(rz){bar(rz.left,rz.top+6,rz.width,4)}}}
+const rowEls=()=>CT?[...CT.children]:[];
+function hit(x,y){if(!CT)return null;const rs=rowEls();const vis=rs.map((el,i)=>({el,i,r:R(el)})).filter(o=>o.r.height>0);if(!vis.length)return null;
+ const cr=R(CT);if(x<cr.left-30||x>cr.right+30||y<vis[0].r.top-40||y>vis[vis.length-1].r.bottom+60)return null;
+ let o=vis.find(o=>y>=o.r.top&&y<=o.r.bottom);
+ if(!o){/* 줄 사이 틈·맨 아래 */const nx=vis.find(o=>o.r.top>y);return nx?{type:'row',ri:nx.i,after:false}:{type:'row',ri:vis[vis.length-1].i,after:true}}
+ const row=ROWS[o.i];if(row[0].startsWith('#p'))return {type:'row',ri:o.i,after:y>o.r.top+o.r.height/2};
+ const cells=[...o.el.children].filter(c=>c.getClientRects().length);const dist=c=>{const q=R(c);const dx=x<q.left?q.left-x:x>q.right?x-q.right:0,dy=y<q.top?q.top-y:y>q.bottom?y-q.bottom:0;return dx+dy};
+ let cell=cells.reduce((b,c)=>{const d=dist(c);return !b||d<b.d?{c,d}:b},null).c;
+ const q=R(cell);const px=(x-q.left)/q.width,py=(y-q.top)/q.height;const tok=cell.dataset.dg12u;
+ const edgeY=Math.min(q.height*0.25,140);const sideY=Math.min(q.height*0.12,48);
+ /* 옆 30% 영역이면 위·아래 가장자리보다 옆을 먼저 본다(높이가 낮은 접는 카드도 2분할 가능). 맨 위·아래 띠(12%)만 새 줄 */
+ if(!oneCol()&&(px<0.3||px>0.7)&&y>=q.top+sideY&&y<=q.bottom-sideY){if(tok===drag.tok&&row.length===1)return null;return {type:'side',ri:o.i,tok,side:px<0.3?'left':'right',cell:q,rowR:o.r}}
+ if(y<q.top+edgeY)return {type:'row',ri:o.i,after:false,cell:q};
+ if(y>q.bottom-edgeY)return {type:'row',ri:o.i,after:true,cell:q};
+ return {type:'row',ri:o.i,after:py>0.5,cell:q}}
+function show(t){hideInd();const rs=rowEls();const el=rs[t.ri];if(!el)return;const r=R(el);const cr=R(CT);const g=parseFloat(CT.style.gap)||20;
+ if(t.type==='row'){let y;if(t.after){let n=t.ri+1;while(rs[n]&&!R(rs[n]).height)n++;y=rs[n]?(r.bottom+R(rs[n]).top)/2-2:r.bottom+g/2-2}else{let pv=t.ri-1;while(rs[pv]&&!R(rs[pv]).height)pv--;y=rs[pv]?(R(rs[pv]).bottom+r.top)/2-2:r.top-g/2-2}bar(cr.left,y,cr.width,4);return}
+ const row=ROWS[t.ri];const q=t.cell;const top=Math.max(r.top,0),bot=Math.min(r.bottom,innerHeight);
+ if(row.length===1){const half=(r.width-g)/2;bar(t.side==='left'?r.left-10:r.right+6,top,4,Math.max(40,bot-top));prev({left:t.side==='left'?r.left:r.right-half,top:r.top,width:half,height:r.height})}
+ else{bar(t.side==='left'?q.left-10:q.right+6,Math.max(q.top,0),4,Math.max(40,Math.min(q.bottom,innerHeight)-Math.max(q.top,0)));prev(q)}}
 document.addEventListener('mousedown',e=>{downT=e.target},true);
 document.addEventListener('dragenter',e=>{if(drag&&hit(e.clientX,e.clientY))e.preventDefault()});
 document.addEventListener('dragover',e=>{if(!drag)return;drag.x=e.clientX;drag.y=e.clientY;const t=hit(e.clientX,e.clientY);drag.t=t;if(!t){hideInd();return}e.preventDefault();try{e.dataTransfer.dropEffect='move'}catch(_){}show(t)});
 document.addEventListener('dragleave',e=>{if(drag&&!e.relatedTarget)hideInd()});
-document.addEventListener('drop',e=>{if(!drag)return;const t=hit(e.clientX,e.clientY)||drag.t;const d=drag;if(t)e.preventDefault();end();if(t)perform(d,t)});
+document.addEventListener('drop',e=>{if(!drag)return;const t=drag.t||hit(e.clientX,e.clientY);const d=drag;if(t)e.preventDefault();end();if(t)perform(d,t)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drag)end()});
 document.addEventListener('click',e=>{if(Date.now()<sup&&supEl&&supEl.contains(e.target)){e.stopPropagation();e.preventDefault();sup=0}},true);
-/* 옮기기 */
-function saveAll(st){const v=V;Z.forEach((z,i)=>{st[v+':z'+i]=items(z).map(tok)})}
-function perform(d,t){const p=d.p;const before=[p.parentElement,p.previousElementSibling,p.nextElementSibling];let msg='배치를 저장했어요. 다음에도 이 자리로 보여요.';const st=load();
- if(t.type==='swap'){t.c.classList.toggle('dg9-rev');const i=C.indexOf(t.c);if(t.c.classList.contains('dg9-rev'))st[V+':cols'+i]='rev';else delete st[V+':cols'+i];msg=(t.md==='stack'?'위·아래':'왼쪽·오른쪽')+' 칸을 바꿨어요. 다음에도 이 배치로 보여요.'}
- else if(t.type==='flat'){const ps=visSort(flatPanels(t.c)).filter(e=>e!==p);const j=t.before?ps.indexOf(t.before):ps.length;ps.splice(j,0,p);
-  if(!t.c.contains(p)){if(t.before)t.before.before(p);else{const l=ps[ps.length-2];if(l)l.after(p);else kids(t.c)[0].append(p)}}
-  saveAll(st);st[V+':g'+C.indexOf(t.c)]=ps.map(tok)}
- else{if(t.before){if(t.before===p.nextElementSibling&&p.parentElement===t.z){}else t.before.before(p)}else{const its=items(t.z).filter(e=>e!==p);if(its.length){if(its[its.length-1]!==p.previousElementSibling||p.parentElement!==t.z)its[its.length-1].after(p)}else t.z.append(p)}
-  if(p.parentElement===before[0]&&p.previousElementSibling===before[1]&&p.nextElementSibling===before[2])return;
-  saveAll(st)}
- save(st);note(msg,d.snap);after(d.h)}
-function after(){refresh();try{dispatchEvent(new Event('resize'))}catch(e){}}
-/* 키보드 */
-function key(e,p,h){if(!e.altKey||!/^Arrow(Up|Down|Left|Right)$/.test(e.key))return;e.preventDefault();e.stopPropagation();
- const snap=JSON.stringify(load());const st=load();const k=e.key;const z=Z.includes(p.parentElement)?p.parentElement:null;const cc=colOf(p);const md=cc?mode(cc.c):'';let moved=false,msg='배치를 저장했어요. 다음에도 이 자리로 보여요.';
- if(cc&&md==='flat'&&(k==='ArrowUp'||k==='ArrowDown')){const ps=visSort(flatPanels(cc.c));const i=ps.indexOf(p),j=i+(k==='ArrowUp'?-1:1);
-  if(j>=0&&j<ps.length){[ps[i],ps[j]]=[ps[j],ps[i]];saveAll(st);st[V+':g'+C.indexOf(cc.c)]=ps.map(tok);moved=true}
-  else if(Z.includes(cc.c.parentElement)){if(k==='ArrowUp')cc.c.before(p);else cc.c.after(p);saveAll(st);moved=true}}
- else if(k==='ArrowLeft'||k==='ArrowRight'){const wantFirst=k==='ArrowLeft';
-  if(isP(p)&&cc&&swapType(cc.c)&&md!=='flat'){if(visFirst(cc.c,cc.col)!==wantFirst){cc.c.classList.toggle('dg9-rev');const i=C.indexOf(cc.c);if(cc.c.classList.contains('dg9-rev'))st[V+':cols'+i]='rev';else delete st[V+':cols'+i];msg='왼쪽·오른쪽 칸을 바꿨어요. 다음에도 이 배치로 보여요.';moved=true}}
-  else if(cc&&md==='side'&&z){const o=kids(cc.c).find(x=>x!==cc.col);if(Z.includes(o)&&visFirst(cc.c,o)===wantFirst){const its=items(o);const i=Math.min(items(z).indexOf(p),its.length);if(its[i])its[i].before(p);else if(its.length)its[its.length-1].after(p);else o.append(p);saveAll(st);moved=true}}
-  else if(z&&!cc){const its=items(z);const i=its.indexOf(p);let c=null;for(let j=i-1;j>=0&&!c;j--)if(its[j].dataset.dgc!=null)c=its[j];if(!c)c=its.find(x=>x.dataset.dgc!=null);
-   if(c&&mode(c)!=='none'){const tg=kids(c).find(x=>Z.includes(x)&&(mode(c)==='flat'||visFirst(c,x)===wantFirst));if(tg){const ti=items(tg);if(ti.length)ti[ti.length-1].after(p);else tg.append(p);saveAll(st);moved=true}}}}
- else if(z){const its=items(z);const i=its.indexOf(p),j=i+(k==='ArrowUp'?-1:1);
-  if(j>=0&&j<its.length){if(k==='ArrowUp')its[j].before(p);else its[j].after(p);saveAll(st);moved=true}
-  else if(cc&&Z.includes(cc.c.parentElement)){if(k==='ArrowUp')cc.c.before(p);else cc.c.after(p);saveAll(st);moved=true}}
- if(!moved)return;save(st);note(msg,snap);after(h);h.focus()}
+/* ---------- 줄 바꾸기 ---------- */
+const where=tok=>{for(let i=0;i<ROWS.length;i++){const j=ROWS[i].indexOf(tok);if(j>=0)return {i,j}}return null};
+function take(tok){const w=where(tok);const row=ROWS[w.i];row.splice(w.j,1);if(!row.length)ROWS.splice(w.i,1)}
+function apply(tok,t){const before=JSON.stringify(ROWS);const tgt=ROWS[t.ri];const src=where(tok);
+ if(t.type==='row'){if(tgt.length===1&&tgt[0]===tok)return false;take(tok);let i=ROWS.indexOf(tgt);if(i<0)return false;ROWS.splice(t.after?i+1:i,0,[tok])}
+ else{if(tgt.includes(tok)){if(tgt.length<2)return false;const want=t.side==='left'?0:1;if(tgt.indexOf(tok)===want)return false;tgt.reverse()}
+  else if(tgt.length===1){take(tok);if(t.side==='left')tgt.unshift(tok);else tgt.push(tok)}
+  else{const idx=t.side==='left'?0:1;const D=tgt[idx];const srow=ROWS[src.i];tgt[idx]=tok;srow[src.j]=D}}
+ return JSON.stringify(ROWS)!==before}
+function commit(snap,h,msg){const st=load();st[V+':rows']=ROWS.map(r=>r.slice());save(st);build();note(msg||'배치를 저장했어요. 다음에도 이 자리로 보여요.',snap);refresh();try{dispatchEvent(new Event('resize'))}catch(e){}if(h&&h.isConnected)h.focus()}
+function perform(d,t){if(!apply(d.tok,t))return;commit(d.snap,null,t.type==='side'?'같은 줄에 나란히 놓았어요. 다음에도 이 배치로 보여요.':null)}
+function key(e,p,h){if(!e.altKey||!/^Arrow(Up|Down|Left|Right)$/.test(e.key))return;e.preventDefault();e.stopPropagation();const tok=tokOf(p);const w=where(tok);if(!w)return;const snap=JSON.stringify(load());const before=JSON.stringify(ROWS);const row=ROWS[w.i];const k=e.key;
+ if(k==='ArrowUp'||k==='ArrowDown'){const up=k==='ArrowUp';if(row.length===2){take(tok);const i=ROWS.indexOf(row);ROWS.splice(up?i:i+1,0,[tok])}else{const j=w.i+(up?-1:1);if(j<0||j>=ROWS.length)return;ROWS.splice(w.i,1);ROWS.splice(j,0,[tok])}}
+ else{const right=k==='ArrowRight';
+  if(row.length===2){const at=row.indexOf(tok);if((right&&at===0)||(!right&&at===1))row.reverse();else{take(tok);const i=ROWS.indexOf(row);ROWS.splice(right?i+1:i,0,[tok])}}
+  else{let j=w.i-1;while(j>=0&&ROWS[j][0].startsWith('#p'))j--;let tg=j>=0&&ROWS[j].length===1?ROWS[j]:null;if(!tg){j=w.i+1;while(j<ROWS.length&&ROWS[j][0].startsWith('#p'))j++;tg=j<ROWS.length&&ROWS[j].length===1?ROWS[j]:null}if(!tg)return;take(tok);if(right)tg.push(tok);else tg.unshift(tok)}}
+ if(JSON.stringify(ROWS)===before)return;commit(snap,h)}
 function note(msg,snap){document.querySelectorAll('.dg9-toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='dg9-toast';t.setAttribute('role','status');t.innerHTML=`<span>${msg}</span><button type="button" data-u>되돌리기</button><button type="button" data-r>이 화면 기본 배치로</button>`;document.body.appendChild(t);
  t.querySelector('[data-u]').onclick=()=>{try{save(JSON.parse(snap))}catch(e){}t.remove();render()};
- t.querySelector('[data-r]').onclick=()=>{const s=load();Object.keys(s).filter(k=>k.startsWith(view()+':')).forEach(k=>delete s[k]);save(s);t.remove();render()};
+ t.querySelector('[data-r]').onclick=()=>{resetView();t.remove()};
  clearTimeout(note._h);note._h=setTimeout(()=>t.remove(),6000)}
-/* 카드 가장자리에 닿는 바탕색 있는 자식(보드 판·꼬리 줄·표 머리 등)은 카드 모서리 둥글기에 맞춘다:
-   카드 모서리에 닿으면 같은 둥글기, 옆 가장자리 중간에 닿으면 그쪽 모서리는 각지게 → 모서리 흰 틈·삐져나옴 없음 */
+function resetView(){const s=load();Object.keys(s).filter(k=>k.startsWith(view()+':')).forEach(k=>delete s[k]);save(s);render()}
+/* ---------- 한 칸·두 칸 ---------- */
+const ICO1='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="2"/></svg>';
+const ICO2='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="1.5" y="2.5" width="5.5" height="11" rx="1.5"/><rect x="9" y="2.5" width="5.5" height="11" rx="1.5"/></svg>';
+function seg(){const ht=document.querySelector('#top .head-tools');if(!ht)return;let s=ht.querySelector('.dg12-seg');
+ if(!s){s=document.createElement('div');s.className='dg12-seg';s.setAttribute('role','group');s.setAttribute('aria-label','보기 방식');s.innerHTML=`<button type="button" data-cm="1" title="한 칸으로 보기" aria-label="한 칸으로 보기">${ICO1}</button><button type="button" data-cm="2" title="두 칸으로 보기" aria-label="두 칸으로 보기">${ICO2}</button>`;
+  const ai=ht.querySelector('.aib-top');if(ai)ai.before(s);else ht.prepend(s);
+  s.addEventListener('click',e=>{const b=e.target.closest('[data-cm]');if(!b)return;const st=load();if(b.dataset.cm==='2')delete st[V+':cols-mode'];else st[V+':cols-mode']='1';save(st);refresh()})}
+ const m=M();const mode=load()[V+':cols-mode']==='1'?'1':'2';const two=ROWS.some(r=>r.length===2);const auto=!!m&&m.classList.contains('m-narrow');
+ s.hidden=!two;s.classList.toggle('dg12-auto',auto&&mode==='2');
+ s.querySelectorAll('[data-cm]').forEach(b=>{const on=b.dataset.cm===(auto?'1':mode);b.setAttribute('aria-pressed',on?'true':'false')});
+ const b2=s.querySelector('[data-cm="2"]');b2.title=auto?'공간이 좁아 한 칸으로 보는 중':'두 칸으로 보기';b2.setAttribute('aria-label',b2.title);s.title=auto?'공간이 좁아 한 칸으로 보는 중':''}
+/* ---------- 폭에 따라 ---------- */
+function narrow(){const m=M();if(!m)return;const w=m.clientWidth-(parseFloat(getComputedStyle(m).paddingLeft)||0)-(parseFloat(getComputedStyle(m).paddingRight)||0);
+ m.classList.toggle('m-narrow',w<940);m.classList.toggle('m-one',load()[V+':cols-mode']==='1');
+ rowEls().forEach(r=>{if(r.children.length!==2){r.classList.remove('dg11-1col');return}
+  if(r.classList.contains('dg11-1col')){if(w>(+r.dataset.dg11w||0)+40)r.classList.remove('dg11-1col');else return}
+  const [a,b]=r.children;const ra=R(a),rb=R(b);if(!ra.width||!rb.width||Math.abs(ra.left-rb.left)<20)return;const lim=r.classList.contains('dg12-half')?440:520;
+  /* 반쪽이 좁거나, 카드 안 내용이 카드 폭을 넘치면(글자·칩 터짐) 위아래로 쌓는다 */
+  if((r.classList.contains('dg12-half')?Math.min(ra.width,rb.width):Math.max(ra.width,rb.width))<lim){r.classList.add('dg11-1col');r.dataset.dg11w=Math.round(w)}})}
 const bgOf=e=>{const cs=getComputedStyle(e);const c=cs.backgroundColor;const has=(c&&c!=='transparent'&&!/rgba\([^)]*,\s*0\)$/.test(c))||cs.backgroundImage!=='none';return has?c+'|'+cs.backgroundImage:null};
-function corners(root){(root||document).querySelectorAll('#main .panel,#layer .panel').forEach(P=>{if(!P.getClientRects().length)return;const cs=getComputedStyle(P);const pr=R(P);const bl=parseFloat(cs.borderLeftWidth)||0,bt=parseFloat(cs.borderTopWidth)||0;const pb=bgOf(P);
+/* 카드 가장자리에 닿는 바탕색 있는 자식(보드 판·꼬리 줄·표 머리 등)은 카드 모서리에 맞춘다:
+   카드 모서리에 닿으면 같은 둥글기, 옆 가장자리 중간에 닿으면 그쪽 모서리는 각지게 → 모서리 흰 틈·삐져나옴 없음 */
+function corners(){document.querySelectorAll('#main .panel,#layer .panel').forEach(P=>{if(!P.getClientRects().length)return;const cs=getComputedStyle(P);const pr=R(P);const bl=parseFloat(cs.borderLeftWidth)||0,bt=parseFloat(cs.borderTopWidth)||0;const pb=bgOf(P);
  const rad={tl:parseFloat(cs.borderTopLeftRadius)||0,tr:parseFloat(cs.borderTopRightRadius)||0,bl:parseFloat(cs.borderBottomLeftRadius)||0,br:parseFloat(cs.borderBottomRightRadius)||0};if(!rad.tl&&!rad.tr&&!rad.bl&&!rad.br)return;
  const L=pr.left+bl,T=pr.top+bt,Rr=pr.right-bl,B=pr.bottom-bt;
  P.querySelectorAll('*').forEach(e=>{if(e.closest('.dg11-top,.dg11-sh,svg'))return;const r=R(e);if(!r.width||!r.height)return;const dl=r.left-L,dt=r.top-T,dr=Rr-r.right,db=B-r.bottom;if(dl>18&&dt>18&&dr>18&&db>18)return;
-  const es=getComputedStyle(e);const b=bgOf(e);const clip=es.overflow!=='visible'&&e.firstElementChild&&bgOf(e.firstElementChild);if(!clip&&(!b||b===pb))return;
+  const es=getComputedStyle(e);const b=bgOf(e);const clip=es.overflow!=='visible'&&e.firstElementChild&&bgOf(e.firstElementChild);const hov=e.classList.contains('fold-h')||(es.cursor==='pointer'&&!/^(TD|TH|TR|BUTTON|A|INPUT|SELECT|SPAN|B|SVG)$/i.test(e.tagName));if(!clip&&!hov&&(!b||b===pb))return;
   [['tl',dl,dt,'borderTopLeftRadius'],['tr',dr,dt,'borderTopRightRadius'],['bl',dl,db,'borderBottomLeftRadius'],['br',dr,db,'borderBottomRightRadius']].forEach(([k,a,c,prop])=>{const Rk=rad[k];if(!Rk||Math.min(a,c)>1||a<-1||c<-1)return;const need=Math.max(0,Rk-Math.max(a,c));const cur=parseFloat(es[prop])||0;if(Math.abs(cur-need)>0.5){e.style.setProperty(prop.replace(/[A-Z]/g,m=>'-'+m.toLowerCase()),Math.round(need)+'px','important');e.dataset.dg11r='1'}})})})}
-/* 본문(#main) 실제 폭이 좁으면(AI 도우미를 열거나 창을 줄였을 때) 두 칸을 한 칸으로 쌓는다
-   - 본문 1000px 미만: 모든 두 칸·숫자 카드 2칸 / - 넓은 칸이 520px 미만이 되는 두 칸도 쌓기 */
-function narrow(){const m=M();if(!m)return;const w=m.clientWidth-(parseFloat(getComputedStyle(m).paddingLeft)||0)-(parseFloat(getComputedStyle(m).paddingRight)||0);
- m.classList.toggle('m-narrow',w<1000);
- m.querySelectorAll('.cols').forEach(c=>{if(c.children.length!==2)return;if(c.classList.contains('dg11-1col')){if(w>(+c.dataset.dg11w||0)+40){c.classList.remove('dg11-1col')}else return}
-  const [a,b]=c.children;if(getComputedStyle(a).display==='contents')return;const ra=R(a),rb=R(b);if(Math.abs(ra.left-rb.left)<20)return;if(Math.max(ra.width,rb.width)<520){c.classList.add('dg11-1col');c.dataset.dg11w=Math.round(w)}})}
-/* 화면 폭에 따라: 위아래로 쌓인 좌우 칸, 한 줄로 합쳐진 홈 칸(저장된 순서는 order로) */
-function refresh(){try{narrow()}catch(e){}const st=load();
- C.forEach((c,i)=>{if(!c.isConnected)return;const md=mode(c);c.classList.toggle('dg11-stk',md==='stack');const L=st[V+':g'+i];
-  flatPanels(c).forEach(p=>{if(md==='flat'&&Array.isArray(L)){const k=L.indexOf(tok(p));p.style.order=k<0?'':String(k+1);p.dataset.dg11o='1'}else if(p.dataset.dg11o){p.style.order='';delete p.dataset.dg11o}})});
- Z.forEach(z=>z.classList.toggle('dg11-empty',C.includes(z.parentElement)&&!items(z).length));
- try{window.__gripPos10&&window.__gripPos10()}catch(e){}
- try{corners()}catch(e){}}
-const _rV11=render;render=function(){_rV11.apply(this,arguments);try{setup()}catch(e){console.warn(e)}};
+function refresh(){try{narrow()}catch(e){}
+ rowEls().forEach(r=>r.classList.toggle('dg12-hid',![...r.children].some(c=>c.dataset.dg12u&&c.dataset.dg12u.startsWith('#p')?c.getClientRects().length>0:uShown(c))));
+ try{seg()}catch(e){}try{corners()}catch(e){}}
+const _rV11=render;render=function(){_rV11.apply(this,arguments);try{setup()}catch(e){console.warn(e)}try{seg()}catch(e){}};
 addEventListener('load',()=>setTimeout(()=>{try{setup()}catch(e){console.warn(e)}},60));
-let rq=0;const ro=()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{try{if(M()&&C.length)refresh();else narrow()}catch(e){}})};
+let rq=0;const ro=()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{try{refresh()}catch(e){}})};
 addEventListener('resize',ro);try{new ResizeObserver(ro).observe(document.getElementById('main'))}catch(e){}
 })();
 </script>
@@ -5161,6 +5234,11 @@ addEventListener('resize',ro);try{new ResizeObserver(ro).observe(document.getEle
  html body .app,html body.ai-open .app{display:block!important;grid-template-columns:none!important}
  html body .side{position:fixed!important;top:0!important;left:0;bottom:0;height:100vh!important;width:280px!important;max-width:84vw;z-index:1001;transform:translateX(-105%);transition:transform .2s ease;overflow-y:auto!important;display:flex!important;flex-direction:column;padding:18px 12px!important;box-shadow:0 0 0 1px var(--rule),0 20px 50px rgba(0,0,0,.18);visibility:hidden}
  html body.m-nav .side{transform:none;visibility:visible}
+ html body .app,html body .main{background:var(--canvas,#F4F5F7)!important;background-image:none!important}
+ html body .side .nav{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;gap:2px;overflow:visible!important}
+ html body .side .nav>*{width:100%!important;flex:none!important}
+ html body .side .nav a{height:40px!important}
+ html body .side .nav-sec{margin:14px 0 4px;padding:0 10px}
  html body .side .nav-sec{display:block}
  html body.m-nav .m-scrim{display:block;position:fixed;inset:0;background:rgba(17,20,30,.42);z-index:1000}
  html body .mbar{display:flex;position:sticky;top:0;z-index:40;height:52px;align-items:center;gap:10px;padding:0 12px 0 8px;background:var(--surface);border-bottom:1px solid var(--rule)}
@@ -5181,6 +5259,12 @@ addEventListener('resize',ro);try{new ResizeObserver(ro).observe(document.getEle
  html body .dg9-h{cursor:default}
  html body .tw{overflow-x:auto;max-width:100%}
  html body .kbwrap{overflow-x:auto;max-width:100%}
+ html body .pagehead{flex-wrap:wrap;gap:10px;min-width:0}
+ html body .head-tools{flex-wrap:wrap;gap:8px;max-width:100%;min-width:0}
+ html body .dg12-seg,html body .head-tools .stamp{display:none!important}
+ html body #main .panel-h,html body #main .fold-h{flex-wrap:wrap;row-gap:4px;min-width:0}
+ html body #main .fold-h h2,html body #main .fold-h .sub,html body #main .panel-h .sub{white-space:normal!important;min-width:0}
+ html body #main .hlinks{flex-wrap:wrap;min-width:0}
 }
 @media (max-width:600px){
  html body .kpis,html body .kpis.kf9{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
@@ -5194,6 +5278,16 @@ addEventListener('resize',ro);try{new ResizeObserver(ro).observe(document.getEle
  html body .banner{flex-wrap:wrap!important}
  html body .banner .nw,html body .banner .rowx{white-space:normal!important;flex-wrap:wrap!important}
  html body .kpi{padding:14px!important;min-width:0}
+ html body #main .nw,html body #main .rowx.nw{white-space:normal!important;flex-wrap:wrap!important}
+ html body #main .rowx{flex-wrap:wrap;min-width:0}
+ html body #main h3,html body #main p,html body #main .sub{overflow-wrap:break-word;word-break:keep-all;min-width:0}
+ html body #main .detail-h{flex-wrap:wrap;gap:8px}
+ html body .head-tools{flex:1 1 100%;justify-content:flex-start;flex-wrap:wrap!important}
+ html body #main .hlinks{flex:1 1 100%;max-width:100%}
+ html body #main .fold-h .sub{flex:1 1 100%}
+ html body #main .mt>span{white-space:normal!important}
+ html body #main .hlinks,html body #main .hlinks *{flex-wrap:wrap!important;white-space:normal!important}
+ html body #main .mt,html body #main .evst10{flex-wrap:wrap!important;white-space:normal!important;min-width:0}
 }
 </style>
 <script id="v11-mobile-js">
