@@ -3480,6 +3480,28 @@ td .ci9t{gap:6px}
 .cnow>span{position:absolute!important;left:-6px!important;top:-6px!important;width:12px!important;height:12px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:var(--neg,#C8372D)!important;font-size:0!important;color:transparent!important;border:2px solid var(--surface,#fff)!important;box-sizing:border-box;animation:nowPulse9 1.8s ease-out infinite}
 @media (prefers-reduced-motion:reduce){.nowline>span,.cnow>span{animation:none}}
 </style>
+<style id="v9-ghost-sep">
+/* 색 면 위 보조 버튼: 주 버튼(코랄)과 경계가 보이게 흰 면·회색 선·짙은 회색 글자 */
+.nextbox .btn.ghost,.nextbox summary.btn.ghost{background:var(--surface,#fff)!important;border:1.5px solid var(--line9,#E3E8EF)!important;color:var(--ink-2,#3B4250)!important}
+.nextbox .btn.ghost:hover,.nextbox summary.btn.ghost:hover{border-color:var(--ink-4,#9CA3AF)!important;background:var(--surface,#fff)!important}
+.nextbox .btn.ghost svg{color:var(--ink-3,#6B7280)!important}
+</style>
+<style id="v9-seg-on">
+/* 켜진 세그먼트(코랄 면) 안의 숫자가 검정으로 남던 것 → 흰 글자 + 옅은 흰 바탕 */
+.seg button.on span,.seg button.on .tn{color:#fff!important}
+.seg button.on .tn{background:rgba(255,255,255,.25);border-radius:999px;padding:0 7px;margin-left:4px}
+</style>
+<style id="v9-kpi-click">
+/* 숫자 카드 규칙: 누를 수 있는 카드(홈=화면 이동, 관리 대상=필터)만 마우스를 올리면 반응.
+   누를 수 없는 카드는 첫 칸 색칠을 없애 누를 수 있어 보이지 않게 */
+.kpis:not(.kf9)>div.kpi:first-child{background:var(--surface,#fff)!important;border-color:var(--line9,#E3E8EF)!important}
+.kpis:not(.kf9)>div.kpi:first-child .label,.kpis:not(.kf9)>div.kpi:first-child .value,.kpis:not(.kf9)>div.kpi:first-child .u{color:inherit!important}
+.kpis:not(.kf9)>div.kpi:first-child::before{display:none!important}
+.kpis>div.kpi{cursor:default}
+.kpis>a.kpi{cursor:pointer;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s}
+.kpis>a.kpi:hover{border-color:var(--acc-line,#F8D4C9)!important;transform:translateY(-1px)}
+.kpis>a.kpi:hover .label::after{content:" ›";color:var(--acc-text,#A8432A)}
+</style>
 </head>
 <body>
 <div class="app">
@@ -4568,6 +4590,60 @@ function kf(){if(((location.hash||'').slice(1).split('/')[0])!=='care')return;co
  [...row.children].forEach((k,i)=>{const v=MAP[i];if(!v)return;k.setAttribute('role','button');k.tabIndex=0;k.setAttribute('aria-pressed',String(cur===v));if(cur===v)k.classList.add('on');k.title=v==='전체'?'전체 보기':v+'만 보기';
   const go=()=>{S.f.ep=(cur===v&&v!=='전체')?'전체':v;render()};k.addEventListener('click',go);k.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})})}
 const _rK=render;render=function(){_rK.apply(this,arguments);try{kf()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(()=>{try{kf()}catch(e){}},0));})();
+</script>
+<style id="v9-panscroll">
+/* 가로로 넘치는 영역(요청 보드 등): 빈 곳을 눌러 끌면 옆으로 스크롤 */
+.pan9{cursor:grab}
+.pan9.pan9-on{cursor:grabbing;user-select:none}
+.pan9.pan9-on *{cursor:grabbing!important}
+</style>
+<script>
+(function(){
+const SEL='.kbwrap,.tw,.calwrap,.sch-scroll';
+const isEmpty=t=>!t.closest('a,button,input,select,textarea,label,summary,[draggable="true"],[onclick],[role="button"],.kcard,.cev,.tag,p,h2,h3,b,strong');
+function mark(){document.querySelectorAll('#main *').forEach(el=>{const ox=getComputedStyle(el).overflowX;const can=(ox==='auto'||ox==='scroll')&&el.scrollWidth>el.clientWidth+4;el.classList.toggle('pan9',can)})}
+let st=null;
+document.addEventListener('pointerdown',e=>{if(e.button!==0||e.pointerType==='touch')return;const w=e.target.closest('.pan9');if(!w||!isEmpty(e.target))return;st={w,x:e.clientX,y:e.clientY,sl:w.scrollLeft,st:w.scrollTop,moved:false};},true);
+document.addEventListener('pointermove',e=>{if(!st)return;const dx=e.clientX-st.x,dy=e.clientY-st.y;if(!st.moved&&Math.abs(dx)+Math.abs(dy)<4)return;if(!st.moved){st.moved=true;st.w.classList.add('pan9-on')}st.w.scrollLeft=st.sl-dx;e.preventDefault()},true);
+const end=()=>{if(!st)return;const m=st.moved;st.w.classList.remove('pan9-on');st=null;if(m){const kill=ev=>{ev.stopPropagation();ev.preventDefault()};document.addEventListener('click',kill,{capture:true,once:true});setTimeout(()=>document.removeEventListener('click',kill,true),0)}};
+document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true);
+const _rP=render;render=function(){_rP.apply(this,arguments);try{mark()}catch(e){}};addEventListener('resize',()=>{try{mark()}catch(e){}});addEventListener('load',()=>setTimeout(mark,50));
+})();
+</script>
+<style id="v9-evdetail">
+/* 기관 행사 카드 → 누르면 상세 서랍 */
+.evs .ev{cursor:pointer;transition:border-color .15s,transform .15s}
+.evs .ev:hover{border-color:var(--acc-line,#F8D4C9)!important;transform:translateY(-1px)}
+.evs .ev:focus-visible{outline:2px solid var(--acc,#C2502F);outline-offset:2px}
+.evd9 dl{display:grid;grid-template-columns:96px 1fr;gap:12px 16px;margin:0}
+.evd9 dt{color:var(--ink-3,#6B7280)}
+.evd9 dd{margin:0;color:var(--ink,#16191F)}
+.evd9 .evd9-top{display:flex;gap:16px;align-items:center;margin-bottom:22px}
+.evd9 .evd9-date{width:72px;height:80px;border-radius:14px;background:var(--hero,#FDEEE9);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--hero-ink,#94432A);flex:0 0 auto}
+.evd9 .evd9-date b{font-size:28px;line-height:1.1}
+.evd9 h4{margin:6px 0 0;font-size:19px}
+.evd9 .evd9-desc{margin:22px 0;padding:16px 18px;border-radius:12px;background:var(--sunken,#F7F8FA);line-height:1.65}
+.evd9 .evd9-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
+.evd9 .evd9-stats div{border:1.5px solid var(--line9,#E3E8EF);border-radius:12px;padding:14px 16px}
+.evd9 .evd9-stats b{display:block;font-size:22px;margin-top:4px}
+</style>
+<script>
+(function(){
+const EXTRA=[{place:'행복요양원 1층 강당',who:'어르신과 가족 누구나',desc:'지역 청소년 오케스트라가 찾아와 익숙한 가요와 동요를 연주해요. 가족과 함께 오시면 좋아요. 휠체어로도 들어올 수 있어요.',save:23,ask:4},
+ {place:'행복요양원 2층 프로그램실',who:'65세 이상 어르신 (12명)',desc:'손뜨개로 목도리를 함께 떠요. 실과 바늘은 기관에서 준비해요. 처음 하시는 분도 괜찮아요.',save:11,ask:2}];
+const wk=(e,i)=>Object.assign({},EXTRA[i]||{place:'-',who:'누구나',desc:'',save:0,ask:0},e);
+LAYERS.eventDetail=i=>{const e=wk(EVENTS[i],i);const m=e.d.match(/(\d+)\/(\d+) \((.)\) (.*)/)||[0,'','','',e.d];const off=!!e.off;
+ return drawer('기관 행사',`<div class="evd9"><div class="evd9-top"><div class="evd9-date"><small>${+m[1]}월</small><b>${+m[2]}</b><small>${m[3]}요일</small></div><div><span class="tag">${e.kind}</span><h4>${esc(e.t)}</h4></div></div>
+ <dl><dt>일시</dt><dd>${e.d}</dd><dt>장소</dt><dd>${e.place}</dd><dt>대상</dt><dd>${e.who}</dd><dt>보이는 곳</dt><dd>반경 1km 사용자 홈 "동네 기관 소식"</dd><dt>상태</dt><dd>${off?'<span class="status">노출 끔</span>':'<span class="status ok">노출 중</span>'}</dd></dl>
+ ${e.desc?`<div class="evd9-desc">${e.desc}</div>`:''}
+ <div class="evd9-stats"><div><span class="muted small">조회</span><b class="tn">${e.view}</b></div><div><span class="muted small">관심 표시</span><b class="tn">${e.save}</b></div><div><span class="muted small">문의</span><b class="tn">${e.ask}</b></div></div>
+ <p class="note" style="margin-top:18px">시간이 적립·차감되지 않는 소식이에요. 봉사자가 필요하면 기관 공고로 올려요.</p></div>`,
+ `<button class="btn" type="button" onclick="EVENTS[${i}].off=${!off};drawLayer();render();toast('${off?'다시 보이게 했어요':'노출을 껐어요'}')">${off?'다시 보이기':'노출 끄기'}</button><span class="sp"></span><button class="btn primary" type="button" onclick="openLayer('eventForm')">수정</button>`)};
+function ev9(){if(((location.hash||'').slice(1).split('/')[0])!=='events')return;document.querySelectorAll('#main .evs .ev').forEach((a,i)=>{if(a.dataset.ev9)return;a.dataset.ev9='1';a.tabIndex=0;a.setAttribute('role','button');a.setAttribute('aria-label',EVENTS[i].t+' 상세 보기');
+  if(EVENTS[i].off){const s=a.querySelector('.status');if(s){s.className='status';s.textContent='노출 끔'}}
+  const op=()=>openLayer('eventDetail',i);a.addEventListener('click',op);a.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();op()}})})}
+const _rE=render;render=function(){_rE.apply(this,arguments);try{ev9()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(()=>{try{ev9()}catch(e){}},0));
+})();
 </script>
 </body>
 </html>

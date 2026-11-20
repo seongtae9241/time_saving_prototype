@@ -3404,6 +3404,12 @@ body.ai-open .flow7 a>span{display:inline!important}
 .cnow>span{position:absolute!important;left:-6px!important;top:-6px!important;width:12px!important;height:12px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:var(--neg,#C8372D)!important;font-size:0!important;color:transparent!important;border:2px solid var(--surface,#fff)!important;box-sizing:border-box;animation:nowPulse9 1.8s ease-out infinite}
 @media (prefers-reduced-motion:reduce){.nowline>span,.cnow>span{animation:none}}
 </style>
+<style id="v9-ghost-sep">
+/* 색 면 위 보조 버튼: 주 버튼(코랄)과 경계가 보이게 흰 면·회색 선·짙은 회색 글자 */
+.nextbox .btn.ghost,.nextbox summary.btn.ghost{background:var(--surface,#fff)!important;border:1.5px solid var(--line9,#E3E8EF)!important;color:var(--ink-2,#3B4250)!important}
+.nextbox .btn.ghost:hover,.nextbox summary.btn.ghost:hover{border-color:var(--ink-4,#9CA3AF)!important;background:var(--surface,#fff)!important}
+.nextbox .btn.ghost svg{color:var(--ink-3,#6B7280)!important}
+</style>
 <style id="v10">
 /* ===== 10판: 팀원 운영자 콘솔(ref-팀원디자인-2026-11-19) 느낌을 더 강하게 =====
    회색 바탕 #F4F5F7 + 흰 평면 카드(모서리 16, 선 없음) · 넉넉한 안쪽 여백 · 카드 사이 24px
@@ -3502,8 +3508,11 @@ input[type=text],input[type=search],input[type=tel],input[type=date],input[type=
 .panel>nav.flow7{margin:22px var(--px10) 26px!important;gap:10px!important;flex-wrap:wrap}
 .flow7 a{height:38px!important;padding:0 10px 0 16px!important;font-size:calc(14px*var(--fz))!important;gap:10px!important}
 /* 카드 안 표: 좌우 끝을 카드 안쪽 여백(28px)에 맞춤 */
-.panel table th:first-child,.panel table td:first-child{padding-left:var(--px10)!important}
-.panel table th:last-child,.panel table td:last-child{padding-right:var(--px10)!important}
+.panel>.tw>table th:first-child,.panel>.tw>table td:first-child{padding-left:var(--px10)!important}
+.panel>.tw>table th:last-child,.panel>.tw>table td:last-child{padding-right:var(--px10)!important}
+/* 상세 안 작은 표(.vars)는 바깥 여백 없이, 날짜 칸은 한 줄 */
+table.vars td,table.vars th{padding-top:12px!important;padding-bottom:12px!important}
+table.vars td:first-child{padding-left:0!important;white-space:nowrap;width:auto!important;padding-right:20px!important}
 /* 목록 줄 */
 .lrow{padding:16px 24px!important;gap:14px!important}
 .more,button.more{padding:14px!important;font-size:calc(14px*var(--fz))!important;border-top:1px solid var(--rule-2)!important}
@@ -3591,6 +3600,23 @@ h3+.note{margin-top:10px}
 .dg9-h .dg9-grip{position:absolute!important;left:7px;top:50%;transform:translateY(-50%);margin:0!important;height:18px!important}
 .panel-h h2,.fold-h h2{line-height:1.5!important}
 .panel .detail-h h3{margin-bottom:10px!important}
+/* 숫자 카드 색칠: 누를 수 있는 줄(홈 a.kpi, 관리 대상 필터 카드)만. 누를 수 없는 줄은 모두 흰 면으로 같게 */
+.kpis>div.kpi:first-child:not([role="button"]):not(.on){background:var(--surface)!important}
+.kpis>div.kpi:first-child:not([role="button"]):not(.on) .label{color:var(--ink-3)!important}
+.kpis>div.kpi:first-child:not([role="button"]):not(.on) .value,.kpis>div.kpi:first-child:not([role="button"]):not(.on) .value .u{color:var(--ink)!important;opacity:1!important}
+body .kpis.kf9 .kpi.kpi:not(.on){border-color:transparent!important;background:var(--surface)!important}
+body .kpis.kf9 .kpi.kpi.on{background:color-mix(in srgb,var(--acc) 9%,var(--surface))!important;border-color:color-mix(in srgb,var(--acc) 30%,var(--surface))!important}
+body .kpis.kf9 .kpi.kpi:hover{border-color:color-mix(in srgb,var(--acc) 30%,var(--surface))!important}
+/* 관리 대상 상세 머리: 안쪽 여백이 두 겹(카드 28 + 머리 20)이라 빈 공간이 크던 것 */
+.covered>.panel-b{padding-bottom:22px!important}
+.covered .detail-h{padding:0!important}
+/* 6차: 겹침 · 짧은 칸 */
+.lrow>.sp{flex:1 1 auto!important;min-width:0!important;width:auto!important}
+.lrow>.rcol{flex:none!important;margin-left:10px}
+.panel>.tw td:first-child{white-space:nowrap}
+.ev-d b,.ev-d .num{line-height:1.4!important}
+.ev-d small{line-height:1.5!important;display:block}
+.bt b.num,.bt b.tn{line-height:1.4!important}
 
 </style>
 </head>
@@ -4618,6 +4644,24 @@ document.addEventListener('click',e=>{if(document.querySelector('.dg9-src'))e.st
 const _rD=render;render=function(){_rD.apply(this,arguments);try{apply()}catch(e){console.warn(e)}};
 addEventListener('load',()=>setTimeout(()=>{try{apply()}catch(e){}},0));
 })();
+</script>
+<style id="v9-kpifilter">
+/* 관리 대상: 숫자 카드를 누르면 목록 필터가 바뀐다. 색칠된 카드 = 지금 고른 필터 */
+.kpis.kf9 .kpi{cursor:pointer;transition:border-color .15s,background .15s}
+.kpis.kf9 .kpi:hover{border-color:var(--acc-line,#F8D4C9)!important}
+.kpis.kf9 .kpi:focus-visible{outline:2px solid var(--acc,#C2502F);outline-offset:2px}
+.kpis.kf9 .kpi:first-child:not(.on){background:var(--surface,#fff)!important;border-color:var(--line9,#E3E8EF)!important}
+.kpis.kf9 .kpi:first-child:not(.on) .label,.kpis.kf9 .kpi:first-child:not(.on) .value{color:inherit!important}
+.kpis.kf9 .kpi.on{background:var(--hero,#FDEEE9)!important;border-color:var(--acc-line,#F8D4C9)!important}
+.kpis.kf9 .kpi.on .label{color:var(--acc-text,#A8432A)!important}
+.kpis.kf9 .kpi.on .value{color:var(--hero-ink,#94432A)!important}
+</style>
+<script>
+(function(){const MAP=['전체','우선순위 높음','혼자 사는 분','앱 쓰는 분'];
+function kf(){if(((location.hash||'').slice(1).split('/')[0])!=='care')return;const row=document.querySelector('#main .kpis');if(!row||row.dataset.kf)return;row.dataset.kf='1';row.classList.add('kf9');const cur=(S.f&&S.f.ep)||'전체';
+ [...row.children].forEach((k,i)=>{const v=MAP[i];if(!v)return;k.setAttribute('role','button');k.tabIndex=0;k.setAttribute('aria-pressed',String(cur===v));if(cur===v)k.classList.add('on');k.title=v==='전체'?'전체 보기':v+'만 보기';
+  const go=()=>{S.f.ep=(cur===v&&v!=='전체')?'전체':v;render()};k.addEventListener('click',go);k.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})})}
+const _rK=render;render=function(){_rK.apply(this,arguments);try{kf()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(()=>{try{kf()}catch(e){}},0));})();
 </script>
 </body>
 </html>
