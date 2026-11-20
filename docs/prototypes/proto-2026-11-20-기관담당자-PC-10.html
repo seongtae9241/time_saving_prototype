@@ -4602,69 +4602,7 @@ const _r=render;render=function(){_r.apply(this,arguments);try{cat9()}catch(e){c
 .dg9-toast button{border:0;border-radius:999px;padding:6px 12px;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:15px;cursor:pointer}
 .dg9-toast button:hover{background:rgba(255,255,255,.24)}
 </style>
-<script>
-/* 담당자별 카드 배치 저장
-   - 같은 칸 안의 카드: 제목을 끌어 위아래 순서를 바꾼다.
-   - 좌우로 나뉜 화면(특보 알림·관리 대상·공공 연계·리포트·권한 위임·홈): 제목을 다른 칸 쪽으로 끌면 왼쪽·오른쪽 칸이 바뀐다.
-   - 키보드: 제목에 초점 → Alt+↑/↓ 순서, Alt+←/→ 좌우.
-   - 프로토타입은 브라우저 저장소에 담당자 ID별로 저장한다.
-     실제 서비스는 서버에 저장: GET/PUT /api/org/me/layout  {"home:0":["오늘 일정","오늘 처리할 일"],"alerts:cols":"rev"} */
-(function(){
-const ME_ID='staff-1001'; /* 로그인한 담당자(박지현) */
-const KEY='ts-layout:'+ME_ID;
-const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}};
-const save=o=>{try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}};
-const view=()=>((location.hash||'#home').slice(1).split('/')[0]||'home');
-const title=p=>{if(p.dataset&&p.dataset.dg9Title)return p.dataset.dg9Title;const h=p.querySelector(':scope>.panel-h h2,:scope>.fold-h h2,:scope>.panel-h h3');if(!h)return '';let t='';h.childNodes.forEach(n=>{if(n.nodeType===3)t+=n.textContent});t=(t.trim()?t:h.textContent).replace(/[0-9]+/g,'').replace(/\s+/g,' ').trim();return t};
-const head=p=>p.querySelector(':scope>.panel-h,:scope>.fold-h,:scope>.dg9-corner');
-const titled=par=>[...par.children].filter(c=>c.classList.contains('panel')&&title(c));
-const cols=()=>[...document.querySelectorAll('#main .cols')].filter(c=>[...c.children].filter(k=>k.offsetWidth>0).length===2);
-const colOf=p=>{const c=p.closest('.cols');if(!c||!cols().includes(c))return null;let x=p;while(x.parentElement!==c)x=x.parentElement;return {c,col:x}};
-const groupKey=par=>{const all=new Set([...document.querySelectorAll('#main .panel')].map(x=>x.parentElement));let i=0,k=null;all.forEach(q=>{if(titled(q).length<2)return;if(q===par)k=view()+':'+i;i++});return k};
-const colKey=c=>view()+':cols'+cols().indexOf(c);
-const grip='<span class="dg9-grip" aria-hidden="true"><svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></svg></span>';
-let drag=null;
-const clear=()=>document.querySelectorAll('.dg9-before,.dg9-after,.dg9-col-l,.dg9-col-r').forEach(x=>x.classList.remove('dg9-before','dg9-after','dg9-col-l','dg9-col-r'));
-const isRev=c=>c.classList.contains('dg9-rev');
-/* 화면에서 이 칸이 왼쪽인지 */
-const isLeft=(c,col)=>{const first=[...c.children].find(k=>k.offsetWidth>0);return (col===first)!==isRev(c)};
-function setSide(c,col,left){if(isLeft(c,col)===left)return false;const before=load()[colKey(c)];c.classList.toggle('dg9-rev');const st=load();st[colKey(c)]=isRev(c)?'rev':'';save(st);note('왼쪽·오른쪽 칸을 바꿨어요. 다음에도 이 배치로 보여요.',()=>{const s=load();s[colKey(c)]=before||'';save(s);render()});return true}
-function moveV(p,ref,after){const par=p.parentElement;const old=load()[groupKey(par)];if(after)ref.after(p);else ref.before(p);const st=load();st[groupKey(par)]=titled(par).map(title);save(st);note('배치를 저장했어요. 다음에도 이 순서로 보여요.',()=>{const s=load();if(old)s[groupKey(par)]=old;else delete s[groupKey(par)];save(s);render()})}
-function apply(){const st=load();
- /* 저장된 위아래 순서 */
- new Set([...document.querySelectorAll('#main .panel')].map(x=>x.parentElement)).forEach(par=>{const kids=titled(par);if(kids.length<2)return;const ord=st[groupKey(par)];if(!ord||!ord.length)return;const sorted=[...kids].sort((a,b)=>{const ia=ord.indexOf(title(a)),ib=ord.indexOf(title(b));return (ia<0?99:ia)-(ib<0?99:ib)});const slots=kids.map(k=>{const m=document.createComment('s');k.before(m);return m});sorted.forEach((k,i)=>slots[i].replaceWith(k))});
- /* 저장된 좌우 */
- cols().forEach(c=>c.classList.toggle('dg9-rev',st[colKey(c)]==='rev'));
- /* 끌 수 있는 카드: 같은 칸에 2개 이상이거나, 좌우 칸 안에 있는 카드 */
- document.querySelectorAll('#main .panel').forEach(p=>{if(!title(p))return;const canV=titled(p.parentElement).length>=2;const cc=colOf(p);if(!canV&&!cc)return;const h=head(p);if(!h||h.dataset.dg9)return;h.dataset.dg9='1';
-  h.classList.add('dg9-h');h.setAttribute('draggable','true');h.title=(canV?'끌어서 순서 바꾸기':'')+(canV&&cc?' · ':'')+(cc?'옆 칸으로 끌면 좌우 바꾸기':'');h.insertAdjacentHTML('afterbegin',grip);
-  if(h.tagName!=='BUTTON'&&!h.hasAttribute('tabindex'))h.tabIndex=0;
-  h.addEventListener('dragstart',e=>{drag={p};p.classList.add('dg9-src');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',title(p))}catch(_){}});
-  h.addEventListener('dragend',()=>{clear();p.classList.remove('dg9-src');drag=null});
-  h.addEventListener('keydown',e=>{if(!e.altKey)return;const k=e.key;if(k==='ArrowUp'||k==='ArrowDown'){if(!canV)return;e.preventDefault();const sib=titled(p.parentElement);const j=sib.indexOf(p)+(k==='ArrowUp'?-1:1);if(j<0||j>=sib.length)return;moveV(p,sib[j],k==='ArrowDown');h.focus()}
-   else if((k==='ArrowLeft'||k==='ArrowRight')&&cc){e.preventDefault();const o=colOf(p);setSide(o.c,o.col,k==='ArrowLeft');h.focus()}});
- });
- /* 놓을 곳 */
- document.querySelectorAll('#main .cols, #main .panel').forEach(t=>{if(t.dataset.dg9t)return;t.dataset.dg9t='1';
-  t.addEventListener('dragover',e=>{if(!drag)return;const src=drag.p;
-   if(t.classList.contains('panel')&&t!==src&&t.parentElement===src.parentElement){e.preventDefault();e.stopPropagation();const r=t.getBoundingClientRect();clear();t.classList.add(e.clientY<r.top+r.height/2?'dg9-before':'dg9-after');return}
-   const sc=colOf(src);if(!sc)return;const c=t.classList.contains('cols')?t:t.closest('.cols');if(c!==sc.c)return;
-   let tc=e.target;while(tc&&tc.parentElement!==c)tc=tc.parentElement;if(!tc||tc===sc.col)return;
-   e.preventDefault();e.stopPropagation();clear();const r=c.getBoundingClientRect();const left=e.clientX<r.left+r.width/2;tc.classList.add(left?'dg9-col-l':'dg9-col-r');drag.side={c,col:sc.col,left}});
-  t.addEventListener('drop',e=>{if(!drag)return;const src=drag.p;
-   if(t.classList.contains('panel')&&t!==src&&t.parentElement===src.parentElement&&(t.classList.contains('dg9-before')||t.classList.contains('dg9-after'))){e.preventDefault();e.stopPropagation();const after=t.classList.contains('dg9-after');clear();moveV(src,t,after);return}
-   if(drag.side&&document.querySelector('.dg9-col-l,.dg9-col-r')){e.preventDefault();e.stopPropagation();const s=drag.side;clear();setSide(s.c,s.col,s.left)}});
- });
-}
-function note(msg,undo){document.querySelectorAll('.dg9-toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='dg9-toast';t.setAttribute('role','status');t.innerHTML=`<span>${msg}</span><button type="button" data-u>되돌리기</button><button type="button" data-r>이 화면 기본 배치로</button>`;document.body.appendChild(t);
- t.querySelector('[data-u]').onclick=()=>{undo();t.remove()};
- t.querySelector('[data-r]').onclick=()=>{const s=load();Object.keys(s).filter(k=>k.startsWith(view()+':')).forEach(k=>delete s[k]);save(s);t.remove();render()};
- clearTimeout(note._h);note._h=setTimeout(()=>t.remove(),5000)}
-document.addEventListener('click',e=>{if(document.querySelector('.dg9-src'))e.stopPropagation()},true);
-const _rD=render;render=function(){_rD.apply(this,arguments);try{apply()}catch(e){console.warn(e)}};
-addEventListener('load',()=>setTimeout(()=>{try{apply()}catch(e){}},0));
-})();
-</script>
+<!-- 9판 카드 끌기 스크립트는 11판 "v11-drag"(파일 끝)로 옮김: 칸 사이·아래 구역까지 카드 하나씩 옮기기 -->
 <style id="v9-kpifilter">
 /* 관리 대상: 숫자 카드를 누르면 목록 필터가 바뀐다. 색칠된 카드 = 지금 고른 필터 */
 .kpis.kf9 .kpi{cursor:pointer;transition:border-color .15s,background .15s}
@@ -4932,24 +4870,8 @@ const grip='<span class="dg9-grip" aria-hidden="true"><svg width="10" height="16
 const ttl=p=>{const h=p.querySelector(':scope>.panel-h h2,:scope>.fold-h h2,:scope>.panel-h h3');if(!h)return '';let t='';h.childNodes.forEach(n=>{if(n.nodeType===3)t+=n.textContent});return (t.trim()?t:h.textContent).replace(/[0-9]+/g,'').replace(/\s+/g,' ').trim()};
 /* A-1 손잡이를 제목 첫 줄 가운데에 맞춘다 */
 function gripPos(){document.querySelectorAll('#main .dg9-h').forEach(h=>{if(!h.offsetParent)return;const corner=h.classList.contains('dg9-corner');const box=corner?h.parentElement:h;const t=corner?box.querySelector('h3,h2'):h.querySelector('h2,h3');if(!t)return;const br=box.getBoundingClientRect(),tr=t.getBoundingClientRect();const lh=parseFloat(getComputedStyle(t).lineHeight)||tr.height;const y=tr.top-br.top+Math.min(tr.height,lh)/2;h.style.setProperty('--g10t',Math.round(y)+'px')})}
-/* A-2 한 칸에 이름 있는 카드가 하나뿐인 화면(공공 연계 '이번 달 현황' 등)도 위아래로 옮길 수 있게 */
-let wd=null;
-function toast(msg,undo){document.querySelectorAll('.dg9-toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='dg9-toast';t.setAttribute('role','status');t.innerHTML=`<span>${msg}</span><button type="button" data-u>되돌리기</button><button type="button" data-r>이 화면 기본 배치로</button>`;document.body.appendChild(t);t.querySelector('[data-u]').onclick=()=>{undo();t.remove()};t.querySelector('[data-r]').onclick=()=>{const s=load();Object.keys(s).filter(k=>k.startsWith(view()+':')).forEach(k=>delete s[k]);save(s);t.remove();render()};clearTimeout(toast._h);toast._h=setTimeout(()=>t.remove(),5000)}
-function wrapDrag(){const wrap=document.querySelector('#main');if(!wrap)return;
- const items=[...wrap.children].filter(c=>c.classList.contains('cols')||c.classList.contains('panel'));if(items.some(c=>c.dataset.w10i!=null))return;const tp=items.filter(c=>c.classList.contains('panel')&&ttl(c));
- if(items.length<2||tp.length!==1)return; /* 2개 이상이면 v9-drag가 맡는다 */
- items.forEach((c,i)=>c.dataset.w10i=i);const K=view()+':wrap';
- const ord=load()[K];if(ord&&ord.length===items.length){const slots=items.map(k=>{const m=document.createComment('w');k.before(m);return m});ord.map(i=>items[i]).forEach((k,i)=>{if(k)slots[i].replaceWith(k)});slots.forEach(m=>m.isConnected&&m.remove())}
- const cur=()=>[...wrap.children].filter(c=>c.dataset.w10i!=null);
- const commit=old=>{const st=load();st[K]=cur().map(c=>+c.dataset.w10i);save(st);toast('배치를 저장했어요. 다음에도 이 순서로 보여요.',()=>{const s=load();if(old)s[K]=old;else delete s[K];save(s);render()})};
- const p=tp[0],h=p.querySelector(':scope>.panel-h,:scope>.fold-h');if(!h||h.dataset.dg9)return;h.dataset.dg9='1';h.classList.add('dg9-h');h.setAttribute('draggable','true');h.title='끌어서 순서 바꾸기';h.insertAdjacentHTML('afterbegin',grip);if(h.tagName!=='BUTTON'&&!h.hasAttribute('tabindex'))h.tabIndex=0;
- const clr=()=>wrap.querySelectorAll('.w10-before,.w10-after').forEach(x=>x.classList.remove('w10-before','w10-after'));
- h.addEventListener('dragstart',e=>{wd=p;p.classList.add('dg9-src');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',ttl(p))}catch(_){}});
- h.addEventListener('dragend',()=>{clr();p.classList.remove('dg9-src');wd=null});
- h.addEventListener('keydown',e=>{if(!e.altKey||(e.key!=='ArrowUp'&&e.key!=='ArrowDown'))return;e.preventDefault();const L=cur(),j=L.indexOf(p)+(e.key==='ArrowUp'?-1:1);if(j<0||j>=L.length)return;const old=load()[K];if(e.key==='ArrowUp')L[j].before(p);else L[j].after(p);commit(old);h.focus()});
- items.forEach(t=>{t.addEventListener('dragover',e=>{if(!wd||t===wd)return;e.preventDefault();e.stopPropagation();const r=t.getBoundingClientRect();clr();t.classList.add(e.clientY<r.top+r.height/2?'w10-before':'w10-after')});
-  t.addEventListener('drop',e=>{if(!wd||t===wd)return;e.preventDefault();e.stopPropagation();const after=t.classList.contains('w10-after');clr();const old=load()[K];if(after)t.after(wd);else t.before(wd);wd.classList.remove('dg9-src');wd=null;commit(old);gripPos()})});
-}
+/* A-2 (한 칸 카드 위아래 옮기기)는 v11-drag가 맡는다 */
+window.__gripPos10=gripPos;
 /* 1 기관 공고: 칩이 있으면 탭 '전체'를 테두리만 */
 function postsTabs(){const tb=document.querySelector('#main .toolbar');if(!tb)return;tb.classList.toggle('kf10',!!tb.querySelector('.fchip10'))}
 /* 2·3 관리 대상: 드롭다운 상태 표시, 목록 횟수 기준 안내 */
@@ -4964,7 +4886,7 @@ function pastEv(){if(view()!=='events')return;const w=document.querySelector('#m
  ${PAST.map(p=>`<div class="prow"><div class="pd"><span>${p[0]}월</span><b class="tn">${p[1]}</b><span>${p[2]}요일</span></div><div class="pt"><span class="tag" style="justify-self:start">${p[3]}</span><b>${p[4]}</b><span>${p[5]}</span></div><div class="pn tn"><span>참여<b>${p[6]}명</b></span><span>조회<b>${p[7]}</b></span></div></div>`).join('')}</section>`)}
 /* 8 요청 보드: 할 일 줄이 없는 카드에 회색 상태 줄 */
 function kcards(){document.querySelectorAll('#main .kcol').forEach(col=>{const h=col.querySelector('.kc-h b');const st=h?h.textContent.trim():'';col.querySelectorAll('.kcard').forEach(k=>{if(k.querySelector('.w'))return;const v=k.querySelector('.d .mt>span:last-child');const vn=v?v.textContent.trim():'';const line=st==='완료'?'완료 · 일지 확인함':st+(vn?' · 봉사자 '+vn:'');k.insertAdjacentHTML('beforeend',`<span class="w g10">${line}</span>`)})})}
-function run(){try{postsTabs()}catch(e){console.warn(e)}try{careUi()}catch(e){console.warn(e)}try{pastEv()}catch(e){console.warn(e)}try{kcards()}catch(e){console.warn(e)}try{wrapDrag()}catch(e){console.warn(e)}try{gripPos()}catch(e){console.warn(e)}}
+function run(){try{postsTabs()}catch(e){console.warn(e)}try{careUi()}catch(e){console.warn(e)}try{pastEv()}catch(e){console.warn(e)}try{kcards()}catch(e){console.warn(e)}try{gripPos()}catch(e){console.warn(e)}}
 const _r10c=render;render=function(){_r10c.apply(this,arguments);run()};
 addEventListener('load',()=>setTimeout(run,30));addEventListener('resize',()=>{try{gripPos()}catch(e){}});
 document.addEventListener('toggle',()=>setTimeout(gripPos,0),true);
@@ -4982,5 +4904,218 @@ document.addEventListener('toggle',()=>setTimeout(gripPos,0),true);
 .pastev10 .prow b.tn,.pastev10 .prow strong.tn{color:var(--ink-2)!important}
 html body #main .carechart svg.chart{max-width:none!important}
 </style>
+<style id="v11-drag">
+/* 11판 카드 끌기: 제목(제목 없는 카드는 위쪽 손잡이)을 끌어 같은 화면 어디로든 — 다른 카드 앞·뒤, 다른 칸, 아래 구역 */
+.dg11-ind{position:fixed;z-index:9998;pointer-events:none;background:var(--acc,#C2502F);border-radius:3px;display:none;box-shadow:0 0 0 2px var(--panel,#fff)}
+.dg11-swapt{outline:2px dashed var(--acc,#C2502F)!important;outline-offset:4px;border-radius:16px}
+body.dg11-on #main [data-dgz].dg11-empty{min-height:96px;outline:2px dashed var(--line,#E5E7EB);outline-offset:-2px;border-radius:16px}
+#main [data-dgz]{min-width:0}
+#main [data-dgz]>.panel{min-width:0;max-width:100%}
+.cols.dg9-rev.dg11-stk{direction:ltr}
+.cols.dg9-rev.dg11-stk>:first-child{order:2}
+.panel[data-dg11v]{position:relative}
+.dg11-top{position:absolute;top:0;left:50%;transform:translateX(-50%);width:72px;height:24px;border-radius:0 0 8px 8px;cursor:grab;z-index:2;color:var(--ink-3)}
+.dg11-top:active,.dg11-sh:active{cursor:grabbing}
+.dg11-top:hover,.dg11-top:focus-visible,.dg11-sh:hover,.dg11-sh:focus-visible{background:var(--hover)}
+.dg11-top .dg11-grip,.dg11-sh .dg11-grip{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.2;transition:opacity .15s}
+.panel:hover>.dg11-top .dg11-grip,.dg11-top:focus-visible .dg11-grip,.dg11-top:focus .dg11-grip,[data-dg11s]:hover>.dg11-sh .dg11-grip,.dg11-sh:focus .dg11-grip,.dg11-sh:focus-visible .dg11-grip{opacity:1}
+/* 위쪽 가운데 손잡이 줄(24px): 카드 위 여백을 그만큼 늘리고, 첫 내용은 8px 띄운다(JS가 원래 여백에 더함) */
+.panel.dg11-tp{position:relative}
+/* 아바타(동그란 이름 글자)와 이름 사이 12px, 이름 줄과 평점·정보 줄 사이 3px — 봉사자·관리 대상·요청 카드 공통 */
+html body .who{gap:12px!important}
+html body .who>div>div:not([class])+div,html body .who>span>.small[style*="block"]{margin-top:3px}
+html body .rowx>.av{margin-right:2px}
+html body table.tight1 .who>.av+*{margin-left:5px}
+html body .side-user{column-gap:12px!important}
+/* 관리 대상 목록 'AI 우선순위' 줄: 좁으면 '이번 달 기준'을 다음 줄로 */
+#main .cnt10{flex-wrap:wrap!important;row-gap:4px;column-gap:8px;min-width:0}
+#main .cnt10>.small{white-space:nowrap;word-break:keep-all}
+[data-dg11s]{position:relative}
+.dg11-sh{position:absolute;top:50%;transform:translateY(-50%);width:20px;height:24px;border-radius:6px;cursor:grab;z-index:2;color:var(--ink-3)}
+#main [data-dgz]>[data-dg11s]{min-width:0;max-width:100%}
+#main .stackv>.banner[data-dg11s],#main .stickl>.banner[data-dg11s]{flex-wrap:wrap}
+#main .stackv>.banner[data-dg11s] .nw,#main .stickl>.banner[data-dg11s] .nw{white-space:normal;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){.dg11-top .dg11-grip,.dg11-sh .dg11-grip{transition:none}}
+</style>
+<script id="v11-drag-js">
+/* 담당자별 카드 배치 저장 (11판)
+   - 카드 제목(또는 제목 없는 큰 카드 위쪽 손잡이)을 끌어 같은 화면의 다른 카드 앞·뒤, 다른 칸, 아래 넓은 구역 어디로든 옮긴다.
+     놓일 자리는 코랄색 4px 막대로 보인다. 칸 아래 빈 곳에 놓으면 그 칸 맨 아래로 간다.
+   - 한 칸에 카드가 하나뿐인 좌우 화면(특보 알림·관리 대상·공공 연계·리포트·권한 위임)은 반대쪽 칸으로 끌면 왼쪽·오른쪽이 바뀐다.
+   - 키보드: 손잡이(제목)에 초점 → Alt+↑/↓ 순서(칸 끝에서는 칸 밖으로), Alt+←/→ 왼쪽·오른쪽 칸으로.
+   - 저장: 화면별·구역별 카드 제목 순서. 프로토타입은 브라우저 저장소에 담당자 ID별로 둔다.
+     실제 서비스는 서버에 저장: GET/PUT /api/org/me/layout  {"home:z0":["오늘 일정","먼저 살펴볼 분"],"alerts:cols0":"rev"} */
+(function(){
+const ME_ID='staff-1001'; /* 로그인한 담당자(박지현) */
+const KEY='ts-layout:'+ME_ID;
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){return {}}};
+const save=o=>{try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}};
+const view=()=>((location.hash||'#home').slice(1).split('/')[0]||'home');
+const M=()=>document.getElementById('main');
+/* 제목 없는 큰 카드: 화면 안 위치로 이름을 붙이고 위쪽에 손잡이를 단다 (화면 위→아래 순서) */
+const NAMES={care:['관리 대상 목록','관리 대상 정보','연락처 · 돌봄 편성','받은 도움 · 메모','단골 봉사자 · 위임'],sched:['편성표 달력'],req:['요청 보드'],pub:['공공 연계 목록','대상자 정보'],posts:['공고 목록'],events:['행사 목록'],dlg:['위임 목록','위임 상세'],report:['대상자 정보']};
+const isP=e=>!!e&&e.nodeType===1&&e.classList.contains('panel');
+const ownT=p=>{const h=p.querySelector(':scope>.panel-h h2,:scope>.fold-h h2,:scope>.panel-h h3');if(!h)return '';let t='';h.childNodes.forEach(n=>{if(n.nodeType===3)t+=n.textContent});return (t.trim()?t:h.textContent).replace(/[0-9]+/g,'').replace(/\s+/g,' ').trim()};
+const title=p=>(p.dataset&&p.dataset.dg9Title)||ownT(p);
+const R=e=>e.getBoundingClientRect();
+const vis=e=>!!e&&e.isConnected&&getComputedStyle(e).display!=='contents'&&e.getClientRects().length>0;
+const GRIP='<span class="dg9-grip" aria-hidden="true"><svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></svg></span>';
+const GRIPT='<span class="dg11-grip" aria-hidden="true"><svg width="18" height="10" viewBox="0 0 18 10" fill="currentColor"><circle cx="2.5" cy="2.5" r="1.5"/><circle cx="9" cy="2.5" r="1.5"/><circle cx="15.5" cy="2.5" r="1.5"/><circle cx="2.5" cy="7.5" r="1.5"/><circle cx="9" cy="7.5" r="1.5"/><circle cx="15.5" cy="7.5" r="1.5"/></svg></span>';
+const GRIPH='<span class="dg11-grip" aria-hidden="true"><svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></svg></span>';
+/* 카드 모양이 아닌 띠·상자도 옮긴다 (고정 이름) */
+const STRIPS=[['.banner','특보 띠'],['.callout','방문 주의사항'],['.artcard','운영자 안내']];
+let Z=[],C=[],T=[],V='',drag=null,downT=null,sup=0,supEl=null;
+const done=new WeakSet();
+/* 구역 안 '자리 기준' = 이름 있는 카드 + 좌우 칸 묶음 */
+const items=z=>[...z.children].filter(c=>c.dataset.dgk||c.dataset.dgc!=null);
+const tok=e=>e.dataset.dgk||('#c'+e.dataset.dgc);
+const kids=c=>[...c.children];
+const single=col=>isP(col)||[...col.children].filter(isP).length===1;
+const swapType=c=>kids(c).some(single);
+function mode(c){const [a,b]=kids(c);if(!a||!b)return 'none';if(getComputedStyle(a).display==='contents'||getComputedStyle(b).display==='contents')return 'flat';const ra=R(a),rb=R(b);return Math.abs(ra.left-rb.left)<20?'stack':'side'}
+const colOf=p=>{const c=C.find(c=>kids(c).some(k=>k===p||(k.contains(p)&&p.parentElement===k)));return c?{c,col:kids(c).find(k=>k===p||k.contains(p))}:null};
+/* 화면에서 왼쪽(또는 위)에 보이는 칸이 첫 번째인지 */
+const visFirst=(c,col)=>{const [a,b]=kids(c);const ra=R(a),rb=R(b);const aFirst=mode(c)==='stack'?ra.top<=rb.top:ra.left<=rb.left;return (col===a)===aFirst};
+const flatPanels=c=>kids(c).flatMap(k=>isP(k)?[k]:[...k.children].filter(x=>x.dataset.dgk));
+const visSort=a=>a.filter(vis).sort((x,y)=>{const rx=R(x),ry=R(y);return Math.abs(rx.top-ry.top)>4?rx.top-ry.top:rx.left-ry.left});
+
+function setup(){const m=M();if(!m)return;
+ if([...m.children].some(c=>done.has(c))&&V===view()){refresh();return}
+ [...m.children].forEach(c=>done.add(c));V=view();const v=V;delete m.dataset.dgz;
+ const tops=[...m.querySelectorAll('.panel')].filter(p=>!p.parentElement.closest('.panel'));
+ const strips=[];STRIPS.forEach(([q,n])=>m.querySelectorAll(q).forEach(e=>{if(e.closest('.panel')||strips.includes(e))return;if(e.parentElement!==m&&!e.parentElement.matches('.stackv,.stickl,.cols>*'))return;e.dataset.dg9Title=n;e.dataset.dg11s='1';strips.push(e)}));
+ const names=NAMES[v]||[];let ni=0;
+ tops.forEach(p=>{if(title(p))return;const n=names[ni++];if(n){p.dataset.dg9Title=n;p.dataset.dg11v='1'}});
+ C=[...m.querySelectorAll('.cols')].filter(c=>c.children.length===2&&!c.parentElement.closest('.panel'));C.forEach((c,i)=>c.dataset.dgc=i);
+ const cnt={};T=tops.filter(p=>title(p)).concat(strips);T.forEach(p=>{const t=title(p);cnt[t]=(cnt[t]||0)+1;p.dataset.dgk=cnt[t]>1?t+'#'+cnt[t]:t});
+ Z=[];T.forEach(p=>{const par=p.parentElement;if(C.includes(par))return;const pc=par.parentElement;if(isP(p)&&C.includes(pc)&&single(par)&&swapType(pc))return;if(!Z.includes(par))Z.push(par)});
+ Z.forEach((z,i)=>z.dataset.dgz=i);
+ applySaved();
+ const total=Z.reduce((s,z)=>s+items(z).length,0);
+ T.forEach(p=>{const inZ=Z.includes(p.parentElement);const cc=colOf(p);const inSwap=!!(isP(p)&&cc&&swapType(cc.c));if(!inSwap&&!(inZ&&(total>=2)))return;addHandle(p,inSwap)});
+ refresh();
+}
+function applySaved(){const st=load(),v=V;
+ const find=t=>t.startsWith('#c')?C[+t.slice(2)]:T.find(p=>p.dataset.dgk===t);
+ Z.forEach((z,i)=>{const L=st[v+':z'+i];if(!Array.isArray(L))return;const els=[];L.forEach(t=>{const e=find(t);if(e&&!els.includes(e)&&!e.contains(z))els.push(e)});if(!els.length)return;
+  const slots=items(z).filter(e=>els.includes(e)).map(e=>{const k=document.createComment('dg');e.before(k);return k});
+  let prev=null;els.forEach((e,j)=>{if(j<slots.length)slots[j].replaceWith(e);else if(prev)prev.after(e);else{const its=items(z);if(its.length)its[its.length-1].after(e);else z.append(e)}prev=e});
+  slots.forEach(k=>k.isConnected&&k.remove())});
+ C.forEach((c,i)=>c.classList.toggle('dg9-rev',st[v+':cols'+i]==='rev'));
+}
+function addHandle(p,inSwap){const t=title(p);const hs=[];
+ if(p.dataset.dg11s){const h=document.createElement('span');h.className='dg11-sh';h.innerHTML=GRIPH;p.prepend(h);const pl=parseFloat(getComputedStyle(p).paddingLeft)||0;const g=Math.max(2,pl-8);h.style.left=g+'px';p.style.setProperty('padding-left',(g+20+8)+'px','important');hs.push(h)}
+ else{const old=p.querySelector(':scope>.dg9-corner');if(old)old.remove();
+  /* 손잡이는 카드 맨 위 가운데(가로형). 제목 줄도 그대로 끌 수 있다 */
+  const f=p.firstElementChild;const pt=parseFloat(getComputedStyle(p).paddingTop)||0;
+  if(f&&f.matches('.panel-h,.panel-b,.fold-h')){f.style.setProperty('padding-top','8px','important');p.style.setProperty('padding-top',(pt+24)+'px','important')}
+  else{const cp=f?parseFloat(getComputedStyle(f).paddingTop)||0:0;p.style.setProperty('padding-top',(pt+24+Math.max(0,8-pt-cp))+'px','important')}
+  const h=document.createElement('span');h.className='dg11-top';h.innerHTML=GRIPT;p.prepend(h);p.classList.add('dg11-tp');hs.push(h);
+  const hd=p.querySelector(':scope>.panel-h,:scope>.fold-h');if(hd){hd.classList.add('dg9-h');hs.push(hd)}}
+ hs.forEach(h=>{if(h.dataset.dg9)return;h.dataset.dg9='1';
+  h.setAttribute('draggable','true');if(h.tagName!=='BUTTON'&&!h.classList.contains('panel-h')&&!h.hasAttribute('tabindex'))h.tabIndex=0;
+  if(h.classList.contains('panel-h')&&!h.hasAttribute('tabindex'))h.tabIndex=-1;
+  if(h.classList.contains('dg11-top')||h.classList.contains('dg11-sh')){h.setAttribute('role','button');h.setAttribute('aria-label',t+' 카드 옮기기 (끌거나 Alt+화살표)')}
+  h.title='끌어서 옮기기'+(inSwap?' · 반대쪽 칸으로 끌면 좌우 바꾸기':'')+' · Alt+화살표';
+  h.addEventListener('dragstart',e=>start(e,p,h));
+  h.addEventListener('dragend',()=>{end();sup=Date.now()+400;supEl=p});
+  h.addEventListener('keydown',e=>key(e,p,h))});
+}
+/* 놓일 자리 막대 */
+let IND=null;
+function ind(){if(!IND||!IND.isConnected){IND=document.createElement('div');IND.className='dg11-ind';IND.setAttribute('aria-hidden','true');document.body.appendChild(IND)}return IND}
+function bar(x,y,w,h){const b=ind();b.style.cssText=`display:block;left:${Math.round(x)}px;top:${Math.round(y)}px;width:${Math.round(w)}px;height:${Math.round(h)}px`}
+function hideInd(){if(IND)IND.style.display='none';document.querySelectorAll('.dg11-swapt').forEach(x=>x.classList.remove('dg11-swapt'))}
+function end(){hideInd();if(drag){drag.p.classList.remove('dg9-src')}document.body.classList.remove('dg11-on');drag=null}
+function start(e,p,h){
+ const it=downT&&downT.closest&&downT.closest('a,button,input,select,textarea,label,[role="button"],[onclick],.chip,.fchip10');
+ if(it&&it!==h&&h.contains(it)){e.preventDefault();return}
+ drag={p,h,snap:JSON.stringify(load()),t:null};
+ try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',title(p));const r=R(p);if(r.height<720)e.dataTransfer.setDragImage(p,Math.max(0,e.clientX-r.left),Math.max(0,e.clientY-r.top))}catch(_){}
+ setTimeout(()=>{if(drag&&drag.p===p){p.classList.add('dg9-src');document.body.classList.add('dg11-on')}},0);
+ /* 화면 위·아래 끝에 가까이 끌면 저절로 스크롤 */
+ const d=drag;const loop=()=>{if(drag!==d)return;const y=d.y,E=80;let dy=0;if(y!=null){if(y<E)dy=-Math.ceil((E-y)/4);else if(y>innerHeight-E)dy=Math.ceil((y-innerHeight+E)/4)}
+  if(dy){const b=scrollY;scrollBy(0,dy);if(scrollY!==b){const t=hit(d.x,d.y);d.t=t;if(t)show(t);else hideInd()}}requestAnimationFrame(loop)};requestAnimationFrame(loop);
+}
+const inR=(r,x,y,pad=0)=>x>=r.left-pad&&x<=r.right+pad&&y>=r.top-pad&&y<=r.bottom+pad;
+function nearest(list,x,y,axis){let best=null,bd=1e9;list.forEach(k=>{const r=R(k);const d=axis==='y'?(y<r.top?r.top-y:y>r.bottom?y-r.bottom:0):(x<r.left?r.left-x:x>r.right?x-r.right:0);if(d<bd){bd=d;best=k}});return best}
+function slotIn(z,y,isCol){const p=drag.p;const its=items(z).filter(e=>e!==p&&vis(e));
+ if(!isCol&&its.length&&y<R(its[0]).top-30)return null;
+ for(const e of its){const r=R(e);if(y<r.top+r.height/2)return {type:'zone',z,before:e,isCol}}
+ return {type:'zone',z,before:null,isCol}}
+function hit(x,y){const p=drag.p;const pc=colOf(p);const onlySwap=!!(isP(p)&&pc&&swapType(pc.c)&&single(pc.col));
+ for(const c of C){if(!c.isConnected||!vis(c))continue;const r=R(c);if(!inR(r,x,y,4))continue;const md=mode(c);
+  if(md==='flat'){const ps=visSort(flatPanels(c)).filter(e=>e!==p);for(const e of ps){const q=R(e);if(y<q.top+q.height/2)return {type:'flat',c,before:e}}return {type:'flat',c,before:null}}
+  if(md==='none')continue;
+  const col=nearest(kids(c),x,y,md==='stack'?'y':'x');const src=kids(c).find(k=>k===p||k.contains(p));
+  if(isP(p)&&swapType(c)&&src&&col!==src&&(single(col)||single(src)))return {type:'swap',c,src,col,md};
+  if(onlySwap)return col===src&&Z.includes(col)?slotIn(col,y,true):null;
+  if(Z.includes(col))return slotIn(col,y,true);
+  return null}
+ if(onlySwap)return null;
+ let best=null;Z.forEach(z=>{if(C.includes(z.parentElement)||!vis(z))return;if(inR(R(z),x,y)&&(!best||best.contains(z)))best=z});
+ return best?slotIn(best,y,false):null}
+function gapOf(z){const g=parseFloat(getComputedStyle(z).rowGap);return isNaN(g)?20:g}
+function show(t){hideInd();const p=drag.p;
+ if(t.type==='swap'){t.col.classList.add('dg11-swapt');const rc=R(t.c),rt=R(t.col);const first=visFirst(t.c,t.col);
+  if(t.md==='stack'){bar(rc.left,first?rt.top-12:rt.bottom+8,rc.width,4)}
+  else{const top=Math.max(rt.top,0),bot=Math.min(rt.bottom,innerHeight);bar(first?rc.left-12:rc.right+8,top,4,Math.max(40,bot-top))}return}
+ if(t.type==='flat'){const ps=visSort(flatPanels(t.c)).filter(e=>e!==p);const rc=R(t.c);
+  if(t.before){const i=ps.indexOf(t.before),r=R(t.before);const pr=i>0?R(ps[i-1]):null;bar(r.left,pr&&pr.bottom<=r.top?(pr.bottom+r.top)/2-2:r.top-12,r.width,4)}
+  else{const l=ps[ps.length-1];const r=l?R(l):rc;bar(r.left,(l?r.bottom:rc.top)+8,r.width,4)}return}
+ const z=t.z,g=gapOf(z),rz=vis(z)?R(z):null;
+ if(t.before){const r=R(t.before);let pr=t.before.previousElementSibling;while(pr&&(pr===p||!vis(pr)))pr=pr.previousElementSibling;const y=pr?(R(pr).bottom+r.top)/2-2:r.top-Math.min(12,g/2)-2;const L=t.isCol&&rz?rz:r;bar(L.left,y,L.width,4)}
+ else{const ch=[...z.children].filter(e=>e!==p&&vis(e));const its=items(z).filter(e=>e!==p&&vis(e));const l=t.isCol?ch[ch.length-1]:its[its.length-1];
+  if(l){const r=R(l);const L=t.isCol&&rz?rz:r;bar(L.left,r.bottom+Math.min(10,g/2)-2,L.width,4)}else if(rz){bar(rz.left,rz.top+6,rz.width,4)}}}
+document.addEventListener('mousedown',e=>{downT=e.target},true);
+document.addEventListener('dragenter',e=>{if(drag&&hit(e.clientX,e.clientY))e.preventDefault()});
+document.addEventListener('dragover',e=>{if(!drag)return;drag.x=e.clientX;drag.y=e.clientY;const t=hit(e.clientX,e.clientY);drag.t=t;if(!t){hideInd();return}e.preventDefault();try{e.dataTransfer.dropEffect='move'}catch(_){}show(t)});
+document.addEventListener('dragleave',e=>{if(drag&&!e.relatedTarget)hideInd()});
+document.addEventListener('drop',e=>{if(!drag)return;const t=hit(e.clientX,e.clientY)||drag.t;const d=drag;if(t)e.preventDefault();end();if(t)perform(d,t)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drag)end()});
+document.addEventListener('click',e=>{if(Date.now()<sup&&supEl&&supEl.contains(e.target)){e.stopPropagation();e.preventDefault();sup=0}},true);
+/* 옮기기 */
+function saveAll(st){const v=V;Z.forEach((z,i)=>{st[v+':z'+i]=items(z).map(tok)})}
+function perform(d,t){const p=d.p;const before=[p.parentElement,p.previousElementSibling,p.nextElementSibling];let msg='배치를 저장했어요. 다음에도 이 자리로 보여요.';const st=load();
+ if(t.type==='swap'){t.c.classList.toggle('dg9-rev');const i=C.indexOf(t.c);if(t.c.classList.contains('dg9-rev'))st[V+':cols'+i]='rev';else delete st[V+':cols'+i];msg=(t.md==='stack'?'위·아래':'왼쪽·오른쪽')+' 칸을 바꿨어요. 다음에도 이 배치로 보여요.'}
+ else if(t.type==='flat'){const ps=visSort(flatPanels(t.c)).filter(e=>e!==p);const j=t.before?ps.indexOf(t.before):ps.length;ps.splice(j,0,p);
+  if(!t.c.contains(p)){if(t.before)t.before.before(p);else{const l=ps[ps.length-2];if(l)l.after(p);else kids(t.c)[0].append(p)}}
+  saveAll(st);st[V+':g'+C.indexOf(t.c)]=ps.map(tok)}
+ else{if(t.before){if(t.before===p.nextElementSibling&&p.parentElement===t.z){}else t.before.before(p)}else{const its=items(t.z).filter(e=>e!==p);if(its.length){if(its[its.length-1]!==p.previousElementSibling||p.parentElement!==t.z)its[its.length-1].after(p)}else t.z.append(p)}
+  if(p.parentElement===before[0]&&p.previousElementSibling===before[1]&&p.nextElementSibling===before[2])return;
+  saveAll(st)}
+ save(st);note(msg,d.snap);after(d.h)}
+function after(){refresh();try{dispatchEvent(new Event('resize'))}catch(e){}}
+/* 키보드 */
+function key(e,p,h){if(!e.altKey||!/^Arrow(Up|Down|Left|Right)$/.test(e.key))return;e.preventDefault();e.stopPropagation();
+ const snap=JSON.stringify(load());const st=load();const k=e.key;const z=Z.includes(p.parentElement)?p.parentElement:null;const cc=colOf(p);const md=cc?mode(cc.c):'';let moved=false,msg='배치를 저장했어요. 다음에도 이 자리로 보여요.';
+ if(cc&&md==='flat'&&(k==='ArrowUp'||k==='ArrowDown')){const ps=visSort(flatPanels(cc.c));const i=ps.indexOf(p),j=i+(k==='ArrowUp'?-1:1);
+  if(j>=0&&j<ps.length){[ps[i],ps[j]]=[ps[j],ps[i]];saveAll(st);st[V+':g'+C.indexOf(cc.c)]=ps.map(tok);moved=true}
+  else if(Z.includes(cc.c.parentElement)){if(k==='ArrowUp')cc.c.before(p);else cc.c.after(p);saveAll(st);moved=true}}
+ else if(k==='ArrowLeft'||k==='ArrowRight'){const wantFirst=k==='ArrowLeft';
+  if(isP(p)&&cc&&swapType(cc.c)&&md!=='flat'){if(visFirst(cc.c,cc.col)!==wantFirst){cc.c.classList.toggle('dg9-rev');const i=C.indexOf(cc.c);if(cc.c.classList.contains('dg9-rev'))st[V+':cols'+i]='rev';else delete st[V+':cols'+i];msg='왼쪽·오른쪽 칸을 바꿨어요. 다음에도 이 배치로 보여요.';moved=true}}
+  else if(cc&&md==='side'&&z){const o=kids(cc.c).find(x=>x!==cc.col);if(Z.includes(o)&&visFirst(cc.c,o)===wantFirst){const its=items(o);const i=Math.min(items(z).indexOf(p),its.length);if(its[i])its[i].before(p);else if(its.length)its[its.length-1].after(p);else o.append(p);saveAll(st);moved=true}}
+  else if(z&&!cc){const its=items(z);const i=its.indexOf(p);let c=null;for(let j=i-1;j>=0&&!c;j--)if(its[j].dataset.dgc!=null)c=its[j];if(!c)c=its.find(x=>x.dataset.dgc!=null);
+   if(c&&mode(c)!=='none'){const tg=kids(c).find(x=>Z.includes(x)&&(mode(c)==='flat'||visFirst(c,x)===wantFirst));if(tg){const ti=items(tg);if(ti.length)ti[ti.length-1].after(p);else tg.append(p);saveAll(st);moved=true}}}}
+ else if(z){const its=items(z);const i=its.indexOf(p),j=i+(k==='ArrowUp'?-1:1);
+  if(j>=0&&j<its.length){if(k==='ArrowUp')its[j].before(p);else its[j].after(p);saveAll(st);moved=true}
+  else if(cc&&Z.includes(cc.c.parentElement)){if(k==='ArrowUp')cc.c.before(p);else cc.c.after(p);saveAll(st);moved=true}}
+ if(!moved)return;save(st);note(msg,snap);after(h);h.focus()}
+function note(msg,snap){document.querySelectorAll('.dg9-toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='dg9-toast';t.setAttribute('role','status');t.innerHTML=`<span>${msg}</span><button type="button" data-u>되돌리기</button><button type="button" data-r>이 화면 기본 배치로</button>`;document.body.appendChild(t);
+ t.querySelector('[data-u]').onclick=()=>{try{save(JSON.parse(snap))}catch(e){}t.remove();render()};
+ t.querySelector('[data-r]').onclick=()=>{const s=load();Object.keys(s).filter(k=>k.startsWith(view()+':')).forEach(k=>delete s[k]);save(s);t.remove();render()};
+ clearTimeout(note._h);note._h=setTimeout(()=>t.remove(),6000)}
+/* 화면 폭에 따라: 위아래로 쌓인 좌우 칸, 한 줄로 합쳐진 홈 칸(저장된 순서는 order로) */
+function refresh(){const st=load();
+ C.forEach((c,i)=>{if(!c.isConnected)return;const md=mode(c);c.classList.toggle('dg11-stk',md==='stack');const L=st[V+':g'+i];
+  flatPanels(c).forEach(p=>{if(md==='flat'&&Array.isArray(L)){const k=L.indexOf(tok(p));p.style.order=k<0?'':String(k+1);p.dataset.dg11o='1'}else if(p.dataset.dg11o){p.style.order='';delete p.dataset.dg11o}})});
+ Z.forEach(z=>z.classList.toggle('dg11-empty',C.includes(z.parentElement)&&!items(z).length));
+ try{window.__gripPos10&&window.__gripPos10()}catch(e){}}
+const _rV11=render;render=function(){_rV11.apply(this,arguments);try{setup()}catch(e){console.warn(e)}};
+addEventListener('load',()=>setTimeout(()=>{try{setup()}catch(e){console.warn(e)}},60));
+let rq=0;const ro=()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{try{if(M()&&C.length)refresh()}catch(e){}})};
+addEventListener('resize',ro);try{new ResizeObserver(ro).observe(document.getElementById('main'))}catch(e){}
+})();
+</script>
 </body>
 </html>
