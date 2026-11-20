@@ -3455,6 +3455,20 @@ td .ci9t{gap:6px}
 <style id="v9-flow-gap">/* 단계 칩 줄 위아래 여백 (사용자 지적: 너무 붙어 있음) */
 .panel>nav.flow7{margin:20px 24px 22px!important;gap:10px!important}
 </style>
+<style id="v9-insight-air">
+/* AI 안내 상자: 위아래 여백·줄 간격 (빽빽하다는 지적) */
+.insight{padding:18px 22px!important;gap:14px!important;align-items:flex-start!important;line-height:1.6!important}
+.insight p{margin:0!important;line-height:1.6!important}
+.insight .basis{margin-top:10px!important;line-height:1.6!important}
+.insight .ai-tag{margin-top:2px}
+</style>
+<style id="v9-fold-air">
+/* 접는 카드: 제목 줄과 내용 사이 띄우기 (제목·메시지가 붙어 있다는 지적) */
+.panel.fold.open>.fold-h{border-bottom:1px solid var(--line9,var(--rule))!important}
+.panel.fold>.foldb>.panel-b{padding-top:22px!important}
+.panel.fold>.foldb>:first-child:not(.panel-b){margin-top:18px}
+.chat{gap:10px!important}
+</style>
 </head>
 <body>
 <div class="app">
@@ -4423,6 +4437,28 @@ function deco9(root){const M=root||document.getElementById('main');if(!M)return;
 {const _r9t=render;render=function(){_r9t.apply(this,arguments);try{deco9()}catch(e){console.warn(e)}}}
 
 render();
+</script>
+<style id="v9-catcolor">
+/* 편성표 분류별 색 (같은 코랄 톤이라 구분이 어렵다는 지적) — 확정은 진한 면, 요청·공고 올림은 흰 면+점선 왼쪽 막대 */
+.cev.k-go{--kb:#E6EEFC;--kl:#3B6FD1}
+.cev.k-shop{--kb:#E2F3EA;--kl:#1F8A5B}
+.cev.k-talk{--kb:#EEEAFB;--kl:#6A55C9}
+.cev.k-digi{--kb:#DFF2F5;--kl:#0F7F8E}
+.cev.k-tidy{--kb:#FBF0D9;--kl:#A8740C}
+.cev.k-home{--kb:#FBE6EE;--kl:#B5456F}
+.cev[class*="k-"]:not(.gap){background:var(--kb)!important;border-left:4px solid var(--kl)!important}
+.cev[class*="k-"]:not(.gap) b{color:var(--ink)}
+.cev[class*="k-"].reqd{background:var(--surface,#fff)!important;border-left-style:dashed!important;outline:1px solid var(--kb)}
+:root[data-theme="dark"] .cev[class*="k-"]:not(.gap):not(.reqd){background:color-mix(in srgb,var(--kl) 26%,var(--surface,#171A20))!important}
+.catleg9{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.catleg9 i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+</style>
+<script>
+(function(){const K=[[/동행|병원/,'go','동행'],[/장보기|심부름/,'shop','장보기·심부름'],[/말동무|정서/,'talk','말동무·정서'],[/디지털/,'digi','디지털 도움'],[/생활 정리|정리/,'tidy','생활 정리'],[/집안일|청소/,'home','집안일']];
+function cat9(){document.querySelectorAll('.cev:not(.gap)').forEach(e=>{if(/\bk-/.test(e.className))return;const t=e.getAttribute('title')||e.textContent;const m=K.find(([re])=>re.test(t));if(m)e.classList.add('k-'+m[1])});
+document.querySelectorAll('.sw.box').forEach(sw=>{const row=sw.parentElement&&sw.parentElement.parentElement;if(!row||row.querySelector('.catleg9'))return;if(!/확정/.test(row.textContent))return;row.insertAdjacentHTML('beforeend','<span class="catleg9">'+K.map(k=>`<span><i style="background:var(--kb);border-left:3px solid var(--kl)" class="k-${k[1]} cev-sw"></i>${k[2]}</span>`).join('')+'</span>')});
+document.querySelectorAll('.cev-sw').forEach(i=>{const m={go:['#E6EEFC','#3B6FD1'],shop:['#E2F3EA','#1F8A5B'],talk:['#EEEAFB','#6A55C9'],digi:['#DFF2F5','#0F7F8E'],tidy:['#FBF0D9','#A8740C'],home:['#FBE6EE','#B5456F']}[i.className.match(/k-(\w+)/)[1]];i.style.background=m[0];i.style.borderLeftColor=m[1]})}
+const _r=render;render=function(){_r.apply(this,arguments);try{cat9()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(cat9,0));})();
 </script>
 </body>
 </html>
