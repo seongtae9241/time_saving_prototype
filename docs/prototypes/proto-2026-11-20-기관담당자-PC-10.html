@@ -4021,7 +4021,7 @@ function sid(v,p){if(S.layer)return {noti:'O-HOME-02',me:'O-HOME-03',careForm:'O
 function sid2(v,p){return {home:'O-HOME-01',alerts:'O-ALERT-01',care:p?'O-CARE-02':'O-CARE-01',sched:'O-SCHED-01',req:!p?'O-POST-01':/^ap/.test(p)?'O-POST-09':'O-POST-03',newreq:'O-POST-02',find:'O-POST-04',pub:p?'O-PUB-02':'O-PUB-01',posts:'O-POST-05',events:'O-POST-06',dlg:p&&/^e/.test(p)?'O-DLG-02':'O-DLG-01',report:p?'O-RPT-02':'O-RPT-01'}[v]}
 function renderNav(cur){
   const g=gapList().length,t=todo().length+newApps().length,pb=PUBR.filter(x=>x.st===0).length;
-  const NAV=[['돌봄',[['home','홈'],['alerts','특보 알림','진행 1','urgent'],['care','관리 대상',ELDERS.length],['sched','돌봄 편성표',g?'빈칸 '+g:'',g?'urgent':''],['req','요청 관리',t],['pub','공공 서비스 연계',pb]]],
+  const NAV=[['돌봄',[['home','홈'],['alerts','특보 알림','진행 1','urgent'],['care','관리 대상',ELDERS.length],['sched','돌봄 편성표',g?'빈칸 '+g:'',g?'soft':''],['req','요청 관리',t],['pub','공공 서비스 연계',pb]]],
    ['기관 공고',[['posts','기관 공고'],['events','기관 행사']]],
    ['관리',[['dlg','권한 위임',DLGREQ.length],['report','리포트']]]];
   $('#nav').innerHTML=NAV.map(([gn,items])=>`<div class="nav-sec">${gn}</div>`+items.map(([id,n,c,u])=>`<a href="#${id}" class="${id===cur?'on':''}" ${id===cur?'aria-current="page"':''}>${icon(id)}<span>${n}</span>${c?`<span class="n ${u||''}">${c}</span>`:''}</a>`).join('')).join('');
@@ -4972,5 +4972,16 @@ document.addEventListener('toggle',()=>setTimeout(gripPos,0),true);
 })();
 </script>
 
+<style id="v10d">
+/* 10판 4차: 사이드바 '빈칸' 배지는 연한 코랄(빨간 배지는 특보만) · 지난 행사 회색 · 날짜 상자 크기 통일 · 1280 그래프 폭 */
+.n.soft,.nav a.on .n.soft{background:var(--acc-soft,#FEF2EE)!important;color:var(--acc-text,#A8432A)!important;border-radius:999px!important;padding:0 9px!important;line-height:22px!important;font-size:calc(13px*var(--fz))!important;font-weight:600!important}
+.pastev10 .prow{grid-template-columns:76px minmax(0,1fr) auto!important;cursor:default}
+.pastev10 .pd{min-height:104px;align-content:center;background:var(--sunken,#F4F5F7)!important;color:var(--ink-3)!important}
+.pastev10 .pd b{font-size:calc(26px*var(--fz))!important;color:var(--ink-3)!important;line-height:1.3}
+.pastev10 .tag{background:var(--sunken,#F4F5F7)!important;color:var(--ink-3)!important;border-color:transparent!important}
+.pastev10 .pt b,.pastev10 .pt strong,.pastev10 .pt h3{color:var(--ink-2)!important}
+.pastev10 .prow b.tn,.pastev10 .prow strong.tn{color:var(--ink-2)!important}
+html body #main .carechart svg.chart{max-width:none!important}
+</style>
 </body>
 </html>
