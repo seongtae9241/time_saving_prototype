@@ -4921,6 +4921,13 @@ body.dg11-on #main [data-dgz].dg11-empty{min-height:96px;outline:2px dashed var(
 .panel:hover>.dg11-top .dg11-grip,.dg11-top:focus-visible .dg11-grip,.dg11-top:focus .dg11-grip,[data-dg11s]:hover>.dg11-sh .dg11-grip,.dg11-sh:focus .dg11-grip,.dg11-sh:focus-visible .dg11-grip{opacity:1}
 /* 위쪽 가운데 손잡이 줄(24px): 카드 위 여백을 그만큼 늘리고, 첫 내용은 8px 띄운다(JS가 원래 여백에 더함) */
 .panel.dg11-tp{position:relative}
+/* 본문이 좁을 때 한 칸으로 (JS narrow()) */
+html body #main.m-narrow .cols,html body #main .cols.dg11-1col{grid-template-columns:minmax(0,1fr)!important;direction:ltr}
+html body #main.m-narrow .cols>*,html body #main .cols.dg11-1col>*{position:static!important}
+html body #main.m-narrow .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+html body #main.m-narrow .cal-under,html body #main.m-narrow .bento,html body #main.m-narrow .bento.rp{grid-template-columns:minmax(0,1fr)!important}
+html body #main.m-narrow .bento>*{grid-column:auto!important}
+html body #main.m-narrow .cols.dg9-rev>:first-child,html body #main .cols.dg11-1col.dg9-rev>:first-child{order:2}
 /* 제목 앞 색 네모와 글자 8px, 제목→설명(메타) 줄 6px */
 html body .sev{gap:8px}
 html body h3>.sev,html body h2>.sev{margin-right:4px}
@@ -5041,6 +5048,7 @@ function bar(x,y,w,h){const b=ind();b.style.cssText=`display:block;left:${Math.r
 function hideInd(){if(IND)IND.style.display='none';document.querySelectorAll('.dg11-swapt').forEach(x=>x.classList.remove('dg11-swapt'))}
 function end(){hideInd();if(drag){drag.p.classList.remove('dg9-src')}document.body.classList.remove('dg11-on');drag=null}
 function start(e,p,h){
+ if(matchMedia('(max-width:900px)').matches){e.preventDefault();return} /* 좁은 화면에서는 끌기 끔(저장된 배치만 적용) */
  const it=downT&&downT.closest&&downT.closest('a,button,input,select,textarea,label,[role="button"],[onclick],.chip,.fchip10');
  if(it&&it!==h&&h.contains(it)){e.preventDefault();return}
  drag={p,h,snap:JSON.stringify(load()),t:null};
@@ -5127,8 +5135,14 @@ function corners(root){(root||document).querySelectorAll('#main .panel,#layer .p
  P.querySelectorAll('*').forEach(e=>{if(e.closest('.dg11-top,.dg11-sh,svg'))return;const r=R(e);if(!r.width||!r.height)return;const dl=r.left-L,dt=r.top-T,dr=Rr-r.right,db=B-r.bottom;if(dl>18&&dt>18&&dr>18&&db>18)return;
   const es=getComputedStyle(e);const b=bgOf(e);const clip=es.overflow!=='visible'&&e.firstElementChild&&bgOf(e.firstElementChild);if(!clip&&(!b||b===pb))return;
   [['tl',dl,dt,'borderTopLeftRadius'],['tr',dr,dt,'borderTopRightRadius'],['bl',dl,db,'borderBottomLeftRadius'],['br',dr,db,'borderBottomRightRadius']].forEach(([k,a,c,prop])=>{const Rk=rad[k];if(!Rk||Math.min(a,c)>1||a<-1||c<-1)return;const need=Math.max(0,Rk-Math.max(a,c));const cur=parseFloat(es[prop])||0;if(Math.abs(cur-need)>0.5){e.style.setProperty(prop.replace(/[A-Z]/g,m=>'-'+m.toLowerCase()),Math.round(need)+'px','important');e.dataset.dg11r='1'}})})})}
+/* 본문(#main) 실제 폭이 좁으면(AI 도우미를 열거나 창을 줄였을 때) 두 칸을 한 칸으로 쌓는다
+   - 본문 1000px 미만: 모든 두 칸·숫자 카드 2칸 / - 넓은 칸이 520px 미만이 되는 두 칸도 쌓기 */
+function narrow(){const m=M();if(!m)return;const w=m.clientWidth-(parseFloat(getComputedStyle(m).paddingLeft)||0)-(parseFloat(getComputedStyle(m).paddingRight)||0);
+ m.classList.toggle('m-narrow',w<1000);
+ m.querySelectorAll('.cols').forEach(c=>{if(c.children.length!==2)return;if(c.classList.contains('dg11-1col')){if(w>(+c.dataset.dg11w||0)+40){c.classList.remove('dg11-1col')}else return}
+  const [a,b]=c.children;if(getComputedStyle(a).display==='contents')return;const ra=R(a),rb=R(b);if(Math.abs(ra.left-rb.left)<20)return;if(Math.max(ra.width,rb.width)<520){c.classList.add('dg11-1col');c.dataset.dg11w=Math.round(w)}})}
 /* 화면 폭에 따라: 위아래로 쌓인 좌우 칸, 한 줄로 합쳐진 홈 칸(저장된 순서는 order로) */
-function refresh(){const st=load();
+function refresh(){try{narrow()}catch(e){}const st=load();
  C.forEach((c,i)=>{if(!c.isConnected)return;const md=mode(c);c.classList.toggle('dg11-stk',md==='stack');const L=st[V+':g'+i];
   flatPanels(c).forEach(p=>{if(md==='flat'&&Array.isArray(L)){const k=L.indexOf(tok(p));p.style.order=k<0?'':String(k+1);p.dataset.dg11o='1'}else if(p.dataset.dg11o){p.style.order='';delete p.dataset.dg11o}})});
  Z.forEach(z=>z.classList.toggle('dg11-empty',C.includes(z.parentElement)&&!items(z).length));
@@ -5136,8 +5150,72 @@ function refresh(){const st=load();
  try{corners()}catch(e){}}
 const _rV11=render;render=function(){_rV11.apply(this,arguments);try{setup()}catch(e){console.warn(e)}};
 addEventListener('load',()=>setTimeout(()=>{try{setup()}catch(e){console.warn(e)}},60));
-let rq=0;const ro=()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{try{if(M()&&C.length)refresh()}catch(e){}})};
+let rq=0;const ro=()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{try{if(M()&&C.length)refresh();else narrow()}catch(e){}})};
 addEventListener('resize',ro);try{new ResizeObserver(ro).observe(document.getElementById('main'))}catch(e){}
+})();
+</script>
+<style id="v11-mobile">
+/* 좁은 화면(900px 이하): 사이드바는 서랍 메뉴로, 맨 위에 얇은 상단 줄. PC 프로토타입이지만 좁아도 깨지지 않게 */
+.mbar,.m-scrim{display:none}
+@media (max-width:900px){
+ html body .app,html body.ai-open .app{display:block!important;grid-template-columns:none!important}
+ html body .side{position:fixed!important;top:0!important;left:0;bottom:0;height:100vh!important;width:280px!important;max-width:84vw;z-index:1001;transform:translateX(-105%);transition:transform .2s ease;overflow-y:auto!important;display:flex!important;flex-direction:column;padding:18px 12px!important;box-shadow:0 0 0 1px var(--rule),0 20px 50px rgba(0,0,0,.18);visibility:hidden}
+ html body.m-nav .side{transform:none;visibility:visible}
+ html body .side .nav-sec{display:block}
+ html body.m-nav .m-scrim{display:block;position:fixed;inset:0;background:rgba(17,20,30,.42);z-index:1000}
+ html body .mbar{display:flex;position:sticky;top:0;z-index:40;height:52px;align-items:center;gap:10px;padding:0 12px 0 8px;background:var(--surface);border-bottom:1px solid var(--rule)}
+ .mbar .mb-btn{width:40px;height:40px;border:0;background:none;border-radius:10px;display:grid;place-items:center;color:var(--ink);cursor:pointer;position:relative}
+ .mbar .mb-btn:hover{background:var(--hover)}
+ .mbar .mb-logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;letter-spacing:-.03em;color:var(--ink);white-space:nowrap}
+ .mbar .mb-logo .brand-mark{width:28px!important;height:28px!important;border-radius:9px!important;flex-shrink:0}
+ .mbar .mb-logo .brand-mark svg,.mbar .mb-logo .brand-mark .logo{width:28px;height:28px}
+ .mbar .mb-sp{flex:1}
+ .mbar .mb-dot{position:absolute;top:9px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--neg,#D9483B);box-shadow:0 0 0 2px var(--surface)}
+ html body .topbar{position:static!important;padding:12px 16px!important}
+ html body .wrap{padding:12px 16px 24px!important;min-width:0}
+ html body .main{min-width:0}
+ html body .dg11-top,html body .dg11-sh,html body .dg9-grip{display:none!important}
+ html body .panel.dg11-tp{padding-top:0!important}
+ html body .panel.dg11-tp>.panel-h,html body .panel.dg11-tp>.panel-b,html body .panel.dg11-tp>.fold-h{padding-top:16px!important}
+ html body [data-dg11s]{padding-left:16px!important}
+ html body .dg9-h{cursor:default}
+ html body .tw{overflow-x:auto;max-width:100%}
+ html body .kbwrap{overflow-x:auto;max-width:100%}
+}
+@media (max-width:600px){
+ html body .kpis,html body .kpis.kf9{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+ html body .cols,html body .cols.dg9-rev{grid-template-columns:minmax(0,1fr)!important;direction:ltr!important}
+ html body .bento,html body .bento.rp{grid-template-columns:minmax(0,1fr)!important}
+ html body .bento>*,html body .bento.rp .wide{grid-column:auto!important}
+ html body .tabs,html body .chips,html body .seg,html body .filters,html body .caltools{overflow-x:auto;flex-wrap:nowrap!important;scrollbar-width:none;max-width:100%;min-width:0}
+ html body .tabs::-webkit-scrollbar,html body .chips::-webkit-scrollbar,html body .seg::-webkit-scrollbar,html body .filters::-webkit-scrollbar{display:none}
+ html body .toolbar{flex-wrap:wrap!important;gap:10px!important;min-width:0}
+ html body .toolbar>*{min-width:0;max-width:100%}
+ html body .banner{flex-wrap:wrap!important}
+ html body .banner .nw,html body .banner .rowx{white-space:normal!important;flex-wrap:wrap!important}
+ html body .kpi{padding:14px!important;min-width:0}
+}
+</style>
+<script id="v11-mobile-js">
+/* 좁은 화면 상단 줄 + 서랍 메뉴 */
+(function(){
+const mq=matchMedia('(max-width:900px)');
+function bar(){const mn=document.querySelector('.main');if(!mn||mn.querySelector(':scope>.mbar'))return;const mark=document.querySelector('.brand .brand-mark');
+ const b=document.createElement('div');b.className='mbar';b.innerHTML=`<button type="button" class="mb-btn" data-mb-menu aria-label="메뉴 열기" aria-expanded="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><span class="mb-logo">${mark?mark.outerHTML:''}되돌봄</span><span class="mb-sp"></span><button type="button" class="mb-btn" data-mb-noti aria-label="알림"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><i class="mb-dot" hidden></i></button>`;
+ mn.prepend(b);
+ const s=document.createElement('div');s.className='m-scrim';s.setAttribute('aria-hidden','true');document.body.appendChild(s);s.addEventListener('click',close);
+ b.querySelector('[data-mb-menu]').addEventListener('click',()=>document.body.classList.contains('m-nav')?close():open());
+ b.querySelector('[data-mb-noti]').addEventListener('click',()=>{try{openLayer('noti')}catch(e){}});
+ dot()}
+function dot(){const d=document.querySelector('.mbar .mb-dot');if(!d)return;let n=0;try{n=typeof unread==='function'?unread():0}catch(e){}d.hidden=!n;const btn=d.parentElement;btn.setAttribute('aria-label','알림'+(n?' '+n+'건':''))}
+function open(){document.body.classList.add('m-nav');const b=document.querySelector('[data-mb-menu]');if(b){b.setAttribute('aria-expanded','true');b.setAttribute('aria-label','메뉴 닫기')}const f=document.querySelector('.side .nav a');if(f)setTimeout(()=>f.focus(),50)}
+function close(){if(!document.body.classList.contains('m-nav'))return;document.body.classList.remove('m-nav');const b=document.querySelector('[data-mb-menu]');if(b){b.setAttribute('aria-expanded','false');b.setAttribute('aria-label','메뉴 열기');if(mq.matches)b.focus()}}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.side .nav a'))setTimeout(close,0)});
+addEventListener('hashchange',()=>setTimeout(close,0));
+mq.addEventListener?mq.addEventListener('change',()=>{if(!mq.matches)close()}):0;
+const _rM=render;render=function(){_rM.apply(this,arguments);try{bar();dot()}catch(e){console.warn(e)}};
+addEventListener('load',()=>setTimeout(()=>{try{bar()}catch(e){}},80));
 })();
 </script>
 </body>
