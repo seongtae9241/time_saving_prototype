@@ -3679,15 +3679,15 @@ const OFFERS=[
 const ALLSCOPE=['대신 공고','대신 수락','일지 확인','공공 서비스','안부 확인'];
 /* 11판: 관리 대상은 회원이 아니라 기관의 데이터(앱을 쓰지 않음). mgr=담당 담당자, sex·ltc(장기요양 등급)·pen(기초연금)·aids(불편한 점)는 공고·공공 연계에 쓰는 비식별 정보 */
 const ELDERS=[
- {id:'e1',n:'이순례',age:82,sex:'여',dong:'행복동',home:'혼자',mgr:'박지현',needs:['말동무·정서','동행'],month:1,prev:3,dg:1,pri:'높음',caution:'귀가 어두우셔서 천천히 크게 말씀해 주세요. 계단 이용이 어려워요.',tel:'02-555-1201',addr:'행복동 행복로 12, 3층 (엘리베이터 없음)',fam:[['딸','김미영','010-9876-1111']],how:'서면 동의서',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.03.31',ltc:'없음',pen:'수급',aids:['청력 약함','계단 어려움']},
- {id:'e2',n:'정말순',age:85,sex:'여',dong:'행복동',home:'혼자',mgr:'박지현',needs:['생활 정리','장보기·심부름'],month:4,prev:4,dg:2,pri:'보통',caution:'당뇨가 있으셔서 단 음식은 사지 않아요.',tel:'02-555-2211',addr:'행복동 은행나무길 5, 1층',fam:[['아들','정우진','010-5555-2222']],how:'보호자 동의',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.01.15',ltc:'5등급',pen:'수급',aids:['당뇨식']},
- {id:'e3',n:'한영자',age:77,sex:'여',dong:'희망동',home:'배우자와',mgr:'최은호',needs:['디지털 도움'],month:2,prev:2,dg:1,pri:'낮음',caution:'오전 11시 이후 방문을 원하세요.',tel:'010-3333-4545',addr:'희망동 희망로 88, 101호',fam:[['남편','박영철','010-3333-4546'],['딸','박소연','010-2222-7777']],how:'보호자 동의',scope:['대신 공고','대신 수락','일지 확인','공공 서비스'],until:'2026.12.10',ltc:'없음',pen:'모름',aids:[]},
- {id:'e4',n:'오덕수',age:88,sex:'남',dong:'희망동',home:'혼자',mgr:'박지현',needs:['동행','장보기·심부름'],month:1,prev:3,dg:0,pri:'높음',caution:'지팡이를 쓰세요. 병원 동행 시 휠체어 대여 필요할 수 있어요.',tel:'02-555-4410',addr:'희망동 느티나무길 21, 2층',fam:[['조카','오민석','010-4444-9090']],how:'서면 동의서',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.05.20',ltc:'신청 중',pen:'수급',aids:['지팡이','휠체어 대여']},
- {id:'e5',n:'김영자',age:72,sex:'여',dong:'희망동',home:'혼자',mgr:'이수진',needs:['동행','장보기·심부름'],month:2,prev:2,dg:0,pri:'보통',caution:'무릎이 안 좋아 오래 걷기 힘드세요.',tel:'010-7777-1234',addr:'희망동 희망로 40, 502호',fam:[['딸','손유진','010-1111-2323']],how:'보호자 동의',scope:['대신 공고','대신 수락','일지 확인','공공 서비스','안부 확인'],until:'2027.08.31',ltc:'신청 중',pen:'수급',aids:['무릎 불편']},
- {id:'e6',n:'최복례',age:79,sex:'여',dong:'은빛동',home:'혼자',mgr:'이수진',needs:['말동무·정서','디지털 도움'],month:3,prev:3,dg:1,pri:'보통',caution:'오후 2시 이후에는 낮잠을 주무세요.',tel:'02-555-6061',addr:'은빛동 은빛로 7, 2층',fam:[['아들','최성훈','010-6060-1212']],how:'서면 동의서',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.02.28',ltc:'없음',pen:'모름',aids:[]},
- {id:'e7',n:'강만수',age:84,sex:'남',dong:'행복동',home:'배우자와',mgr:'이수진',needs:['동행','가벼운 집안일'],month:2,prev:4,dg:2,pri:'높음',caution:'보행 보조기를 쓰세요. 배우자분도 거동이 불편해요.',tel:'02-555-7071',addr:'행복동 행복로 31, 1층',fam:[['딸','강수진','010-7070-3434']],how:'보호자 동의',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.04.30',ltc:'4등급',pen:'수급',aids:['보행 보조기']},
- {id:'e8',n:'윤금자',age:90,sex:'여',dong:'희망동',home:'혼자',mgr:'박지현',needs:['장보기·심부름','말동무·정서'],month:1,prev:2,dg:1,pri:'높음',caution:'청력이 많이 약하세요. 메모로 같이 보여 드리면 좋아요.',tel:'02-555-8081',addr:'희망동 느티나무길 3, 1층',fam:[['손녀','윤하린','010-8080-5656']],how:'서면 동의서',scope:['대신 공고','대신 수락','일지 확인','공공 서비스','안부 확인'],until:'2027.06.30',ltc:'없음',pen:'수급',aids:['청력 약함']},
- {id:'e9',n:'서정자',age:76,sex:'여',dong:'은빛동',home:'혼자',mgr:'박지현',needs:['생활 정리','디지털 도움'],month:4,prev:3,dg:1,pri:'낮음',caution:'고양이를 키우세요. 알레르기 있는 분은 미리 알려 주세요.',tel:'010-9090-1111',addr:'은빛동 은빛로 22, 305호',fam:[['아들','서민호','010-9090-2222']],how:'동의 전',scope:[],until:'',consent:'11/11 아드님께 보호자 동의 문자를 보냈어요. 아직 답이 없어요.',ltc:'없음',pen:'모름',aids:[]}
+ {id:'e1',n:'이순례',age:82,sex:'여',dong:'행복동',home:'혼자',mgr:'박지현',needs:['말동무·정서','동행'],month:1,prev:3,dg:1,pri:'높음',caution:'귀가 어두우셔서 천천히 크게 말씀해 주세요. 계단 이용이 어려워요.',tel:'02-555-1201',addr:'행복동 행복로 12, 3층 (엘리베이터 없음)',fam:[['딸','김미영','010-9876-1111']],how:'서면 동의서',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.03.31',ltc:'없음',pen:'수급',aids:['청력 약함','계단 어려움'],svcC:[{d:'2025.03.31',how:'서면',by:'박지현',note:'본인 서명 동의서 보관'}],share:{on:true,via:'문자',to:0,hist:[['2025.04.02','박지현','켬 · 딸 김미영 님 · 문자']]},qr:{code:'HB-1201',d:'2025.04.02',old:[]},blocks:[]},
+ {id:'e2',n:'정말순',age:85,sex:'여',dong:'행복동',home:'혼자',mgr:'박지현',needs:['생활 정리','장보기·심부름'],month:4,prev:4,dg:2,pri:'보통',caution:'당뇨가 있으셔서 단 음식은 사지 않아요.',tel:'02-555-2211',addr:'행복동 은행나무길 5, 1층',fam:[['아들','정우진','010-5555-2222']],how:'보호자 동의',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.01.15',ltc:'5등급',pen:'수급',aids:['당뇨식'],svcC:[{d:'2026.01.15',how:'보호자 구두',by:'박지현',note:'아드님 방문 때 설명드림'}],share:{on:false,via:'문자',to:0,hist:[]},qr:{code:'HB-2211',d:'2026.01.20',old:[]},blocks:[]},
+ {id:'e3',n:'한영자',age:77,sex:'여',dong:'희망동',home:'배우자와',mgr:'최은호',needs:['디지털 도움'],month:2,prev:2,dg:1,pri:'낮음',caution:'오전 11시 이후 방문을 원하세요.',tel:'010-3333-4545',addr:'희망동 희망로 88, 101호',fam:[['남편','박영철','010-3333-4546'],['딸','박소연','010-2222-7777']],how:'보호자 동의',scope:['대신 공고','대신 수락','일지 확인','공공 서비스'],until:'2026.12.10',ltc:'없음',pen:'모름',aids:[],svcC:[{d:'2025.12.10',how:'전화',by:'최은호',note:'배우자분과 통화'}],share:{on:true,via:'링크',to:1,hist:[['2025.12.12','최은호','켬 · 딸 박소연 님 · 링크']]},qr:{code:'HB-4545',d:'2025.12.12',old:[]},blocks:[]},
+ {id:'e4',n:'오덕수',age:88,sex:'남',dong:'희망동',home:'혼자',mgr:'박지현',needs:['동행','장보기·심부름'],month:1,prev:3,dg:0,pri:'높음',caution:'지팡이를 쓰세요. 병원 동행 시 휠체어 대여 필요할 수 있어요.',tel:'02-555-4410',addr:'희망동 느티나무길 21, 2층',fam:[['조카','오민석','010-4444-9090']],how:'서면 동의서',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.05.20',ltc:'신청 중',pen:'수급',aids:['지팡이','휠체어 대여'],svcC:[{d:'2025.05.20',how:'서면',by:'박지현',note:''}],share:{on:false,via:'문자',to:0,hist:[['2025.05.22','박지현','켬 · 조카 오민석 님 · 문자'],['2026.09.03','박지현','끔 · 조카분이 원하지 않으심']]},qr:{code:'HB-4410',d:'2025.05.22',old:['HB-4409']},blocks:[{p:'sj',d:'11/02',why:'약속 시간을 두 번 지키지 않았어요',by:'박지현'}],big:true},
+ {id:'e5',n:'김영자',age:72,sex:'여',dong:'희망동',home:'혼자',mgr:'이수진',needs:['동행','장보기·심부름'],month:2,prev:2,dg:0,pri:'보통',caution:'무릎이 안 좋아 오래 걷기 힘드세요.',tel:'010-7777-1234',addr:'희망동 희망로 40, 502호',fam:[['딸','손유진','010-1111-2323']],how:'보호자 동의',scope:['대신 공고','대신 수락','일지 확인','공공 서비스','안부 확인'],until:'2027.08.31',ltc:'신청 중',pen:'수급',aids:['무릎 불편'],svcC:[{d:'2025.08.31',how:'보호자 구두',by:'이수진',note:''}],share:{on:true,via:'문자',to:0,hist:[['2025.09.01','이수진','켬 · 딸 손유진 님 · 문자']]},qr:{code:'HB-1234',d:'2025.09.01',old:[]},blocks:[]},
+ {id:'e6',n:'최복례',age:79,sex:'여',dong:'은빛동',home:'혼자',mgr:'이수진',needs:['말동무·정서','디지털 도움'],month:3,prev:3,dg:1,pri:'보통',caution:'오후 2시 이후에는 낮잠을 주무세요.',tel:'02-555-6061',addr:'은빛동 은빛로 7, 2층',fam:[['아들','최성훈','010-6060-1212']],how:'서면 동의서',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.02.28',ltc:'없음',pen:'모름',aids:[],svcC:[{d:'2025.02.28',how:'서면',by:'이수진',note:''}],share:{on:false,via:'문자',to:0,hist:[]},qr:{code:'HB-6061',d:'2025.03.02',old:[]},blocks:[]},
+ {id:'e7',n:'강만수',age:84,sex:'남',dong:'행복동',home:'배우자와',mgr:'이수진',needs:['동행','가벼운 집안일'],month:2,prev:4,dg:2,pri:'높음',caution:'보행 보조기를 쓰세요. 배우자분도 거동이 불편해요.',tel:'02-555-7071',addr:'행복동 행복로 31, 1층',fam:[['딸','강수진','010-7070-3434']],how:'보호자 동의',scope:['대신 공고','대신 수락','일지 확인','안부 확인'],until:'2027.04.30',ltc:'4등급',pen:'수급',aids:['보행 보조기'],svcC:[{d:'2025.04.30',how:'보호자 구두',by:'이수진',note:'따님과 함께 방문해 설명'}],share:{on:true,via:'문자',to:0,hist:[['2025.05.01','이수진','켬 · 딸 강수진 님 · 문자']]},qr:{code:'HB-7071',d:'2025.05.01',old:[]},blocks:[]},
+ {id:'e8',n:'윤금자',age:90,sex:'여',dong:'희망동',home:'혼자',mgr:'박지현',needs:['장보기·심부름','말동무·정서'],month:1,prev:2,dg:1,pri:'높음',caution:'청력이 많이 약하세요. 메모로 같이 보여 드리면 좋아요.',tel:'02-555-8081',addr:'희망동 느티나무길 3, 1층',fam:[['손녀','윤하린','010-8080-5656']],how:'서면 동의서',scope:['대신 공고','대신 수락','일지 확인','공공 서비스','안부 확인'],until:'2027.06.30',ltc:'없음',pen:'수급',aids:['청력 약함'],svcC:[{d:'2025.06.30',how:'서면',by:'박지현',note:''}],share:{on:true,via:'링크',to:0,hist:[['2025.07.01','박지현','켬 · 손녀 윤하린 님 · 링크']]},qr:{code:'HB-8081',d:'2025.07.01',old:[]},blocks:[]},
+ {id:'e9',n:'서정자',age:76,sex:'여',dong:'은빛동',home:'혼자',mgr:'박지현',needs:['생활 정리','디지털 도움'],month:4,prev:3,dg:1,pri:'낮음',caution:'고양이를 키우세요. 알레르기 있는 분은 미리 알려 주세요.',tel:'010-9090-1111',addr:'은빛동 은빛로 22, 305호',fam:[['아들','서민호','010-9090-2222']],how:'동의 전',scope:[],until:'',consent:'11/11 아드님께 보호자 동의 문자를 보냈어요. 아직 답이 없어요.',ltc:'없음',pen:'모름',aids:[],svcC:[],share:{on:false,via:'문자',to:0,hist:[]},qr:null,blocks:[]}
 ];
 const EL=id=>ELDERS.find(e=>e.id===id);
 /* 우선순위: 리포트 분석 순서 (건강 판단 아님) */
@@ -3721,7 +3721,7 @@ const REQS=[
  {id:'r3',e:'e4',cat:'장보기·심부름',d:'11/12 (목)',tm:'10:00~11:00',v:'dy',st:4,issue:'지팡이 사용',what:'일지 확인 필요',log:'우유, 두부, 계란을 사 드렸어요. 어르신이 아침을 거르셨다고 하셔서 빵도 같이 사 드렸어요. 지난주에도 식사를 거르셨다고 하셨어요.'},
  {id:'r4',e:'e3',cat:'디지털 도움',d:'11/13 (금)',tm:'16:00~17:00',v:'hn',st:2,issue:'오전 방문 불가',what:'최종 수락'},
  {id:'r5',e:'e7',cat:'동행',d:'11/16 (월)',tm:'10:00~12:00',v:null,st:0,issue:'보행 보조기 사용 · 택시 이용',what:'지원자 2명',apps:[{p:'th',at:'30분 전',msg:'동행 전담이에요. 택시 타고 같이 다녀올게요.'},{p:'ok',at:'2시간 전',msg:'월요일 오전 비어 있어요.'}]},
- {id:'r6',e:'e8',cat:'장보기·심부름',d:'11/17 (화)',tm:'15:00~16:00',v:'ok',st:1,issue:'청력 약함 · 목록은 메모로',what:'대신 최종 수락 필요'},
+ {id:'r6',e:'e8',cat:'장보기·심부름',d:'11/17 (화)',tm:'15:00~16:00',v:'ok',st:1,issue:'청력 약함 · 목록은 메모로',what:'대신 최종 수락 필요',prop:{tm:'16:00~17:00',msg:'3시에는 다른 일정이 있어서 4시부터 가능해요. 괜찮으실까요?',at:'1시간 전'}},
  {id:'r7',e:'e6',cat:'디지털 도움',d:'11/12 (목)',tm:'14:00~15:00',v:'mj',st:4,issue:'카톡 사진 보내기',what:'일지 확인 필요',log:'카톡으로 손주 사진 보내는 법을 3번 같이 연습했어요. 다음엔 영상통화를 배우고 싶다고 하셨어요.'},
  {id:'r8',e:'e2',cat:'생활 정리',d:'11/19 (목)',tm:'13:00~15:00',v:'ys',st:2,issue:'정리할 서랍 위치는 아드님이 메모로 남겨 두셨어요',what:'최종 수락'},
  {id:'r9',e:'e1',cat:'말동무·정서',d:'11/13 (금)',tm:'15:30~16:30',v:'mk',st:3,issue:'귀가 어두우세요 · 천천히 크게 말씀해 주세요',what:'활동 중'},
@@ -3729,7 +3729,9 @@ const REQS=[
  {id:'r11',e:'e2',cat:'생활 정리',d:'11/04 (수)',tm:'10:00~12:00',v:'mk',st:5,issue:'',what:'완료'},
  {id:'r12',e:'e3',cat:'디지털 도움',d:'11/18 (수)',tm:'11:00~12:00',v:null,st:0,issue:'오전 11시 이후',what:'지원자 2명',apps:[{p:'sh',at:'어제',msg:'스마트폰 사진 정리도 같이 해 드릴게요.'},{p:'sj',at:'어제',msg:'평일 오전 가능해요.'}]},
  {id:'r13',e:'e4',cat:'동행',d:'11/23 (월)',tm:'13:30~15:30',v:'jw',st:1,issue:'휠체어 대여 필요',what:'대신 최종 수락 필요'},
- {id:'r14',e:'e8',cat:'말동무·정서',d:'11/11 (수)',tm:'14:00~15:00',v:'th',st:4,issue:'',what:'일지 확인 필요',log:'예전 시장 이야기를 많이 하셨어요. 기분이 좋아 보이셨고, 다음 주에도 오라고 하셨어요.'}
+ {id:'r14',e:'e8',cat:'말동무·정서',d:'11/11 (수)',tm:'14:00~15:00',v:'th',st:4,issue:'',what:'일지 확인 필요',log:'예전 시장 이야기를 많이 하셨어요. 기분이 좋아 보이셨고, 다음 주에도 오라고 하셨어요.'},
+ /* 기능 추가 2회차: 최종 수락했는데 활동 시각이 지나도 시작 QR이 없는 요청 (노쇼 확인 예시) */
+ {id:'r15',e:'e2',cat:'생활 정리',d:'11/13 (금)',tm:'10:00~11:00',v:'sh',st:2,issue:'정리할 서랍 위치는 아드님이 메모로 남겨 두셨어요',what:'시작 QR 없음'}
 ];
 /* 채팅 (1): 일반 사용자와 같은 채팅. 키 = 요청id:봉사자. [보낸 쪽(them|me|sys), 글, 때] */
 const CHATS={
@@ -3778,7 +3780,7 @@ const OKIND={'봉사자 모집':['봉사자 1~2명이 필요해요','산책·배
 let EVENTS=[{id:'ev1',kind:'모임',t:'가족과 함께하는 음악회',d:'11/25 (수) 15:00',view:128,url:'https://www.example.org/haengbok-concert',place:'행복요양원 1층 강당',who:'어르신과 가족 누구나',desc:'지역 청소년 오케스트라가 찾아와 익숙한 가요와 동요를 연주해요. 가족과 함께 오시면 좋아요. 휠체어로도 들어올 수 있어요.',save:23,ask:4},{id:'ev2',kind:'교실',t:'어르신 손뜨개 교실',d:'12/03 (목) 10:00',view:64,place:'행복요양원 2층 프로그램실',who:'65세 이상 어르신 (12명)',desc:'손뜨개로 목도리를 함께 떠요. 실과 바늘은 기관에서 준비해요. 처음 하시는 분도 괜찮아요.',save:11,ask:2}];
 const evOf=id=>EVENTS.find(e=>e.id===id);
 /* 11판: 관리 대상은 앱을 쓰지 않아서 '앱에서 온 요청'은 없음 → 같은 기관 담당자끼리 보낸 요청 */
-let DLGREQ=[{id:'dq1',from:'이수진',e:'e7',kind:'담당 넘기기',d:'11/13 09:20',what:['담당 이수진 → 박지현'],msg:'다음 주부터 은빛동 일을 주로 맡게 됐어요. 행복동에 사시는 강만수 님 담당을 넘겨받아 주실 수 있을까요?'},{id:'dq2',from:'최은호',e:'e8',kind:'맡은 일 바꾸기',d:'11/12',what:['안부 확인 추가'],msg:'윤금자 님 건강 확인 때 안부 전화도 제가 같이 드려도 될까요?'}];
+let DLGREQ=[{id:'dq1',from:'이수진',to:'박지현',e:'e7',kind:'담당 넘기기',d:'11/13 09:20',what:['담당 이수진 → 박지현'],msg:'다음 주부터 은빛동 일을 주로 맡게 됐어요. 행복동에 사시는 강만수 님 담당을 넘겨받아 주실 수 있을까요?'},{id:'dq2',from:'최은호',to:'박지현',e:'e8',kind:'맡은 일 바꾸기',d:'11/12',what:['안부 확인 추가'],msg:'윤금자 님 건강 확인 때 안부 전화도 제가 같이 드려도 될까요?'}];
 const STAFF=[['박지현','사회복지사','나'],['이수진','사회복지사',''],['최은호','간호사','']];
 const DELEG=[{to:'이수진',from:'11/20',until:'11/24',who:'전체 (5명)',why:'휴가',scope:'대신 수락 · 일지 확인 · 안부 확인',st:'예정'},{to:'최은호',from:'10/01',until:'계속',who:'오덕수',why:'병원 동행 전담',scope:'대신 공고 · 일지 확인',st:'위임 중'},{to:'최은호',from:'11/01',until:'계속',who:'윤금자',why:'청력 · 건강 확인 전담',scope:'일지 확인 · 안부 확인',st:'위임 중'}];
 /* 공공 서비스 연계 (11판): 담당자가 대상자의 비식별 정보(연령대·동·가구 형태·등급)로 받을 수 있는 서비스를 찾고, 안내·신청 도움을 기록해요.
@@ -3819,6 +3821,26 @@ let NOTI=[
 const MEMOS={};
 const memosOf=id=>MEMOS[id]||(MEMOS[id]=[['11/08','따님이 다음 달부터 주 1회 방문 예정'],['10/20','보청기 수리 맡김 (11월 말 찾기)']]);
 const HELPLOG=[['11/12','장보기','아침을 거르셨다고 하셔서 빵도 사 드림','dy'],['11/05','말동무','옛날 시장 이야기를 즐겁게 하심','mk'],['10/29','동행','정형외과 진료, 다음 진료 11/17','hn']];
+/* ---------- 기능 추가 2회차 자료 ---------- */
+/* 기관 클래스: 정원·일정·장소가 있는 정규 강좌 (기관 행사와 따로). age=최소 나이, dongs=다니기 쉬운 동, tags=관심 도움. notes=담당자가 남긴 '자리 문의'·'대신 신청' 메모 */
+const CLASSES=[
+ {id:'cl1',t:'어르신 스마트폰 교실',tags:['디지털 도움'],sch:'매주 수 14:00~15:30',start:'11/25 (수)',place:'행복요양원 2층 프로그램실',cap:12,cnt:9,age:65,dongs:['행복동','희망동','은빛동'],desc:'카카오톡 사진 보내기, 영상통화, 버스 앱 쓰기를 천천히 같이 배워요.',st:'모집 중',notes:[]},
+ {id:'cl2',t:'의자 건강 체조 교실',tags:['동행','말동무·정서'],sch:'매주 화·목 10:00~11:00',start:'11/17 (화)',place:'행복요양원 1층 강당',cap:20,cnt:20,age:60,dongs:['행복동','희망동'],desc:'의자에 앉아서 하는 체조라 무릎이 불편해도 괜찮아요.',st:'마감',notes:[]},
+ {id:'cl3',t:'노래로 여는 마음 교실',tags:['말동무·정서'],sch:'매주 금 15:00~16:00',start:'11/20 (금)',place:'희망동 주민센터 3층',cap:15,cnt:8,age:65,dongs:['희망동','행복동'],desc:'익숙한 노래를 함께 부르고 이야기를 나눠요.',st:'모집 중',notes:[]},
+ {id:'cl4',t:'생활 정리 수납 교실',tags:['생활 정리','가벼운 집안일'],sch:'격주 월 10:30~12:00',start:'11/23 (월)',place:'행복요양원 2층 프로그램실',cap:10,cnt:4,age:60,dongs:['행복동','은빛동'],desc:'옷장·서랍을 쉽게 정리하는 방법을 배워요.',st:'모집 중',notes:[]},
+ {id:'cl5',t:'키오스크 주문 연습 교실',tags:['디지털 도움','장보기·심부름'],sch:'매주 월 14:00~15:00',start:'11/30 (월)',place:'은빛동 복지관 1층',cap:8,cnt:3,age:70,dongs:['은빛동','희망동'],desc:'식당·병원 무인 접수기를 연습 기계로 미리 써 봐요.',st:'모집 중',notes:[]}
+];
+/* 정기 요청: 매주 같은 요일·시간으로 대신 올리는 요청. v=단골(지정), null이면 매번 공고로 모집 */
+const RECUR=[
+ {id:'rc1',e:'e1',days:['금'],tm:'10:00~11:00',cat:'말동무·정서',v:'mk',from:'11/06',to:'12/25',st:'진행 중'},
+ {id:'rc2',e:'e2',days:['월','목'],tm:'15:00~16:00',cat:'장보기·심부름',v:null,from:'11/02',to:'12/31',st:'진행 중'},
+ {id:'rc3',e:'e7',days:['월'],tm:'10:00~12:00',cat:'동행',v:'th',from:'10/05',to:'12/28',st:'일시정지',why:'배우자분 입원으로 잠시 쉬어요'}
+];
+/* 1:1 문의 (운영자에게) */
+const QNA=[
+ {id:'q2',cat:'오류 신고',t:'편성표 달력에서 지난달로 넘어가지 않아요',body:'이전 달 버튼을 누르면 이번 달만 볼 수 있다고 나와요. 지난달 기록을 보고 싶어요.',d:'11/12',st:'답변 대기'},
+ {id:'q1',cat:'이용 방법',t:'현관 QR 카드를 다시 뽑으면 예전 카드는 어떻게 되나요?',body:'어르신 댁 카드가 젖어서 다시 뽑으려고 해요.',d:'11/10',st:'답변 완료',ans:'다시 발급하면 이전 카드는 바로 쓸 수 없어요. 새 카드를 인쇄해 같은 자리에 붙여 주세요. 이미 잡힌 일정도 새 카드로 찍으면 돼요.',ad:'11/11'}
+];
 const VOLS=[['hn','오늘 16:00 한영자 님','대기'],['mk','오늘 15:30 이순례 님','활동 중'],['th','동행 전담','활동 중'],['ok','희망동','대기'],['dy','장보기','쉬는 날'],['sh','새 봉사자','대기']];
 
 /* ---------- 상태 ---------- */
@@ -3874,7 +3896,14 @@ const IC={
  box:'<path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/>',
  dots:'<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
  tick:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
- edit:'<path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/>'
+ edit:'<path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/>',
+ recur:'<path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/>',
+ classes:'<path d="M3 8l9-4 9 4-9 4z"/><path d="M7 10v5c1.5 1.4 3 2 5 2s3.5-.6 5-2v-5"/><path d="M21 8v6"/>',
+ qr:'<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/>',
+ flag:'<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
+ mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',
+ ban:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',
+ qna:'<path d="M4 5h16v11H9l-5 4z"/><path d="M10 9.2a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9v.4M12 14.2v.3"/>'
 };
 const icon=(k,c='')=>`<svg class="i ${c}" viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg>`;
 const av=(n,c='')=>`<span class="av ${c}" aria-hidden="true">${n[0]}</span>`;
@@ -4033,22 +4062,29 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#layer').innerHTML)closeL
 
 /* ---------- 계산 ---------- */
 /* 응답 기한 (시연 자료): [표시 글, 오늘 안인지] — 가까운 순서대로 적음 */
-const DUE={r1:['오늘 18시까지',2],r5:['오늘 21시까지',1],r3:['오늘 안에',1],r7:['오늘 안에',1],r14:['오늘 안에',1],r12:['내일 10시까지',0],r2:['내일까지',0],r6:['내일까지',0],r13:['11/15까지',0]};
+const DUE={r1:['오늘 18시까지',2],r5:['오늘 21시까지',1],r15:['오늘 안에',1],r3:['오늘 안에',1],r7:['오늘 안에',1],r14:['오늘 안에',1],r12:['내일 10시까지',0],r2:['내일까지',0],r6:['내일까지',0],r13:['11/15까지',0]};
 const DUEO=Object.keys(DUE),dueI=r=>{const i=DUEO.indexOf(r.id);return i<0?99:i};
 const NOW=15+50/60;
 /* ---------- 담당자 그룹핑 (11판): 기본은 '내 담당', 기관 전체는 고르거나 이름으로 검색 ---------- */
-const ME='박지현';
+let ME='박지현'; /* 기능 추가 2회차: 계정 바꾸기(데모)로 바뀌어요 */
 const allScope=()=>F('scope','mine')==='all';
 const inScope=e=>!!e&&(allScope()||e.mgr===ME);
-const SE=()=>ORDER.map(EL).filter(inScope);
+const SE=()=>ORDER.map(EL).filter(e=>inScope(e)&&!e.ended);
 const rIn=r=>inScope(EL(r.e));
 /* 대신 요청·수락은 위임(보호자 동의·서면 동의)을 받은 분만 (4) */
-const canReq=e=>!!e&&!e.revoked&&!!e.until&&e.scope.includes('대신 공고');
+const canReq=e=>!!e&&!e.ended&&!e.revoked&&!!e.until&&e.scope.includes('대신 공고');
 const mgrTag=e=>(allScope()||e.mgr!==ME)?`<span class="tag mgr12" title="담당 담당자">담당 ${e.mgr}</span>`:'';
 const mask=n=>n[0]+'○'+n.slice(2);
 const ageBand=e=>Math.floor(e.age/10)*10+'대';
 const vn=r=>r.v?P[r.v].n:`지원자 ${(r.apps||[]).length}명`;
-function scopeSeg(){return `<div class="seg scope12" role="group" aria-label="보는 범위">${[['mine','내 담당',ELDERS.filter(e=>e.mgr===ME).length],['all','기관 전체',ELDERS.length]].map(([k,l,n])=>{const on=F('scope','mine')===k;return `<button type="button" class="${on?'on':''}" aria-pressed="${on}" onclick="S.more={};setF('scope','${k}')">${l} <span class="tn">${n}명</span></button>`}).join('')}</div>`}
+/* 기능 추가 2회차 도우미: qa2-js에 있는 함수를 부른다(아직 없으면 빈 글) · 노쇼 판단 · 받은 담당자 요청 */
+const q2=(n,...a)=>typeof window[n]==='function'?window[n](...a):'';
+const mdN=s=>{const m=String(s||'').match(/(\d{1,2})\/(\d{1,2})/);return m?(+m[1])*100+(+m[2]):0};
+const hhN=t=>{const m=String(t||'').match(/(\d{1,2}):(\d{2})/);return m?+m[1]+(+m[2])/60:0};
+const noShow=r=>!!r&&r.st===2&&!r.qr&&(mdN(r.d)<1113||(mdN(r.d)===1113&&hhN(r.tm)+0.5<=NOW));
+const rg=r=>noShow(r)?'처리할 일':Object.keys(RGRP).find(g=>RGRP[g].includes(r.st));
+const inboxL=()=>DLGREQ.filter(r=>r.to===ME);
+function scopeSeg(){return `<div class="seg scope12" role="group" aria-label="보는 범위">${[['mine','내 담당',ELDERS.filter(e=>e.mgr===ME&&!e.ended).length],['all','기관 전체',ELDERS.filter(e=>!e.ended).length]].map(([k,l,n])=>{const on=F('scope','mine')===k;return `<button type="button" class="${on?'on':''}" aria-pressed="${on}" onclick="S.more={};setF('scope','${k}')">${l} <span class="tn">${n}명</span></button>`}).join('')}</div>`}
 /* ---------- 안부 확인 기록 (11판 · 포스트잇): 담당자 모두가 같이 봐요. [날짜, 담당자, 결과, 메모], 최신이 앞. '오늘 확인'은 날짜마다 새로 ---------- */
 const TD='11/13';
 const CHECKS={e1:[['11/10','박지현','통화함','따님이 다음 주에 오신대요'],['11/03','박지현','통화함','']],e2:[['11/12','이수진','방문함','다리가 조금 부으셨어요. 11/17 병원 예약 있음']],e3:[['11/06','최은호','통화함','']],e4:[['11/03','박지현','연락 안 됨','오후에 다시 걸기'],['10/30','최은호','방문함','식사를 거르셨대요. 반찬 전해 드림']],e5:[['11/11','이수진','통화함','']],e6:[['11/12','이수진','방문함','']],e7:[['11/09','이수진','통화함','배우자분 병원 일정 11/16']],e8:[['11/13','최은호','통화함','손녀분과도 통화, 보일러 괜찮아요']],e9:[['11/07','박지현','통화함','고양이 사료를 부탁하셨어요']]};
@@ -4070,9 +4106,9 @@ const dgOf=e=>e.dgs||(e.dgs=['mk','hn'].slice(0,e.dg));
 function regDg(eid,pk){const e=EL(eid),a=dgOf(e);if(!a.includes(pk))a.push(pk);render();toast(`${P[pk].n} 님을 ${e.n} 님의 단골로 등록했어요`)}
 function unDg(eid,pk){const e=EL(eid);confirmBox({title:`${P[pk].n} 님 단골을 해지할까요?`,text:`${e.n} 님의 단골 목록에서 빠져요. 지난 기록은 그대로 남아요.`,ok:'해지하기',danger:true,onOk:()=>{e.dgs=dgOf(e).filter(x=>x!==pk);render();toast('단골을 해지했어요')}})}
 function schedFor(id){S.f.sview='사람';S.f.sp=id;S.f.spq='';go('sched')}
-const todo=()=>REQS.filter(r=>[0,1,4].includes(r.st)&&rIn(r)).sort((a,b)=>dueI(a)-dueI(b));
-const todoTxt=r=>r.st===0?((r.apps||[]).length?`지원자 ${(r.apps||[]).length}명 · 한 분 정하기`:'지원자 기다리는 중'):r.st===1?'대신 최종 수락 필요':'일지 확인 필요';
-const gapList=()=>Object.entries(SCHED).filter(([id])=>inScope(EL(id))).flatMap(([id,o])=>Object.entries(o).filter(([k,c])=>c.gap&&!c.done).map(([k,c])=>({id,k:+k,c}))).sort((a,b)=>a.k-b.k);
+const todo=()=>REQS.filter(r=>([0,1,4].includes(r.st)||noShow(r))&&rIn(r)).sort((a,b)=>dueI(a)-dueI(b));
+const todoTxt=r=>noShow(r)?'시작 QR 없음 · 노쇼인지 확인':r.prop&&r.st<5?'시간 조정 제안에 답하기':r.st===0?((r.apps||[]).length?`지원자 ${(r.apps||[]).length}명 · 한 분 정하기`:'지원자 기다리는 중'):r.st===1?'대신 최종 수락 필요':'일지 확인 필요';
+const gapList=()=>Object.entries(SCHED).filter(([id])=>inScope(EL(id))&&!EL(id).ended).flatMap(([id,o])=>Object.entries(o).filter(([k,c])=>c.gap&&!c.done).map(([k,c])=>({id,k:+k,c}))).sort((a,b)=>a.k-b.k);
 const slot=k=>DAYS[Math.floor(k/2)].split(' ')[0]+' '+(k%2?'오후':'오전');
 const AMT=[9,10.5,9.5,11,9,10,11.5,9.5,10.5],PMT=[13,14.5,16,13.5,15,16.5,14,15.5,13];
 const hm=h=>`${String(Math.floor(h)).padStart(2,'0')}:${h%1?'30':'00'}`;
@@ -4082,18 +4118,18 @@ const newApps=()=>APPS.filter(a=>a.st===0);
 const unread=()=>NOTI.filter(n=>n[4]).length;
 
 /* ---------- 메뉴 · 머리 ---------- */
-const TITLES={home:['홈','오늘 처리할 일과 먼저 살펴볼 분'],alerts:['특보 알림','기상 특보와 AI 분석으로 먼저 확인할 분을 챙겨요'],care:['관리 대상','먼저 살펴볼 순서로 보고, 연락처와 돌봄을 챙겨요'],sched:['돌봄 편성표','달력에서 날짜를 누르면 옆에 그날 일정이 나와요'],req:['요청 관리','대신 올린 요청과 기관 공고 신청을 처리해요'],newreq:['대신 요청 올리기','전화로 들은 내용을 AI로 정리하거나 직접 써서 공고로 올려요'],find:['도움 찾기','관리 대상께 맞는 봉사 가능 공고를 찾아 대신 요청해요'],pub:['공공 서비스 연계','이름을 뺀 정보로 받을 수 있는 서비스를 찾고, 안내·신청 도움을 기록해요'],posts:['기관 공고','기관 이름으로 동네 전체에 올리는 공고'],events:['기관 행사','교실, 모임, 행사 안내'],dlg:['권한 위임','보호자 동의·서면 동의로 맡긴 일과 담당자끼리 넘긴 일을 관리해요'],report:['리포트','관리 대상별 기록 변화를 정리해요. 건강 상태 판단이 아니에요'],noti:['알림','알림을 종류별로 보고, 누르면 관련 화면으로 가요']};
+const TITLES={home:['홈','오늘 처리할 일과 먼저 살펴볼 분'],alerts:['특보 알림','기상 특보와 AI 분석으로 먼저 확인할 분을 챙겨요'],care:['관리 대상','먼저 살펴볼 순서로 보고, 연락처와 돌봄을 챙겨요'],sched:['돌봄 편성표','달력에서 날짜를 누르면 옆에 그날 일정이 나와요'],req:['요청 관리','대신 올린 요청과 기관 공고 신청을 처리해요'],newreq:['대신 요청 올리기','전화로 들은 내용을 AI로 정리하거나 직접 써서 공고로 올려요'],find:['도움 찾기','관리 대상께 맞는 봉사 가능 공고를 찾아 대신 요청해요'],pub:['공공 서비스 연계','이름을 뺀 정보로 받을 수 있는 서비스를 찾고, 안내·신청 도움을 기록해요'],posts:['기관 공고','기관 이름으로 동네 전체에 올리는 공고'],events:['기관 행사','교실, 모임, 행사 안내'],dlg:['권한 위임','보호자 동의·서면 동의로 맡긴 일과 담당자끼리 넘긴 일을 관리해요'],report:['리포트','관리 대상별 기록 변화를 정리해요. 건강 상태 판단이 아니에요'],noti:['알림','알림을 종류별로 보고, 누르면 관련 화면으로 가요'],recur:['정기 요청','매주 같은 요일·시간으로 대신 올리는 요청을 관리해요'],classes:['기관 클래스','정원과 일정이 있는 정규 강좌를 올리고, 관리 대상께 맞는 강좌를 안내해요'],qna:['1:1 문의','운영자에게 묻고 답을 받아요']};
 const NAVON={newreq:'req',find:'req',noti:''};
 function sid(v,p){if(S.layer)return {noti:'O-HOME-02',me:'O-HOME-03',careForm:'O-CARE-03',bulk:'O-SCHED-02',postKind:'O-POST-07',postForm:'O-POST-08',dlgNew:'O-DLG-03'}[S.layer.t]||sid2(v,p);return sid2(v,p)}
-function sid2(v,p){return {home:'O-HOME-01',alerts:'O-ALERT-01',care:p?'O-CARE-02':'O-CARE-01',sched:'O-SCHED-01',req:!p?'O-POST-01':/^ap/.test(p)?'O-POST-09':'O-POST-03',newreq:'O-POST-02',find:'O-POST-04',pub:p?'O-PUB-02':'O-PUB-01',posts:'O-POST-05',events:'O-POST-06',dlg:p&&/^e/.test(p)?'O-DLG-02':'O-DLG-01',report:p?'O-RPT-02':'O-RPT-01',noti:'O-HOME-04'}[v]}
+function sid2(v,p){return {home:'O-HOME-01',alerts:'O-ALERT-01',care:p?'O-CARE-02':'O-CARE-01',sched:'O-SCHED-01',req:!p?'O-POST-01':/^ap/.test(p)?'O-POST-09':'O-POST-03',newreq:'O-POST-02',find:'O-POST-04',pub:p?'O-PUB-02':'O-PUB-01',posts:'O-POST-05',events:'O-POST-06',recur:'O-RPT-05',classes:'O-POST-10',qna:'O-RPT-16',dlg:p&&/^e/.test(p)?'O-DLG-02':'O-DLG-01',report:p?'O-RPT-02':'O-RPT-01',noti:'O-HOME-04'}[v]}
 function renderNav(cur){
   const g=gapList().length,t=todo().length+newApps().length,pb=PUBR.filter(x=>x.st===0&&rIn(x)).length;
-  const NAV=[['돌봄',[['home','홈'],['alerts','특보 알림',WX.filter(w=>w.mine).length?'진행 '+WX.filter(w=>w.mine).length:'',WX.filter(w=>w.mine).length?'urgent':''],['care','관리 대상',SE().length],['sched','돌봄 편성표',g?'빈칸 '+g:'',g?'soft':''],['req','요청 관리',t],['pub','공공 서비스 연계',pb]]],
-   ['기관 공고',[['posts','기관 공고'],['events','기관 행사']]],
-   ['관리',[['report','리포트'],['dlg','권한 위임',DLGREQ.length]]]];
+  const NAV=[['돌봄',[['home','홈'],['alerts','특보 알림',WX.filter(w=>w.mine).length?'진행 '+WX.filter(w=>w.mine).length:'',WX.filter(w=>w.mine).length?'urgent':''],['care','관리 대상',SE().length],['sched','돌봄 편성표',g?'빈칸 '+g:'',g?'soft':''],['req','요청 관리',t],['recur','정기 요청',RECUR.filter(x=>x.st==='진행 중'&&rIn(x)).length||''],['pub','공공 서비스 연계',pb]]],
+   ['기관 공고',[['posts','기관 공고'],['events','기관 행사'],['classes','기관 클래스']]],
+   ['관리',[['report','리포트'],['dlg','권한 위임',inboxL().length]]]];
   $('#nav').innerHTML=NAV.map(([gn,items])=>`<div class="nav-sec">${gn}</div>`+items.map(([id,n,c,u])=>`<a href="#${id}" class="${id===cur?'on':''}" ${id===cur?'aria-current="page"':''}>${icon(id)}<span>${n}</span>${c?`<span class="n ${u||''}" ${id==='sched'?'title="이번 주(11/09~11/13) 빈칸"':id==='alerts'?'title="지금 우리 지역에 내려진 기상 특보"':''}>${c}</span>`:''}</a>`).join('')).join('');
 }
-function head(id,p){const [t,d]=TITLES[id];return `<header class="pagehead"><div><div class="crumb">${({home:'돌봄',alerts:'돌봄',care:'돌봄',sched:'돌봄',req:'돌봄',pub:'돌봄',newreq:'요청 관리',find:'요청 관리',posts:'기관 공고',events:'기관 공고',dlg:'관리',report:'관리',noti:'알림'})[id]||'돌봄'} </div><div class="h1row12"><h1>${t}</h1>${['home','alerts','care','sched','req','pub','dlg','report'].includes(id)?scopeSeg():''}</div></div><div class="head-tools"><span class="stamp tn" id="stamp" title="${sid(id,p)}">${TODAY}</span><button class="btn sm aib-top" type="button" onclick="S.ai.open=true;S.ai.size='';drawAib()">${icon('spark')}AI 도우미</button><button class="iconbtn" type="button" aria-label="알림 ${unread()}건" onclick="openLayer('noti')">${icon('bell')}${unread()?'<span class="dot"></span>':''}</button><button class="btn sm" type="button" onclick="openLayer('me')">${icon('user')}박지현</button>${id==='home'&&todo()[0]?`<button class="btn sm primary" type="button" onclick="go('req','${todo()[0].id}')">가장 급한 것부터</button>`:''}<button class="iconbtn" type="button" onclick="toggleTheme()" aria-label="밝기 전환" title="밝기 전환"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button></div></header>`}
+function head(id,p){const [t,d]=TITLES[id];return `<header class="pagehead"><div><div class="crumb">${({home:'돌봄',alerts:'돌봄',care:'돌봄',sched:'돌봄',req:'돌봄',pub:'돌봄',newreq:'요청 관리',find:'요청 관리',posts:'기관 공고',events:'기관 공고',classes:'기관 공고',recur:'돌봄',qna:'내 정보',dlg:'관리',report:'관리',noti:'알림'})[id]||'돌봄'} </div><div class="h1row12"><h1>${t}</h1>${['home','alerts','care','sched','req','pub','dlg','report','recur'].includes(id)?scopeSeg():''}</div></div><div class="head-tools"><span class="stamp tn" id="stamp" title="${sid(id,p)}">${TODAY}</span><button class="btn sm aib-top" type="button" onclick="S.ai.open=true;S.ai.size='';drawAib()">${icon('spark')}AI 도우미</button><button class="iconbtn" type="button" aria-label="알림 ${unread()}건" onclick="openLayer('noti')">${icon('bell')}${unread()?'<span class="dot"></span>':''}</button><button class="btn sm" type="button" onclick="openLayer('me')">${icon('user')}${ME}</button>${id==='home'&&todo()[0]?`<button class="btn sm primary" type="button" onclick="go('req','${todo()[0].id}')">가장 급한 것부터</button>`:''}<button class="iconbtn" type="button" onclick="toggleTheme()" aria-label="밝기 전환" title="밝기 전환"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button></div></header>`}
 
 /* ---------- 작은 그래프 ---------- */
 /* 그래프용 시연 자료 (기록 숫자). 기존 화면 숫자와 맞춤: 이번 주 확정 21건·빈칸 5개, 관리 대상별 지난달→이번 달 횟수 */
@@ -4150,12 +4186,12 @@ function dumbRows(rows,max=5){const p=v=>(v/max*100).toFixed(1)+'%';
 const cap=t=>{const [a,...r]=t.split(' · ');return `<p class="cap"><b>${a}</b>${r.join(', ')}</p>`};
 
 /* ---------- O-HOME-01 홈 ---------- */
-function reqActBtn(r){return `<button class="btn sm" type="button" onclick="event.stopPropagation();go('req','${r.id}')">${r.st===0?'지원자 보기':r.st===1?'대신 최종 수락':'일지 확인'}</button>`}
+function reqActBtn(r){return `<button class="btn sm" type="button" onclick="event.stopPropagation();go('req','${r.id}')">${noShow(r)?'노쇼 확인':r.prop&&r.st<5?'시간 조정 답하기':r.st===0?'지원자 보기':r.st===1?'대신 최종 수락':'일지 확인'}</button>`}
 function vHome(){
   const T=todo(),day=F('hd',4),E=evs(SE()).filter(x=>x.day===day).sort((a,b)=>a.st-b.st),a=ALERTS[0];
   const doneAll=Object.values(SCHED).reduce((s,o)=>s+Object.values(o).filter(c=>!c.gap).length,0),done=SE().reduce((s,e)=>s+Object.values(SCHED[e.id]||{}).filter(c=>!c.gap).length,0),G=gapList(),logs=REQS.filter(r=>r.log&&rIn(r)),PR=PRI.filter(x=>inScope(EL(x[0])));
-  const links=[['alerts/wx1','특보 확인 필요',needN()],['pub','공공 연계 안내 전',PUBR.filter(x=>x.st===0&&rIn(x)).length],['req/apps','기관 공고 신청',newApps().length],['dlg/inbox','담당자 요청',DLGREQ.length]].filter(x=>x[2]);
-  const short=r=>r.st===0?((r.apps||[]).length?`지원자 ${(r.apps||[]).length}명`:'지원자 기다림'):r.st===1?'최종 수락 필요':'일지 도착';
+  const links=[['alerts/wx1','특보 확인 필요',needN()],['pub','공공 연계 안내 전',PUBR.filter(x=>x.st===0&&rIn(x)).length],['req/apps','기관 공고 신청',newApps().length],['dlg/inbox','담당자 요청',inboxL().length]].filter(x=>x[2]);
+  const short=r=>noShow(r)?'시작 QR 없음':r.prop&&r.st<5?'시간 조정 제안':r.st===0?((r.apps||[]).length?`지원자 ${(r.apps||[]).length}명`:'지원자 기다림'):r.st===1?'최종 수락 필요':'일지 도착';
   const past=x=>day<4||(day===4&&x.st+x.du<=NOW);
   const nowline='<div class="nowline" role="separator" aria-label="지금 15:50" title="지금 15:50"><span>지금 15:50</span></div>';let nd=false;
   const pastN=E.filter(x=>past(x)&&!x.gap).length,hideP=day===4&&pastN>0&&!S.open.hPast;
@@ -4180,7 +4216,7 @@ function vHome(){
   const flow=`<div class="flow10"><nav class="flow7" aria-label="오늘 처리할 일 단계별로 거르기">${[[-1,'전체'],[0,'요청 대기'],[1,'수락'],[4,'일지 작성']].map(([s,l])=>{const L=s<0?T:T.filter(r=>r.st===s),n=L.length,h=L.filter(hot).length,on=hst===s;return `<button type="button" class="${on?'on':''} ${n?'':'zero'}" aria-pressed="${on}" title="${s<0?'오늘 처리할 일 전체 '+n+'건':l+' '+n+'건만 보기'}" onclick="setF('hst',${on&&s>=0?-1:s})"><span>${l}</span><b class="c tn ${s>=0&&h?'urgent':''}">${n}</b></button>`}).join('')}</nav><a class="flow-wait" href="#req" title="요청 관리 보드에서 보기">기다리는 중<span>최종 수락 <b class="tn">${REQS.filter(r=>r.st===2&&rIn(r)).length}</b></span><span>활동 중 <b class="tn">${REQS.filter(r=>r.st===3&&rIn(r)).length}</b></span></a></div>`;
   return head('home')+`
   ${F('alert',true)?`<div class="banner nb" role="status">${icon('warn')}<span class="sp"><strong>${a.k}</strong> <span class="tn">11/12~11/14 ${a.area}</span><span class="b-msg">AI 분석: 확인이 필요한 분 <b class="tn">${needN()}</b>명 (혼자 사심·85세 이상·안부 기록 오래됨)</span></span><span class="rowx nw"><a class="link" style="margin:0" href="#alerts/wx1">대응 보기</a><button class="btn sm ghost" type="button" onclick="setF('alert',false)">닫기</button></span></div>`:''}
-  ${hero}
+  ${hero}${q2('q2Quick')}
   <div class="cols c-main home2" style="align-items:start">
     <div class="stackv">
     <section class="panel lead o1"><div class="panel-h tight"><h2>오늘 처리할 일 <span class="tn cnt-n">${T.length}</span></h2><div class="hlinks"><span class="flabel">새로 온 것</span>${links.map(([to,l,c])=>`<a class="link" href="#${to}">${l} <b class="tn">${c}</b></a>`).join('')}</div></div>
@@ -4239,15 +4275,15 @@ function vAlerts(p){
 
 /* ---------- O-CARE-01 · 02 관리 대상 (11판: 기본은 내 담당, 이름 검색은 기관 전체) ---------- */
 function vCare(p){
-  const fp=F('ep','전체'),q=F('eq','').trim(),FL=[['전체'],['행복동'],['희망동'],['은빛동'],['우선순위 높음'],['혼자 사는 분'],['위임 받은 분'],['위임 전']];
-  const base=q?ORDER.map(EL):SE();
-  const L=base.filter(e=>(fp==='전체'||e.dong===fp||(fp==='우선순위 높음'&&e.pri==='높음')||(fp==='혼자 사는 분'&&e.home==='혼자')||(fp==='위임 받은 분'&&canReq(e))||(fp==='위임 전'&&!canReq(e)))&&(!q||e.n.includes(q)||e.tel.includes(q)));
+  const fp=F('ep','전체'),q=F('eq','').trim(),FL=[['전체'],['행복동'],['희망동'],['은빛동'],['우선순위 높음'],['혼자 사는 분'],['위임 받은 분'],['위임 전'],['종료된 분']];
+  const endL=ORDER.map(EL).filter(e=>e.ended&&inScope(e)),base=q?ORDER.map(EL):fp==='종료된 분'?endL:SE().concat(fp==='전체'?endL:[]);
+  const L=base.filter(e=>(fp==='전체'||fp==='종료된 분'||e.dong===fp||(fp==='우선순위 높음'&&e.pri==='높음')||(fp==='혼자 사는 분'&&e.home==='혼자')||(fp==='위임 받은 분'&&canReq(e))||(fp==='위임 전'&&!canReq(e)))&&(!q||e.n.includes(q)||e.tel.includes(q)));
   const e=L.length?(EL(p)||L[0]):null;
   if(e&&L.indexOf(e)>=6)S.more.care=true;
   const list=`<section class="panel" style="align-self:start"><div class="panel-b" style="padding-bottom:12px;display:grid;gap:10px;grid-template-columns:minmax(0,1fr)"><div class="rowx nw"><input class="search sp" id="eq" type="text" style="width:auto" placeholder="기관 전체에서 찾기" title="이름이나 전화번호로 기관 전체에서 찾아요" aria-label="관리 대상 찾기 (기관 전체에서)" value="${esc(F('eq',''))}" oninput="S.f.eq=this.value;renderKeep('eq')"><button class="btn sm" type="button" style="height:42px" onclick="openLayer('careForm')">${icon('plus')}등록</button></div>
       <select class="sel fsel" aria-label="거르기" onchange="setF('ep',this.value)">${FL.map(([v])=>`<option ${fp===v?'selected':''}>${v}</option>`).join('')}</select>
       <div><span class="ai-tag" style="margin:0" title="리포트 분석 기준으로 먼저 살펴볼 순서를 정했어요. 건강 상태를 판단한 것이 아니에요.">AI 우선순위 (건강 판단 아님)</span></div>${q?`<p class="muted small" style="margin:0">"${esc(q)}" 기관 전체에서 ${L.length}명</p>`:''}</div>
-    <div style="border-top:1px solid var(--rule-2)">${lim('care',L,6).map(x=>{const w=(priOf(x.id)||[])[3];return `<button type="button" class="lrow ${e&&x.id===e.id?'on':''}" aria-pressed="${!!e&&x.id===e.id}" onclick="go('care','${x.id}')">${av(x.n)}<span class="sp"><span class="t">${pdot(x)}${x.n}</span> <span class="muted small meta">${mt(x.age+'세',x.dong,x.home)}</span>${mgrTag(x)}${canReq(x)?'':'<span class="tag warn">위임 전</span>'}<span class="d">${w?mt(...w.split(' · ')):mt('안부 '+lastTxt(x.id),'이번 달 '+x.month+'회')}</span></span><span class="rcol">${pill(x.month,Math.max(x.prev,x.month,4),'이번 달 '+x.month+'회 / 지난달 '+x.prev+'회')}<span class="small tn mo10" aria-hidden="true">${x.month}회</span></span></button>`}).join('')||`<div class="empty line">${q?`"${esc(q)}"에 맞는 분이 없어요.`:`'${fp}' 조건에 맞는 분이 없어요.`} <button class="link" type="button" onclick="S.f.eq='';S.f.ep='전체';render()">필터 풀기</button></div>`}</div>
+    <div style="border-top:1px solid var(--rule-2)">${lim('care',L,6).map(x=>{const w=(priOf(x.id)||[])[3];return `<button type="button" class="lrow ${e&&x.id===e.id?'on':''} ${x.ended?'q2end':''}" aria-pressed="${!!e&&x.id===e.id}" onclick="go('care','${x.id}')">${av(x.n)}<span class="sp"><span class="t">${x.ended?'':pdot(x)}${x.n}</span> <span class="muted small meta">${mt(x.age+'세',x.dong,x.home)}</span>${mgrTag(x)}${x.ended?'<span class="tag q2endt">지원 종료</span>':canReq(x)?'':'<span class="tag warn">위임 전</span>'}<span class="d">${w?mt(...w.split(' · ')):mt('안부 '+lastTxt(x.id),'이번 달 '+x.month+'회')}</span></span><span class="rcol">${pill(x.month,Math.max(x.prev,x.month,4),'이번 달 '+x.month+'회 / 지난달 '+x.prev+'회')}<span class="small tn mo10" aria-hidden="true">${x.month}회</span></span></button>`}).join('')||`<div class="empty line">${q?`"${esc(q)}"에 맞는 분이 없어요.`:`'${fp}' 조건에 맞는 분이 없어요.`} <button class="link" type="button" onclick="S.f.eq='';S.f.ep='전체';render()">필터 풀기</button></div>`}</div>
     ${moreBtn('care',L.length,6)}</section>`;
   const S5=SE();
   return head('care',p)+srow([['care',allScope()?'관리 대상':'내 담당',S5.length,'명',allScope()?STAFF.map(s=>`${s[0]} ${ELDERS.filter(x=>x.mgr===s[0]).length}`).join(' · '):`기관 전체 ${ELDERS.length}명 · 이름으로 찾기`],['alerts','먼저 살펴볼 분',S5.filter(x=>x.pri==='높음').length,'명','AI 우선순위'],['home','혼자 사는 분',lone().length,'명',`오늘 안부 확인 ${lone().filter(x=>okToday(x.id)).length}명`],['dlg','위임 받은 분',S5.filter(canReq).length,'명',`위임 전 ${S5.filter(x=>!canReq(x)).length}명 · 대신 요청 안 됨`]])+`<div class="cols c-side keep">${list}<div class="stackv">${e?careDetail(e):`<section class="panel"><div class="panel-b">${emptyArt('mailbox','조건에 맞는 분이 없어요. 검색어나 거르기를 바꿔 보세요.',`<button class="link" type="button" onclick="S.f.eq='';S.f.ep='전체';render()">모두 보기</button>`)}</div></section>`}</div></div>`;
@@ -4258,9 +4294,9 @@ function careDetail(e){
   const noReq='위임(보호자 동의·서면 동의) 뒤 가능';
   return `<section class="panel lead covered"><div class="panel-b" style="padding-top:0"><div class="detail-h" style="margin:0;align-items:center;flex-wrap:wrap"><div class="who">${av(e.n,'l')}<div><h3>${e.n}<span class="muted">${mt(e.age+'세',e.dong,e.home)}</span></h3><div class="tags" style="margin-top:5px">${pri(e)}${ntags(e.needs)}<span class="tag mgr12">담당 ${e.mgr}${e.mgr===ME?' (나)':''}</span></div></div></div>
       <div class="mcard">${ring(e.month,Math.max(e.prev,e.month,4),{label:'이번 달 돌봄 '+e.month+'회, 지난달 '+e.prev+'회',center:e.month+'<small>회</small>'})}<span><b>이번 달 돌봄</b><small class="tn">지난달 ${e.prev}회</small></span></div>
-      <div class="btns"><button class="btn sm" type="button" onclick="openLayer('careForm','${e.id}')">정보 수정</button><button class="btn sm" type="button" onclick="askMgr('${e.id}')">담당 바꾸기</button><button class="btn sm" type="button" ${ok?'':`disabled title="${noReq}"`} onclick="go('find','${e.id}')">도움 찾기</button><button class="btn sm primary" type="button" ${ok?'':`disabled title="${noReq}"`} onclick="go('newreq','${e.id}')">대신 요청 올리기</button></div></div></div>
+      <div class="btns"><button class="btn sm" type="button" onclick="openLayer('careForm','${e.id}')">정보 수정</button>${q2('q2MgrBtn',e)}<button class="btn sm" type="button" ${ok?'':`disabled title="${noReq}"`} onclick="go('find','${e.id}')">도움 찾기</button><button class="btn sm primary" type="button" ${ok?'':`disabled title="${noReq}"`} onclick="go('newreq','${e.id}')">대신 요청 올리기</button>${q2('q2CareBtns',e)}</div></div></div>
     ${ok?'':`<div class="panel-f rowx"><span class="tag warn">위임 전</span><span class="muted">대신 요청·수락은 ${noReq}해요. ${e.consent||''}</span><a class="link" href="#dlg/${e.id}" style="margin-left:auto">권한 위임</a></div>`}
-    ${e.pri==='높음'&&w?`<div class="panel-f rowx"><span class="ai-tag" style="margin:0">먼저 살펴볼 이유</span>${whyT(w)}<a class="link" href="#report/${e.id}" style="margin-left:auto">리포트에서 보기</a></div>`:''}</section>
+    ${q2('q2CareFlags',e)}${e.pri==='높음'&&w?`<div class="panel-f rowx"><span class="ai-tag" style="margin:0">먼저 살펴볼 이유</span>${whyT(w)}<a class="link" href="#report/${e.id}" style="margin-left:auto">리포트에서 보기</a></div>`:''}</section>
   <div class="callout" role="note">${icon('warn')}<div><b class="lbl">방문 주의사항</b>${e.caution}</div></div>
   <section class="panel"><div class="split2">
     <div><h3 class="sec-t">연락처 <span class="sub">담당자만 봐요</span></h3>
@@ -4277,11 +4313,11 @@ function careDetail(e){
       <h3 class="sec-t" style="margin-top:20px">담당자 메모 <span class="sub">봉사자에게 안 보여요</span></h3><table class="vars" style="width:100%"><tbody>${memos.map(m=>`<tr><td class="tn" style="width:52px;color:var(--ink-3)">${m[0]}</td><td style="text-align:left">${esc(m[1])}</td></tr>`).join('')}</tbody></table>
       <div class="rowx" style="margin-top:10px;flex-wrap:nowrap"><input type="text" class="sm sp" id="memoIn" placeholder="메모 남기기" aria-label="메모 남기기" onkeydown="if(event.key==='Enter')addMemo('${e.id}')"><button class="btn sm" type="button" onclick="addMemo('${e.id}')">추가</button></div></div>
     <div><h3 class="sec-t">권한 위임 <a class="link" href="#dlg/${e.id}">위임 관리</a></h3>${e.until?`<dl class="props dl10"><dt>동의 방법</dt><dd>${e.how}</dd><dt>기간</dt><dd class="tn">~ ${dU(e.until)}</dd><dt>맡긴 일</dt><dd><span class="tags">${e.scope.slice(0,3).map(s=>`<span class="tag">${s}</span>`).join('')}${e.scope.length>3?`<span class="tag more10" title="${e.scope.slice(3).join(', ')}">외 ${e.scope.length-3}</span>`:''}</span></dd></dl>
-      <p class="hint">서면·보호자 동의로 위임했어요. 맡긴 일을 바꾸면 보호자에게 문자가 가요.</p>`:`<p class="muted" style="margin:0 0 10px">아직 위임 전이에요. ${e.consent||''}</p><button class="btn sm" type="button" onclick="S.f.dge='${e.id}';openLayer('dlgNew')">위임 등록</button>`}</div></div></section>`;
+      <p class="hint">서면·보호자 동의로 위임했어요. 맡긴 일을 바꾸면 보호자에게 문자가 가요.</p>`:`<p class="muted" style="margin:0 0 10px">아직 위임 전이에요. ${e.consent||''}</p><button class="btn sm" type="button" onclick="S.f.dge='${e.id}';openLayer('dlgNew')">위임 등록</button>`}</div></div></section>${q2('q2CarePanels',e)}`;
 }
 function addMemo(id){const el=$('#memoIn');const v=el.value.trim();if(!v){el.focus();return}memosOf(id).unshift(['11/13',v]);render();toast('메모를 남겼어요')}
-/* 담당 바꾸기 (인수인계): 담당자 간 위임의 '완전히 이관'과 같은 기록으로 남겨요 */
-function askMgr(id){const e=EL(id),opts=STAFF.filter(s=>s[0]!==e.mgr);confirmBox({title:`${e.n} 님 담당을 바꿀까요?`,text:`지금 담당은 ${e.mgr} 님이에요. 새 담당자에게 알림이 가요. 안부 기록·메모·요청 기록은 그대로 넘어가요.`,ok:'담당 바꾸기',extra:`<div class="field"><label for="mgrto">새 담당자</label><select class="sel" id="mgrto">${opts.map(s=>`<option value="${s[0]}">${s[0]} (${s[1]})</option>`).join('')}</select></div><div class="field"><label for="mgrm">넘길 때 남길 말 <span class="note">선택</span></label><input id="mgrm" type="text" placeholder="예: 따님과 통화가 편해요"></div><p class="hint" style="margin:0 0 4px">휴가처럼 잠깐 맡길 때는 권한 위임 › 담당자 간 위임에서 해요.</p>`,onOk:()=>{const to=$('#mgrto').value;e.mgr=to;DELEG.unshift({to,from:'11/13',until:'계속',who:e.n,why:'담당 바꾸기 (인수인계)',scope:'담당 전체',st:'이관'});render();toast(`${e.n} 님 담당을 ${to} 님께 넘겼어요`)}})}
+/* 담당 넘기기 (기능 추가 2회차): 받을 담당자 + 사유 → '수락 대기' → 받는 담당자가 권한 위임 › 담당자 요청에서 수락하면 바뀌어요. 아래 옛 함수는 q2Handover로 대신해요 */
+function askMgr(id){if(window.q2Handover)return q2Handover(id);const e=EL(id),opts=STAFF.filter(s=>s[0]!==e.mgr);confirmBox({title:`${e.n} 님 담당을 바꿀까요?`,text:`지금 담당은 ${e.mgr} 님이에요. 새 담당자에게 알림이 가요. 안부 기록·메모·요청 기록은 그대로 넘어가요.`,ok:'담당 바꾸기',extra:`<div class="field"><label for="mgrto">새 담당자</label><select class="sel" id="mgrto">${opts.map(s=>`<option value="${s[0]}">${s[0]} (${s[1]})</option>`).join('')}</select></div><div class="field"><label for="mgrm">넘길 때 남길 말 <span class="note">선택</span></label><input id="mgrm" type="text" placeholder="예: 따님과 통화가 편해요"></div><p class="hint" style="margin:0 0 4px">휴가처럼 잠깐 맡길 때는 권한 위임 › 담당자 간 위임에서 해요.</p>`,onOk:()=>{const to=$('#mgrto').value;e.mgr=to;DELEG.unshift({to,from:'11/13',until:'계속',who:e.n,why:'담당 바꾸기 (인수인계)',scope:'담당 전체',st:'이관'});render();toast(`${e.n} 님 담당을 ${to} 님께 넘겼어요`)}})}
 function renderKeep(id){const el=$('#'+id);const pos=el.selectionStart;render();const n=$('#'+id);n.focus();n.setSelectionRange(pos,pos)}
 
 /* ---------- O-SCHED-01 돌봄 편성표 (11판: 전체 달력(월)이 기본. 날짜를 누르면 화면 전환 없이 오른쪽 패널에 그날 일정.
@@ -4301,16 +4337,17 @@ function dayItems(d,L){const ids=new Set(L.map(e=>e.id));let out;
   else out=(MEX[d]||[]).filter(r=>ids.has(r[0])).map(r=>({e:EL(r[0]),key:'m'+d+'|'+r[0],m:r,t:r[3],te:'',cat:r[1],v:r[2],kind:r[4]||'ok'}));
   return out.sort((a,b)=>a.t.localeCompare(b.t)||a.e.n.localeCompare(b.e.n))}
 const WD=d=>['일','월','화','수','목','금','토'][new Date(2026,10,d).getDay()];
+const q2cau=e=>!!(e&&e.caution&&e.caution.trim()&&e.caution.trim()!=='-');
 function monthView(L,sd){const first=new Date(2026,10,1).getDay(),cells=[];for(let i=0;i<(first+6)%7;i++)cells.push(null);for(let d=1;d<=30;d++)cells.push(d);while(cells.length%7)cells.push(null);
   return `<div class="cm cm12"><div class="cm-hd">${['월','화','수','목','금','토','일'].map(w=>`<div>${w}</div>`).join('')}</div><div class="cm-g">${cells.map(d=>{if(!d)return '<div class="cm-c we blank"></div>';const it=dayItems(d,L),wk=(first+d-1)%7,we=wk===0||wk===6,g=it.filter(x=>x.kind==='gap').length;
-    return `<button type="button" class="cm-c ${d===13?'today':''} ${we?'we':''} ${d===sd?'sel':''} ${d<13?'past':''}" aria-pressed="${d===sd}" aria-label="11월 ${d}일 ${WD(d)}요일 일정 ${it.length}건${g?', 빈칸 '+g+'개':''}${d===13?', 오늘':''}" onclick="pickDay(${d})"><span class="cm-top"><span class="cm-n">${d}</span>${d===13?'<i class="now12" title="오늘"></i>':''}<span class="sp"></span>${g?`<span class="cm-gn tn">빈칸 ${g}</span>`:it.length>3?`<span class="cm-k tn">${it.length}건</span>`:''}</span>${it.slice(0,3).map(x=>`<span class="cm-e k-${KCLS[x.cat]||'home'} ${x.kind}" title="${esc(`${x.t} ${x.e.n} 님 · ${x.cat} · ${x.kind==='gap'?'빈칸 (봉사자 없음)':x.c&&x.c.live?'활동 중 · 봉사자 '+x.v:x.kind==='wait'?(x.v||'요청 대기'):'봉사자 '+x.v}`)}"><b class="cm-en">${x.e.n}</b><small class="cm-ec">${x.kind==='gap'?'빈칸·':''}${x.cat}</small></span>`).join('')}${it.length>3?`<span class="cm-more">+${it.length-3}<span class="cm-mt">건 더</span></span>`:''}</button>`}).join('')}</div></div>`}
+    return `<button type="button" class="cm-c ${d===13?'today':''} ${we?'we':''} ${d===sd?'sel':''} ${d<13?'past':''}" aria-pressed="${d===sd}" aria-label="11월 ${d}일 ${WD(d)}요일 일정 ${it.length}건${g?', 빈칸 '+g+'개':''}${d===13?', 오늘':''}" onclick="pickDay(${d})"><span class="cm-top"><span class="cm-n">${d}</span>${d===13?'<i class="now12" title="오늘"></i>':''}<span class="sp"></span>${g?`<span class="cm-gn tn">빈칸 ${g}</span>`:it.length>3?`<span class="cm-k tn">${it.length}건</span>`:''}</span>${it.slice(0,3).map(x=>`<span class="cm-e k-${KCLS[x.cat]||'home'} ${x.kind}" title="${esc(`${x.t} ${x.e.n} 님 · ${x.cat} · ${x.kind==='gap'?'빈칸 (봉사자 없음)':x.c&&x.c.live?'활동 중 · 봉사자 '+x.v:x.kind==='wait'?(x.v||'요청 대기'):'봉사자 '+x.v}${q2cau(x.e)?' · 방문 주의사항: '+x.e.caution:''}`)}"><b class="cm-en">${q2cau(x.e)?'<i class="q2cau" aria-label="방문 주의사항 있음"></i>':''}${x.e.n}</b><small class="cm-ec">${x.kind==='gap'?'빈칸·':''}${x.cat}</small></span>`).join('')}${it.length>3?`<span class="cm-more">+${it.length-3}<span class="cm-mt">건 더</span></span>`:''}</button>`}).join('')}</div></div>`}
 function altBox(x){const c=x.c||{},has=!!c.altP;const [id,k]=x.key.split('|');
   return `<div class="dp-alt">${insight(`<p><strong>${has?(c.same?'같은 시간 가능한 분':'다른 요일 제안'):'대안이 없어요'}</strong> ${c.alt||'가능한 분이 없어요. 공고로 올리는 걸 추천해요'}</p>`,c.altWhy||`${x.e.dong} 그 시간 봉사 가능자 0명`,'AI 안내')}
     <div class="btns">${has?`<button class="btn sm line" type="button" onclick="askGap('${id}','${k}')">${c.altP} 님께 요청</button>`:''}<button class="btn sm ${has?'':'line'}" type="button" onclick="${x.m?`gappostM('${x.key}')`:`gappost('${id}','${k}')`}">공고로 올리기</button></div><p class="note" style="margin:6px 0 0">요청할지 공고로 올릴지는 담당자가 정해요</p></div>`}
 /* 수정 1회차: 편성 칸과 같은 요청 찾기 (관리 대상 + 날짜, 같으면 분류까지) */
 function reqOfSlot(x,d){if(x.c&&x.c.r)return REQS.find(r=>r.id===x.c.r)||null;const L=REQS.filter(r=>r.e===x.e.id&&+(r.d.split(' ')[0].split('/')[1])===d&&r.d.startsWith('11/'));return L.find(r=>CKS(r.cat)===x.cat)||L[0]||null}
 function dayPanel(d,L,pe){const it=dayItems(d,L),gs=it.filter(x=>x.kind==='gap').length,sel=F('gsel','');
-  const row=x=>{const open=x.kind==='gap'&&sel===x.key;const rq=x.kind==='gap'?null:reqOfSlot(x,d);const to=rq?`#req/${rq.id}`:`#care/${x.e.id}`,tl=rq?`${x.e.n} 님 ${rq.cat} 요청 상세 보기`:`${x.e.n} 님 관리 대상 정보 보기`;return `<div class="dp-r ${x.kind} k-${KCLS[x.cat]||'home'} dp-go12" title="${tl}" onclick="if(!event.target.closest('button,a'))navTo('${to}')"><span class="dp-t tn">${x.t}${x.te?`<small>${x.te}</small>`:''}</span><span class="dp-b"><span class="dp-n"><a class="dp-a12" href="${to}" aria-label="${tl}">${x.e.n} 님</a>${mgrTag(x.e)}</span><span class="dp-c"><i class="kd12"></i>${x.cat}</span><span class="dp-v">${x.kind==='gap'?'<span class="flag-neg">빈칸 · 봉사자 없음</span>':x.kind==='wait'?`<span class="tag wt12">${x.v||'요청 대기'}</span>`:`봉사자 ${x.v}${x.dg?' (단골)':''}${x.c&&x.c.live?' <span class="tag live12">활동 중</span>':''}`}</span></span>${x.kind==='gap'?`<button class="btn sm" type="button" aria-expanded="${open}" onclick="setF('gsel','${open?'':x.key}')">${open?'접기':'대안 보기'}</button>`:x.kind==='ok'?'':`<button class="btn sm ghost" type="button" onclick="go('req'${rq?`,'${rq.id}'`:''})">요청 보기</button>`}</div>${open?altBox(x):''}`};
+  const row=x=>{const open=x.kind==='gap'&&sel===x.key;const rq=x.kind==='gap'?null:reqOfSlot(x,d);const to=rq?`#req/${rq.id}`:`#care/${x.e.id}`,tl=rq?`${x.e.n} 님 ${rq.cat} 요청 상세 보기`:`${x.e.n} 님 관리 대상 정보 보기`;return `<div class="dp-r ${x.kind} k-${KCLS[x.cat]||'home'} dp-go12" title="${tl}" onclick="if(!event.target.closest('button,a'))navTo('${to}')"><span class="dp-t tn">${x.t}${x.te?`<small>${x.te}</small>`:''}</span><span class="dp-b"><span class="dp-n"><a class="dp-a12" href="${to}" aria-label="${tl}">${x.e.n} 님</a>${mgrTag(x.e)}</span>${q2cau(x.e)?`<span class="dp-cau2" title="방문 주의사항: ${esc(x.e.caution)}">${icon('warn')}<span>${esc(x.e.caution)}</span></span>`:''}<span class="dp-c"><i class="kd12"></i>${x.cat}</span><span class="dp-v">${x.kind==='gap'?'<span class="flag-neg">빈칸 · 봉사자 없음</span>':x.kind==='wait'?`<span class="tag wt12">${x.v||'요청 대기'}</span>`:`봉사자 ${x.v}${x.dg?' (단골)':''}${x.c&&x.c.live?' <span class="tag live12">활동 중</span>':''}`}</span></span>${x.kind==='gap'?`<button class="btn sm" type="button" aria-expanded="${open}" onclick="setF('gsel','${open?'':x.key}')">${open?'접기':'대안 보기'}</button>`:x.kind==='ok'?'':`<button class="btn sm ghost" type="button" onclick="go('req'${rq?`,'${rq.id}'`:''})">요청 보기</button>`}</div>${open?altBox(x):''}`};
   return `<section class="panel dayp12" id="dayp" data-dg9-title="그날 일정"><div class="panel-h tight"><h2>11월 ${d}일 (${WD(d)})${d===13?' · 오늘':''}</h2><span class="sub tn">${mt(it.length+'건',gs?'빈칸 '+gs:'')}</span></div>
     ${pe?`<p class="muted small" style="margin:0 20px 8px">${pe.n} 님 일정만 보고 있어요</p>`:''}<div class="dp-l">${it.length?it.map(row).join(''):'<div class="empty line">이 날은 일정이 없어요.</div>'}</div>
     <div class="panel-f line-note">일정을 누르면 요청 상세(없으면 관리 대상)로 가요. 다른 날짜를 누르면 이 자리에서 바뀌어요.</div></section>`}
@@ -4320,7 +4357,7 @@ function vSched(){
   const L=v==='사람'?(pe?[pe]:[]):SE();
   const hits=q?ORDER.map(EL).filter(e=>e.n.includes(q)):[];
   const search=v==='사람'?`<div class="ps12"><input class="search" id="spq" type="text" placeholder="이름으로 찾기 (기관 전체)" aria-label="한 사람 일정 찾기" value="${esc(q)}" oninput="S.f.spq=this.value;renderKeep('spq')" onkeydown="if(event.key==='Enter'&&this.value.trim()){const h=ORDER.map(EL).find(e=>e.n.includes(this.value.trim()));if(h)schedFor(h.id)}">${q?`<div class="ps12-l" role="listbox" aria-label="찾은 사람">${hits.map(e=>`<button type="button" role="option" onclick="schedFor('${e.id}')"><b>${e.n}</b> <span class="muted small">${mt(e.age+'세',e.dong)}</span>${mgrTag(e)}</button>`).join('')||'<div class="muted small" style="padding:10px 12px">찾는 분이 없어요.</div>'}</div>`:''}</div>`:'';
-  const leg=`<div class="panel-f legend cat12">${Object.entries(KCLS).map(([k,c])=>`<span><i class="kd12 k-${c}"></i>${k}</span>`).join('')}<span class="lg-sep"></span><span><i class="lg12 gap"></i>빈칸 (누르면 옆에 대안)</span><span><i class="lg12 wait"></i>요청 대기 · 최종 수락 전</span><span><i class="now12"></i>오늘</span></div>`;
+  const leg=`<div class="panel-f legend cat12">${Object.entries(KCLS).map(([k,c])=>`<span><i class="kd12 k-${c}"></i>${k}</span>`).join('')}<span class="lg-sep"></span><span><i class="lg12 gap"></i>빈칸 (누르면 옆에 대안)</span><span><i class="lg12 wait"></i>요청 대기 · 최종 수락 전</span><span><i class="q2cau" aria-hidden="true"></i>방문 주의사항</span><span><i class="now12"></i>오늘</span></div>`;
   let main;
   if(v==='사람'&&!pe)main=`<section class="panel lead"><div class="panel-b" style="padding:28px 24px">${emptyArt('mailbox','이름으로 찾아 한 사람 일정만 봐요. 위 검색칸에 이름을 한 글자 이상 적으면 기관 전체에서 찾아 드려요.')}<div class="rowx" style="justify-content:center;margin-top:6px"><button class="btn sm" type="button" onclick="const i=document.getElementById('spq');if(i)i.focus()">이름 검색칸으로</button></div></div></section>`;
   else main=`<div class="cols sch12"><section class="panel lead">${pe?`<div class="pe12"><div class="who">${av(pe.n)}<div><b style="font-weight:600">${pe.n} 님</b> <span class="muted small">${mt(pe.age+'세',pe.dong,pe.home)}</span> ${mgrTag(pe)}</div></div><span class="sp"></span><a class="link" href="#care/${pe.id}">관리 대상 정보</a><button class="btn sm ghost" type="button" onclick="S.f.sp='';render()">다른 사람 찾기</button></div>`:''}<div style="padding:6px 14px 4px">${monthView(L,sd)}</div>${leg}</section>${dayPanel(sd,L,pe)}</div>`;
@@ -4350,9 +4387,9 @@ function reqBoard(){
     <dl class="props w" style="align-self:center"><dt>이번 주 평균</dt><dd class="tn"><b>${RT[3]}시간</b></dd><dt>4주 전 평균</dt><dd class="tn">${RT[0]}시간</dd><dt>응답 기한</dt><dd>제안 도착 뒤 24시간 안</dd><dt>지금 기다리는 일</dt><dd class="tn">${todo().length}건</dd></dl></div>`)}`;
 }
 function reqList(p){
-  const sr=REQS.find(x=>x.id===p),t=sr?Object.keys(RGRP).find(g=>RGRP[g].includes(sr.st)):F('rq','처리할 일'),L=REQS.filter(r=>RGRP[t].includes(r.st)&&(rIn(r)||r===sr)),r=sr||L[0];
+  const sr=REQS.find(x=>x.id===p),t=sr?rg(sr):F('rq','처리할 일'),L=REQS.filter(r=>rg(r)===t&&(rIn(r)||r===sr)),r=sr||L[0];
   if(L.indexOf(r)>=6)S.more.rl=true;
-  return `<div class="cols c-side"><section class="panel" style="align-self:start"><div class="panel-b" style="padding-bottom:12px"><div class="seg" role="group">${Object.keys(RGRP).map(g=>`<button type="button" class="${t===g?'on':''}" aria-pressed="${t===g}" onclick="S.f.rq='${g}';go('req','list')">${g} <span class="tn" style="opacity:.7;font-weight:500">${REQS.filter(x=>RGRP[g].includes(x.st)&&rIn(x)).length}</span></button>`).join('')}</div></div>
+  return `<div class="cols c-side"><section class="panel" style="align-self:start"><div class="panel-b" style="padding-bottom:12px"><div class="seg" role="group">${Object.keys(RGRP).map(g=>`<button type="button" class="${t===g?'on':''}" aria-pressed="${t===g}" onclick="S.f.rq='${g}';go('req','list')">${g} <span class="tn" style="opacity:.7;font-weight:500">${REQS.filter(x=>rg(x)===g&&rIn(x)).length}</span></button>`).join('')}</div></div>
     <div style="border-top:1px solid var(--rule-2)">${lim('rl',L,6).map(x=>`<button type="button" class="lrow ${r&&x.id===r.id?'on':''}" onclick="go('req','${x.id}')"><span class="sp"><span class="t">${EL(x.e).n} 님 ${x.cat}</span>${mgrTag(EL(x.e))}<span class="d">${mt(`${x.d}`,x.v?`봉사자 ${P[x.v].n}`:vn(x))}</span><span class="d" style="${t==='처리할 일'?'color:var(--a700);font-weight:600':''}">${t==='처리할 일'?todoTxt(x):x.what}</span></span></button>`).join('')||`<div class="empty line">'${t}'에 해당하는 요청이 없어요. ${t==='처리할 일'?'담당자 차례인 일을 다 처리했어요.':`<button class="link" type="button" onclick="S.f.rq='처리할 일';go('req','list')">처리할 일 보기</button>`}</div>`}</div>${moreBtn('rl',L.length,6)}</section>
     <div class="stackv">${r?reqDetail(r):'<section class="panel"><div class="empty line">요청을 골라 주세요.</div></section>'}</div></div>`.replace('<section class="panel" style="align-self:start">','<section class="panel" data-dg9-title="요청 목록" style="align-self:start">');
 }
@@ -4362,19 +4399,19 @@ function reqDetail(r,ro){
   const next=[
    ()=>!(r.apps||[]).length?`<div class="k">지원자를 기다리고 있어요</div><p>${r.reopen?esc(r.reopen)+' ':''}공고가 올라가 있어요. 봉사자가 지원하면 여기에 보이고, 채팅해 본 뒤 한 분을 정하면 돼요.</p>${r.body?`<p class="muted small" style="margin:0">${esc(r.body)}</p>`:''}<div class="btns dec12"><button class="btn sm ghost danger-t" type="button" onclick="askCancel('${r.id}')">요청 취소</button></div>`:`<div class="k">다음 할 일: 지원자와 채팅하고 한 분 정하기</div><p>지원자 ${r.apps.length}명이 왔어요. 여러 분과 채팅해 보고 한 분을 정하면, 나머지 지원자에게는 마감 알림이 가요. 24시간 안에 정해 주세요.</p>${appList(r)}`,
    ()=>`<div class="k">다음 할 일: 전화로 확인하고 최종 수락하기</div>${r.closed?`<p class="muted small" style="margin:0 0 8px">${v.n} 님으로 정했어요. 나머지 지원자 ${r.closed.length}명에게 마감 알림이 갔어요.</p>`:''}<label class="rowx" style="flex-wrap:nowrap">${sw('callok_'+r.id,false,1,'전화 확인')}<span>${e.n} 님(또는 보호자)께 전화로 일정을 설명하고 확인했어요</span></label><div class="btns"><button class="btn primary" type="button" ${called?'':'disabled'} onclick="askFinal('${r.id}')">대신 최종 수락</button>${callBtn(e.tel,'전화 걸기')}</div><p class="warn12">${icon('warn')}최종 수락하면 취소할 수 없어요. 그 전에는 거절하거나 요청을 취소할 수 있어요.</p><div class="btns dec12"><button class="btn sm" type="button" onclick="askDecline('${r.id}')">대신 거절 (다른 봉사자 찾기)</button><button class="btn sm ghost danger-t" type="button" onclick="askCancel('${r.id}')">요청 취소</button></div>`,
-   ()=>`<div class="k">최종 수락했어요</div><p>시작 QR 전이에요. 봉사자에게 이슈 메모가 공개됐어요. 정확한 주소는 아래 채팅으로 알려 주세요.</p>`,
+   ()=>noShow(r)?q2('q2NoShowBox',r):`<div class="k">최종 수락했어요</div><p>시작 QR 전이에요. 봉사자에게 이슈 메모가 공개됐어요. 정확한 주소는 아래 채팅으로 알려 주세요.</p>`,
    ()=>`<div class="k">활동 중</div><p>시작 QR ${r.tm.split('~')[0]} 기록 · 끝나면 봉사자가 일지를 써요</p>`,
    ()=>`<div class="k">다음 할 일: 일지 확인하고 평가하기</div><p><b style="font-weight:600">${v.n} 님이 쓴 일지</b><br>${r.log||''}</p><div class="note">${mt(`영수증 사진 1장`,`QR 10:01 ~ 11:03 (1시간 2분)`)}</div>
     <div class="rowx"><div class="stars" role="group" aria-label="별점 (비공개)">${[1,2,3,4,5].map(i=>`<button type="button" class="${i<=stars?'on':''}" aria-label="${i}점" onclick="setF('ostars_${r.id}',${i===stars?0:i})">★</button>`).join('')}</div><span class="note">${stars?stars+'점. ':'별점을 눌러 주세요. '}평가는 비공개예요</span></div>
     ${mch('good_'+r.id,['시간 약속을 잘 지켜요','친절해요','꼼꼼해요'],[])}<div class="btns"><button class="btn primary" type="button" onclick="orate('${r.id}')">일지 확인했어요</button></div>`,
-   ()=>r.what==='요청 취소'?`<div class="k">요청을 취소했어요</div><p>봉사자와 지원자에게 취소 알림이 갔어요.${r.why?' 사유: '+esc(r.why):''}</p>`:r.what==='대신 거절'?`<div class="k">대신 거절했어요</div><p>봉사자에게 알림이 갔어요.</p>`:`<div class="k">완료</div><p>QR 10:01 ~ 11:03 · ${v.n} 님 1시간 적립</p><div class="btns">${dg?`<span class="tag vol">${e.n} 님의 단골</span>`:`<button class="btn sm" type="button" onclick="regDg('${e.id}','${r.v}')">${v.n} 님을 단골로 등록</button>`}</div>`][r.st];
-  return `<section class="panel lead" data-dg9-title="요청 상세"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="margin:0"><div><h3>${e.n} 님 ${r.cat}${r.title?` <span class="muted" style="font-weight:500">· ${esc(r.title)}</span>`:''}</h3><div class="note tn">${mt(`${r.d} ${r.tm}`,`${e.dong}`,`담당 ${e.mgr}`)}</div></div><a class="link" href="#care/${e.id}">관리 대상 정보</a></div>${steps(STN,r.st)}<div class="nextbox" style="margin-top:16px">${next?next():''}</div></div></section>
-  ${v?`<section class="panel" data-dg9-title="봉사자 · 이슈 메모"><div class="split2"><div><h3 class="sec-t">봉사자</h3>${pcard(r.v)}</div><div><h3 class="sec-t">이슈 메모 <span class="sub">최종 수락된 봉사자에게만 보여요</span></h3><p style="margin:0;color:var(--ink-2)">${r.issue||'<span class="muted">남긴 메모가 없어요.</span>'}</p></div></div></section>`:''}
+   ()=>r.what==='노쇼'?q2('q2NoShowDone',r):r.what==='요청 취소'?`<div class="k">요청을 취소했어요</div><p>봉사자와 지원자에게 취소 알림이 갔어요.${r.why?' 사유: '+esc(r.why):''}</p>`:r.what==='대신 거절'?`<div class="k">대신 거절했어요</div><p>봉사자에게 알림이 갔어요.</p>`:`<div class="k">완료</div><p>QR 10:01 ~ 11:03 · ${v.n} 님 1시간 적립</p><div class="btns">${dg?`<span class="tag vol">${e.n} 님의 단골</span>`:`<button class="btn sm" type="button" onclick="regDg('${e.id}','${r.v}')">${v.n} 님을 단골로 등록</button>`}</div>`][r.st];
+  return `<section class="panel lead" data-dg9-title="요청 상세"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="margin:0"><div><h3>${e.n} 님 ${r.cat}${r.title?` <span class="muted" style="font-weight:500">· ${esc(r.title)}</span>`:''}</h3><div class="note tn">${mt(`${r.d} ${r.tm}`,`${e.dong}`,`담당 ${e.mgr}`)}</div></div><a class="link" href="#care/${e.id}">관리 대상 정보</a></div>${steps(STN,r.st)}<div class="nextbox" style="margin-top:16px">${r.prop&&r.st<5?q2('q2PropBox',r):''}${next?next():''}</div></div></section>
+  ${v?`<section class="panel" data-dg9-title="봉사자 · 이슈 메모"><div class="split2"><div><h3 class="sec-t">봉사자</h3>${pcard(r.v)}${r.st<5?`<div class="btns" style="margin-top:12px"><button class="btn sm ghost danger-t q2ro" type="button" onclick="q2Block('${r.id}','${r.v}')">${icon('ban')}이 봉사자 받지 않기</button></div>`:''}</div><div><h3 class="sec-t">이슈 메모 <span class="sub">최종 수락된 봉사자에게만 보여요</span></h3><p style="margin:0;color:var(--ink-2)">${r.issue||'<span class="muted">남긴 메모가 없어요.</span>'}</p></div></div></section>`:''}
   ${chatPanel(r)}`;
 }
 /* 수정 1회차: 남의 담당 대상 요청은 보기만. 같은 화면을 그린 뒤 조작 칸을 막는다 */
 function reqDetailRO(r){const e=EL(r.e);const box=document.createElement('div');const mg=e.mgr;box.innerHTML=reqDetail(r,true);
-  box.querySelectorAll('.nextbox button,.nextbox input,.nextbox [role=switch],.apl12 button,.chat12-f input,.chat12-f button').forEach(b=>{if(/전화/.test(b.textContent))return;b.setAttribute('disabled','');b.setAttribute('aria-disabled','true');b.removeAttribute('onclick');b.title='담당 '+ME+'이 아니에요 · 보기만 가능'});
+  box.querySelectorAll('.nextbox button,.nextbox input,.nextbox select,.nextbox [role=switch],.apl12 button,.q2ro,.chat12-f input,.chat12-f button').forEach(b=>{if(/전화/.test(b.textContent))return;b.setAttribute('disabled','');b.setAttribute('aria-disabled','true');b.removeAttribute('onclick');b.title='담당 '+ME+'이 아니에요 · 보기만 가능'});
   box.querySelectorAll('.chat12-f').forEach(f=>f.setAttribute('onsubmit','event.preventDefault()'));
   const note=`<div class="ro12" role="note">${icon('lock')}<span class="sp"><b>담당 ${ME}이 아니에요 · 보기만 가능</b><span class="muted small">이 분 담당은 ${mg} 님이에요. 지원자 정하기·채팅·수락은 담당자가 해요. 안부 기록은 남길 수 있어요.</span></span>${chkBtn(e.id)}</div>`;
   const nb=box.querySelector('.nextbox');if(nb)nb.insertAdjacentHTML('beforebegin',note);
@@ -4389,14 +4426,14 @@ function askCancel(id){const r=REQS.find(x=>x.id===id),e=EL(r.e);
   confirmBox({title:`${e.n} 님 ${r.cat} 요청을 취소할까요?`,text:`${r.d} ${r.tm}. ${r.v?P[r.v].n+' 님께':'지원자에게'} 취소 알림이 가요. 취소한 요청은 되살릴 수 없어요.`,ok:'요청 취소하기',danger:true,extra:`<div class="field"><label for="canr">사유</label><select class="sel" id="canr">${REASONS.map(x=>`<option>${x}</option>`).join('')}</select></div>`,
    onOk:()=>{r.why=$('#canr').value;r.st=5;r.what='요청 취소';S.doneT=(S.doneT||0)+1;render();toast('요청을 취소했어요. 알림을 보냈어요')}})}
 /* 지원자 목록 (2): 승인/거절 대신 채팅 → 한 분 정하기 */
-function appList(r){if(!(r.apps||[]).length)return '';const cur=F('chat_'+r.id,r.apps[0].p);return `<div class="apl12" role="list" aria-label="지원자 ${r.apps.length}명">${r.apps.map(a=>{const p=P[a.p],n=chatOf(r,a.p).length;return `<div class="apl12-r ${cur===a.p?'on':''}" role="listitem">${av(p.n)}<div class="sp"><div class="apl12-n"><b>${p.n}</b> <span class="muted small">${mt(p.ag,p.dong,'평점 '+p.rate,'함께한 활동 '+p.cnt+'회')}</span>${p.dg?' <span class="tag vol">단골</span>':''}</div><div class="muted small ellip" title="${esc(a.msg)}">"${a.msg}" · ${a.at}</div></div><div class="btns nw"><button class="btn sm" type="button" onclick="openChat('${r.id}','${a.p}')">${icon('talk')}채팅하기${n?` <span class="tn muted">${n}</span>`:''}</button><button class="btn sm line" type="button" onclick="pickApp('${r.id}','${a.p}')">이 분으로 정하기</button></div></div>`}).join('')}</div>`}
+function appList(r){if(!(r.apps||[]).length)return '';const cur=F('chat_'+r.id,r.apps[0].p);return `<div class="apl12" role="list" aria-label="지원자 ${r.apps.length}명">${r.apps.map(a=>{const p=P[a.p],n=chatOf(r,a.p).length;return `<div class="apl12-r ${cur===a.p?'on':''}" role="listitem">${av(p.n)}<div class="sp"><div class="apl12-n"><b>${p.n}</b> <span class="muted small">${mt(p.ag,p.dong,'평점 '+p.rate,'함께한 활동 '+p.cnt+'회')}</span>${p.dg?' <span class="tag vol">단골</span>':''}</div><div class="muted small ellip" title="${esc(a.msg)}">"${a.msg}" · ${a.at}</div></div><div class="btns nw"><button class="btn sm" type="button" onclick="openChat('${r.id}','${a.p}')">${icon('talk')}채팅하기${n?` <span class="tn muted">${n}</span>`:''}</button><button class="btn sm line" type="button" onclick="pickApp('${r.id}','${a.p}')">이 분으로 정하기</button><button class="btn sm ghost danger-t" type="button" title="${p.n} 님을 이 분 공고에서 받지 않아요" onclick="q2Block('${r.id}','${a.p}')">받지 않기</button></div></div>`}).join('')}</div>`}
 const chatOf=(r,p)=>CHATS[r.id+':'+p]||(CHATS[r.id+':'+p]=r.st>0&&p===r.v?[['them',`안녕하세요, ${r.d.split(' ')[0]}에 뵐게요!`,'어제'],['me','감사합니다. 1층 로비에서 기다리실 거예요.','어제']]:[]);
 function chatPanel(r){const e=EL(r.e),ps=r.v?[r.v]:(r.apps||[]).map(a=>a.p);if(!ps.length)return '';const cur=r.v||F('chat_'+r.id,ps[0]),th=chatOf(r,cur),done=r.st===5;
   return `<section class="panel chat12" id="chat-${r.id}"><div class="panel-h tight"><h2>채팅</h2><span class="sub">${r.v?`${P[cur].n} 님과`:`지원자 ${ps.length}명과 따로따로`}</span></div>
   ${ps.length>1?`<div class="chat12-tabs" role="tablist" aria-label="채팅 상대">${ps.map(p=>`<button type="button" role="tab" aria-selected="${p===cur}" class="${p===cur?'on':''}" onclick="openChat('${r.id}','${p}')">${av(P[p].n,'s')}${P[p].n}${chatOf(r,p).length?`<span class="tn">${chatOf(r,p).length}</span>`:''}</button>`).join('')}</div>`:''}
-  <div class="chat12-b" id="chatb-${r.id}">${th.length?th.map(m=>m[0]==='sys'?`<div class="chat12-sys">${m[1]}</div>`:`<div class="chat12-m ${m[0]==='me'?'me':''}">${m[0]==='me'?'':av(P[cur].n,'s')}<div class="chat12-c"><div class="chat12-bub">${esc(m[1])}</div><div class="chat12-meta tn">${m[0]==='me'?`박지현 · ${e.n} 님 대신 · `:''}${m[2]}</div></div></div>`).join(''):`<div class="chat12-sys">${P[cur].n} 님과 아직 나눈 채팅이 없어요. 먼저 인사를 건네 보세요.</div>`}</div>
+  <div class="chat12-b" id="chatb-${r.id}">${th.length?th.map(m=>m[0]==='sys'?`<div class="chat12-sys">${m[1]}</div>`:`<div class="chat12-m ${m[0]==='me'?'me':''}">${m[0]==='me'?'':av(P[cur].n,'s')}<div class="chat12-c"><div class="chat12-bub">${esc(m[1])}</div><div class="chat12-meta tn">${m[0]==='me'?`${ME} · ${e.n} 님 대신 · `:''}${m[2]}</div></div></div>`).join(''):`<div class="chat12-sys">${P[cur].n} 님과 아직 나눈 채팅이 없어요. 먼저 인사를 건네 보세요.</div>`}</div>
   ${done?'<p class="chat12-note">끝난 요청이라 채팅을 보낼 수 없어요.</p>':`<form class="chat12-f" onsubmit="event.preventDefault();sendChat('${r.id}','${cur}')"><input type="text" id="chatin-${r.id}" placeholder="${P[cur].n} 님께 보내기" aria-label="${P[cur].n} 님께 보낼 채팅"><button class="btn primary sm" type="submit">보내기</button></form>
-  <p class="chat12-note">${icon('user')}<span class="hint"><b>${e.n} 님 대신 보내요.</b> 상대에게는 "${mask(e.n)} 님 (담당자 박지현)"으로 보여요. 정확한 주소는 최종 수락 뒤에 알려 주세요.</span></p>`}</section>`}
+  <p class="chat12-note">${icon('user')}<span class="hint"><b>${e.n} 님 대신 보내요.</b> 상대에게는 "${mask(e.n)} 님 (담당자 ${ME})"으로 보여요. 정확한 주소는 최종 수락 뒤에 알려 주세요.</span></p>`}</section>`}
 function openChat(rid,p){S.f['chat_'+rid]=p;render();const el=$('#chat-'+rid);if(el){el.scrollIntoView({block:'nearest'});const b=$('#chatb-'+rid);if(b)b.scrollTop=b.scrollHeight;const i=$('#chatin-'+rid);if(i)i.focus({preventScroll:true})}}
 function sendChat(rid,p){const i=$('#chatin-'+rid);const t=i&&i.value.trim();if(!t){i&&i.focus();return}const r=REQS.find(x=>x.id===rid);chatOf(r,p).push(['me',t,'방금']);render();const b=$('#chatb-'+rid);if(b)b.scrollTop=b.scrollHeight;const n=$('#chatin-'+rid);if(n)n.focus({preventScroll:true})}
 function pickApp(rid,pk){const r=REQS.find(x=>x.id===rid),e=EL(r.e),v=P[pk],n=r.apps.length-1;
@@ -4437,7 +4474,7 @@ function nrRecip(E){const sx=E.sex==='남'?'남성':'여성';return `<fieldset c
 function vNewReq(p){
   const pe=EL(p),blocked=pe&&!canReq(pe),E=(pe&&canReq(pe))?pe:(inScope(EL('e1'))&&canReq(EL('e1'))?EL('e1'):(SE().find(canReq)||ORDER.map(EL).find(canReq)));
   const mode=F('nrm','ai'),stg=F('nrs',0),dgs=dgOf(E).map(k=>P[k].n);
-  const modeSeg=`<div class="seg nrm12" role="group" aria-label="쓰는 방법">${[['ai','AI로 정리'],['direct','직접 쓰기']].map(([k,l])=>`<button type="button" class="${mode===k?'on':''}" aria-pressed="${mode===k}" onclick="S.f.nrs=0;setF('nrm','${k}')">${k==='ai'?icon('spark'):icon('edit')}${l}</button>`).join('')}</div>`;
+  const modeSeg=`<div class="seg nrm12" role="group" aria-label="쓰는 방법">${[['ai','AI로 정리','spark'],['direct','직접 쓰기','edit'],['voice','말로 만들기','mic'],['memo','통화 메모 여러 건','memo']].map(([k,l,ic])=>`<button type="button" class="${mode===k?'on':''}" aria-pressed="${mode===k}" onclick="S.f.nrs=0;setF('nrm','${k}')">${icon(ic)}${l}</button>`).join('')}</div>`;
   const warn=blocked?`<div class="callout" role="note" style="margin-bottom:14px">${icon('lock')}<div><b class="lbl">${pe.n} 님은 위임 전이에요</b>대신 요청은 위임(보호자 동의·서면 동의) 뒤에 할 수 있어요. 위임받은 분 중에서 골라 주세요. <a class="link" href="#dlg/${pe.id}">권한 위임</a></div></div>`:'';
   const stepbar=`<div class="stepper" style="margin-bottom:16px"><button type="button" class="${stg===1?'done':'on'}" onclick="setF('nrs',0)"><i>1</i>전화 내용</button><button type="button" class="${stg===1?'on':''}" ${stg===1?'':'disabled'}><i>2</i>공고 확인하고 올리기</button></div>`;
   const s0=`${nrPick(E)}
@@ -4447,15 +4484,15 @@ function vNewReq(p){
     <div style="height:16px"></div><div class="field2">${fld('카테고리',`<input type="text" id="nac" value="동행">`)}${fld('날짜',`<input type="text" id="nad" value="11/17 (화)">`)}</div><div class="field2">${fld('시간',`<input type="text" id="natm" value="13:40~16:00">`)}${fld('동네',inp('',E.dong+' → 서울정형외과, 약국'),'정확한 주소는 채팅으로')}</div>
     ${fld('내용',`<textarea class="sm" id="nabd">정형외과 진료(14:00 예약)에 같이 가 주실 분을 찾아요. 진료 후 약국에 들러 처방약을 받아 오시면 돼요.</textarea>`)}${nrRecip(E)}${fld('이슈 메모',`<textarea class="sm" id="naim">${esc(E.caution)}</textarea>`,'최종 수락된 봉사자에게만 보여요')}
     <div class="btns" style="justify-content:flex-end;margin-top:16px"><button class="btn" type="button" onclick="setF('nrs',0)">전화 내용 고치기</button><button class="btn primary" type="button" onclick="postReqAI()">올리기</button></div>`;
-  const d0=`${nrPick(E)}
+  const d0=`${nrPick(E)}${q2('q2PrefillNote',E)}${q2('q2ChatFill',E)}
     <div class="field"><label for="nrc">카테고리</label><div class="rowx nw"><select class="sel sp" id="nrc" onchange="S.f['nrc_${E.id}']=this.value"><option value="">카테고리 고르기</option>${CATS.map(c=>`<option ${c.k===F('nrc_'+E.id,E.needs[0])?'selected':''}>${c.k}</option>`).join('')}</select><button class="btn sm" type="button" style="height:42px" onclick="askCat()">카테고리 건의</button></div></div>
     ${fld('제목',`<input type="text" id="nrti" placeholder="예: 정형외과 진료에 같이 가 주실 분" value="${esc(F('nrti_'+E.id,''))}" oninput="S.f['nrti_${E.id}']=this.value">`)}
     ${fld('내용',`<textarea class="sm" id="nrbd" placeholder="어떤 도움이 필요한지, 만나는 곳과 끝나는 때를 적어 주세요" oninput="S.f['nrbd_${E.id}']=this.value">${esc(F('nrbd_'+E.id,''))}</textarea>`)}
     <div class="field2">${fld('날짜',`<input type="text" id="nrd" placeholder="예: 11/17 (화)" value="${esc(F('nrd_'+E.id,''))}" oninput="S.f['nrd_${E.id}']=this.value">`)}${fld('시간',`<input type="text" id="nrtm" placeholder="예: 14:00~16:00" value="${esc(F('nrtm_'+E.id,''))}" oninput="S.f['nrtm_${E.id}']=this.value">`)}</div>
     ${fld('동네',inp('',E.dong),'정확한 주소는 최종 수락 뒤 채팅으로 알려요')}
-    ${nrRecip(E)}${fld('이슈 메모',`<textarea class="sm" id="nrim">${esc(E.caution)}</textarea>`,'최종 수락된 봉사자에게만 보여요')}
-    <div class="btns" style="justify-content:flex-end;margin-top:16px"><button class="btn" type="button" onclick="go('req')">취소</button><button class="btn primary" type="button" onclick="postReq()">공고 올리기</button></div>`;
-  return head('newreq',p)+`<div class="formwide" style="margin:0"><section class="panel"><div class="panel-b" style="padding-top:20px"><div class="rowx nrh12">${modeSeg}<span class="note hint" style="margin:0">${mode==='ai'?'전화 내용을 적으면 AI가 공고 초안으로 바꿔요':'AI 없이 칸을 직접 채워요'}</span></div>${warn}${mode==='ai'?stepbar+(stg===1?s1:s0):d0}</div></section>
+    ${nrRecip(E)}${fld('이슈 메모',`<textarea class="sm" id="nrim" oninput="S.f['nrim_${E.id}']=this.value">${esc(F('nrim_'+E.id,E.caution))}</textarea>`,'최종 수락된 봉사자에게만 보여요')}
+    ${q2('q2CheckList',E)}<div class="btns" style="justify-content:flex-end;margin-top:16px"><button class="btn" type="button" onclick="go('req')">취소</button><button class="btn primary" type="button" onclick="postReq()">공고 올리기</button></div>`;
+  return head('newreq',p)+`<div class="formwide" style="margin:0"><section class="panel"><div class="panel-b" style="padding-top:20px"><div class="rowx nrh12">${modeSeg}<span class="note hint" style="margin:0">${({ai:'전화 내용을 적으면 AI가 공고 초안으로 바꿔요',direct:'칸을 직접 채워요 · 빠진 칸은 "대화로 채우기"가 물어봐요',voice:'말한 내용을 글로 받아 공고 칸에 채워요 (시연)',memo:'통화 메모 한 줄에 한 건씩, 여러 요청 초안으로 나눠요'})[mode]||''}</span></div>${warn}${mode==='ai'?stepbar+(stg===1?s1:s0):mode==='voice'?q2('q2Voice',E):mode==='memo'?q2('q2Memo',E):d0}</div></section>
     ${stg===1&&mode==='ai'?'':`<section class="panel"><div class="panel-h"><h2>${E.n} 님의 단골</h2></div><div class="panel-b"><p class="muted small" style="margin:0 0 10px">공고 없이 단골에게 바로 요청할 수도 있어요.</p>${dgs.length?dgs.map(n=>`<div class="rowx" style="padding:6px 0;flex-wrap:nowrap">${av(n,'s')}<b class="sp" style="font-weight:600">${n}</b><button class="btn sm" type="button" onclick="askDirect('${n}','${E.id}')">바로 요청</button></div>`).join(''):emptyArt('chairs','아직 단골이 없어요. 받은 도움 기록이나 끝난 요청에서 "단골로 등록"을 누르면 생겨요.')}</div></section>`}${mode==='ai'&&stg!==1?`<div class="artcard wide">${ART.strip}<ol class="how"><li><b>전화 내용</b>들은 대로 적어요</li><li><b>AI 정리</b>공고 초안으로 바꿔 줘요</li><li><b>확인하고 올리기</b>고칠 곳은 고쳐서 담당자가 올려요</li></ol></div>`:''}</div>`;
 }
 function nrRun(){S.f.nrs='load';render();setTimeout(()=>{if(S.f.nrs==='load'){S.f.nrs=1;render()}},900)}
@@ -4464,8 +4501,9 @@ function addReq(o){const n=REQS.reduce((m,r)=>Math.max(m,+r.id.slice(1)||0),0)+1
 function postReq(){const v=id=>(($('#'+id)||{}).value||'').trim();const d=v('nrd'),nd=normDate(d);
   const ok=vRun([['nrc',v('nrc')?'':'카테고리를 골라 주세요'],['nrti',v('nrti')?(v('nrti').length>40?'제목은 40자까지 적어 주세요':''):'제목을 적어 주세요'],['nrbd',v('nrbd')?(v('nrbd').length<10?'어떤 도움인지 10자 이상 적어 주세요':''):'내용을 적어 주세요'],['nrd',!d?'날짜를 적어 주세요':!nd?'11/17처럼 월/일로 적어 주세요':''],['nrtm',timeErr(v('nrtm'))]]);
   if(!ok)return;const E=EL(($('#nre')||{}).value)||EL('e1');const m=v('nrtm').match(TIME_RE);
+  if(!S.q2force&&q2('q2Warn',E)===true)return;S.q2force=0;
   const r=addReq({e:E.id,cat:v('nrc'),d:nd,tm:`${m[1].padStart(2,'0')}:${m[2]}~${m[3].padStart(2,'0')}:${m[4]}`,issue:v('nrim'),title:v('nrti'),body:v('nrbd')});
-  ['nrti_','nrbd_','nrd_','nrtm_','nrc_'].forEach(k=>delete S.f[k+E.id]);toast('대신 요청을 공고로 올렸어요 · 요청 대기');go('req',r.id)}
+  ['nrti_','nrbd_','nrd_','nrtm_','nrc_','nrim_','q2pf_','q2cf_'].forEach(k=>delete S.f[k+E.id]);toast('대신 요청을 공고로 올렸어요 · 요청 대기');go('req',r.id)}
 function postReqAI(){const v=id=>(($('#'+id)||{}).value||'').trim();const d=v('nac'),nd=normDate(v('nad'));
   const ok=vRun([['nac',d?(CATS.some(c=>c.k===d)?'':'카테고리는 '+CATS.map(c=>c.k).join(', ')+' 중에서 적어 주세요'):'카테고리를 적어 주세요'],['nad',!v('nad')?'날짜를 적어 주세요':!nd?'11/17처럼 월/일로 적어 주세요':''],['natm',timeErr(v('natm'))],['nabd',v('nabd')?'':'내용을 적어 주세요']]);
   if(!ok)return;const E=EL(($('#nre')||{}).value)||EL('e1');const m=v('natm').match(TIME_RE);S.f.nrs=0;
@@ -4553,11 +4591,11 @@ function vEvents(){
 const dSt=e=>e.revoked?'<span class="status">해지됨</span>':!e.until?'<span class="status wait">동의 전</span>':e.until.startsWith('2026.12')?'<span class="status wait">만료 임박</span>':'<span class="status ok">위임 중</span>';
 function vDlg(p){
   const t=p==='inbox'?'담당자 요청':p==='staff'?'담당자 간 위임':'위임 목록';
-  const top=`<div class="toolbar"><div class="tabs" role="tablist">${[['위임 목록',''],['담당자 요청','inbox'],['담당자 간 위임','staff']].map(([x,k])=>`<button type="button" role="tab" aria-selected="${t===x}" class="${t===x?'on':''}" onclick="go('dlg','${k}')">${x}${k==='inbox'?`<span class="cnt">${DLGREQ.length}</span>`:''}</button>`).join('')}</div>
+  const top=`<div class="toolbar"><div class="tabs" role="tablist">${[['위임 목록',''],['담당자 요청','inbox'],['담당자 간 위임','staff']].map(([x,k])=>`<button type="button" role="tab" aria-selected="${t===x}" class="${t===x?'on':''}" onclick="go('dlg','${k}')">${x}${k==='inbox'?`<span class="cnt">${inboxL().length}</span>`:''}</button>`).join('')}</div>
     <div class="filters">${t==='담당자 간 위임'?`<button class="btn sm primary" type="button" onclick="openLayer('delegForm')">${icon('plus')}대리 담당자 지정</button>`:`<button class="btn sm primary" type="button" onclick="openLayer('dlgNew')">${icon('plus')}새 위임 등록</button>`}</div></div>`;
-  if(t==='담당자 요청')return head('dlg',p)+top+`<section class="panel"><div class="panel-h tight"><h2>담당자 요청 <span class="tn" style="color:var(--neg)">${DLGREQ.length}</span></h2><span class="sub">같은 기관 담당자가 담당 넘기기나 맡은 일 바꾸기를 부탁하면 여기로 와요</span></div>
-    ${DLGREQ.map((r,ri)=>{const e=EL(r.e);return `<div class="lrow static" style="align-items:flex-start;border-top:1px solid var(--rule-2);border-bottom:none;padding:16px 22px">${av(r.from)}<div class="sp"><div class="rowx"><b style="font-weight:600">${r.from} 담당자</b><span class="muted small">${r.d}</span><span class="tag ${r.kind==='담당 넘기기'?'req':''}">${r.kind}</span></div><div class="muted small" style="margin-top:4px">대상: <b style="color:var(--ink);font-weight:600">${e.n}</b> ${mt(e.age+'세',e.dong)}</div><div class="tags" style="margin:8px 0">${r.what.map(x=>`<span class="tag">${x}</span>`).join('')}</div><div style="color:var(--ink-2)">"${r.msg}"</div></div><div class="btns" style="flex-wrap:nowrap;width:196px;justify-content:flex-end"><button class="btn sm" type="button" onclick="dlgReject('${r.id}')">거절</button><button class="btn sm ${ri===0?'primary':''}" type="button" style="min-width:118px;justify-content:center" onclick="dlgAccept('${r.id}')">${r.kind==='담당 넘기기'?'넘겨받기':'바꾸기 승인'}</button></div></div>`}).join('')||'<div class="empty line" style="border-top:1px solid var(--rule-2)">기다리는 요청이 없어요.</div>'}</section>`;
-  if(t==='담당자 간 위임')return head('dlg',p)+top+`<section class="panel"><div class="panel-h tight"><h2>대리 담당자 · 이관</h2><span class="sub">휴가·출장 때 잠깐 맡기거나, 퇴사·업무 변경 때 넘겨요 (관리 대상 화면의 "담당 바꾸기"도 여기 남아요)</span></div><div class="tw"><table><thead><tr><th>받는 담당자</th><th>기간</th><th>대상</th><th>사유</th><th>맡긴 일</th><th>상태</th><th></th></tr></thead><tbody>${DELEG.map((d,di)=>`<tr><td><b style="font-weight:600">${d.to}</b></td><td class="tn" style="white-space:nowrap">${d.from} ~ ${d.until}</td><td>${d.who}</td><td>${d.why}</td><td class="muted">${d.scope.replace(/ · /g,', ')}</td><td><span class="status ${d.st==='예정'?'wait':'ok'}">${d.st}</span></td><td class="act"><div class="btns" style="justify-content:flex-end"><button class="btn sm" type="button" onclick="openLayer('delegForm',${di})">고치기</button><button class="btn sm danger" type="button" onclick="delegStop(${di})">그만두기</button></div></td></tr>`).join('')||'<tr><td colspan="7" class="muted">맡긴 일이 없어요.</td></tr>'}</tbody></table></div></section>`;
+  if(t==='담당자 요청')return head('dlg',p)+top+`<section class="panel"><div class="panel-h tight"><h2>담당자 요청 <span class="tn" style="color:var(--neg)">${inboxL().length}</span></h2><span class="sub">같은 기관 담당자가 담당 넘기기나 맡은 일 바꾸기를 부탁하면 여기로 와요 · ${ME} 님이 받은 요청</span></div>
+    ${inboxL().map((r,ri)=>{const e=EL(r.e);return `<div class="lrow static" style="align-items:flex-start;border-top:1px solid var(--rule-2);border-bottom:none;padding:16px 22px">${av(r.from)}<div class="sp"><div class="rowx"><b style="font-weight:600">${r.from} 담당자</b><span class="muted small">${r.d}</span><span class="tag ${r.kind==='담당 넘기기'?'req':''}">${r.kind}</span></div><div class="muted small" style="margin-top:4px">대상: <b style="color:var(--ink);font-weight:600">${e.n}</b> ${mt(e.age+'세',e.dong)}</div><div class="tags" style="margin:8px 0">${r.what.map(x=>`<span class="tag">${x}</span>`).join('')}</div><div style="color:var(--ink-2)">"${r.msg}"</div></div><div class="btns" style="flex-wrap:nowrap;width:196px;justify-content:flex-end"><button class="btn sm" type="button" onclick="dlgReject('${r.id}')">거절</button><button class="btn sm ${ri===0?'primary':''}" type="button" style="min-width:118px;justify-content:center" onclick="dlgAccept('${r.id}')">${r.kind==='담당 넘기기'?'넘겨받기':'바꾸기 승인'}</button></div></div>`}).join('')||`<div class="empty line" style="border-top:1px solid var(--rule-2)">기다리는 요청이 없어요. 다른 담당자가 담당을 넘기면 여기에 와요.</div>`}</section>${q2('q2SentReqs')}`;
+  if(t==='담당자 간 위임')return head('dlg',p)+top+`<section class="panel"><div class="panel-h tight"><h2>대리 담당자 · 담당 넘기기 기록</h2><span class="sub">휴가·출장 때 기간을 정해 잠깐 맡겨요. 아예 넘길 때는 관리 대상 화면의 "담당 넘기기"를 쓰고, 수락되면 여기에 기록이 남아요</span></div><div class="tw"><table><thead><tr><th>받는 담당자</th><th>기간</th><th>대상</th><th>사유</th><th>맡긴 일</th><th>상태</th><th></th></tr></thead><tbody>${DELEG.map((d,di)=>`<tr><td><b style="font-weight:600">${d.to}</b></td><td class="tn" style="white-space:nowrap">${d.from} ~ ${d.until}</td><td>${d.who}</td><td>${d.why}</td><td class="muted">${d.scope.replace(/ · /g,', ')}</td><td><span class="status ${d.st==='예정'?'wait':'ok'}">${d.st}</span></td><td class="act">${d.st==='넘김'?'<span class="muted small">기록</span>':`<div class="btns" style="justify-content:flex-end"><button class="btn sm" type="button" onclick="openLayer('delegForm',${di})">고치기</button><button class="btn sm danger" type="button" onclick="delegStop(${di})">그만두기</button></div>`}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">맡긴 일이 없어요.</td></tr>'}</tbody></table></div></section>`;
   const SL=SE(),L=[...SL].sort((a,b)=>(a.until||'0').localeCompare(b.until||'0')),e=EL(p)||L[0];
   if(L.indexOf(e)>=6)S.more.dl=true;
   const okL=SL.filter(canReq);
@@ -4570,9 +4608,9 @@ function vDlg(p){
         :`<div class="callout plain" style="margin-top:4px">${icon('lock')}<div><b>아직 위임 전이에요.</b> ${e.consent||''} 위임(보호자 동의·서면 동의)을 받기 전에는 대신 요청·수락을 할 수 없어요.</div></div><div class="btns" style="margin-top:14px"><button class="btn sm primary" type="button" onclick="S.f.dge='${e.id}';openLayer('dlgNew')">위임 등록</button><button class="btn sm" type="button" onclick="toast('보호자께 동의 문자를 다시 보냈어요')">동의 문자 다시 보내기</button></div>`}</div></section>
       ${fold('dlLog','위임으로 한 일','최근 3건',`<div class="panel-b" style="padding-top:0"><p class="note" style="margin:0 0 8px">보호자가 요청하면 이 기록을 보여 드려요.</p><table class="vars"><tbody>${[['11/12','박지현','병원 동행 공고를 대신 올림'],['11/10','박지현','지원자 중 한 분을 대신 정함'],['11/06','최은호','일지 2건 확인']].map(x=>`<tr><td class="tn muted" style="width:120px">${x[0]} · ${x[1]}</td><td style="text-align:left">${x[2]}</td></tr>`).join('')}</tbody></table></div>`)}</div></div>`;
 }
-function dlgAccept(id){const r=DLGREQ.find(x=>x.id===id),e=EL(r.e);DLGREQ=DLGREQ.filter(x=>x.id!==id);if(r.kind==='담당 넘기기'){e.mgr=ME;DELEG.unshift({to:ME,from:'11/13',until:'계속',who:e.n,why:`담당 넘기기 (${r.from} → ${ME})`,scope:'담당 전체',st:'이관'})}render();toast(r.kind==='담당 넘기기'?`${e.n} 님을 내 담당으로 넘겨받았어요. ${r.from} 님께 알림이 가요`:`맡은 일을 바꿨어요. ${r.from} 님께 알림이 가요`)}
+function dlgAccept(id){const r=DLGREQ.find(x=>x.id===id),e=EL(r.e);DLGREQ=DLGREQ.filter(x=>x.id!==id);if(r.kind==='담당 넘기기'){e.mgr=ME;e.hand=null;DELEG.unshift({to:ME,from:'11/13',until:'계속',who:e.n,why:`담당 넘기기 (${r.from} → ${ME})${r.msg?' · '+r.msg:''}`,scope:'담당 전체',st:'넘김'});NOTI.unshift(['dlg',`${ME} 님이 ${e.n} 님 담당을 넘겨받았어요`,'방금','care/'+e.id,1,'','위임'])}render();toast(r.kind==='담당 넘기기'?`${e.n} 님을 내 담당으로 넘겨받았어요. ${r.from} 님께 알림이 가요`:`맡은 일을 바꿨어요. ${r.from} 님께 알림이 가요`)}
 function dlgReject(id){const r=DLGREQ.find(x=>x.id===id);confirmBox({title:`${r.from} 님의 요청을 거절할까요?`,text:`거절 사유가 ${r.from} 님께 알림으로 가요.`,ok:'거절하기',danger:true,extra:`<div class="field"><label for="rr">거절 사유</label><input id="rr" type="text" placeholder="예) 이번 달은 맡은 분이 많아요"></div>`,
-  onOk:()=>{const v=$('#rr').value.trim();if(!v){$('#dlgerr').textContent='거절 사유를 적어 주세요.';$('#rr').classList.add('bad');return false}DLGREQ=DLGREQ.filter(x=>x.id!==id);render();toast('거절했어요. 사유를 알림으로 보냈어요')}})}
+  onOk:()=>{const v=$('#rr').value.trim();if(!v){vRun([['rr','거절 사유를 적어 주세요']]);return false}DLGREQ=DLGREQ.filter(x=>x.id!==id);if(EL(r.e).hand===id)EL(r.e).hand=null;NOTI.unshift(['dlg',`${ME} 님이 ${EL(r.e).n} 님 ${r.kind} 요청을 거절했어요 · ${v}`,'방금','dlg/inbox',1,'','위임']);render();toast('거절했어요. 사유를 알림으로 보냈어요')}})}
 function delegStop(i){const d=DELEG[i];confirmBox({title:`${d.to} 님께 맡긴 일을 그만둘까요?`,text:`${d.who} · ${d.scope}. ${d.to} 님께 알림이 가요.`,ok:'그만두기',danger:true,onOk:()=>{DELEG.splice(i,1);render();toast('맡긴 일을 그만뒀어요')}})}
 function dlgRevoke(id){const e=EL(id);confirmBox({title:`${e.n} 님의 위임을 해지할까요?`,text:'해지하면 담당자가 대신 공고·수락·일지 확인을 할 수 없어요. 보호자에게 문자가 가요.',ok:'해지하기',danger:true,onOk:()=>{e.revoked=true;render();toast('위임을 해지했어요 (시연)')}})}
 
@@ -4587,16 +4625,17 @@ const RACT={
 };
 const ractOf=e=>RACT[e.id]||[['안부 전화 드리기','전화 걸기',`toast('${e.tel} 로 전화를 걸어요 (시연)')`,0],['이번 주 돌봄 일정 확인하기','편성표 보기',`schedFor('${e.id}')`,1]];
 function vReport(p){
-  const PR=PRI.filter(x=>inScope(EL(x[0]))),IDS=PR.map(x=>x[0]),e=EL(p)||EL((PR[0]||PRI[0])[0]),pr=priOf(e.id)||[e.id,'특별한 변화가 없어요','—',''];
+  const PR=PRI.filter(x=>inScope(EL(x[0]))&&!EL(x[0]).ended),IDS=PR.map(x=>x[0]),bigF=F('q2big','전체'),PRL=bigF==='변화 큰 사례만'?PR.filter(x=>EL(x[0]).big):PR,e=EL(p)||EL((PR[0]||PRI[0])[0]),pr=priOf(e.id)||[e.id,'특별한 변화가 없어요','—',''];
   if(PR.findIndex(x=>x[0]===e.id)>=5)S.more.rp=true;
   return head('report',p)+`<div class="bento rp"><section class="bt wide static">${insight('<p><strong>돌봄 9건 중 7건이 완료됐어요.</strong> 희망동 두 분(오덕수, 한영자)의 활동이 줄었고, 한파로 동행 취소가 늘 수 있어요.</p>','최근 4주 요청 32건 · 일지 12건','이번 주 요약')}</section>
     <div class="bt static rp10k"><div class="label">이번 주 돌봄</div><div class="value tn">7<span class="of"> / 9</span><span class="u">건</span></div><div class="meta"><span>완료 78% · 9건 중 7건</span></div>${ring(7,9,{label:'이번 주 돌봄 9건 중 7건 완료'})}</div>
     <div class="bt static rp10k">${itile('report')}<div class="label">지난달보다 줄어든 분</div><div class="value tn">${IDS.filter(i=>MON[i][5]<MON[i][4]).length}<span class="u">명</span></div><div class="meta"><span>그대로이거나 늘어난 분 ${IDS.filter(i=>MON[i][5]>=MON[i][4]).length}명</span></div></div></div>
   ${fold('rpAll','관리 대상별 돌봄 횟수 비교',`지난달보다 줄어든 분 ${IDS.filter(i=>MON[i][5]<MON[i][4]).length}명 · 그대로이거나 늘어난 분 ${IDS.filter(i=>MON[i][5]>=MON[i][4]).length}명`,`<div class="panel-b" style="padding-top:0"><p class="sumline">${[['줄어든 분',i=>MON[i][5]<MON[i][4]],['그대로인 분',i=>MON[i][5]===MON[i][4]],['늘어난 분',i=>MON[i][5]>MON[i][4]]].map(([l,f])=>{const a=IDS.filter(f);return `<span><b>${l} ${a.length}명</b> ${a.map(i=>EL(i).n).join(', ')||'없음'}</span>`}).join('')}</p><div style="max-width:560px">${dumbRows(IDS.map(i=>[EL(i).n,MON[i][4],MON[i][5],i]))}${cap('기록 숫자 · 완료된 돌봄 횟수 · 11월은 13일까지 센 값이라 달이 끝나면 늘 수 있어요 · 줄을 누르면 그분 리포트로 가요')}</div></div>`)}
   <div class="cols c-side" style="grid-template-columns:400px minmax(0,1fr)"><section class="panel" style="align-self:start"><div class="panel-h tight"><h2>먼저 안부를 물어볼 순서</h2><span class="ai-tag">AI 우선순위</span></div>
-      ${lim('rp',PR,5).map(([id,w],i)=>{const x=EL(id),cc=okToday(id);return `<button type="button" class="lrow ${id===e.id?'on':''}" style="align-items:flex-start" aria-pressed="${id===e.id}" onclick="go('report','${id}')"><span class="rank">${i+1}</span><span class="sp"><span class="t">${pdot(x)}${x.n}</span> <span class="muted small">${mt(x.age+'세',x.dong)}</span>${mgrTag(x)}${cc?' <span class="tag vol">오늘 안부 확인</span>':''}<span class="d">${w}</span>
-        <span class="rowx nw" style="margin-top:8px"><span class="minibars ${MON[id][5]<MON[id][4]?'neg':''}" role="img" aria-label="돌봄 횟수 최근 4개월: ${MON[id].slice(2).join(', ')}회" ${tip(`<b>${x.n} · 돌봄 횟수</b><br>`+MON[id].slice(2).map((v,j)=>MONL[j+2]+' '+v+'회').join('<br>'))}>${MON[id].slice(2).map(v=>`<i style="height:${v*4+2}px"></i>`).join('')}</span><span class="muted small">돌봄 횟수, 8월~11월</span></span></span></button>`}).join('')}${moreBtn('rp',PR.length,5,'변화 없는 분 더 보기')}</section>
-    <div class="stackv"><section class="panel"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="margin:0;align-items:center;flex-wrap:wrap"><div class="who">${av(e.n,'l')}<div><h3>${e.n}<span class="muted">${mt(e.age+'세',e.dong,e.home)}</span></h3><div class="tags" style="margin-top:5px">${pri(e)}${ntags(e.needs)}</div></div></div><div class="btns"><a class="btn sm" href="#care/${e.id}">관리 대상 정보</a>${chkBtn(e.id,okToday(e.id)?'':'primary')}</div></div></div>
+      <div class="panel-b q2bigf"><select class="sel" id="q2bigsel" aria-label="변화 큰 사례만 보기" onchange="S.more.rp=false;setF('q2big',this.value)">${['전체','변화 큰 사례만'].map(o=>`<option ${bigF===o?'selected':''}>${o}${o==='변화 큰 사례만'?` (${PR.filter(x=>EL(x[0]).big).length}명)`:''}</option>`).join('')}</select></div>
+      ${PRL.length?'':`<div class="empty line">변화 큰 사례로 표시한 분이 없어요. 오른쪽 이름 옆 "변화 큰 사례로 표시"를 누르면 여기에 모여요. <button class="link" type="button" onclick="setF('q2big','전체')">전체 보기</button></div>`}${lim('rp',PRL,5).map(([id,w],i)=>{const x=EL(id),cc=okToday(id);return `<button type="button" class="lrow ${id===e.id?'on':''}" style="align-items:flex-start" aria-pressed="${id===e.id}" onclick="go('report','${id}')"><span class="rank">${i+1}</span><span class="sp"><span class="t">${pdot(x)}${x.n}</span> <span class="muted small">${mt(x.age+'세',x.dong)}</span>${mgrTag(x)}${x.big?' <span class="tag q2big">변화 큼</span>':''}${cc?' <span class="tag vol">오늘 안부 확인</span>':''}<span class="d">${w}</span>
+        <span class="rowx nw" style="margin-top:8px"><span class="minibars ${MON[id][5]<MON[id][4]?'neg':''}" role="img" aria-label="돌봄 횟수 최근 4개월: ${MON[id].slice(2).join(', ')}회" ${tip(`<b>${x.n} · 돌봄 횟수</b><br>`+MON[id].slice(2).map((v,j)=>MONL[j+2]+' '+v+'회').join('<br>'))}>${MON[id].slice(2).map(v=>`<i style="height:${v*4+2}px"></i>`).join('')}</span><span class="muted small">돌봄 횟수, 8월~11월</span></span></span></button>`}).join('')}${moreBtn('rp',PRL.length,5,bigF==='전체'?'변화 없는 분 더 보기':'더 보기')}</section>
+    <div class="stackv"><section class="panel"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="margin:0;align-items:center;flex-wrap:wrap"><div class="who">${av(e.n,'l')}<div><h3>${e.n}<span class="muted">${mt(e.age+'세',e.dong,e.home)}</span></h3><div class="tags" style="margin-top:5px">${pri(e)}${ntags(e.needs)}</div></div></div><div class="btns"><button class="btn sm ${e.big?'q2on':''}" type="button" aria-pressed="${!!e.big}" onclick="q2Big('${e.id}')">${icon('flag')}${e.big?'변화 큰 사례 표시됨':'변화 큰 사례로 표시'}</button><a class="btn sm" href="#care/${e.id}">관리 대상 정보</a>${chkBtn(e.id,okToday(e.id)?'':'primary')}</div></div></div>
         <div class="panel-f">${insight(`<p><strong>${pr[1]}</strong></p>${pr[2]!=='—'?`<div class="answer" style="margin:10px 0 0;white-space:normal"><small>근거 일지 문장</small>${pr[2]}</div>`:''}`,'최근 4주 일지 · 요청·취소 기록','동향 요약')}</div></section>
       <section class="panel"><div class="panel-h"><h2>추천 조치</h2><span class="rowx nw"><span class="sub">할지는 담당자가 정해요</span><span class="ai-tag">AI 안내</span></span></div><div style="padding-top:8px">${ractOf(e).map((x,i)=>actRow('do'+e.id+i,x[0],'',x[1],x[2],x[3])).join('')}</div><div class="panel-f line-note"><b class="lbl">근거</b>${pr[3]?whyT(pr[3]):'최근 4주 일지와 요청 기록에 특별한 변화가 없어요'}</div></section>
       ${fold('rpMore','월별 돌봄 횟수 · 도움과 요청 변화',`이번 달 ${e.month}회 · 지난달 ${e.prev}회`,`<div class="split2"><div><h3 class="sec-t">월별 돌봄 횟수</h3>${line2({labels:MONL,a:{name:e.n+' 님',values:MON[e.id]},b:{name:'관리 대상 평균',values:MONL.map((m,i)=>Math.round(ORDER.reduce((t,id)=>t+MON[id][i],0)/ORDER.length*10)/10)},max:6,step:2,unit:'회'})}${cap('기록 숫자 · 완료된 돌봄 횟수, 이 분과 관리 대상 9명 평균 · 11월은 13일까지')}</div><div><h3 class="sec-t">도움과 요청 변화</h3><dl class="props w"><dt>많이 받은 도움</dt><dd>${e.needs.join(', ')}</dd><dt>요청</dt><dd>월 4건 → 2건</dd><dt>취소</dt><dd>${e.id==='e1'?'2건 (말동무)':'0건'}</dd><dt>마지막 활동</dt><dd class="tn">11/12</dd></dl></div></div>`)}
@@ -4608,15 +4647,15 @@ const LAYERS={
  /* O-HOME-02 알림 */
  noti:()=>{const k=F('ntk','전체'),L=notiF(k);return `<div class="drawer-scrim" style="background:none" onclick="closeLayer()"></div><div class="pop" role="dialog" aria-modal="true" aria-label="알림"><div class="pop-h"><h3>알림</h3><button class="link" type="button" onclick="NOTI.forEach(n=>n[4]=0);render();toast('모두 읽었어요')">모두 읽음</button></div>${notiChips('ntk',k,'drawLayer()')}<div class="pop-b">${L.slice(0,6).map(([n,i],j)=>`<button type="button" class="lrow ${n[4]?'unread':''}" ${j===0?'data-focus':''} onclick="notiGo(${i})">${itile(n[0],n[5])}<span class="sp"><span style="font-weight:${n[4]?600:400}">${n[1]}</span><span class="d">${mt(n[2],n[6]||'계정')}</span></span>${n[4]?'<span class="udot" aria-label="안 읽음"></span>':''}</button>`).join('')||'<div class="empty line">이 종류 알림이 없어요.</div>'}</div><button type="button" class="more" onclick="closeLayer();S.f.ntp=F('ntk','전체');go('noti')">전체 보기${L.length>6?` (${L.length}건)`:''}</button></div>`},
  /* O-HOME-03 내 정보 */
- me:()=>drawer('담당자 정보',`<div class="who" style="margin-bottom:18px">${av('박지현','l')}<div><h3>박지현</h3><div class="note">${mt(`사회복지사`,`010-****-1234`)}</div></div></div>
-   <dl class="props" style="margin-bottom:22px"><dt>소속 기관</dt><dd>행복요양원</dd><dt>기관 종류</dt><dd>요양원</dd><dt>주소</dt><dd>서울 행복구 행복동</dd><dt>승인일</dt><dd class="tn">2026.10.02</dd></dl>
+ me:()=>drawer('담당자 정보',`${q2('q2MeTop')}<div class="who" style="margin-bottom:18px">${av(ME,'l')}<div><h3>${ME}</h3><div class="note">${mt((STAFF.find(x=>x[0]===ME)||['',''])[1],(typeof Q2ST!=='undefined'&&Q2ST[ME]||['010-****-1234'])[0])}</div></div></div>
+   <dl class="props" style="margin-bottom:22px"><dt>소속 기관</dt><dd>행복요양원</dd><dt>기관 종류</dt><dd>요양원</dd><dt>주소</dt><dd>서울 행복구 행복동</dd><dt>승인일</dt><dd class="tn">${(typeof Q2ST!=='undefined'&&Q2ST[ME]||['','2026.10.02'])[1]}</dd></dl>
    <div class="rowx nw" style="padding:0 0 18px"><span class="sp" style="font-weight:600">글자 크기</span><div class="seg" role="group" aria-label="글자 크기">${[['','보통'],['lg','크게']].map(([v,l])=>`<button type="button" class="${(document.documentElement.dataset.fz||'')===v?'on':''}" aria-pressed="${(document.documentElement.dataset.fz||'')===v}" onclick="setFz('${v}')">${l}</button>`).join('')}</div></div><h4 class="sec-t">알림 받기</h4>${[['지원자·수락 알림','on1'],['일지 도착 알림','on2'],['기상 특보 알림','on3']].map(x=>`<div class="rowx" style="padding:9px 0;border-bottom:1px solid var(--rule-2);flex-wrap:nowrap"><span class="sp">${x[0]}</span>${sw(x[1],true,0,x[0])}</div>`).join('')}
    <div style="margin-top:22px">${[['공지사항','공지사항을 열어요'],['비밀번호 변경','비밀번호 변경 화면을 열어요']].map(x=>`<button type="button" class="lrow" style="padding:12px 0" onclick="toast('${x[1]} (시연)')"><span class="sp">${x[0]}</span>${icon('go','go')}</button>`).join('')}<div class="rowx nw" style="padding:10px 0"><span class="sp" style="font-weight:600">화면 밝기</span><div class="seg" role="group" aria-label="화면 밝기">${[['light','밝게'],['dark','어둡게']].map(([v,l])=>{const on=(document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))===v;return `<button type="button" class="${on?'on':''}" aria-pressed="${on}" onclick="document.documentElement.dataset.theme='${v}';drawLayer()">${l}</button>`}).join('')}</div></div></div>
-   <p class="hint">로그아웃은 왼쪽 아래에 있어요.</p>`),
+   ${q2('q2MeMore')}<p class="hint">로그아웃은 왼쪽 아래에 있어요.</p>`),
  /* O-CARE-03 관리 대상 등록 · 수정 */
  careForm:p=>{const e=EL(p);const names=['기본 정보 · 연락처',e?'돌봄 정보':'돌봄 · 위임 동의'];
   return drawer(e?e.n+' 님 정보 수정':'관리 대상 등록',`${stepper(names)}
-   <div class="stepsec">${fld('이름 <span class="req12">필수</span>',`<input type="text" id="cfn" value="${esc(e?e.n:'')}" autocomplete="off"><p class="hint only12" style="margin:6px 0 0">${icon('lock')}담당자만 볼 수 있어요.</p>`,'봉사자에게는 "이○례"처럼 가려서 보여요')}<div class="rowf"><div class="field" style="width:100px;flex:none"><label for="cfa">나이</label><input type="text" id="cfa" inputmode="numeric" value="${esc(e?e.age:'')}"></div><div class="field" style="width:110px;flex:none"><label for="cfs">성별</label><select class="sel" id="cfs">${['여','남'].map(o=>`<option ${(e?e.sex:'여')===o?'selected':''}>${o}</option>`).join('')}</select></div><div class="field sp"><label for="cfd">동 <span class="req12">필수</span></label><select class="sel" id="cfd"><option value="">동 고르기</option>${['행복동','희망동','은빛동'].map(o=>`<option ${e&&e.dong===o?'selected':''}>${o}</option>`).join('')}</select></div></div>${fld('가구 형태',`<select class="sel" id="cfh">${['혼자','배우자와','자녀와','기타'].map(o=>`<option ${(e?e.home:'혼자')===o?'selected':''}>${o}</option>`).join('')}</select>`)}${fld('담당 담당자',`<select class="sel" id="cfm">${STAFF.map(x=>`<option ${(e?e.mgr:ME)===x[0]?'selected':''}>${x[0]}</option>`).join('')}</select>`,'담당을 바꾸면 새 담당자에게 알림이 가요')}<h4 class="sec-t" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule-2)">연락처 <span class="req12">연락 방법 필수</span> <span class="sub">본인 전화나 가족 연락처 중 하나</span></h4>${fld('본인 전화번호',`<input type="text" id="cft" inputmode="tel" placeholder="010-0000-0000" value="${esc(e?e.tel:'')}">`)}
+   <div class="stepsec">${fld('이름 <span class="req12">필수</span>',`<input type="text" id="cfn" value="${esc(e?e.n:'')}" autocomplete="off"><p class="hint only12" style="margin:6px 0 0">${icon('lock')}담당자만 볼 수 있어요.</p>`,'봉사자에게는 "이○례"처럼 가려서 보여요')}<div class="rowf"><div class="field" style="width:100px;flex:none"><label for="cfa">나이</label><input type="text" id="cfa" inputmode="numeric" value="${esc(e?e.age:'')}"></div><div class="field" style="width:110px;flex:none"><label for="cfs">성별</label><select class="sel" id="cfs">${['여','남'].map(o=>`<option ${(e?e.sex:'여')===o?'selected':''}>${o}</option>`).join('')}</select></div><div class="field sp"><label for="cfd">동 <span class="req12">필수</span></label><select class="sel" id="cfd"><option value="">동 고르기</option>${['행복동','희망동','은빛동'].map(o=>`<option ${e&&e.dong===o?'selected':''}>${o}</option>`).join('')}</select></div></div>${fld('가구 형태',`<select class="sel" id="cfh">${['혼자','배우자와','자녀와','기타'].map(o=>`<option ${(e?e.home:'혼자')===o?'selected':''}>${o}</option>`).join('')}</select>`)}${fld('담당 담당자',`<select class="sel" id="cfm" ${e?'disabled':''}>${STAFF.map(x=>`<option ${(e?e.mgr:ME)===x[0]?'selected':''}>${x[0]}</option>`).join('')}</select>`,e?'담당은 관리 대상 화면의 "담당 넘기기"로 바꿔요 (받는 분이 수락해야 바뀌어요)':'등록하면 담당자에게 알림이 가요')}<h4 class="sec-t" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule-2)">연락처 <span class="req12">연락 방법 필수</span> <span class="sub">본인 전화나 가족 연락처 중 하나</span></h4>${fld('본인 전화번호',`<input type="text" id="cft" inputmode="tel" placeholder="010-0000-0000" value="${esc(e?e.tel:'')}">`)}
      ${fld('주소',`<div class="rowx" style="flex-wrap:nowrap"><input type="text" class="sp" placeholder="도로명 주소 검색" value="${e?esc(e.addr.split(',')[0]):''}"><button class="btn" type="button" style=" onclick="toast('주소 검색 창을 열어요 (시연)')">주소 검색</button></div><input type="text" style="margin-top:8px" placeholder="상세 주소 (동·호수, 엘리베이터 여부)" value="${e&&e.addr.includes(',')?esc(e.addr.split(',').slice(1).join(',').trim()):''}">`)}
      ${fld('가족 연락처',`<div id="famrows">${(e?e.fam:[['','','']]).map(famRow).join('')}</div><button class="btn sm" type="button" onclick="$('#famrows').insertAdjacentHTML('beforeend',famRow(['','','']));toast('가족 연락처 칸을 추가했어요')">${icon('plus')}가족 추가</button>`)}
      <div class="callout plain">${icon('lock')}<div>전화번호·주소·가족 연락처는 이 기관 담당자만 봐요. 봉사자에게는 최종 수락 뒤 방문 주소만 담당자가 채팅으로 알려요.</div></div></div>
@@ -4658,10 +4697,10 @@ const LAYERS={
  /* 안부 확인 기록 (11판): 결과 + 메모. 담당자 모두가 같이 봐요 */
  chk:id=>{const e=EL(id);return modal(`${e.n} 님 안부 기록`,`<div class="field"><label>결과</label>${seg('chkr',['통화함','연락 안 됨','방문함'],'통화함')}</div><div class="field"><label for="chkm">메모 <span class="note">포스트잇처럼 다른 담당자도 봐요</span></label><textarea id="chkm" class="sm" placeholder="예: 보일러 괜찮다고 하심 · 오후에 다시 걸기" oninput="S.f.chkm=this.value">${esc(F('chkm',''))}</textarea></div><p class="hint" style="margin:0 0 12px">${mt('날짜 '+TD,'담당자 '+ME)} 이름이 함께 남아요. "연락 안 됨"은 오늘 확인으로 세지 않아요.</p><h4 class="sec-t" style="margin-top:6px">최근 기록 <span class="sub">${mgrTag(e)||'내 담당'}</span></h4>${chkList(id,3)}`,`<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" data-focus onclick="saveChk('${id}')">기록하기</button>`)},
  /* 담당자 간 위임: 대리 담당자 지정 */
- delegForm:i=>{const d=DELEG[i];if(d&&S.f.dgedit!==i){S.f.dgedit=i;S.f.dgw=d.until==='계속'?'완전히 이관':'기간 동안 대리';S.f.dgto=STAFF.map(s=>s[0]+' '+s[1]).find(x=>x.startsWith(d.to));S.f.dgwho=d.who.startsWith('전체')?'전체':'골라서';S.f.dgsc=d.scope.split(' · ')}
+ delegForm:i=>{const d=DELEG[i];if(d&&S.f.dgedit!==i){S.f.dgedit=i;S.f.dgw='기간 동안 대리';S.f.dgto=STAFF.map(s=>s[0]+' '+s[1]).find(x=>x.startsWith(d.to));S.f.dgwho=d.who.startsWith('전체')?'전체':'골라서';S.f.dgsc=d.scope.split(' · ')}
    if(!d&&S.f.dgedit!==undefined){S.f.dgedit=undefined;S.f.dgw=S.f.dgto=S.f.dgwho=S.f.dgsc=undefined}
-   return drawer(d?'대리 담당자 고치기':'대리 담당자 지정',`<p class="muted" style="margin:0 0 16px">휴가·출장 때 같은 기관 담당자에게 잠깐 맡기거나, 퇴사·업무 변경 때 아예 넘겨요.</p>
-   ${fld('방식',fch('dgw',['기간 동안 대리','완전히 이관'],'기간 동안 대리'))}${fld('받는 담당자',fch('dgto',STAFF.filter(s=>!s[2]).map(s=>s[0]+' '+s[1]),'이수진 사회복지사'))}${fld('대상',fch('dgwho',['전체','골라서'],'전체'))}
+   return drawer(d?'대리 담당자 고치기':'대리 담당자 지정',`<p class="muted" style="margin:0 0 16px">휴가·출장 때 같은 기관 담당자에게 기간을 정해 잠깐 맡겨요. 아예 넘길 때는 관리 대상 화면의 "담당 넘기기"를 써요.</p>
+   ${fld('받는 담당자',fch('dgto',STAFF.filter(s=>s[0]!==ME).map(s=>s[0]+' '+s[1]),STAFF.filter(s=>s[0]!==ME).map(s=>s[0]+' '+s[1])[0]))}${fld('대상',fch('dgwho',['전체','골라서'],'전체'))}
    <div class="field2"><div class="field"><label for="dgf">시작</label><input id="dgf" type="text" value="${d?d.from:'11/20'}"></div><div class="field"><label for="dgu">끝</label><input id="dgu" type="text" value="${d?d.until:'11/24'}"></div></div>
    ${fld('맡길 일',mch('dgsc',ALLSCOPE,['대신 수락','일지 확인','안부 확인']))}<p class="hint">저장하면 받는 담당자에게 알림이 가고, 보호자에게 "이 기간에는 다른 담당자가 연락드려요" 문자가 가요.</p>`,
    `<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="saveDeleg(${d?i:-1})">${d?'고친 내용 저장':'지정하기'}</button>`,true)}
@@ -4696,8 +4735,8 @@ function saveEvent(id){const g=k=>(($('#'+k)||{}).value||'').trim();const t=g('e
   if(!ok)return;const o={kind:F('ek','행사'),t,d:nd+(h?' '+h:''),url:u,place:g('evp')||'-',who:g('evw')||'누구나'};
   const E=evOf(id);if(E){Object.assign(E,o);S.f.ek=undefined;closeLayer();render();toast('고친 내용을 저장했어요');return}
   const n=EVENTS.reduce((m,e)=>Math.max(m,+String(e.id).slice(2)||0),0)+1;EVENTS.unshift(Object.assign({id:'ev'+n,view:0,desc:'',save:0,ask:0},o));S.f.ek=undefined;closeLayer();render();toast('행사를 올렸어요')}
-function saveDeleg(i){const to=F('dgto','이수진 사회복지사').split(' ')[0],old=DELEG[i];
-  const row={to,from:$('#dgf').value,until:F('dgw')==='완전히 이관'?'계속':$('#dgu').value,who:old?old.who:(F('dgwho','전체')==='전체'?`전체 (${ELDERS.length}명)`:'골라서'),why:old?old.why:F('dgw','기간 동안 대리'),scope:(S.f.dgsc||[]).join(' · '),st:old?old.st:'예정'};
+function saveDeleg(i){const to=F('dgto',STAFF.filter(s=>s[0]!==ME).map(s=>s[0]+' '+s[1])[0]).split(' ')[0],old=DELEG[i];
+  const row={to,from:$('#dgf').value,until:$('#dgu').value,who:old?old.who:(F('dgwho','전체')==='전체'?`전체 (${ELDERS.length}명)`:'골라서'),why:old?old.why:F('dgw','기간 동안 대리'),scope:(S.f.dgsc||[]).join(' · '),st:old?old.st:'예정'};
   if(old)DELEG[i]=row;else DELEG.unshift(row);S.f.dgedit=undefined;S.f.dgw=S.f.dgto=S.f.dgwho=S.f.dgsc=undefined;closeLayer();render();toast(old?'고친 내용을 저장했어요':'대리 담당자를 지정했어요')}
 function logout(){closeLayer();toast('로그아웃했어요 (시연) · 홈으로 돌아왔어요');go('home')}
 
@@ -5863,6 +5902,506 @@ try{const ro=new ResizeObserver(later);ro.observe($q('#main'));}catch(e){}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.dg12-seg'))setTimeout(later,30)});
 setTimeout(later,200);
 })();
+</script>
+<style id="qa2">
+/* ===== 기능 추가 2회차 (2026-11-23) — 예전 앱 기능을 11판 모양으로 옮김. 이 층은 qa1 다음, 맨 마지막 ===== */
+/* 홈 '바로 하기' 칩 */
+.quick2{display:flex;flex-wrap:wrap;align-items:center;gap:8px 8px;margin:0}
+.quick2 .q2lbl{font-size:calc(13px*var(--fz));font-weight:600;color:var(--ink-3);margin-right:4px;white-space:nowrap}
+.q2chip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--rule);background:var(--surface);color:var(--ink-2);font:inherit;font-size:calc(14px*var(--fz));font-weight:500;white-space:nowrap;cursor:pointer}
+.q2chip svg.i{width:16px;height:16px;color:var(--acc-text,#A8432A)}
+.q2chip:hover{background:var(--acc-soft);border-color:var(--acc)}
+.q2chip:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+@media (max-width:600px){.quick2{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}.quick2 .q2lbl{display:none}}
+/* 관리 대상 고르기 */
+.q2pick{display:grid;gap:6px;margin:0 0 4px}
+.q2pick button{display:flex;align-items:center;gap:12px;text-align:left;width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--rule-2);background:var(--surface);font:inherit;color:var(--ink);cursor:pointer;min-width:0}
+.q2pick button:hover:not([disabled]){background:var(--hover);border-color:var(--rule)}
+.q2pick button[disabled]{opacity:.55;cursor:not-allowed}
+.q2pick .sp{display:grid;gap:2px;min-width:0}
+.q2pick .sp small{color:var(--ink-3);font-size:calc(13px*var(--fz))}
+.q2pick .go{width:16px;height:16px;color:var(--ink-3);flex:none}
+/* 지원 종료한 분: 목록에서 흐리게 */
+html body #main .lrow.q2end{opacity:.62}
+html body #main .lrow.q2end.on{opacity:.85}
+.tag.q2endt{background:var(--sunken)!important;color:var(--ink-3)!important;border:1px solid var(--rule)!important}
+.tag.q2wait{background:#FFF4DE!important;color:#8A5A00!important}
+:root[data-theme="dark"] .tag.q2wait{background:#3A2E14!important;color:#F2C46B!important}
+.q2endbar{background:var(--sunken)}
+/* 관리 대상 상세: 머리 '더 보기' */
+details.menu.q2more>summary{display:inline-flex;align-items:center;gap:4px}
+details.menu.q2more>summary svg.i{width:14px;height:14px}
+details.menu.q2more .menu-b{left:auto;right:0;top:calc(100% + 4px);bottom:auto;min-width:200px}
+details.menu.q2more .menu-b button{text-align:left;padding:9px 12px;border-radius:8px;border:none;background:none;font:inherit;color:var(--ink);cursor:pointer;white-space:nowrap}
+details.menu.q2more .menu-b button:hover:not([disabled]){background:var(--hover)}
+details.menu.q2more .menu-b button[disabled]{opacity:.45;cursor:not-allowed}
+details.menu.q2more .menu-b button.danger-t{color:var(--neg)}
+/* 기록 목록 (동의·공유 이력) */
+.q2hist{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+.q2hist li{display:flex;gap:10px;align-items:baseline;font-size:calc(14px*var(--fz));color:var(--ink-2);min-width:0}
+.q2hist li .tn{color:var(--ink-3);flex:none;min-width:84px}
+.q2hist li span:last-child{min-width:0;overflow-wrap:anywhere}
+.q2row{display:flex;align-items:center;gap:12px;min-width:0}
+.q2row .sp{display:grid;gap:2px;min-width:0}
+.q2row .sp small{color:var(--ink-3);font-size:calc(13px*var(--fz))}
+.q2sub{margin:0 0 10px;color:var(--ink-3);font-size:calc(13px*var(--fz))}
+/* 현관 QR 카드 (선과 네모만 — 그림 아님) */
+.q2qrmini{display:flex;gap:14px;align-items:center;min-width:0}
+.q2qrmini svg{flex:none;border:1px solid var(--rule-2);border-radius:8px;background:#fff;padding:4px}
+.q2qrmini .sp{display:grid;gap:3px;min-width:0}
+.q2code{font-weight:700;letter-spacing:.12em;font-variant-numeric:tabular-nums}
+.q2qrcard{margin:6px auto 12px;max-width:300px;border:1.5px dashed var(--rule);border-radius:16px;padding:18px 16px;text-align:center;display:grid;gap:8px;justify-items:center;background:#fff;color:#1d2230}
+.q2qrcard b{font-weight:700}
+.q2qrcard .q2code{font-size:calc(22px*var(--fz))}
+.q2qrcard small{color:#4d5566;font-size:calc(13px*var(--fz));line-height:1.45}
+.q2old{color:var(--ink-3);font-size:calc(13px*var(--fz))}
+.q2old s{color:var(--neg)}
+/* 받지 않기 · 기관 클래스 줄 */
+.q2list{display:grid;gap:8px}
+.q2item{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--rule-2);border-radius:12px;min-width:0}
+.q2item .sp{display:grid;gap:3px;min-width:0}
+.q2item .sp>small{color:var(--ink-3);font-size:calc(13px*var(--fz));overflow-wrap:anywhere}
+.q2item .btns{flex:none;flex-wrap:nowrap}
+.q2why{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+@container card (max-width:520px){.q2item{flex-wrap:wrap}.q2item .btns{margin-left:auto}}
+/* 편성표 방문 주의사항 */
+i.q2cau{display:inline-block;width:12px;height:12px;flex:none;margin-right:3px;vertical-align:-1px;background:var(--warn-ink,#8A5A00);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 3l9.5 16.5H2.5z'/%3E%3Cpath d='M12 10v4M12 17.2v.3'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 3l9.5 16.5H2.5z'/%3E%3Cpath d='M12 10v4M12 17.2v.3'/%3E%3C/svg%3E") center/contain no-repeat}
+.legend i.q2cau{margin-right:6px}
+html body #main .dp-cau2{display:flex;align-items:center;gap:4px;min-width:0;max-width:100%;font-size:calc(13px*var(--fz));color:var(--warn-ink,#8A5A00);line-height:1.4}
+html body #main .dp-cau2 svg.i{width:13px;height:13px;flex:none}
+html body #main .dp-cau2>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+/* 요청 처리: 시간 조정 · 노쇼 */
+.q2prop{border:1px solid var(--rule);background:var(--surface);border-radius:12px;padding:12px 14px;display:grid;gap:8px}
+.q2prop .k{display:flex;align-items:center;gap:6px}
+.q2prop .k svg.i{width:16px;height:16px;color:var(--acc-text,#A8432A)}
+.q2prop p{margin:0}
+.q2prop s{color:var(--ink-3)}
+.nextbox .k svg.i{width:16px;height:16px;vertical-align:-2px;margin-right:4px}
+/* 대신 요청: 대화로 채우기 */
+.q2cf{border:1px solid var(--rule-2);border-radius:12px;padding:12px 14px;margin:0 0 16px;background:var(--sunken)}
+.q2cf>.rowx{flex-wrap:wrap!important;row-gap:6px}
+.q2cf .ai-tag{margin:0}
+.q2cf-b{display:grid;gap:8px;max-height:260px;overflow:auto;margin:12px 0 10px;padding:2px}
+.q2m{max-width:86%;padding:8px 12px;border-radius:12px;line-height:1.5;font-size:calc(14px*var(--fz));overflow-wrap:anywhere}
+.q2m.ai{background:var(--surface);border:1px solid var(--rule-2);justify-self:start}
+.q2m.me{background:var(--acc-soft);color:var(--ink);justify-self:end}
+.q2cf-f{display:flex;gap:8px}
+.q2cf-f input{flex:1;min-width:0}
+.btn.q2on{background:var(--acc-soft)!important;border-color:var(--acc)!important;color:var(--acc-ink,#A8432A)!important}
+/* 지난 요청에서 가져옴 · 말로 만든 내용 안내 */
+.q2note{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:12px;background:var(--acc-soft);margin:0 0 16px;font-size:calc(14px*var(--fz));line-height:1.5}
+.q2note svg.i{width:16px;height:16px;flex:none;margin-top:3px;color:var(--acc-text,#A8432A)}
+.q2note .sp{min-width:0}
+.q2note .link{margin-left:auto;flex:none}
+/* 올리기 전 점검 */
+.q2ck{border:1px solid var(--rule-2);border-radius:12px;padding:12px 14px;margin-top:16px;display:grid;gap:8px}
+.q2ck h4{margin:0;font-size:calc(14px*var(--fz));font-weight:700}
+.q2ck-r{display:flex;gap:8px;align-items:flex-start;font-size:calc(14px*var(--fz));line-height:1.5;min-width:0}
+.q2ck-r>svg.i{width:16px;height:16px;flex:none;margin-top:3px}
+.q2ck-r.ok>svg.i{color:#1F7A4D}
+.q2ck-r.bad>svg.i{color:var(--neg)}
+.q2ck-r.wait>svg.i{color:var(--ink-3)}
+.q2ck-r .sp{min-width:0;overflow-wrap:anywhere}
+.q2ck-r .link{margin:0 0 0 6px}
+:root[data-theme="dark"] .q2ck-r.ok>svg.i{color:#8FD9B0}
+/* 말로 만들기 */
+.q2voice{display:flex;align-items:center;gap:18px;padding:18px;border:1px solid var(--rule-2);border-radius:16px;margin:4px 0 12px;min-width:0}
+.q2voice .sp{display:grid;gap:4px;min-width:0}
+.q2voice .sp p{margin:0}
+.q2mic{width:64px;height:64px;border-radius:50%;border:2px solid var(--acc);background:var(--surface);color:var(--acc-text,#A8432A);display:grid;place-items:center;flex:none;cursor:pointer}
+.q2mic svg.i{width:26px;height:26px}
+.q2mic.rec{background:var(--acc-soft);animation:q2pulse 1.4s ease-in-out infinite}
+@keyframes q2pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 35%,transparent)}50%{box-shadow:0 0 0 10px transparent}}
+@media (prefers-reduced-motion:reduce){.q2mic.rec{animation:none}}
+.q2demo{display:flex;align-items:center;gap:6px;margin:0 0 12px;color:var(--ink-3);font-size:calc(13px*var(--fz))}
+.q2demo svg.i{width:14px;height:14px;flex:none}
+.q2timer{font-size:calc(22px*var(--fz));font-weight:700}
+/* 통화 메모 → 초안 여러 건 */
+.q2drs{display:grid;gap:12px;margin-top:16px}
+.q2dr{border:1px solid var(--rule-2);border-radius:14px;padding:12px 14px;display:grid;gap:10px;min-width:0}
+.q2dr.off{background:var(--sunken)}
+.q2dr-h{display:flex;align-items:center;gap:10px;min-width:0}
+.q2dr-h input[type=checkbox]{width:18px;height:18px;flex:none;accent-color:var(--acc-ink,#A8432A)}
+.q2dr-h .sp{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-3);font-size:calc(13px*var(--fz))}
+.q2dr-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.q2dr-g .field{margin:0}
+@container card (max-width:620px){.q2dr-g{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:600px){.q2dr-g{grid-template-columns:minmax(0,1fr)}}
+/* 기관 클래스 목록 카드 */
+.q2cls{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:18px 20px 20px}
+.q2c{border:1px solid var(--rule-2);border-radius:14px;padding:14px 16px;display:grid;gap:8px;align-content:start;background:var(--surface);cursor:pointer;text-align:left;font:inherit;color:var(--ink);min-width:0}
+.q2c:hover{border-color:var(--rule);box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.q2c:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.q2c.off{background:var(--sunken)}
+.q2c.off h3{color:var(--ink-3)}
+.q2c h3{margin:0;font-size:calc(16px*var(--fz));font-weight:700;line-height:1.4;overflow-wrap:anywhere}
+.q2c p{margin:0;color:var(--ink-2);font-size:calc(14px*var(--fz));line-height:1.45;overflow-wrap:anywhere}
+.q2c .tags{display:flex;flex-wrap:wrap;gap:4px}
+.q2c .appc{display:flex;align-items:center;gap:8px}
+.q2c .appc .pbar{flex:1}
+@media (max-width:600px){.q2cls{grid-template-columns:minmax(0,1fr);padding:14px 16px 16px}}
+/* 1:1 문의 */
+.q2q{border-top:1px solid var(--rule-2)}
+.q2q:first-child{border-top:0}
+.q2q-h{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 22px;background:none;border:none;font:inherit;color:var(--ink);cursor:pointer;min-width:0}
+.q2q-h:hover{background:var(--hover)}
+.q2q-h .sp{display:grid;gap:3px;min-width:0}
+.q2q-h .sp b{font-weight:600;overflow-wrap:anywhere}
+.q2q-h>svg.i{width:16px;height:16px;flex:none;color:var(--ink-3);transition:transform .15s}
+.q2q-h[aria-expanded="true"]>svg.i{transform:rotate(180deg)}
+.q2q-b{padding:0 22px 16px;display:grid;gap:10px}
+.q2q-b p{margin:0;line-height:1.6;color:var(--ink-2);overflow-wrap:anywhere}
+.q2ans{background:var(--sunken);border-radius:12px;padding:12px 14px}
+.q2ans b{display:block;margin-bottom:4px;font-size:calc(13px*var(--fz));color:var(--ink-3)}
+@media (max-width:600px){.q2q-h{padding:14px 16px;flex-wrap:wrap}.q2q-b{padding:0 16px 16px}}
+/* 내 정보: 계정 바꾸기 · 탈퇴 */
+.q2acct{margin:4px 0 6px}
+.q2wdlist{margin:0 0 16px;padding-left:20px;display:grid;gap:8px;line-height:1.55;color:var(--ink-2)}
+.q2wdbar{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--neg-weak);margin:0 0 16px;font-size:calc(14px*var(--fz))}
+.q2wdbar svg.i{width:16px;height:16px;flex:none;color:var(--neg)}
+.q2wdbar .sp{min-width:0}
+/* 리포트 */
+.tag.q2big{background:var(--neg-weak)!important;color:var(--neg)!important}
+.q2bigf{padding:4px 22px 10px!important}
+.q2bigf .sel{width:100%}
+/* 정기 요청 표 */
+html body #main tr.q2paused td{color:var(--ink-3)}
+.q2days{display:block;border-radius:10px}
+.q2days[aria-invalid="true"]{outline:2px solid var(--neg);outline-offset:3px;box-shadow:none!important}
+.q2dg-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--rule-2)}
+.q2dg-row:last-child{border-bottom:0}
+.q2dg-row b{flex:1;min-width:0;font-weight:600}
+</style>
+<script id="qa2-js">
+/* ===== 기능 추가 2회차 (2026-11-23): 예전 앱 기능을 11판에 옮김 =====
+   바로 하기 · 관리 대상(동의 기록·보호자 공유 동의·지원 종료·지난 요청 다시 올리기·현관 QR·받지 않기·맞는 기관 클래스) ·
+   편성표 방문 주의사항 · 요청 처리(받지 않기·시간 조정·노쇼) · 대신 요청(대화로 채우기·올리기 전 점검·말로 만들기·통화 메모 여러 건) ·
+   리포트 변화 큰 사례 · 정기 요청 · 기관 클래스 · 1:1 문의 · 탈퇴(시연) · 계정 바꾸기(데모) · 담당 넘기기(수락 필요).
+   관리 대상은 앱 회원이 아니에요(기관 데이터). AI(예시)는 규칙으로만 동작하고, 이름·주민번호·전화번호를 보내지 않아요. 이름은 모두 q2로 시작 */
+const Q2ST={'박지현':['010-****-1234','2026.10.02'],'이수진':['010-****-5678','2026.08.14'],'최은호':['010-****-9012','2026.09.01']};
+const Q2TODAY='2026.11.13';
+const Q2WK=['월','화','수','목','금','토','일'];
+const q2id=(a,pre)=>pre+(a.reduce((m,x)=>Math.max(m,+String(x.id).replace(/\D/g,'')||0),0)+1);
+const q2v=id=>((document.getElementById(id)||{}).value||'').trim();
+const q2full=nd=>{const m=String(nd||'').match(/(\d{1,2})\/(\d{1,2})/);return m?`2026.${m[1].padStart(2,'0')}.${m[2].padStart(2,'0')}`:Q2TODAY};
+const q2tm=m=>`${m[1].padStart(2,'0')}:${m[2]}~${m[3].padStart(2,'0')}:${m[4]}`;
+const q2pool=()=>allScope()?ORDER.map(EL):ORDER.map(EL).filter(e=>e.mgr===ME);
+const Q2RISK=[[/01[016789][-\s.]?\d{3,4}[-\s.]?\d{4}|0\d{1,2}-\d{3,4}-\d{4}/,'전화번호'],[/\d{6}\s*-\s*[1-4]\d{6}/,'주민등록번호'],[/[가-힣]+(로|길)\s?\d+(-\d+)?(?=$|[\s,)]|번|층|호)|\d+\s*(번지|호)(?![가-힣])/,'정확한 주소']];
+
+/* ---------- 1. 홈 '바로 하기' → 관리 대상 고르기(위임받은 분만) → 흐름 ---------- */
+const Q2QA={req:['대신 요청','edit'],dg:['단골에게 요청','user'],repost:['지난 요청 다시 올리기','recur'],recur:['정기 요청','clock'],voice:['말로 공고 만들기','mic'],memo:['통화 메모로 여러 건','memo']};
+function q2Quick(){return `<div class="quick2" role="group" aria-label="바로 하기"><span class="q2lbl">바로 하기</span>${Object.entries(Q2QA).map(([k,[l,ic]])=>`<button type="button" class="q2chip" onclick="openLayer('q2pick','${k}')">${icon(ic)}${l}</button>`).join('')}</div>`}
+function q2PickGo(k,id){const e=EL(id);if(!canReq(e))return;
+ if(k==='req'||k==='voice'||k==='memo'){S.f.nrm=k==='req'?'direct':k;S.f.nrs=0;closeLayer();go('newreq',id);return}
+ if(k==='dg')return openLayer('q2dg',id);
+ if(k==='repost')return openLayer('q2repost',id);
+ if(k==='recur'){S.f.q2re=id;return openLayer('q2recurForm')}}
+
+/* ---------- 2. 관리 대상 상세 ---------- */
+function q2MgrBtn(e){const pend=e.hand&&DLGREQ.find(r=>r.id===e.hand);
+ if(pend)return `<button class="btn sm" type="button" disabled title="${pend.to} 님 수락을 기다려요">담당 넘기기 · 수락 대기</button>`;
+ const why=e.ended?'지원을 종료한 분이에요':e.mgr!==ME?`담당 ${e.mgr} 님만 넘길 수 있어요`:'';
+ return `<button class="btn sm" type="button" ${why?`disabled title="${why}"`:''} onclick="q2Handover('${e.id}')">담당 넘기기</button>`}
+function q2CareBtns(e){const ok=canReq(e);
+ return `<details class="menu q2more"><summary class="btn sm" aria-label="${e.n} 님 더 하기">더 보기${icon('chev')}</summary><div class="menu-b">
+  <button type="button" ${ok?'':'disabled title="위임(보호자 동의·서면 동의) 뒤 가능"'} onclick="openLayer('q2repost','${e.id}')">지난 요청 다시 올리기</button>
+  <button type="button" onclick="${e.qr?`openLayer('q2qr','${e.id}')`:`q2Issue('${e.id}')`}">현관 QR 카드${e.qr?'':' 발급'}</button>
+  <button type="button" onclick="S.f.q2re='${e.id}';openLayer('q2recurForm')" ${ok?'':'disabled title="위임(보호자 동의·서면 동의) 뒤 가능"'}>정기 요청 등록</button>
+  ${e.ended?`<button type="button" onclick="q2Resume('${e.id}')">지원 재개</button>`:`<button type="button" class="danger-t" onclick="q2EndCare('${e.id}')">지원 종료</button>`}</div></details>`}
+function q2CareFlags(e){let h='';
+ if(e.ended)h+=`<div class="panel-f rowx q2endbar"><span class="tag q2endt">지원 종료</span><span class="muted sp">${e.ended.d} · ${esc(e.ended.why)} · ${e.ended.by} 기록. 기록은 남고 새 요청은 할 수 없어요.</span><button class="btn sm" type="button" onclick="q2Resume('${e.id}')">지원 재개</button></div>`;
+ const r=e.hand&&DLGREQ.find(x=>x.id===e.hand);
+ if(r)h+=`<div class="panel-f rowx"><span class="tag q2wait">담당 넘기기 수락 대기</span><span class="muted sp">${r.from} → ${r.to} · ${r.d} 보냄 · 사유: ${esc(r.msg)}</span>${r.from===ME?`<button class="btn sm ghost danger-t" type="button" onclick="q2CancelHand('${r.id}')">요청 취소</button>`:r.to===ME?`<a class="link" href="#dlg/inbox">받은 요청 보기</a>`:''}</div>`;
+ return h}
+function q2CarePanels(e){
+ const sv=e.svcC||[],sh=e.share||{on:false,hist:[]},fam=e.fam||[],f0=fam[sh.to]||fam[0];
+ const svc=`<div><h3 class="sec-t">서비스 동의 기록 <span class="sub">담당자가 확인하고 대신 기록해요</span></h3>${sv.length?`<dl class="props w"><dt>최근 동의</dt><dd class="tn">${sv[0].d} · ${sv[0].how}</dd><dt>받은 담당자</dt><dd>${sv[0].by}</dd>${sv[0].note?`<dt>메모</dt><dd>${esc(sv[0].note)}</dd>`:''}</dl>${sv.length>1?`<ul class="q2hist" aria-label="이전 동의 기록">${sv.slice(1).map(x=>`<li><span class="tn">${x.d}</span><span>${x.how} · ${x.by}${x.note?' · '+esc(x.note):''}</span></li>`).join('')}</ul>`:''}`:`<p class="muted" style="margin:0">아직 서비스 동의 기록이 없어요. 서면·보호자 구두·전화로 받은 뒤 기록해 주세요.</p>`}<div class="btns" style="margin-top:12px"><button class="btn sm" type="button" onclick="openLayer('q2svc','${e.id}')">${icon('plus')}동의 기록 추가</button></div></div>`;
+ const share=`<div><h3 class="sec-t">보호자 공유 동의 <span class="sub">리포트 요약을 보호자에게</span></h3>
+   <div class="q2row"><span class="sp"><b style="font-weight:600">리포트 요약 받기</b><small>${f0?`${f0[0]} ${f0[1]} 님 · ${sh.via}`:'등록된 보호자 연락처가 없어요'} · ${sh.on?'동의함':'동의 안 함'}</small></span><button type="button" class="tgl ${sh.on?'on':''}" role="switch" aria-checked="${!!sh.on}" aria-label="보호자 공유 동의" ${f0?'':'disabled'} onclick="q2ShareTog('${e.id}')"></button></div>
+   <p class="hint" style="margin:10px 0 0">관리 대상은 앱 회원이 아니라서, 보호자가 동의하면 월간 리포트 요약을 문자나 링크로 보내요. 이름·주민번호는 AI에 보내지 않아요.</p>
+   ${sh.hist.length?`<ul class="q2hist" aria-label="공유 동의 기록">${sh.hist.map(x=>`<li><span class="tn">${x[0]}</span><span>${esc(x[2])} · ${x[1]}</span></li>`).join('')}</ul>`:''}${f0?'':`<div class="btns" style="margin-top:10px"><button class="btn sm" type="button" onclick="openLayer('careForm','${e.id}')">보호자 연락처 넣기</button></div>`}</div>`;
+ const qr=e.qr;const act=REQS.filter(r=>r.e===e.id&&(r.st===2||r.st===3)).length;
+ const qrb=`<div><h3 class="sec-t">현관 QR 카드 <span class="sub">시작·종료 QR</span></h3>${qr?`<div class="q2qrmini">${q2Qr(qr.code,76)}<span class="sp"><b class="q2code">${qr.code}</b><small class="muted tn">${qr.d} 발급${act?` · 진행 중 일정 ${act}건`:''}</small>${qr.old.length?`<small class="q2old">이전 카드 <s>${qr.old.join(', ')}</s> 쓸 수 없음</small>`:''}</span></div>
+   <p class="hint" style="margin:10px 0 0">댁 현관 안쪽에 붙여 두는 카드예요. 봉사자가 도착할 때 한 번(시작 QR), 끝날 때 한 번(종료 QR) 찍어요. 카드에 이름·주소는 없어요.</p>
+   <div class="btns" style="margin-top:12px"><button class="btn sm" type="button" onclick="openLayer('q2qr','${e.id}')">${icon('qr')}크게 보기 · 인쇄</button><button class="btn sm ghost danger-t" type="button" ${e.ended?'disabled title="지원을 종료한 분이에요"':''} onclick="q2Reissue('${e.id}')">다시 발급</button></div>`
+   :`<p class="muted" style="margin:0">아직 현관 QR 카드를 발급하지 않았어요. 발급해서 인쇄해 두면 봉사자가 시작·종료를 찍어요.</p><div class="btns" style="margin-top:12px"><button class="btn sm" type="button" ${e.ended?'disabled':''} onclick="q2Issue('${e.id}')">${icon('qr')}카드 발급</button></div>`}</div>`;
+ const bl=e.blocks||[];
+ const blk=`<div><h3 class="sec-t">받지 않기로 한 봉사자 <span class="sub tn">${bl.length}명</span></h3>${bl.length?`<div class="q2list">${bl.map(b=>`<div class="q2item">${av(P[b.p].n,'s')}<span class="sp"><b style="font-weight:600">${P[b.p].n}</b><small class="tn">${b.d} · ${b.by} · ${esc(b.why)}</small></span><div class="btns"><button class="btn sm" type="button" onclick="q2Unblock('${e.id}','${b.p}')">풀기</button></div></div>`).join('')}</div><p class="hint" style="margin:8px 0 0">이 분 공고에 다시 신청할 수 없어요. 봉사자에게는 사유가 보이지 않아요.</p>`:`<p class="muted" style="margin:0">받지 않기로 한 봉사자가 없어요. 요청 상세의 지원자·봉사자 칸에서 "받지 않기"를 누르면 여기에 모여요.</p>`}</div>`;
+ const M=q2ClassFor(e);
+ const cls=`<section class="panel"><div class="panel-h"><h2>이 분께 맞는 기관 클래스</h2><a class="link" href="#classes">기관 클래스 전체</a></div><div class="panel-b" style="padding-top:4px">${M.length?`<div class="q2list">${M.map(({c,why})=>{const mine=c.notes.filter(n=>n.e===e.id);const full=c.st==='마감'||c.cnt>=c.cap;return `<div class="q2item"><span class="sp"><b style="font-weight:600">${esc(c.t)}</b><small>${mt(c.sch,c.place)}</small><span class="q2why">${why.map(w=>`<span class="tag">${w}</span>`).join('')}${full?'<span class="tag">마감</span>':`<span class="tag vol">남은 자리 ${c.cap-c.cnt}</span>`}${mine.map(n=>`<span class="tag q2wait">${n.kind} ${n.d}</span>`).join('')}</span></span><div class="btns"><button class="btn sm" type="button" ${e.ended?'disabled':''} onclick="openLayer('q2clNote','${c.id}|${e.id}|자리 문의')">자리 문의</button><button class="btn sm" type="button" ${full||e.ended?`disabled title="${full?'정원이 다 찼어요':'지원을 종료한 분이에요'}"`:''} onclick="openLayer('q2clNote','${c.id}|${e.id}|대신 신청')">대신 신청</button></div></div>`}).join('')}</div>`:`<div class="empty line">나이대·사는 동·관심 도움에 맞는 기관 클래스가 아직 없어요. <a class="link" href="#classes">기관 클래스 보기</a></div>`}</div><div class="panel-f line-note">나이대 · 사는 동 · 관심 도움(필요한 도움)으로 골랐어요. 이름은 쓰지 않아요. "대신 신청"은 메모로 남기고, 실제 등록은 클래스 담당이 확인해요.</div></section>`;
+ const past=REQS.filter(r=>r.e===e.id).sort((a,b)=>mdN(b.d)-mdN(a.d)),ok=canReq(e);
+ const pst=`<section class="panel"><div class="panel-h"><h2>지난 요청</h2><span class="sub">같은 내용으로 다시 올릴 수 있어요</span></div>${past.length?`<div class="tw"><table><tbody>${lim('q2past'+e.id,past,4).map(r=>`<tr><td><b style="font-weight:600">${r.cat}</b>${r.title?` <span class="muted small">${esc(r.title)}</span>`:''}<div class="muted small tn">${r.d} ${r.tm}${r.v?' · 봉사자 '+P[r.v].n:''}</div></td><td><span class="status ${r.st===5?'':'ok'}">${r.st===5?r.what:STN[r.st]}</span></td><td class="act"><div class="btns" style="justify-content:flex-end"><a class="btn sm ghost" href="#req/${r.id}">보기</a><button class="btn sm" type="button" ${ok?'':'disabled title="위임(보호자 동의·서면 동의) 뒤 가능"'} onclick="q2RepostFrom('${r.id}')">다시 올리기</button></div></td></tr>`).join('')}</tbody></table></div>${moreBtn('q2past'+e.id,past.length,4)}`:`<div class="empty line">아직 요청 기록이 없어요. <button class="link" type="button" ${ok?'':'disabled'} onclick="go('newreq','${e.id}')">대신 요청 올리기</button></div>`}</section>`;
+ return `<section class="panel"><div class="panel-h"><h2>동의 · 보호자 공유</h2><span class="sub">관리 대상은 앱 회원이 아니에요</span></div><div class="split2">${svc}${share}</div></section>
+  <section class="panel"><div class="panel-h"><h2>현관 QR · 받지 않기</h2></div><div class="split2">${qrb}${blk}</div></section>${pst}${cls}`}
+/* 서비스 동의 기록 */
+function q2SaveSvc(id){const e=EL(id),d=q2v('q2sd'),nd=normDate(d),how=q2v('q2sh'),note=q2v('q2sn');
+ const ok=vRun([['q2sd',!d?'동의 받은 날을 적어 주세요':!nd?'11/13처럼 월/일로 적어 주세요':mdN(nd)>1113?'오늘(11/13)보다 뒤 날짜는 적을 수 없어요':''],['q2sh',how?'':'동의 방법을 골라 주세요'],['q2sn',note.length>100?'메모는 100자까지 적어 주세요':'']]);if(!ok)return;
+ (e.svcC=e.svcC||[]).unshift({d:q2full(nd),how,by:q2v('q2sb')||ME,note});closeLayer();render();toast(`${e.n} 님 서비스 동의를 기록했어요 · ${how}`)}
+/* 보호자 공유 동의: 켜기는 확인 양식, 끄기는 확인 창. 모두 기록이 남아요 */
+function q2ShareTog(id){const e=EL(id),sh=e.share;if(!sh.on)return openLayer('q2share',id);
+ const f=e.fam[sh.to]||e.fam[0];
+ confirmBox({title:'보호자 공유 동의를 끌까요?',text:`이제 ${f?f[0]+' '+f[1]+' 님께':'보호자께'} 리포트 요약을 보내지 않아요. 지난 기록은 그대로 남아요.`,ok:'공유 동의 끄기',danger:true,
+  extra:`<div class="field"><label for="q2sw">끄는 이유 <span class="note">선택</span></label><input id="q2sw" type="text" placeholder="예: 보호자가 원하지 않으세요"></div>`,
+  onOk:()=>{const w=q2v('q2sw');sh.on=false;sh.hist.unshift([Q2TODAY,ME,'끔'+(w?' · '+w:'')]);render();toast('보호자 공유 동의를 껐어요 · 기록했어요')}})}
+function q2SaveShare(id){const e=EL(id),sh=e.share,to=+q2v('q2st'),via=F('q2sv','문자'),how=q2v('q2sk');
+ const ok=vRun([['q2sk',how?'':'어떻게 확인했는지 골라 주세요'],['q2sok',($('#q2sok')||{}).checked?'':'보호자가 동의한 것을 확인해 주세요']]);if(!ok)return;
+ const f=e.fam[to];sh.on=true;sh.to=to;sh.via=via;sh.hist.unshift([Q2TODAY,ME,`켬 · ${f[0]} ${f[1]} 님 · ${via} · ${how}`]);S.f.q2sv=undefined;closeLayer();render();toast('보호자 공유 동의를 켰어요 · 기록했어요')}
+/* 지원 종료 · 재개 */
+const Q2END=['이사하셨어요','시설에 입소하셨어요','본인·보호자가 그만두기를 원하세요','다른 기관으로 옮기셨어요','돌아가셨어요','기타'];
+function q2EndCare(id){const e=EL(id),n=REQS.filter(r=>r.e===id&&r.st<5).length;
+ confirmBox({title:`${e.n} 님 지원을 종료할까요?`,text:`기록은 남고 새 요청은 할 수 없어요. 목록에서는 흐리게 보이고 '종료된 분'에서 찾을 수 있어요.${n?` 진행 중인 요청 ${n}건은 끝날 때까지 그대로 진행돼요.`:''} 나중에 다시 재개할 수 있어요.`,ok:'지원 종료',danger:true,
+  extra:`<div class="field"><label for="q2er">종료 사유</label><select class="sel" id="q2er"><option value="">사유 고르기</option>${Q2END.map(x=>`<option>${x}</option>`).join('')}</select></div><div class="field"><label for="q2em">메모 <span class="note">선택 · 담당자만 봐요</span></label><input id="q2em" type="text" placeholder="예: 12월부터 따님 댁으로 이사"></div>`,
+  onOk:()=>{const w=q2v('q2er');if(!vRun([['q2er',w?'':'종료 사유를 골라 주세요']]))return false;const m=q2v('q2em');e.ended={d:'11/13',why:w+(m?' · '+m:''),by:ME};render();toast(`${e.n} 님 지원을 종료했어요 · 기록은 남아요`)}})}
+function q2Resume(id){const e=EL(id);confirmBox({title:`${e.n} 님 지원을 다시 시작할까요?`,text:'다시 일하는 목록에 들어오고, 위임이 살아 있으면 대신 요청을 할 수 있어요.',ok:'지원 재개',onOk:()=>{e.ended=null;render();toast(`${e.n} 님 지원을 다시 시작했어요`)}})}
+/* 현관 QR: 코드로 정해지는 네모 무늬 (QR처럼 보이는 시연용 패턴 · 그림 아님) */
+function q2Qr(code,size){const N=21;let h=0;for(const ch of code)h=(h*31+ch.charCodeAt(0))>>>0;const rnd=()=>{h=(h*1103515245+12345)>>>0;return (h>>>16)&1};
+ const fin=(x,y)=>{const a=(x0,y0)=>x>=x0&&x<x0+7&&y>=y0&&y<y0+7;return a(0,0)||a(N-7,0)||a(0,N-7)};
+ const on=(x,y)=>{for(const [x0,y0] of [[0,0],[N-7,0],[0,N-7]]){if(x>=x0&&x<x0+7&&y>=y0&&y<y0+7){const dx=x-x0,dy=y-y0;return dx===0||dy===0||dx===6||dy===6||(dx>=2&&dx<=4&&dy>=2&&dy<=4)}}return null};
+ let r='';for(let y=0;y<N;y++)for(let x=0;x<N;x++){const f=on(x,y);const v=f===null?(((x===7||y===7)&&(x<8&&y<8||x>N-9&&y<8||x<8&&y>N-9))?0:rnd()):f;if(v)r+=`<rect x="${x}" y="${y}" width="1" height="1"/>`}
+ return `<svg width="${size}" height="${size}" viewBox="-1 -1 ${N+2} ${N+2}" role="img" aria-label="현관 QR 카드 ${code}" shape-rendering="crispEdges"><g fill="#1d2230">${r}</g></svg>`}
+function q2Issue(id){const e=EL(id);e.qr={code:'HB-'+String(e.tel||'0000').replace(/\D/g,'').slice(-4),d:Q2TODAY,old:[]};render();toast(`${e.n} 님 현관 QR 카드를 발급했어요 · 인쇄해 붙여 주세요`)}
+function q2Reissue(id){const e=EL(id),q=e.qr,act=REQS.filter(r=>r.e===id&&(r.st===2||r.st===3)).length;
+ confirmBox({title:'현관 QR 카드를 다시 발급할까요?',text:`지금 붙어 있는 카드 ${q.code}는 바로 쓸 수 없게 돼요. 새 카드를 인쇄해 바꿔 붙여 주세요.${act?` 진행 중인 일정 ${act}건도 새 카드로 찍어야 해요.`:''}`,ok:'다시 발급',danger:true,
+  onOk:()=>{const n=+(q.code.replace(/\D/g,''))||1000;q.old.unshift(q.code);q.code='HB-'+String((n*7+13)%9000+1000);q.d=Q2TODAY;render();toast(`새 카드 ${q.code}를 발급했어요. 이전 카드 ${q.old[0]}는 쓸 수 없어요`)}})}
+/* 받지 않기 */
+const Q2BLK=['약속 시간을 지키지 않았어요','관리 대상(보호자)이 원하지 않으세요','불편한 일이 있었어요','기타'];
+function q2Block(rid,pk){const r=REQS.find(x=>x.id===rid),e=EL(r.e),v=P[pk],isApp=(r.apps||[]).some(a=>a.p===pk)&&r.v!==pk;
+ const what=isApp?'지원자 목록에서 빠지고 마감 알림이 가요.':r.st<=1?'정해진 봉사자에서 빠지고, 요청은 요청 대기로 돌아가 다른 봉사자를 다시 찾아요. 봉사자에게 알림이 가요.':'이번 요청은 그대로 진행되고, 다음 요청부터 적용돼요.';
+ confirmBox({title:`${v.n} 님을 받지 않을까요?`,text:`앞으로 ${e.n} 님 공고에 ${v.n} 님이 신청할 수 없어요. ${what}`,ok:'받지 않기',danger:true,
+  extra:`<div class="field"><label for="q2br">사유 <span class="note">담당자만 봐요 · 봉사자에게는 보이지 않아요</span></label><select class="sel" id="q2br"><option value="">사유 고르기</option>${Q2BLK.map(x=>`<option>${x}</option>`).join('')}</select></div>`,
+  onOk:()=>{const w=q2v('q2br');if(!vRun([['q2br',w?'':'사유를 골라 주세요']]))return false;
+   (e.blocks=e.blocks||[]).unshift({p:pk,d:'11/13',why:w,by:ME});r.apps=(r.apps||[]).filter(a=>a.p!==pk);if(S.f['chat_'+rid]===pk)S.f['chat_'+rid]=undefined;
+   if(r.v===pk&&r.st<=1){r.v=null;r.st=0;r.closed=null;r.reopen=`${v.n} 님을 받지 않기로 했어요.`}
+   if(r.st===0)r.what=r.apps.length?`지원자 ${r.apps.length}명`:'다시 모집 중';render();toast(`${v.n} 님을 받지 않기로 했어요 · ${e.n} 님 목록에 남겼어요`)}})}
+function q2Unblock(eid,pk){const e=EL(eid);confirmBox({title:`${P[pk].n} 님 받지 않기를 풀까요?`,text:`${P[pk].n} 님이 다시 ${e.n} 님 공고에 신청할 수 있어요.`,ok:'풀기',onOk:()=>{e.blocks=e.blocks.filter(b=>b.p!==pk);render();toast('받지 않기를 풀었어요')}})}
+/* 담당 넘기기 (한 가지로 합침): 받을 담당자 + 사유 → 수락 대기 → 받는 담당자가 수락하면 바뀜. 수락 전에는 보낸 사람이 취소 */
+function q2Handover(id){const e=EL(id),opts=STAFF.filter(s=>s[0]!==e.mgr);
+ confirmBox({title:`${e.n} 님 담당을 넘길까요?`,text:`받는 담당자가 수락하면 담당이 바뀌어요. 수락 전에는 취소할 수 있어요. 받는 담당자에게 알림이 가요.`,ok:'넘기기 요청 보내기',
+  extra:`<div class="field"><label for="q2hto">받을 담당자</label><select class="sel" id="q2hto"><option value="">담당자 고르기</option>${opts.map(s=>`<option value="${s[0]}">${s[0]} (${s[1]})</option>`).join('')}</select></div><div class="field"><label for="q2hm">사유</label><input id="q2hm" type="text" placeholder="예: 은빛동 일을 맡게 됐어요 · 따님과 통화가 편해요"></div><p class="hint" style="margin:0 0 4px">휴가처럼 기간을 정해 잠깐 맡길 때는 권한 위임 › 담당자 간 위임에서 해요. 안부 기록·메모·요청 기록은 그대로 넘어가요.</p>`,
+  onOk:()=>{const to=q2v('q2hto'),m=q2v('q2hm');if(!vRun([['q2hto',to?'':'받을 담당자를 골라 주세요'],['q2hm',!m?'사유를 적어 주세요':m.length>80?'사유는 80자까지 적어 주세요':'']]))return false;
+   const r={id:q2id(DLGREQ,'dq'),from:ME,to,e:id,kind:'담당 넘기기',d:'11/13 15:50',what:[`담당 ${e.mgr} → ${to}`],msg:m};DLGREQ.push(r);e.hand=r.id;
+   NOTI.unshift(['dlg',`${ME} 님이 ${e.n} 님 담당을 ${to} 님께 넘기고 싶어 해요`,'방금','dlg/inbox',1,'','위임']);render();toast(`${to} 님께 담당 넘기기를 보냈어요 · 수락 대기`)}})}
+function q2CancelHand(rid){const r=DLGREQ.find(x=>x.id===rid),e=EL(r.e);confirmBox({title:'담당 넘기기 요청을 취소할까요?',text:`${e.n} 님 담당은 ${e.mgr} 님 그대로예요. ${r.to} 님께 취소 알림이 가요.`,ok:'요청 취소',danger:true,onOk:()=>{DLGREQ=DLGREQ.filter(x=>x.id!==rid);e.hand=null;render();toast('담당 넘기기 요청을 취소했어요')}})}
+function q2SentReqs(){const L=DLGREQ.filter(r=>r.from===ME);
+ return `<section class="panel"><div class="panel-h tight"><h2>내가 보낸 요청 <span class="tn cnt-n">${L.length}</span></h2><span class="sub">받는 담당자가 수락하기 전에는 취소할 수 있어요</span></div>${L.map(r=>{const e=EL(r.e);return `<div class="lrow static" style="align-items:flex-start;border-top:1px solid var(--rule-2);border-bottom:none;padding:16px 22px">${av(r.to)}<div class="sp"><div class="rowx"><b style="font-weight:600">${r.to} 담당자에게</b><span class="muted small">${r.d}</span><span class="tag q2wait">수락 대기</span></div><div class="muted small" style="margin-top:4px">대상: <b style="color:var(--ink);font-weight:600">${e.n}</b> ${mt(e.age+'세',e.dong)}</div><div style="color:var(--ink-2);margin-top:6px">"${esc(r.msg)}"</div></div><div class="btns" style="flex-wrap:nowrap"><button class="btn sm ghost danger-t" type="button" onclick="q2CancelHand('${r.id}')">요청 취소</button></div></div>`}).join('')||`<div class="empty line" style="border-top:1px solid var(--rule-2)">보낸 요청이 없어요. 관리 대상 화면의 "담당 넘기기"로 보낼 수 있어요. <a class="link" href="#care">관리 대상</a></div>`}</section>`}
+/* 기관 클래스 맞추기: 나이 ≥ 최소 나이, 사는 동, 관심 도움(필요한 도움) 겹침 */
+function q2ClassFor(e){return CLASSES.map(c=>{if(e.age<c.age||!c.dongs.includes(e.dong))return null;const hit=c.tags.filter(t=>(e.needs||[]).includes(t));if(!hit.length)return null;return {c,why:[`${ageBand(e)} · ${c.age}세 이상`,`${e.dong}`,`관심 ${hit.join(', ')}`]}}).filter(Boolean).sort((a,b)=>((a.c.st==='마감'||a.c.cnt>=a.c.cap)-(b.c.st==='마감'||b.c.cnt>=b.c.cap))).slice(0,3)}
+function q2SaveClNote(cid,eid,kind){const c=CLASSES.find(x=>x.id===cid),e=EL(eid),m=q2v('q2cm');
+ if(!vRun([['q2cm',m.length>120?'메모는 120자까지 적어 주세요':''],...(kind==='대신 신청'?[['q2cok',($('#q2cok')||{}).checked?'':'관리 대상(보호자)께 확인했는지 체크해 주세요']]:[])]))return;
+ c.notes.unshift({e:eid,kind,d:'11/13',by:ME,memo:m});closeLayer();render();toast(kind==='자리 문의'?`"${c.t}" 자리 문의를 남겼어요`:`${e.n} 님 "${c.t}" 대신 신청 메모를 남겼어요`)}
+
+/* ---------- 3. 요청 처리: 시간 조정 · 노쇼 · 다시 올리기 ---------- */
+function q2PropBox(r){const v=P[r.v]||{n:'봉사자'},p=r.prop;
+ return `<div class="q2prop"><div class="k">${icon('clock')}시간 조정 제안이 왔어요</div><p><b style="font-weight:600">${v.n}</b> 님 · ${p.at}<br><span class="tn"><s>${r.d} ${r.tm}</s> → <b>${p.d||r.d} ${p.tm}</b></span></p><p class="muted small">"${esc(p.msg)}"</p><div class="btns"><button class="btn sm primary" type="button" onclick="q2PropOk('${r.id}')">제안 수락</button><button class="btn sm" type="button" onclick="q2PropNo('${r.id}')">거절 (원래 시간 유지)</button><button class="btn sm" type="button" onclick="openLayer('q2counter','${r.id}')">다른 시간 제안</button></div></div>`}
+function q2PropOk(rid){const r=REQS.find(x=>x.id===rid),v=P[r.v],p=r.prop;confirmBox({title:'시간 조정 제안을 받아들일까요?',text:`${p.d||r.d} ${p.tm}로 바뀌어요. ${v.n} 님께 수락 알림이 가요. 관리 대상(보호자)께도 바뀐 시간을 알려 주세요.`,ok:'제안 수락',
+ onOk:()=>{const old=r.tm;r.tm=p.tm;if(p.d)r.d=p.d;r.prop=null;chatOf(r,r.v).push(['sys',`시간을 ${old} → ${r.tm}로 바꿨어요 (담당자 ${ME} 수락)`,'방금']);render();toast('시간 조정 제안을 받아들였어요. 봉사자에게 알림을 보냈어요')}})}
+function q2PropNo(rid){const r=REQS.find(x=>x.id===rid),v=P[r.v];confirmBox({title:'제안을 거절할까요?',text:`원래 시간(${r.d} ${r.tm})으로 진행해요. ${v.n} 님께 거절 알림이 가요.`,ok:'거절하기',danger:true,
+ extra:`<div class="field"><label for="q2pn">남길 말 <span class="note">선택 · 봉사자에게 보여요</span></label><input id="q2pn" type="text" placeholder="예: 어르신이 3시 이후에는 주무세요"></div>`,
+ onOk:()=>{const m=q2v('q2pn');r.prop=null;chatOf(r,r.v).push(['sys',`시간 조정 제안을 거절했어요 · 원래 시간 ${r.tm} 유지${m?' · '+m:''}`,'방금']);render();toast('제안을 거절했어요. 원래 시간으로 진행해요')}})}
+function q2SaveCounter(rid){const r=REQS.find(x=>x.id===rid),d=q2v('q2cd'),nd=normDate(d),t=q2v('q2ct'),m=q2v('q2cmsg');
+ if(!vRun([['q2cd',!d?'날짜를 적어 주세요':!nd?'11/17처럼 월/일로 적어 주세요':mdN(nd)<1113?'지난 날짜는 고를 수 없어요':''],['q2ct',timeErr(t)],['q2cmsg',m.length>80?'80자까지 적어 주세요':'']]))return;
+ const mm=t.match(TIME_RE);const tm=q2tm(mm);r.prop=null;r.counter={d:nd,tm};chatOf(r,r.v).push(['me',`${nd} ${tm}은 어떠세요?${m?' '+m:''}`,'방금'],['sys',`다른 시간(${nd} ${tm})을 제안했어요 · 봉사자 답을 기다려요`,'방금']);closeLayer();render();toast('다른 시간을 제안했어요. 봉사자에게 알림을 보냈어요')}
+const Q2NS=['연락 없이 오지 않았어요','시간이 지나서 취소 연락이 왔어요','관리 대상이 댁에 안 계셨어요','기타'];
+function q2NoShowBox(r){const e=EL(r.e),v=P[r.v];
+ return `<div class="k">${icon('warn')}시작 QR이 아직 없어요</div><p>예정 ${r.d} ${r.tm} · 지금 15:50. ${v.n} 님이 현관 QR을 찍지 않았어요. 먼저 봉사자와 관리 대상께 연락해 확인해 주세요.</p><div class="btns"><button class="btn sm" type="button" onclick="openChat('${r.id}','${r.v}')">${icon('talk')}봉사자와 채팅</button>${callBtn(e.tel,'관리 대상께 전화')}</div><div class="btns dec12"><button class="btn sm ghost danger-t" type="button" onclick="q2NoShow('${r.id}')">노쇼로 처리</button></div><p class="hint" style="margin:0">노쇼로 처리해도 벌점·가중치는 없어요. 1시간 = 1시간 기준이라 활동하지 않은 시간은 적립되지 않고 기록만 남아요.</p>`}
+function q2NoShow(rid){const r=REQS.find(x=>x.id===rid),e=EL(r.e),v=P[r.v];
+ confirmBox({title:`${v.n} 님 노쇼로 처리할까요?`,text:`${e.n} 님 ${r.cat} · ${r.d} ${r.tm}. 요청은 '노쇼'로 끝나고 ${v.n} 님께 알림이 가요. 시간은 적립되지 않고 기록만 남아요.`,ok:'노쇼로 처리',danger:true,
+  extra:`<div class="field"><label for="q2nr">사유</label><select class="sel" id="q2nr"><option value="">사유 고르기</option>${Q2NS.map(x=>`<option>${x}</option>`).join('')}</select></div><label class="ck12" for="q2nre" style="margin:0 0 6px"><input type="checkbox" id="q2nre" checked><span>같은 내용으로 다시 공고 올리기 <span class="note" style="display:block">날짜를 새로 정하는 대신 요청 화면으로 가요</span></span></label>`,
+  onOk:()=>{const w=q2v('q2nr');if(!vRun([['q2nr',w?'':'사유를 골라 주세요']]))return false;const again=($('#q2nre')||{}).checked;
+   r.st=5;r.what='노쇼';r.ns={why:w,d:'11/13 15:50',by:ME};chatOf(r,r.v).push(['sys',`노쇼로 기록했어요 · ${w}`,'방금']);S.doneT=(S.doneT||0)+1;
+   if(again&&canReq(e)){setTimeout(()=>q2RepostFrom(rid,'노쇼로 기록했어요 · 다시 올릴 내용을 채워 뒀어요'),0);return}render();toast('노쇼로 기록했어요. 봉사자에게 알림을 보냈어요')}})}
+function q2NoShowDone(r){const ns=r.ns||{};return `<div class="k">노쇼로 기록했어요</div><p>${ns.d||''} · 사유: ${esc(ns.why||'')} · ${ns.by||''} 기록. 시간은 적립되지 않았고, 벌점·가중치는 없어요.</p><div class="btns"><button class="btn sm" type="button" ${canReq(EL(r.e))?'':'disabled'} onclick="q2RepostFrom('${r.id}')">${icon('recur')}같은 내용으로 다시 올리기</button></div>`}
+/* 지난 요청 → 직접 쓰기 칸에 미리 채움 (날짜는 새로) */
+function q2RepostFrom(rid,msg){const r=REQS.find(x=>x.id===rid),E=EL(r.e);if(!canReq(E))return;
+ S.f['nrc_'+E.id]=r.cat;S.f['nrti_'+E.id]=r.title||`${r.cat} 도와주실 분을 찾아요`;S.f['nrbd_'+E.id]=r.body||`${r.cat} 도움이 필요해요. ${r.issue?'참고: '+r.issue:''}`.trim();
+ S.f['nrd_'+E.id]='';S.f['nrtm_'+E.id]=r.tm;S.f['nrim_'+E.id]=r.issue||E.caution;S.f['q2pf_'+E.id]=`지난 요청(${r.d} ${r.cat})`;S.f.nrm='direct';S.f.nrs=0;
+ closeLayer();go('newreq',E.id);toast(msg||'지난 요청 내용을 가져왔어요. 날짜를 새로 적어 주세요');setTimeout(()=>{const d=$('#nrd');if(d){d.focus({preventScroll:true});d.scrollIntoView({block:'center'})}},80)}
+function q2PrefillNote(E){const k=S.f['q2pf_'+E.id];if(!k)return '';const voice=k==='voice';
+ return `<div class="q2note" role="status">${icon(voice?'mic':'recur')}<span class="sp"><b style="font-weight:600">${voice?'말한 내용으로 칸을 채웠어요.':esc(k)+'에서 가져왔어요.'}</b> ${voice?'틀린 곳은 고쳐서 올려 주세요.':'날짜를 새로 적고, 바뀐 곳을 고쳐서 올려 주세요.'}</span><button class="link" type="button" onclick="q2ClearPf('${E.id}')">비우기</button></div>`}
+function q2ClearPf(id){['nrc_','nrti_','nrbd_','nrd_','nrtm_','nrim_','q2pf_'].forEach(k=>delete S.f[k+id]);render();toast('가져온 내용을 비웠어요')}
+
+/* ---------- 4. 대신 요청: 대화로 채우기 (규칙으로 동작하는 AI 예시) ---------- */
+const Q2CATK=[['동행',/병원|동행|진료|복지관|같이 가|모시고/],['장보기·심부름',/장보기|장 보|마트|시장|심부름|사다|사 다|약 받/],['디지털 도움',/휴대폰|스마트폰|핸드폰|카톡|카카오|앱|키오스크|영상통화|사진 보내/],['말동무·정서',/말동무|말벗|이야기|대화|적적|외로/],['가벼운 집안일',/청소|빨래|설거지|집안일/],['생활 정리',/정리|수납|서랍|옷장/]];
+function q2CatOf(t){const c=CATS.find(c=>t.includes(c.k));if(c)return c.k;const k=Q2CATK.find(([,re])=>re.test(t));return k?k[0]:''}
+function q2DateOf(t){let m=t.match(/(\d{1,2})\s*[\/.]\s*(\d{1,2})/);if(m)return normDate(m[1]+'/'+m[2]);m=t.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/);if(m)return normDate(m[1]+'/'+m[2]);
+ if(/모레/.test(t))return normDate('11/15');if(/내일/.test(t))return normDate('11/14');if(/오늘/.test(t))return normDate('11/13');
+ m=t.match(/(다음\s*주\s*|이번\s*주\s*)?([월화수목금토일])요일/);if(m){const wi=Q2WK.indexOf(m[2]);let d;if(m[1]&&/다음/.test(m[1]))d=16+wi;else{d=9+wi;if(d<=13)d+=7}return normDate(d>30?'12/'+(d-30):'11/'+d)}return ''}
+function q2TimeOf(t,cat){let m=t.match(/(\d{1,2}):(\d{2})\s*~\s*(\d{1,2}):(\d{2})/);if(m)return q2tm(m);
+ m=t.match(/(오전|오후|아침|저녁|낮)?\s*(\d{1,2})\s*시\s*(반|(\d{1,2})\s*분)?/);if(!m)return '';let h=+m[2],mi=m[3]==='반'?30:m[4]?+m[4]:0;if((m[1]==='오후'||m[1]==='저녁'||m[1]==='낮'||!m[1])&&h<=7)h+=12;if(h>23||mi>59)return '';
+ const rest=t.slice(t.indexOf(m[0])+m[0].length);const e=rest.match(/^\s*(부터)?\s*~?\s*(오후|오전)?\s*(\d{1,2})\s*시\s*(반)?\s*까지/);let eh,em=0;if(e){eh=+e[3];em=e[4]?30:0;if(eh<h&&eh<=12)eh+=12}else{eh=h+(cat==='동행'?2:1);em=mi}
+ if(eh>23)return '';const p=n=>String(n).padStart(2,'0');return `${p(h)}:${p(mi)}~${p(eh)}:${p(em)}`}
+const Q2ASK={cat:'어떤 도움이 필요하세요? 예: 병원 동행, 장보기, 휴대폰 도움, 말동무',d:'언제 필요하세요? 예: 11/17, 다음 주 화요일',tm:'몇 시부터 몇 시까지요? 예: 오후 2시부터 4시까지, 14:00~16:00',bd:'봉사자가 알아야 할 내용을 한두 문장으로 적어 주세요. 예: 진료 끝나고 약국에도 들러 주세요'};
+const q2chat=id=>(S.q2ch=S.q2ch||{})[id]||(S.q2ch[id]=[]);
+function q2Missing(E){const id=E.id,g=k=>(F(k+id,'')||'').trim();const out=[];if(!g('nrc_'))out.push('cat');if(!normDate(g('nrd_')))out.push('d');if(timeErr(g('nrtm_')))out.push('tm');if(g('nrbd_').length<10)out.push('bd');return out}
+function q2ChatFill(E){const open=F('q2cf_'+E.id,false),M=q2chat(E.id);
+ return `<div class="q2cf"><div class="rowx nw"><button type="button" class="btn sm ${open?'q2on':''}" aria-expanded="${open}" onclick="q2CfTog('${E.id}')">${icon('talk')}대화로 채우기</button><span class="ai-tag">AI(예시)</span><span class="hint" style="margin:0">빠진 칸을 하나씩 물어보고 아래 칸을 채워요</span></div>
+  ${open?`<div class="q2cf-b" id="q2cfb" aria-live="polite">${M.map(m=>`<div class="q2m ${m[0]}">${esc(m[1])}</div>`).join('')}</div><form class="q2cf-f" onsubmit="event.preventDefault();q2CfSend('${E.id}')"><input type="text" id="q2cfin" placeholder="예: 다음 주 화요일 오후 2시 병원 동행" aria-label="대화로 채우기에 답하기" autocomplete="off"><button class="btn sm primary" type="submit">보내기</button></form><p class="hint" style="margin:8px 0 0">이름·전화번호·정확한 주소는 적지 마세요. AI(예시)에는 관리 대상 이름을 보내지 않아요. 규칙으로 칸을 채우는 시연이에요.</p>`:''}</div>`}
+function q2CfTog(id){const E=EL(id),o=!F('q2cf_'+id,false);S.f['q2cf_'+id]=o;const M=q2chat(id);if(o&&!M.length){const miss=q2Missing(E);M.push(['ai',miss.length?`안녕하세요. 빠진 칸을 같이 채워 볼게요. ${Q2ASK[miss[0]]}`:'필요한 칸이 이미 다 채워져 있어요. 고칠 곳이 있으면 말해 주세요.'])}render();q2CfFocus()}
+function q2CfFocus(){setTimeout(()=>{const b=$('#q2cfb');if(b)b.scrollTop=b.scrollHeight;const i=$('#q2cfin');if(i)i.focus({preventScroll:true})},0)}
+function q2CfSend(id){const E=EL(id),i=$('#q2cfin'),t=(i&&i.value||'').trim();if(!t){i&&i.focus();return}const M=q2chat(id);M.push(['me',t]);
+ if(Q2RISK.some(([re])=>re.test(t))||t.includes(E.n)){M.push(['ai','이름·전화번호·주소는 빼고 적어 주세요. 그런 정보는 담당자만 보는 칸(관리 대상 정보)에 이미 있어요. 이번 말은 칸에 넣지 않았어요.']);render();return q2CfFocus()}
+ const before=q2Missing(E),asked=before[0],got=[];const cat=q2CatOf(t)||F('nrc_'+id,'');
+ const c=q2CatOf(t);if(c&&!F('nrc_'+id,'')){S.f['nrc_'+id]=c;got.push(`카테고리 "${c}"`)}
+ const d=q2DateOf(t);if(d){S.f['nrd_'+id]=d;got.push(`날짜 ${d}`)}
+ const tm=q2TimeOf(t,cat);if(tm){S.f['nrtm_'+id]=tm;got.push(`시간 ${tm}`)}
+ if((asked==='bd'||(t.length>=15&&!(F('nrbd_'+id,'')||'').trim()))&&t.length>=10){S.f['nrbd_'+id]=t;got.push('내용')}
+ if(!(F('nrti_'+id,'')||'').trim()&&F('nrc_'+id,'')){const dd=normDate(F('nrd_'+id,''));S.f['nrti_'+id]=`${dd?dd.split(' ')[0]+' ':''}${F('nrc_'+id,'')} 도와주실 분을 찾아요`;got.push('제목')}
+ const miss=q2Missing(E);
+ M.push(['ai',(got.length?`${got.join(', ')}을(를) 채웠어요. `:asked==='bd'?'조금 더 자세히(10자 이상) 적어 주세요. ':'잘 못 알아들었어요. ')+(miss.length?Q2ASK[miss[0]]:'다 채웠어요. 아래 칸을 확인하고 "공고 올리기"를 눌러 주세요. 올리기 전에 한 번 더 점검해 드려요.')]);
+ render();q2CfFocus()}
+
+/* ---------- 5. 대신 요청: 올리기 전 점검 ---------- */
+function q2Issues(E){const id=E.id,g=k=>(F(k+id,'')||'').trim(),out={miss:[],risk:[],over:[]};
+ [['nrc','카테고리',!g('nrc_')],['nrti','제목',!g('nrti_')],['nrbd','내용',g('nrbd_').length<10],['nrd','날짜',!normDate(g('nrd_'))],['nrtm','시간',!!timeErr(g('nrtm_'))]].forEach(([f,l,bad])=>{if(bad)out.miss.push([f,l])});
+ [['nrti','제목',g('nrti_')],['nrbd','내용',g('nrbd_')]].forEach(([f,l,v])=>{Q2RISK.forEach(([re,w])=>{if(re.test(v))out.risk.push([f,l,w])});if(v.includes(E.n))out.risk.push([f,l,'관리 대상 이름'])});
+ const nd=normDate(g('nrd_')),m=g('nrtm_').match(TIME_RE);if(nd&&m&&!timeErr(g('nrtm_'))){const a=+m[1]+(+m[2])/60,b=+m[3]+(+m[4])/60;REQS.filter(r=>r.e===id&&r.st<5&&r.d===nd).forEach(r=>{const x=r.tm.match(TIME_RE);if(!x)return;const c=+x[1]+(+x[2])/60,d=+x[3]+(+x[4])/60;if(a<d&&c<b)out.over.push(r)})}
+ return out}
+function q2CkHtml(E){const I=q2Issues(E),fix=(f,l)=>`<button class="link" type="button" onclick="q2Fix('${f}')">${l} 칸으로</button>`;
+ const row=(cls,ic,body)=>`<div class="q2ck-r ${cls}">${icon(ic)}<span class="sp">${body}</span></div>`;
+ return `<h4>올리기 전 점검</h4>`+
+  (I.miss.length?row('bad','warn',`빠진 칸 ${I.miss.length}개: ${I.miss.map(([f,l])=>fix(f,l)).join(' ')}`):row('ok','check','필요한 칸을 다 채웠어요'))+
+  (I.risk.length?row('bad','warn',`공개되는 칸에 ${[...new Set(I.risk.map(x=>x[2]))].join('·')}이(가) 있어요. 최종 수락 뒤 채팅으로 알려 주세요. ${[...new Set(I.risk.map(x=>x[0]))].map(f=>fix(f,f==='nrti'?'제목':'내용')).join(' ')}`):row('ok','check','정확한 주소·전화번호·이름이 공개 칸에 없어요'))+
+  (I.over.length?row('bad','warn',`같은 날 겹치는 요청이 있어요: ${I.over.map(r=>`<a class="link" href="#req/${r.id}">${r.cat} ${r.tm}</a>`).join(' ')} · ${fix('nrtm','시간')}`):(normDate(F('nrd_'+E.id,''))&&!timeErr(F('nrtm_'+E.id,''))?row('ok','check','같은 날 겹치는 요청이 없어요'):row('wait','clock','날짜·시간을 적으면 겹치는 요청이 있는지 봐요')))}
+function q2CheckList(E){return `<div class="q2ck" id="q2ck" aria-live="polite">${q2CkHtml(E)}</div>`}
+function q2Fix(f){closeLayer();setTimeout(()=>{const el=document.getElementById(f);if(el){el.scrollIntoView({block:'center'});el.focus({preventScroll:true})}},30)}
+document.addEventListener('input',e=>{const t=e.target;if(!t||!t.closest||!t.closest('#main'))return;const ck=$('#q2ck');if(!ck)return;const E=EL(($('#nre')||{}).value);if(E)ck.innerHTML=q2CkHtml(E)});
+document.addEventListener('change',e=>{const t=e.target;if(!t||!t.closest||!t.closest('#main'))return;const ck=$('#q2ck');if(!ck)return;const E=EL(($('#nre')||{}).value);if(E)setTimeout(()=>{ck.innerHTML=q2CkHtml(E)},0)});
+/* postReq에서 부름: 위험 표현·시간 겹침이 있으면 창을 열고 true */
+function q2Warn(E){const I=q2Issues(E);if(!I.risk.length&&!I.over.length)return false;openLayer('q2warn',E.id);return true}
+function q2Force(){S.q2force=1;closeLayer();postReq()}
+
+/* ---------- 6. 대신 요청: 말로 만들기 (시연) ---------- */
+const Q2VTXT='다음 주 화요일 오후 2시에 정형외과 진료가 있으세요. 혼자 가시기 힘들어서 같이 가 주실 분을 찾아요. 끝나고 약국에도 들러 주시면 좋겠어요.';
+function q2Voice(E){const V=S.q2v||(S.q2v={st:'idle',sec:0,txt:''});const tt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+ let body;
+ if(V.st==='rec')body=`<div class="q2voice"><button type="button" class="q2mic rec" aria-label="녹음 정지" onclick="q2VStop()">${icon('mic')}</button><span class="sp"><b>듣고 있어요…</b><span class="q2timer tn" id="q2vt" aria-live="off">${tt(V.sec)}</span></span><button class="btn" type="button" onclick="q2VStop()">정지</button></div>`;
+ else if(V.st==='done'||V.st==='load')body=`<div class="field"><label for="q2vtx">받아 적은 내용 <span class="note">고칠 수 있어요</span></label><textarea id="q2vtx" style="min-height:120px" oninput="S.q2v.txt=this.value">${esc(V.txt)}</textarea></div>${V.st==='load'?`<div class="rowx muted"><span class="dots"><i></i><i></i><i></i></span>공고 칸으로 정리하고 있어요</div>`:`<div class="btns" style="justify-content:flex-end"><button class="btn" type="button" onclick="q2VReset()">다시 말하기</button><button class="btn primary" type="button" onclick="q2VRun('${E.id}')">${icon('spark')}정리해서 칸 채우기</button></div>`}`;
+ else body=`<div class="q2voice"><button type="button" class="q2mic" aria-label="녹음 시작" onclick="q2VStart()">${icon('mic')}</button><span class="sp"><b>마이크를 누르고 말해 주세요</b><p class="hint">예: "다음 주 화요일 오후 2시에 정형외과 같이 가 주실 분이요"</p></span></div>`;
+ return `${nrPick(E)}<p class="q2demo">${icon('warn')}음성 인식은 시연용이에요. 실제로 녹음하거나 소리를 보내지 않아요.</p>${body}`}
+function q2VStart(){const V=S.q2v;V.st='rec';V.sec=0;clearInterval(V.tm);V.tm=setInterval(()=>{V.sec++;const el=$('#q2vt');if(el)el.textContent=`${String(Math.floor(V.sec/60)).padStart(2,'0')}:${String(V.sec%60).padStart(2,'0')}`;if(V.sec>=60)q2VStop()},1000);render();setTimeout(()=>{const b=$('.q2mic');b&&b.focus()},0)}
+function q2VStop(){const V=S.q2v;clearInterval(V.tm);V.tm=0;V.st='done';V.txt=V.txt||Q2VTXT;render();setTimeout(()=>{const t=$('#q2vtx');t&&t.focus()},0);toast('녹음을 멈췄어요 · 받아 적은 내용을 확인해 주세요')}
+function q2VReset(){const V=S.q2v;V.st='idle';V.txt='';V.sec=0;render()}
+function q2VRun(id){const V=S.q2v,t=(V.txt||'').trim();if(!vRun([['q2vtx',!t?'받아 적은 내용이 비어 있어요':t.length<10?'조금 더 자세히(10자 이상) 적어 주세요':'']]))return;
+ if(Q2RISK.some(([re])=>re.test(t))){vRun([['q2vtx','전화번호·주소·주민번호는 빼고 정리해 주세요']]);return}
+ V.st='load';render();setTimeout(()=>{const cat=q2CatOf(t),d=q2DateOf(t),tm=q2TimeOf(t,cat);if(cat)S.f['nrc_'+id]=cat;if(d)S.f['nrd_'+id]=d;if(tm)S.f['nrtm_'+id]=tm;S.f['nrbd_'+id]=t;S.f['nrti_'+id]=`${d?d.split(' ')[0]+' ':''}${cat||'도움'} 도와주실 분을 찾아요`;S.f['q2pf_'+id]='voice';V.st='idle';V.txt='';S.f.nrm='direct';render();toast('말한 내용으로 칸을 채웠어요. 확인하고 올려 주세요')},700)}
+
+/* ---------- 7. 대신 요청: 통화 메모로 여러 건 ---------- */
+const Q2MTXT='11/17 화요일 오후 2시 정형외과 병원 동행, 끝나고 약국도 들러야 해요\n11/19 목요일 오전 10시 장보기 (두부, 우유, 계란)\n다음 주 토요일 오후 3시쯤 말동무 1시간\n휴대폰 카톡 사진 보내는 법 알려 주실 분 (날짜는 아드님께 다시 확인)';
+function q2Memo(E){const D=S.q2md;
+ const drafts=D&&D.e===E.id?`<div class="q2drs">${D.list.map((x,i)=>`<div class="q2dr ${x.on?'':'off'}"><div class="q2dr-h"><input type="checkbox" id="q2dk${i}" ${x.on?'checked':''} aria-label="초안 ${i+1} 등록하기" onchange="S.q2md.list[${i}].on=this.checked;render()"><label for="q2dk${i}" style="font-weight:600">초안 ${i+1}</label><span class="sp" title="${esc(x.src)}">메모: ${esc(x.src)}</span></div>
+   <div class="q2dr-g"><div class="field"><label for="q2dc${i}">카테고리</label><select class="sel" id="q2dc${i}" onchange="S.q2md.list[${i}].cat=this.value"><option value="">고르기</option>${CATS.map(c=>`<option ${x.cat===c.k?'selected':''}>${c.k}</option>`).join('')}</select></div><div class="field"><label for="q2dd${i}">날짜</label><input type="text" id="q2dd${i}" placeholder="예: 11/17" value="${esc(x.d)}" oninput="S.q2md.list[${i}].d=this.value"></div><div class="field"><label for="q2dt${i}">시간</label><input type="text" id="q2dt${i}" placeholder="예: 14:00~16:00" value="${esc(x.tm)}" oninput="S.q2md.list[${i}].tm=this.value"></div></div>
+   <div class="field" style="margin:0"><label for="q2db${i}">내용</label><textarea class="sm" id="q2db${i}" oninput="S.q2md.list[${i}].bd=this.value">${esc(x.bd)}</textarea></div>${x.miss.length&&!x.on?`<p class="hint" style="margin:0">${x.miss.join('·')}을(를) 못 찾았어요. 채운 뒤 체크해 주세요.</p>`:''}</div>`).join('')}</div>
+   <div class="btns" style="justify-content:flex-end;margin-top:16px"><button class="btn" type="button" onclick="S.q2md=null;render()">초안 지우기</button><button class="btn primary" type="button" ${D.list.some(x=>x.on)?'':'disabled'} onclick="q2MReg()">체크한 초안 ${D.list.filter(x=>x.on).length}건 등록</button></div>`:'';
+ return `${nrPick(E)}<div class="field"><label for="q2mt">통화 메모 <span class="note">한 줄에 한 건씩 · 날짜·시간·도움 종류를 적어 주세요</span></label><textarea id="q2mt" style="min-height:130px" oninput="S.f.q2mt=this.value">${esc(F('q2mt',Q2MTXT))}</textarea></div>
+  <div class="rowx" style="justify-content:space-between;flex-wrap:wrap;row-gap:8px"><span class="rowx nw"><span class="ai-tag" style="margin:0">AI(예시)</span><span class="hint" style="margin:0">줄마다 나눠 초안을 만들어요 · 이름·전화번호는 적지 마세요</span></span><button class="btn ${D&&D.e===E.id?'':'primary'}" type="button" onclick="q2MSplit('${E.id}')">${icon('spark')}초안으로 나누기</button></div>${drafts}`}
+function q2MSplit(id){const t=(q2v('q2mt')||'').trim();if(!vRun([['q2mt',!t?'통화 메모를 적어 주세요':Q2RISK.some(([re])=>re.test(t))?'전화번호·주소·주민번호는 빼고 적어 주세요':'']]))return;
+ const lines=t.split(/\n+/).map(x=>x.replace(/^[-·•\d.)\s]+(?=\D)/,'').trim()).filter(x=>x.length>=4).slice(0,8);
+ const list=lines.map(src=>{const cat=q2CatOf(src),d=q2DateOf(src),tm=q2TimeOf(src,cat),miss=[];if(!cat)miss.push('카테고리');if(!d)miss.push('날짜');if(!tm)miss.push('시간');return {src,cat,d,tm,bd:src,on:!miss.length,miss}});
+ if(!list.length){vRun([['q2mt','나눌 수 있는 줄이 없어요. 한 줄에 한 건씩 적어 주세요']]);return}
+ S.q2md={e:id,list};render();toast(`초안 ${list.length}건으로 나눴어요 · 빠진 칸이 있는 초안은 체크를 꺼 뒀어요`)}
+function q2MReg(){const D=S.q2md,E=EL(D.e);const checks=[];D.list.forEach((x,i)=>{if(!x.on)return;const nd=normDate(x.d);checks.push([`q2dc${i}`,x.cat?'':'카테고리를 골라 주세요'],[`q2dd${i}`,!x.d?'날짜를 적어 주세요':!nd?'11/17처럼 월/일로 적어 주세요':''],[`q2dt${i}`,timeErr(x.tm)],[`q2db${i}`,(x.bd||'').trim().length<10?'내용을 10자 이상 적어 주세요':''])});
+ if(!vRun(checks))return;const made=[];D.list.filter(x=>x.on).forEach(x=>{const m=x.tm.match(TIME_RE);made.push(addReq({e:E.id,cat:x.cat,d:normDate(x.d),tm:q2tm(m),issue:E.caution,title:`${x.cat} 도와주실 분`,body:x.bd.trim()}))});
+ S.q2md=null;S.f.q2mt=undefined;S.f.rq='처리할 일';toast(`초안 ${made.length}건을 대신 요청으로 올렸어요 · 요청 대기`);go('req',made[made.length-1].id)}
+
+/* ---------- 8. 정기 요청 ---------- */
+function q2vRecur(){const st=F('q2rst','전체'),A=RECUR.filter(x=>rIn(x)),L=A.filter(x=>st==='전체'||x.st===st);
+ const on=A.filter(x=>x.st==='진행 중');
+ return head('recur')+srow([['recur','진행 중',on.length,'건',`주 ${on.reduce((s,x)=>s+x.days.length,0)}회 자동으로 올라가요`],['clock','일시정지',A.filter(x=>x.st==='일시정지').length,'건','다시 시작할 수 있어요'],['user','단골 지정',A.filter(x=>x.v).length,'건',`공고로 모집 ${A.filter(x=>!x.v).length}건`]])+
+ `<div class="toolbar"><select class="sel" aria-label="상태로 거르기" style="width:auto;min-width:160px" onchange="setF('q2rst',this.value)">${['전체','진행 중','일시정지'].map(o=>`<option ${st===o?'selected':''}>${o}</option>`).join('')}</select><div class="filters"><button class="btn sm primary" type="button" onclick="S.f.q2re='';openLayer('q2recurForm')">${icon('plus')}정기 요청 등록</button></div></div>
+ <section class="panel"><div class="panel-h tight"><h2>정기 요청 <span class="tn cnt-n">${L.length}</span></h2><span class="sub">${allScope()?'기관 전체':'내 담당'} · 위임받은 분만 등록할 수 있어요</span></div><div class="tw"><table><thead><tr><th>관리 대상</th><th>요일 · 시간</th><th>카테고리</th><th>봉사자</th><th>기간</th><th>상태</th><th></th></tr></thead><tbody>${L.map(x=>{const e=EL(x.e);return `<tr class="${x.st==='일시정지'?'q2paused':''}"><td><b style="font-weight:600">${e.n}</b> <span class="muted small">${mt(e.age+'세',e.dong)}</span> ${mgrTag(e)}</td><td class="tn" style="white-space:nowrap">매주 ${x.days.join('·')}<div class="muted small">${x.tm}</div></td><td>${x.cat}</td><td>${x.v?`${P[x.v].n} <span class="tag vol">단골</span>`:'<span class="muted">매번 공고로 모집</span>'}</td><td class="tn" style="white-space:nowrap">${x.from} ~ ${x.to}</td><td><span class="status ${x.st==='진행 중'?'ok':'wait'}">${x.st}</span>${x.why?`<div class="muted small">${esc(x.why)}</div>`:''}</td><td class="act"><div class="btns" style="justify-content:flex-end;flex-wrap:nowrap"><button class="btn sm" type="button" onclick="q2RecurPause('${x.id}')">${x.st==='진행 중'?'일시정지':'다시 시작'}</button><button class="btn sm ghost danger-t" type="button" onclick="q2RecurDel('${x.id}')">삭제</button></div></td></tr>`}).join('')||`<tr><td colspan="7"><div class="empty line">${A.length?`'${st}' 정기 요청이 없어요. <button class="link" type="button" onclick="setF('q2rst','전체')">전체 보기</button>`:`정기 요청이 없어요. 매주 같은 요일·시간에 필요한 도움을 등록해 두면 자동으로 올라가요. <button class="link" type="button" onclick="S.f.q2re='';openLayer('q2recurForm')">정기 요청 등록</button>`}</div></td></tr>`}</tbody></table></div>
+ <div class="panel-f line-note">정해진 요일 3일 전에 요청이 자동으로 올라가요. 단골을 지정하면 공고 없이 단골에게 먼저 요청해요. 1시간 = 1시간으로 적립돼요.</div></section>`}
+function q2RecurPause(id){const x=RECUR.find(r=>r.id===id),e=EL(x.e);
+ if(x.st!=='진행 중'){x.st='진행 중';x.why='';render();toast(`${e.n} 님 정기 요청을 다시 시작했어요`);return}
+ confirmBox({title:`${e.n} 님 정기 요청을 잠시 멈출까요?`,text:`매주 ${x.days.join('·')} ${x.tm} 요청이 다시 시작할 때까지 올라가지 않아요. 이미 올라간 요청은 그대로예요.`,ok:'일시정지',
+  extra:`<div class="field"><label for="q2rpw">멈추는 이유 <span class="note">선택</span></label><input id="q2rpw" type="text" placeholder="예: 2주 동안 따님 댁에 계세요"></div>`,onOk:()=>{x.st='일시정지';x.why=q2v('q2rpw');render();toast('정기 요청을 일시정지했어요')}})}
+function q2RecurDel(id){const i=RECUR.findIndex(r=>r.id===id),x=RECUR[i],e=EL(x.e);confirmBox({title:'정기 요청을 삭제할까요?',text:`${e.n} 님 매주 ${x.days.join('·')} ${x.tm} ${x.cat}. 앞으로 자동으로 올라가지 않아요. 이미 올라간 요청은 그대로 남아요.`,ok:'삭제하기',danger:true,onOk:()=>{RECUR.splice(RECUR.indexOf(x),1);render();toast('정기 요청을 삭제했어요')}})}
+function q2SaveRecur(){const id=q2v('q2re'),E=EL(id),days=[...(S.f.q2rdays||[])],t=q2v('q2rtm'),fr=q2v('q2rfrom'),to=q2v('q2rto'),nf=normDate(fr),nt=normDate(to),cat=q2v('q2rc');
+ const ok=vRun([['q2re',canReq(E)?'':'위임받은 관리 대상을 골라 주세요'],['q2rc',cat?'':'카테고리를 골라 주세요'],['q2rdays',days.length?'':'반복할 요일을 하나 이상 골라 주세요'],['q2rtm',timeErr(t)],['q2rfrom',!fr?'시작일을 적어 주세요':!nf?'11/16처럼 월/일로 적어 주세요':mdN(nf)<=1113?'내일(11/14)부터 시작할 수 있어요':''],['q2rto',!to?'종료일을 적어 주세요':!nt?'12/31처럼 월/일로 적어 주세요':nf&&mdN(nt)<mdN(nf)?'종료일은 시작일보다 늦어야 해요':'']]);
+ if(!ok)return;const m=t.match(TIME_RE),v=q2v('q2rv');
+ RECUR.unshift({id:q2id(RECUR,'rc'),e:id,days:Q2WK.filter(d=>days.includes(d)),tm:q2tm(m),cat,v:v||null,from:nf.split(' ')[0],to:nt.split(' ')[0],st:'진행 중'});
+ ['q2re','q2rdays','q2rtm','q2rfrom','q2rto','q2rc','q2rv'].forEach(k=>S.f[k]=undefined);closeLayer();toast(`${E.n} 님 정기 요청을 등록했어요 · 매주 ${Q2WK.filter(d=>days.includes(d)).join('·')}`);if(route().v==='recur')render();else go('recur')}
+
+/* ---------- 9. 기관 클래스 (기관 행사와 따로) ---------- */
+function q2vClasses(){const st=F('q2cst','전체'),L=CLASSES.filter(c=>st==='전체'||(st==='모집 중'?c.st!=='마감':c.st==='마감'));const live=SE();
+ return head('classes')+srow([['classes','모집 중',CLASSES.filter(c=>c.st!=='마감').length,'개',`마감 ${CLASSES.filter(c=>c.st==='마감').length}개`],['care','수강 인원',CLASSES.reduce((s,c)=>s+c.cnt,0),'명',`정원 ${CLASSES.reduce((s,c)=>s+c.cap,0)}명`],['memo','담당자 메모',CLASSES.reduce((s,c)=>s+c.notes.length,0),'건','자리 문의 · 대신 신청'],['user','맞는 관리 대상',live.filter(e=>q2ClassFor(e).length).length,'명',`${allScope()?'기관 전체':'내 담당'} 중 · 나이대·동·관심 도움`]])+
+ `<div class="toolbar"><select class="sel" aria-label="상태로 거르기" style="width:auto;min-width:160px" onchange="setF('q2cst',this.value)">${['전체','모집 중','마감'].map(o=>`<option ${st===o?'selected':''}>${o}</option>`).join('')}</select><div class="filters"><button class="btn sm primary" type="button" onclick="openLayer('q2classForm')">${icon('plus')}클래스 올리기</button></div></div>
+ <section class="panel"><div class="panel-h tight"><h2>기관 클래스 <span class="tn cnt-n">${L.length}</span></h2><span class="sub">정원·일정이 있는 정규 강좌예요. 하루 행사·모임 안내는 기관 행사에 올려요</span></div>${L.length?`<div class="q2cls">${L.map(c=>{const full=c.st==='마감'||c.cnt>=c.cap;return `<button type="button" class="q2c ${full?'off':''}" onclick="openLayer('q2classView','${c.id}')"><span class="tags">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</span><h3>${esc(c.t)}</h3><p class="tn">${c.sch} · ${c.start} 시작</p><p class="muted small">${esc(c.place)} · ${c.age}세 이상</p><span class="appc"><span class="pbar" role="img" aria-label="수강 ${c.cnt}명, 정원 ${c.cap}명"><i style="width:${Math.min(100,c.cnt/c.cap*100)}%"></i></span><span class="tn small muted">${c.cnt} / ${c.cap}명</span></span><span class="rowx nw"><span class="status ${full?'':'ok'}">${full?'마감':'모집 중'}</span>${c.notes.length?`<span class="muted small">메모 ${c.notes.length}건</span>`:''}</span></button>`}).join('')}</div>`:`<div class="empty line">'${st}' 클래스가 없어요. <button class="link" type="button" onclick="setF('q2cst','전체')">전체 보기</button> <button class="link" type="button" onclick="openLayer('q2classForm')">클래스 올리기</button></div>`}
+ <div class="panel-f line-note">관리 대상 화면의 "이 분께 맞는 기관 클래스"에 나이대·사는 동·관심 도움이 맞는 강좌가 보여요. 시간이 적립·차감되지 않아요.</div></section>`}
+function q2CloseClass(id){const c=CLASSES.find(x=>x.id===id);if(c.st==='마감'){c.st='모집 중';drawLayer();render();toast('클래스 모집을 다시 열었어요');return}confirmBox({title:'이 클래스 모집을 마감할까요?',text:`"${c.t}"에 더는 신청을 받지 않아요. 관리 대상 화면의 추천에서도 '마감'으로 보여요.`,ok:'마감하기',danger:true,onOk:()=>{c.st='마감';render();toast('클래스 모집을 마감했어요')}})}
+function q2SaveClass(){const g=q2v,t=g('q2ct2'),sch=g('q2cs'),sd=g('q2csd'),nd=normDate(sd),pl=g('q2cp'),cap=g('q2ccap'),tags=[...(S.f.q2ctags||[])],ds=[...(S.f.q2cdong||[])],desc=g('q2cdesc');
+ const ok=vRun([['q2ct2',!t?'제목을 적어 주세요':t.length>40?'제목은 40자까지 적어 주세요':''],['q2ctg',tags.length?'':'관심 도움을 하나 이상 골라 주세요'],['q2cs',!sch?'일정을 적어 주세요':!TIME_RE.test((sch.match(/\d{1,2}:\d{2}\s*~\s*\d{1,2}:\d{2}/)||[''])[0])?'"매주 수 14:00~15:30"처럼 요일과 시간을 적어 주세요':''],['q2csd',!sd?'시작일을 적어 주세요':!nd?'11/25처럼 월/일로 적어 주세요':mdN(nd)<1113?'지난 날짜는 고를 수 없어요':''],['q2cp',pl?'':'장소를 적어 주세요'],['q2ccap',!cap?'정원을 적어 주세요':!/^\d{1,3}$/.test(cap)||+cap<1||+cap>100?'정원은 1~100 사이 숫자로 적어 주세요':''],['q2cdg',ds.length?'':'다니기 쉬운 동을 하나 이상 골라 주세요'],['q2cdesc',desc.length>300?'설명은 300자까지 적어 주세요':'']]);
+ if(!ok)return;CLASSES.unshift({id:q2id(CLASSES,'cl'),t,tags,sch,start:nd,place:pl,cap:+cap,cnt:0,age:+(F('q2cage','65세 이상').match(/\d+/)||[0])[0]||0,dongs:ds,desc,st:'모집 중',notes:[]});
+ ['q2ctags','q2cdong','q2cage'].forEach(k=>S.f[k]=undefined);closeLayer();toast(`"${t}" 기관 클래스를 올렸어요`);if(route().v==='classes')render();else go('classes')}
+
+/* ---------- 10. 1:1 문의 ---------- */
+const Q2QC=['이용 방법','오류 신고','계정·권한','관리 대상 정보','기타'];
+function q2vQna(){const st=F('q2qst','전체'),L=QNA.filter(q=>st==='전체'||q.st===st);
+ return head('qna')+`<div class="toolbar"><select class="sel" aria-label="답변 상태로 거르기" style="width:auto;min-width:160px" onchange="setF('q2qst',this.value)">${['전체','답변 대기','답변 완료'].map(o=>`<option ${st===o?'selected':''}>${o}</option>`).join('')}</select><div class="filters"><button class="btn sm primary" type="button" onclick="openLayer('q2qnaForm')">${icon('plus')}문의 쓰기</button></div></div>
+ <section class="panel"><div class="panel-h tight"><h2>내 문의 <span class="tn cnt-n">${L.length}</span></h2><span class="sub">답변 대기 ${QNA.filter(q=>q.st==='답변 대기').length}건 · 운영자가 보통 하루 안에 답해요</span></div>
+ <div>${L.map(q=>{const o=!!S.open['q2q_'+q.id];return `<div class="q2q"><button type="button" class="q2q-h" aria-expanded="${o}" onclick="S.open['q2q_${q.id}']=${!o};render()"><span class="tag">${q.cat}</span><span class="sp"><b>${esc(q.t)}</b><span class="muted small tn">${q.d} 보냄${q.ad?' · '+q.ad+' 답변':''}</span></span><span class="status ${q.st==='답변 완료'?'ok':'wait'}">${q.st}</span>${icon('chev')}</button>${o?`<div class="q2q-b"><p>${esc(q.body)}</p>${q.ans?`<div class="q2ans"><b>운영자 답변 · ${q.ad}</b><p>${esc(q.ans)}</p></div>`:'<p class="muted small">아직 답변 전이에요. 답변이 오면 알림으로 알려 드려요.</p>'}</div>`:''}</div>`}).join('')||`<div class="empty line">${QNA.length?`'${st}' 문의가 없어요. <button class="link" type="button" onclick="setF('q2qst','전체')">전체 보기</button>`:`아직 보낸 문의가 없어요. <button class="link" type="button" onclick="openLayer('q2qnaForm')">문의 쓰기</button>`}</div>`}</div>
+ <div class="panel-f line-note">관리 대상 이름·전화번호·주민번호는 적지 말아 주세요. 급한 일은 기관 대표 전화로 연락해 주세요.</div></section>`}
+function q2SaveQna(){const c=q2v('q2qc'),t=q2v('q2qt'),b=q2v('q2qb');const pii=v=>Q2RISK.some(([re])=>re.test(v));
+ const ok=vRun([['q2qc',c?'':'분류를 골라 주세요'],['q2qt',!t?'제목을 적어 주세요':t.length<2?'제목을 2자 이상 적어 주세요':t.length>40?'제목은 40자까지 적어 주세요':pii(t)?'전화번호·주소·주민번호는 빼 주세요':''],['q2qb',!b?'내용을 적어 주세요':b.length<10?'내용을 10자 이상 적어 주세요':b.length>1000?'내용은 1000자까지 적어 주세요':pii(b)?'전화번호·주소·주민번호는 빼 주세요':'']]);
+ if(!ok)return;QNA.unshift({id:q2id(QNA,'q'),cat:c,t,body:b,d:'11/13',st:'답변 대기'});closeLayer();toast('문의를 보냈어요 · 답변이 오면 알림으로 알려 드려요');if(route().v==='qna')render();else go('qna')}
+
+/* ---------- 11. 내 정보: 계정 바꾸기(데모) · 1:1 문의 · 탈퇴(시연) ---------- */
+function q2MeTop(){return S.q2wd?`<div class="q2wdbar" role="status">${icon('warn')}<span class="sp"><b>시연: 탈퇴 처리된 상태예요.</b> 실제 계정과 기록은 그대로예요.</span><button class="btn sm" type="button" onclick="S.q2wd=false;render();toast('탈퇴 시연을 되돌렸어요')">되돌리기</button></div>`:''}
+function q2MeMore(){return `<h4 class="sec-t" style="margin-top:22px">계정 바꾸기 <span class="ai-tag" style="margin:0 0 0 6px">데모</span></h4><div class="seg q2acct" role="group" aria-label="계정 바꾸기 (데모)">${STAFF.map(s=>`<button type="button" class="${s[0]===ME?'on':''}" aria-pressed="${s[0]===ME}" onclick="q2Switch('${s[0]}')">${s[0]}</button>`).join('')}</div><p class="hint" style="margin:0 0 8px">시연용이에요. 담당자마다 '내 담당'과 받은 담당자 요청이 달라져요.</p>
+  <div>${[['1:1 문의',"closeLayer();go('qna')"],['회원 탈퇴',"openLayer('q2wd')"]].map(x=>`<button type="button" class="lrow" style="padding:12px 0" onclick="${x[1]}"><span class="sp">${x[0]}</span>${icon('go','go')}</button>`).join('')}</div>`}
+function q2Switch(n){if(n===ME)return;ME=n;S.f.scope='mine';S.more={};S.f.ep='전체';render();toast(`${n} 님 계정으로 바꿨어요 (데모) · 내 담당 ${ELDERS.filter(e=>e.mgr===n&&!e.ended).length}명`)}
+function q2DoWd(){const v=q2v('q2wdin');if(!vRun([['q2wdin',!v?'"탈퇴합니다"를 적어 주세요':v!=='탈퇴합니다'?'"탈퇴합니다"를 그대로 적어 주세요':'']]))return;S.q2wd=true;closeLayer();render();toast('시연: 탈퇴 처리됨 · 실제로 지우지 않아요')}
+
+/* ---------- 창 · 서랍 ---------- */
+Object.assign(LAYERS,{
+ q2pick:k=>{const [l]=Q2QA[k]||Q2QA.req,pool=q2pool(),ok=pool.filter(canReq),no=pool.filter(e=>!canReq(e));
+  return modal(`${l} · 관리 대상 고르기`,`<p class="muted" style="margin:0 0 12px">대신 요청은 위임(보호자 동의·서면 동의)을 받은 분만 고를 수 있어요. ${allScope()?'기관 전체':'내 담당'} 기준이에요.</p>${ok.length?`<div class="q2pick" role="list">${ok.map((e,i)=>`<button type="button" role="listitem" ${i===0?'data-focus':''} onclick="q2PickGo('${k}','${e.id}')">${av(e.n)}<span class="sp"><b style="font-weight:600">${e.n}</b><small>${mt(e.age+'세',e.dong,e.home,k==='dg'?'단골 '+dgOf(e).length+'명':'')}${e.mgr!==ME?' · 담당 '+e.mgr:''}</small></span>${icon('go','go')}</button>`).join('')}</div>`:emptyArt('mailbox','위임받은 분이 없어요. 권한 위임에서 보호자 동의·서면 동의를 먼저 받아 주세요.',`<a class="link" href="#dlg">권한 위임</a>`)}
+   ${no.length?`<p class="hint" style="margin:12px 0 6px">고를 수 없는 분</p><div class="q2pick">${no.map(e=>`<button type="button" disabled>${av(e.n)}<span class="sp"><b style="font-weight:600">${e.n}</b><small>${e.ended?'지원 종료':'위임 전 · 위임(보호자 동의·서면 동의) 뒤 가능'}</small></span></button>`).join('')}</div>`:''}`,`<button class="btn" type="button" onclick="closeLayer()">닫기</button>`)},
+ q2dg:id=>{const e=EL(id),D=dgOf(e);return modal(`${e.n} 님 단골에게 요청`,`<p class="muted" style="margin:0 0 10px">공고를 올리지 않고 단골에게만 요청 알림을 보내요.</p>${D.length?D.map((k,i)=>`<div class="q2dg-row">${av(P[k].n,'s')}<b>${P[k].n}</b><span class="muted small">${mt(P[k].ag,P[k].dong)}</span><button class="btn sm" type="button" ${i===0?'data-focus':''} onclick="askDirect('${P[k].n}','${id}')">바로 요청</button></div>`).join(''):emptyArt('chairs','아직 단골이 없어요. 받은 도움 기록이나 끝난 요청에서 "단골로 등록"을 누르면 생겨요.',`<button class="link" type="button" onclick="closeLayer();go('care','${id}')">관리 대상 정보로</button>`)}`,`<button class="btn" type="button" onclick="openLayer('q2pick','dg')">다른 분 고르기</button><button class="btn" type="button" onclick="closeLayer()">닫기</button>`)},
+ q2repost:id=>{const e=EL(id),L=REQS.filter(r=>r.e===id).sort((a,b)=>mdN(b.d)-mdN(a.d));return modal(`${e.n} 님 지난 요청 다시 올리기`,`<p class="muted" style="margin:0 0 12px">고르면 직접 쓰기 칸에 내용이 채워져요. 날짜를 새로 적고 고쳐서 올려 주세요.</p>${L.length?`<div class="q2pick">${L.map((r,i)=>`<button type="button" ${i===0?'data-focus':''} onclick="q2RepostFrom('${r.id}')">${ctile(r.cat)}<span class="sp"><b style="font-weight:600">${r.cat}${r.title?' · '+esc(r.title):''}</b><small class="tn">${mt(r.d+' '+r.tm,r.v?'봉사자 '+P[r.v].n:vn(r),r.st===5?r.what:STN[r.st])}</small></span>${icon('go','go')}</button>`).join('')}</div>`:emptyArt('mailbox','아직 지난 요청이 없어요.',`<button class="link" type="button" onclick="S.f.nrm='direct';closeLayer();go('newreq','${id}')">새로 쓰기</button>`)}`,`<button class="btn" type="button" onclick="closeLayer()">닫기</button>`)},
+ q2svc:id=>{const e=EL(id);return modal(`${e.n} 님 서비스 동의 기록`,`<p class="muted" style="margin:0 0 12px">관리 대상은 앱 회원이 아니라서, 담당자가 동의를 받은 뒤 대신 기록해요.</p><div class="field2">${fld('동의 받은 날',`<input type="text" id="q2sd" value="11/13" placeholder="예: 11/13">`)}${fld('방법',`<select class="sel" id="q2sh"><option value="">방법 고르기</option>${['서면','보호자 구두','전화'].map(x=>`<option>${x}</option>`).join('')}</select>`)}</div>${fld('받은 담당자',`<select class="sel" id="q2sb">${STAFF.map(s=>`<option ${s[0]===ME?'selected':''}>${s[0]}</option>`).join('')}</select>`)}${fld('메모',`<input type="text" id="q2sn" placeholder="예: 동의서 원본은 사무실 보관함">`,'선택 · 100자까지')}<p class="hint" style="margin:0">서면이면 동의서 원본은 기관에 보관해요. 대신 요청·수락 위임은 권한 위임에서 따로 받아요.</p>`,`<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="q2SaveSvc('${id}')">기록하기</button>`)},
+ q2share:id=>{const e=EL(id),via=F('q2sv','문자');return modal('보호자 공유 동의 켜기',`<p class="muted" style="margin:0 0 12px">보호자가 리포트 요약을 받는 데 동의했는지 확인하고 기록해요. 요약에는 건강 판단이 들어가지 않아요.</p>${fld('받을 보호자',`<select class="sel" id="q2st">${e.fam.map((f,i)=>`<option value="${i}" ${i===(e.share.to||0)?'selected':''}>${f[0]} ${f[1]} (${f[2]})</option>`).join('')}</select>`)}${fld('받는 방법',fch('q2sv',['문자','링크'],via))}${fld('어떻게 확인했나요',`<select class="sel" id="q2sk"><option value="">고르기</option>${['전화로 확인','직접 만나 확인','서면으로 확인'].map(x=>`<option>${x}</option>`).join('')}</select>`)}<div class="vbox12" style="margin-top:4px"><label class="ck12" for="q2sok"><input type="checkbox" id="q2sok"><span>보호자가 리포트 요약을 받는 데 동의한 것을 확인했어요</span></label></div>`,`<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="q2SaveShare('${id}')">공유 동의 켜기</button>`)},
+ q2qr:id=>{const e=EL(id),q=e.qr;return modal('현관 QR 카드',`<p class="muted" style="margin:0 0 4px">${e.n} 님 댁 현관 안쪽에 붙여 두는 카드예요.</p><div class="q2qrcard"><b>되돌봄 · 활동 확인 카드</b>${q2Qr(q.code,168)}<b class="q2code">${q.code}</b><small>봉사자: 도착할 때 한 번(시작 QR), 끝날 때 한 번(종료 QR) 찍어 주세요</small></div><p class="hint" style="margin:0">카드에는 이름·주소가 없어요. 이 분의 모든 활동에서 같은 카드를 써요 (${q.d} 발급).${q.old.length?` 이전 카드 ${q.old.join(', ')}는 쓸 수 없어요.`:''}</p>`,`<button class="btn ghost danger-t" type="button" style="margin-right:auto" ${e.ended?'disabled':''} onclick="q2Reissue('${id}')">다시 발급</button><button class="btn" type="button" onclick="closeLayer()">닫기</button><button class="btn primary" type="button" onclick="toast('인쇄 창을 열어요 (시연) · 카드 크기 9×9cm')">인쇄하기</button>`)},
+ q2clNote:k=>{const [cid,eid,kind]=k.split('|'),c=CLASSES.find(x=>x.id===cid),e=EL(eid);return modal(`${kind} · ${esc(c.t)}`,`<p class="muted" style="margin:0 0 12px">${kind==='자리 문의'?`클래스 담당에게 ${e.n} 님 자리가 있는지 물어요.`:`${e.n} 님 대신 신청 메모를 남겨요. 실제 등록은 클래스 담당이 확인해요.`} 메모만 남겨요.</p><dl class="props" style="margin-bottom:14px"><dt>일정</dt><dd class="tn">${c.sch} · ${c.start} 시작</dd><dt>장소</dt><dd>${esc(c.place)}</dd><dt>자리</dt><dd class="tn">${c.cnt} / ${c.cap}명</dd></dl>${fld('메모',`<textarea class="sm" id="q2cm" placeholder="${kind==='자리 문의'?'예: 보행 보조기를 쓰셔서 1층 자리면 좋아요':'예: 따님과 통화로 확인 · 첫 수업은 동행 요청 예정'}"></textarea>`,'선택 · 120자까지 · 이름·전화번호는 적지 마세요')}${kind==='대신 신청'?`<div class="vbox12"><label class="ck12" for="q2cok"><input type="checkbox" id="q2cok"><span>관리 대상(보호자)께 신청해도 되는지 확인했어요</span></label></div>`:''}`,`<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="q2SaveClNote('${cid}','${eid}','${kind}')">${kind==='자리 문의'?'문의 남기기':'신청 메모 남기기'}</button>`)},
+ q2counter:rid=>{const r=REQS.find(x=>x.id===rid);return modal('다른 시간 제안',`<p class="muted" style="margin:0 0 12px">${P[r.v].n} 님께 다른 시간을 채팅으로 제안해요. 봉사자가 받아들이면 바뀌어요.</p><div class="field2">${fld('날짜',`<input type="text" id="q2cd" value="${esc(r.d)}">`)}${fld('시간',`<input type="text" id="q2ct" placeholder="예: 15:30~16:30">`)}</div>${fld('남길 말',`<input type="text" id="q2cmsg" placeholder="예: 어르신이 3시 반에 병원에서 돌아오세요">`,'선택')}`,`<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="q2SaveCounter('${rid}')">제안 보내기</button>`)},
+ q2warn:id=>{const E=EL(id),I=q2Issues(E);return modal('올리기 전에 확인해 주세요',`<div class="q2ck" style="margin-top:0">${I.risk.length?`<div class="q2ck-r bad">${icon('warn')}<span class="sp"><b>공개되는 칸에 ${[...new Set(I.risk.map(x=>x[2]))].join('·')}이(가) 있어요.</b> 공고는 동네 봉사자 모두가 봐요. 최종 수락 뒤 채팅으로 알려 주세요. ${[...new Set(I.risk.map(x=>x[0]))].map(f=>`<button class="link" type="button" ${'data-focus'} onclick="q2Fix('${f}')">${f==='nrti'?'제목':'내용'} 고치기</button>`).join(' ')}</span></div>`:''}${I.over.length?`<div class="q2ck-r bad">${icon('warn')}<span class="sp"><b>같은 날 겹치는 요청이 있어요.</b> ${I.over.map(r=>`${r.cat} ${r.tm} (${STN[r.st]})`).join(', ')} <button class="link" type="button" onclick="q2Fix('nrtm')">시간 고치기</button></span></div>`:''}</div>`,`<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn" type="button" onclick="q2Force()">그대로 올리기</button>`)},
+ q2recurForm:()=>{const pool=q2pool(),okL=pool.filter(canReq),noL=pool.filter(e=>!canReq(e)),eid=F('q2re','')&&canReq(EL(F('q2re','')))?F('q2re',''):(okL[0]||{}).id,E=EL(eid);if(E&&S.f.q2re!==eid)S.f.q2re=eid;const D=E?dgOf(E):[];
+  return drawer('정기 요청 등록',`<p class="muted" style="margin:0 0 16px">매주 같은 요일·시간에 필요한 도움을 등록하면 3일 전에 요청이 자동으로 올라가요.</p>
+   <div class="field"><label for="q2re">관리 대상 <span class="note">위임받은 분만 고를 수 있어요</span></label><select class="sel" id="q2re" onchange="S.f.q2re=this.value;drawLayer()">${okL.map(x=>`<option value="${x.id}" ${x.id===eid?'selected':''}>${x.n} (${x.age}세 · ${x.dong})${x.mgr!==ME?' · 담당 '+x.mgr:''}</option>`).join('')}${noL.map(x=>`<option value="${x.id}" disabled>${x.n} · ${x.ended?'지원 종료':'위임 전'}</option>`).join('')}</select></div>
+   <div class="field"><label for="q2rc">카테고리</label><select class="sel" id="q2rc" onchange="S.f.q2rc=this.value"><option value="">카테고리 고르기</option>${CATS.map(c=>`<option ${F('q2rc',E?E.needs[0]:'')===c.k?'selected':''}>${c.k}</option>`).join('')}</select></div>
+   <div class="field"><label for="q2rdays">반복 요일</label><div id="q2rdays" class="q2days" tabindex="-1" onclick="vErr('q2rdays','')">${mch('q2rdays',Q2WK,[])}</div></div>
+   ${fld('시간',`<input type="text" id="q2rtm" placeholder="예: 10:00~11:00" value="${esc(F('q2rtm',''))}" oninput="S.f.q2rtm=this.value">`)}
+   <div class="field2">${fld('시작일',`<input type="text" id="q2rfrom" placeholder="예: 11/16" value="${esc(F('q2rfrom',''))}" oninput="S.f.q2rfrom=this.value">`)}${fld('종료일',`<input type="text" id="q2rto" placeholder="예: 12/31" value="${esc(F('q2rto',''))}" oninput="S.f.q2rto=this.value">`)}</div>
+   ${fld('봉사자',`<select class="sel" id="q2rv" onchange="S.f.q2rv=this.value"><option value="">매번 공고로 모집</option>${D.map(k=>`<option value="${k}" ${F('q2rv','')===k?'selected':''}>단골 ${P[k].n} 님께 먼저 요청</option>`).join('')}</select>`,D.length?'':'단골이 없으면 매번 공고로 모집해요')}
+   <p class="hint">활동 시간만큼 1시간 = 1시간으로 적립돼요. 이슈 메모는 관리 대상의 방문 주의사항을 그대로 써요.</p>`,
+   `<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="q2SaveRecur()">등록하기</button>`,true)},
+ q2classView:id=>{const c=CLASSES.find(x=>x.id===id),full=c.st==='마감'||c.cnt>=c.cap,fit=SE().map(e=>({e,m:q2ClassFor(e).find(x=>x.c.id===id)})).filter(x=>x.m);
+  return drawer(esc(c.t),`<div class="tags" style="margin-bottom:12px">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}<span class="status ${full?'':'ok'}" style="margin-left:6px">${full?'마감':'모집 중'}</span></div><dl class="props" style="margin-bottom:14px"><dt>일정</dt><dd class="tn">${c.sch}</dd><dt>시작</dt><dd class="tn">${c.start}</dd><dt>장소</dt><dd>${esc(c.place)}</dd><dt>대상</dt><dd>${c.age}세 이상 · ${c.dongs.join(', ')}</dd><dt>정원</dt><dd class="tn">${c.cnt} / ${c.cap}명</dd></dl>${c.desc?`<p style="margin:0 0 18px;color:var(--ink-2)">${esc(c.desc)}</p>`:''}
+   <h4 class="sec-t">맞는 관리 대상 <span class="sub">${allScope()?'기관 전체':'내 담당'} · ${fit.length}명</span></h4>${fit.length?`<div class="q2list">${fit.map(({e,m})=>`<div class="q2item">${av(e.n,'s')}<span class="sp"><b style="font-weight:600">${e.n}</b><span class="q2why">${m.why.map(w=>`<span class="tag">${w}</span>`).join('')}</span></span><div class="btns"><button class="btn sm" type="button" ${full?'disabled':''} onclick="openLayer('q2clNote','${c.id}|${e.id}|대신 신청')">대신 신청</button></div></div>`).join('')}</div>`:'<p class="muted small" style="margin:0">맞는 분이 없어요.</p>'}
+   <h4 class="sec-t" style="margin-top:20px">담당자 메모 <span class="sub">${c.notes.length}건</span></h4>${c.notes.length?`<ul class="q2hist">${c.notes.map(n=>`<li><span class="tn">${n.d}</span><span>${n.kind} · ${EL(n.e).n} 님 · ${n.by}${n.memo?' · '+esc(n.memo):''}</span></li>`).join('')}</ul>`:'<p class="muted small" style="margin:0">아직 남긴 메모가 없어요.</p>'}`,
+   `<button class="btn ${c.st==='마감'?'':'ghost danger-t'}" type="button" style="margin-right:auto" onclick="q2CloseClass('${c.id}')">${c.st==='마감'?'모집 다시 열기':'모집 마감'}</button><button class="btn" type="button" onclick="closeLayer()">닫기</button>`,true)},
+ q2classForm:()=>drawer('기관 클래스 올리기',`<p class="muted" style="margin:0 0 16px">정원과 일정이 있는 정규 강좌를 올려요. 하루짜리 행사·모임 안내는 <button class="link" type="button" onclick="closeLayer();go('events')">기관 행사</button>에 올려요.</p>
+   ${fld('제목',`<input type="text" id="q2ct2" placeholder="예: 어르신 스마트폰 교실">`)}
+   <div class="field"><label for="q2ctg">관심 도움 <span class="note">관리 대상의 필요한 도움과 맞춰 추천해요</span></label><div id="q2ctg" class="q2days" tabindex="-1" onclick="vErr('q2ctg','')">${mch('q2ctags',CATS.map(c=>c.k),[])}</div></div>
+   ${fld('일정',`<input type="text" id="q2cs" placeholder="예: 매주 수 14:00~15:30">`)}
+   <div class="field2">${fld('시작일',`<input type="text" id="q2csd" placeholder="예: 11/25">`)}${fld('정원',`<input type="text" id="q2ccap" inputmode="numeric" placeholder="예: 12">`)}</div>
+   ${fld('장소',`<input type="text" id="q2cp" placeholder="예: 행복요양원 2층 프로그램실">`)}
+   <div class="field2">${fld('대상 나이',fch('q2cage',['누구나','60세 이상','65세 이상','70세 이상'],'65세 이상'))}<div class="field"><label for="q2cdg">다니기 쉬운 동</label><div id="q2cdg" class="q2days" tabindex="-1" onclick="vErr('q2cdg','')">${mch('q2cdong',['행복동','희망동','은빛동'],['행복동','희망동','은빛동'])}</div></div></div>
+   ${fld('설명',`<textarea class="sm" id="q2cdesc" placeholder="예: 카카오톡 사진 보내기를 천천히 같이 배워요"></textarea>`,'선택 · 300자까지')}<p class="hint">기관 클래스는 시간이 적립·차감되지 않아요.</p>`,
+   `<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="q2SaveClass()">올리기</button>`,true),
+ q2qnaForm:()=>drawer('1:1 문의 쓰기',`${fld('분류',`<select class="sel" id="q2qc"><option value="">분류 고르기</option>${Q2QC.map(x=>`<option>${x}</option>`).join('')}</select>`)}${fld('제목',`<input type="text" id="q2qt" placeholder="예: 편성표에서 지난달이 안 보여요">`,'40자까지')}${fld('내용',`<textarea id="q2qb" style="min-height:160px" placeholder="어떤 화면에서 무엇을 했는지 적어 주세요"></textarea>`,'10~1000자')}<div class="callout plain">${icon('lock')}<div>관리 대상 이름·전화번호·주민번호·주소는 적지 말아 주세요. 필요하면 운영자가 따로 연락드려요.</div></div>`,`<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="q2SaveQna()">보내기</button>`,true),
+ q2wd:()=>{const mine=ELDERS.filter(e=>e.mgr===ME&&!e.ended).length,rq=REQS.filter(r=>r.st<5&&EL(r.e).mgr===ME).length;
+  return drawer('회원 탈퇴',`<p style="margin:0 0 12px;font-weight:600">탈퇴하기 전에 확인해 주세요.</p><ul class="q2wdlist"><li>지금 담당하는 관리 대상이 <b class="tn">${mine}명</b> 있어요. 실제 서비스에서는 먼저 "담당 넘기기"로 다른 담당자에게 넘기거나 지원을 종료해야 탈퇴할 수 있어요.</li><li>진행 중인 요청 <b class="tn">${rq}건</b>과 안부 기록·메모·일지 확인 기록은 기관에 남아요. 작성자 이름은 "탈퇴한 담당자"로 바뀌어요.</li><li>로그인 정보와 연락처는 지워지고 되살릴 수 없어요. 같은 기관에서 다시 쓰려면 새로 가입하고 승인을 받아야 해요.</li></ul>
+   <div class="callout plain" style="margin-bottom:16px">${icon('warn')}<div>시연이라 실제로 지우지 않아요. 탈퇴 처리된 상태만 보여 드려요.</div></div>
+   ${fld('탈퇴하려면 아래 칸에 "탈퇴합니다"를 적어 주세요',`<input type="text" id="q2wdin" autocomplete="off" placeholder="탈퇴합니다">`)}`,
+   `<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn danger" type="button" onclick="q2DoWd()">탈퇴하기</button>`)}
+});
+/* 새 화면 */
+Object.assign(VIEWS,{recur:q2vRecur,classes:q2vClasses,qna:q2vQna});
+NAVON.qna='';
+/* 다시 그린 뒤: 왼쪽 아래 이름, 말로 만들기 타이머 정리 */
+(function(){const _r=render;render=function(){const {v}=route();if(S.q2v&&S.q2v.tm&&!(v==='newreq'&&F('nrm','ai')==='voice')){clearInterval(S.q2v.tm);S.q2v.tm=0;S.q2v.st='idle'}
+ const r=_r.apply(this,arguments);try{const a=$('.side-user .avatar'),n=$('.side-user .su-n');if(a)a.textContent=ME[0];if(n)n.innerHTML=`${esc(ME)}<small>${(STAFF.find(s=>s[0]===ME)||['',''])[1]}${S.q2wd?' · 탈퇴 처리됨(시연)':''}</small>`}catch(e){}return r}})();
+render();
 </script>
 </body>
 </html>
