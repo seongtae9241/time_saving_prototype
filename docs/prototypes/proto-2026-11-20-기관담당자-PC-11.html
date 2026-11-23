@@ -4626,7 +4626,7 @@ const LAYERS={
    stepFoot(e?'저장':'등록하기',`saveCare(${e?`'${e.id}'`:''})`,!!e),true)},
  /* O-SCHED-02 빈칸 공고 한꺼번에 */
  bulk:()=>{const G=gapList(),off=F('bo',[]),n=G.filter(x=>!off.includes(x.id+x.k)).length,ed=F('bedit','');
-  return modal('빈칸 공고 한꺼번에 올리기',`<p class="rowx" style="margin-bottom:12px"><span class="ai-tag" style="margin:0">AI 초안</span>빈칸마다 공고 글을 미리 써 뒀어요. 읽어 보고 고친 뒤, 올릴 것만 고르세요.</p><div class="tw"><table class="bulkt"><thead><tr><th style="width:44px"></th><th>관리 대상</th><th>도움 · 일시</th><th>공고 글 (AI 초안 · 공개)</th><th title="최종 수락된 봉사자에게만 보여요">이슈 메모 (비공개 · 최종 수락 봉사자만)</th><th></th></tr></thead><tbody>
+  return modal('빈칸 공고 한꺼번에 올리기',`<p class="rowx" style="margin-bottom:12px"><span class="ai-tag" style="margin:0">AI 초안</span>빈칸마다 공고 글을 미리 써 뒀어요. 읽어 보고 고친 뒤, 올릴 것만 고르세요.</p><div class="tw"><table class="bulkt"><thead><tr><th style="width:44px"></th><th>관리 대상</th><th>도움 · 일시</th><th>공고 글 (AI 초안 · 공개)</th><th title="최종 수락된 봉사자에게만 보여요">이슈 메모 (비공개)</th><th></th></tr></thead><tbody>
    ${G.map(x=>{const e=EL(x.id),key=x.id+x.k,on=!off.includes(key),dr=bulkDraft(x),chg=S.f['bd_'+key]!==undefined||S.f['bi_'+key]!==undefined;return `<tr class="${ed===key?'edon':''}"><td><input type="checkbox" ${on?'checked':''} aria-label="${e.n} ${x.c.gap} 올리기" style="width:18px;height:18px;accent-color:var(--acc-ink)" onchange="bulkT('${key}')"></td><td style="white-space:nowrap"><b style="font-weight:600">${e.n}</b><div class="muted small">${e.dong}</div></td><td style="white-space:nowrap">${x.c.gap}<div class="muted small tn">${DAYS[Math.floor(x.k/2)].split(' ')[1]} (${DAYS[Math.floor(x.k/2)].split(' ')[0]}) ${gapTime(x)}</div></td><td class="drc"><span>${esc(dr)}</span></td><td class="bimemo12"><span class="muted small">${icon('lock')}${esc(bulkIssue(x))}</span></td><td class="act">${chg?'<span class="tag" style="margin-right:6px">고침</span>':''}<button class="btn sm" type="button" aria-expanded="${ed===key}" onclick="S.f.bedit='${ed===key?'':key}';drawLayer()">${ed===key?'접기':'고치기'}</button></td></tr>
      ${ed===key?`<tr class="edrow"><td></td><td colspan="5"><div class="field"><label for="bd${key}">공고 글 <span class="note">공개돼요 · 건강·도구 정보는 이슈 메모에</span></label><textarea id="bd${key}" class="sm" oninput="S.f['bd_${key}']=this.value">${esc(dr)}</textarea></div><div class="field"><label for="bi${key}">이슈 메모 <span class="note">최종 수락된 봉사자에게만 보여요</span></label><input id="bi${key}" type="text" value="${esc(bulkIssue(x))}" oninput="S.f['bi_${key}']=this.value"></div></td></tr>`:''}`}).join('')}</tbody></table></div>`,
    `<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" ${n?'':'disabled'} onclick="bulkGo()">선택한 ${n}건 올리기</button>`)},
@@ -5778,7 +5778,7 @@ html body .btn.danger-t{color:var(--neg)!important}
 .ro12 .sp{display:grid;gap:2px;min-width:0}
 html body #main [aria-disabled="true"][disabled]{opacity:.45;cursor:not-allowed}
 /* 18 빈칸 한꺼번에: 이슈 메모는 공개 글과 따로 */
-.bimemo12{max-width:260px;min-width:200px}
+.bimemo12{max-width:210px}
 .only12{display:flex;align-items:center;gap:6px;color:var(--ink-3)}.only12 svg.i{width:14px;height:14px;flex:none}
 .bimemo12 svg.i{width:14px;height:14px;vertical-align:-2px;margin-right:4px}
 /* 23 홈 '지금' 점: 모두 지났을 때도 카드 테두리에 걸치지 않게 */
