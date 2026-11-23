@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>되돌봄 기관 담당자 (10판)</title>
+<title>되돌봄 기관 담당자 (11판)</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2048%2048%22%20width%3D%22512%22%20height%3D%22512%22%3E%3Crect%20width%3D%2248%22%20height%3D%2248%22%20rx%3D%2212%22%20fill%3D%22%234C63F0%22/%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%223.6%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M24%2037C13%2030%209.8%2022.5%2011.2%2017.6c1.5-5%208-6.6%2012.8-.4%204.8-6.2%2011.3-4.6%2012.8.4%201.2%204.2-1%2010-7.6%2015.4%22/%3E%3Cpath%20d%3D%22M35.1%2033.1L29.2%2033l1.1-5.7%22/%3E%3C/g%3E%3Ccircle%20cx%3D%2224%22%20cy%3D%2237%22%20r%3D%223%22%20fill%3D%22%23FFB547%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3703,9 +3703,9 @@ const priOf=id=>PRI.find(p=>p[0]===id);
 const ORDER=['e4','e1','e8','e7','e2','e5','e3','e6','e9'];
 const DAYS=['월 11/09','화 11/10','수 11/11','목 11/12','금 11/13'];
 const SCHED={
- e1:{0:{c:'말동무',v:'최미경',dg:1},6:{c:'말동무',v:'최미경',dg:1},8:{c:'디지털',v:'서하은'},3:{gap:'동행 (병원)',alt:'수요일로 옮기면 김하늘 님 가능',altP:'김하늘',altWhy:'수요일 오후 가능 · 같은 동 · 동행 8회'}},
+ e1:{0:{c:'말동무',v:'최미경',dg:1},6:{c:'말동무',v:'최미경',dg:1},8:{c:'디지털',v:'서하은'},9:{c:'말동무',v:'최미경',dg:1,st:15.5,du:1,live:1,r:'r9'},3:{gap:'동행 (병원)',alt:'수요일로 옮기면 김하늘 님 가능',altP:'김하늘',altWhy:'수요일 오후 가능 · 같은 동 · 동행 8회'}},
  e2:{0:{c:'생활 정리',v:'최미경',dg:1},3:{c:'장보기',v:'이도윤'},5:{c:'장보기',v:'이도윤'},7:{c:'말동무',v:'한태호',dg:1}},
- e3:{5:{c:'디지털',v:'김하늘',dg:1},9:{c:'디지털',v:'김하늘',dg:1},2:{gap:'디지털 도움',alt:'박서준 님이 같은 시간 가능',altP:'박서준',altWhy:'같은 동 · 화요일 오전 휴무 · 디지털 도움 4회',same:true}},
+ e3:{5:{c:'디지털',v:'김하늘',dg:1},9:{c:'디지털',v:'김하늘',dg:1,r:'r4'},2:{gap:'디지털 도움',alt:'박서준 님이 같은 시간 가능',altP:'박서준',altWhy:'같은 동 · 화요일 오전 휴무 · 디지털 도움 4회',same:true}},
  e4:{1:{gap:'동행 (복지관)',alt:'가능한 분이 없어요. 공고로 올리는 걸 추천해요',altP:null,altWhy:'희망동 월요일 오후 봉사 가능자 0명'},4:{c:'말동무',v:'오경희'},7:{c:'장보기',v:'이도윤'},9:{gap:'장보기',alt:'정우진 님이 금요일 오후 가능',altP:'정우진',altWhy:'같은 동 · 금요일 오후 가능 · 장보기 3회',same:true}},
  e5:{2:{c:'동행',v:'오경희',dg:1},6:{c:'장보기',v:'정우진'}},
  e6:{1:{c:'말동무',v:'윤서연',dg:1},7:{c:'디지털',v:'김민재'}},
@@ -3719,7 +3719,7 @@ const REQS=[
  {id:'r1',e:'e1',cat:'동행',d:'11/17 (화)',tm:'14:00~16:00',v:null,st:0,issue:'귀가 어두우세요. 진료 내용을 메모해 주시면 좋아요.',what:'지원자 3명',apps:[{p:'hn',at:'10분 전',msg:'화요일 오후 수업이 없어요. 병원 동행 8번 해 봤어요.'},{p:'sh',at:'40분 전',msg:'정형외과 근처에 살아요. 진료 내용 메모해 드릴게요.'},{p:'dy',at:'1시간 전',msg:'오후 3시부터 가능해요. 시간 맞으면 갈게요.'}]},
  {id:'r2',e:'e2',cat:'장보기·심부름',d:'11/18 (수)',tm:'15:00~16:00',v:'dy',st:1,issue:'당뇨식, 단 음식 제외',what:'대신 최종 수락 필요'},
  {id:'r3',e:'e4',cat:'장보기·심부름',d:'11/12 (목)',tm:'10:00~11:00',v:'dy',st:4,issue:'지팡이 사용',what:'일지 확인 필요',log:'우유, 두부, 계란을 사 드렸어요. 어르신이 아침을 거르셨다고 하셔서 빵도 같이 사 드렸어요. 지난주에도 식사를 거르셨다고 하셨어요.'},
- {id:'r4',e:'e3',cat:'디지털 도움',d:'11/13 (금)',tm:'14:00~15:00',v:'hn',st:2,issue:'오전 방문 불가',what:'최종 수락'},
+ {id:'r4',e:'e3',cat:'디지털 도움',d:'11/13 (금)',tm:'16:00~17:00',v:'hn',st:2,issue:'오전 방문 불가',what:'최종 수락'},
  {id:'r5',e:'e7',cat:'동행',d:'11/16 (월)',tm:'10:00~12:00',v:null,st:0,issue:'보행 보조기 사용 · 택시 이용',what:'지원자 2명',apps:[{p:'th',at:'30분 전',msg:'동행 전담이에요. 택시 타고 같이 다녀올게요.'},{p:'ok',at:'2시간 전',msg:'월요일 오전 비어 있어요.'}]},
  {id:'r6',e:'e8',cat:'장보기·심부름',d:'11/17 (화)',tm:'15:00~16:00',v:'ok',st:1,issue:'청력 약함 · 목록은 메모로',what:'대신 최종 수락 필요'},
  {id:'r7',e:'e6',cat:'디지털 도움',d:'11/12 (목)',tm:'14:00~15:00',v:'mj',st:4,issue:'카톡 사진 보내기',what:'일지 확인 필요',log:'카톡으로 손주 사진 보내는 법을 3번 같이 연습했어요. 다음엔 영상통화를 배우고 싶다고 하셨어요.'},
@@ -3775,7 +3775,8 @@ const OPOSTS=[
 const OKIND={'봉사자 모집':['봉사자 1~2명이 필요해요','산책·배식처럼 한두 명이 와서 도와주면 되는 일','봉사자는 활동 시간만큼 적립 · 기관 공고라 차감 없음'],
  '단체 봉사':['여러 명이 함께해요','김장·생신잔치처럼 여러 명이 같이 하는 일','참여자 각자 활동 시간만큼 적립 · 차감 없음'],
  '해 드려요':['우리 기관이 해 드려요','기관이 동네 분들께 해 줄 수 있는 도움 · 필요한 분이 신청','기관 직원이 하는 일이라 적립·차감 없음']};
-let EVENTS=[{kind:'모임',t:'가족과 함께하는 음악회',d:'11/25 (수) 15:00',view:128,url:'https://www.example.org/haengbok-concert'},{kind:'교실',t:'어르신 손뜨개 교실',d:'12/03 (목) 10:00',view:64}];
+let EVENTS=[{id:'ev1',kind:'모임',t:'가족과 함께하는 음악회',d:'11/25 (수) 15:00',view:128,url:'https://www.example.org/haengbok-concert',place:'행복요양원 1층 강당',who:'어르신과 가족 누구나',desc:'지역 청소년 오케스트라가 찾아와 익숙한 가요와 동요를 연주해요. 가족과 함께 오시면 좋아요. 휠체어로도 들어올 수 있어요.',save:23,ask:4},{id:'ev2',kind:'교실',t:'어르신 손뜨개 교실',d:'12/03 (목) 10:00',view:64,place:'행복요양원 2층 프로그램실',who:'65세 이상 어르신 (12명)',desc:'손뜨개로 목도리를 함께 떠요. 실과 바늘은 기관에서 준비해요. 처음 하시는 분도 괜찮아요.',save:11,ask:2}];
+const evOf=id=>EVENTS.find(e=>e.id===id);
 /* 11판: 관리 대상은 앱을 쓰지 않아서 '앱에서 온 요청'은 없음 → 같은 기관 담당자끼리 보낸 요청 */
 let DLGREQ=[{id:'dq1',from:'이수진',e:'e7',kind:'담당 넘기기',d:'11/13 09:20',what:['담당 이수진 → 박지현'],msg:'다음 주부터 은빛동 일을 주로 맡게 됐어요. 행복동에 사시는 강만수 님 담당을 넘겨받아 주실 수 있을까요?'},{id:'dq2',from:'최은호',e:'e8',kind:'맡은 일 바꾸기',d:'11/12',what:['안부 확인 추가'],msg:'윤금자 님 건강 확인 때 안부 전화도 제가 같이 드려도 될까요?'}];
 const STAFF=[['박지현','사회복지사','나'],['이수진','사회복지사',''],['최은호','간호사','']];
@@ -3818,7 +3819,7 @@ let NOTI=[
 const MEMOS={};
 const memosOf=id=>MEMOS[id]||(MEMOS[id]=[['11/08','따님이 다음 달부터 주 1회 방문 예정'],['10/20','보청기 수리 맡김 (11월 말 찾기)']]);
 const HELPLOG=[['11/12','장보기','아침을 거르셨다고 하셔서 빵도 사 드림','dy'],['11/05','말동무','옛날 시장 이야기를 즐겁게 하심','mk'],['10/29','동행','정형외과 진료, 다음 진료 11/17','hn']];
-const VOLS=[['hn','오늘 14:30 한영자 님','활동 중'],['mk','단골 3명','대기'],['th','동행 전담','활동 중'],['ok','희망동','대기'],['dy','장보기','쉬는 날'],['sh','새 봉사자','대기']];
+const VOLS=[['hn','오늘 16:00 한영자 님','대기'],['mk','오늘 15:30 이순례 님','활동 중'],['th','동행 전담','활동 중'],['ok','희망동','대기'],['dy','장보기','쉬는 날'],['sh','새 봉사자','대기']];
 
 /* ---------- 상태 ---------- */
 const S={f:{},open:{},more:{},layer:null,step:0,ai:{open:false,size:'',msgs:[]}};
@@ -3977,7 +3978,20 @@ function sw(k,d,rr,label){const on=F(k,d);return `<button type="button" class="t
 function swT(el,k,d,rr){S.f[k]=!F(k,!!d);if(rr)return render();el.classList.toggle('on',S.f[k]);el.setAttribute('aria-checked',S.f[k])}
 function tog(k){S.f[k]=!F(k);render()}
 function setF(k,v){S.f[k]=v;render()}
-const fld=(l,inner,note)=>`<div class="field"><label>${l}${note?` <span class="note">${note}</span>`:''}</label>${inner}</div>`;
+let FLDN=0;
+const fld=(l,inner,note)=>{let id='';const m=inner.match(/<(input|select|textarea)\b([^>]*)>/);if(m){const im=m[2].match(/\bid="([^"]+)"/);if(im)id=im[1];else{id='fld'+(++FLDN);inner=inner.replace(m[0],`<${m[1]} id="${id}"${m[2]}>`)}}return `<div class="field"><label${id?` for="${id}"`:''}>${l}${note?` <span class="note">${note}</span>`:''}</label>${inner}</div>`};
+/* 수정 1회차: 칸 아래 오류 문장 (aria-invalid + aria-describedby). msg가 비면 지움 */
+function vErr(id,msg){const el=document.getElementById(id);if(!el)return null;const f=el.closest('.field,.vbox12')||el.parentElement;let m=f.querySelector('.ferr12[data-for="'+id+'"]');
+  if(!msg){el.removeAttribute('aria-invalid');el.classList.remove('bad');if(m)m.remove();const d=(el.getAttribute('aria-describedby')||'').split(' ').filter(x=>x&&x!==id+'-err').join(' ');d?el.setAttribute('aria-describedby',d):el.removeAttribute('aria-describedby');return null}
+  el.setAttribute('aria-invalid','true');el.classList.add('bad');if(!m){m=document.createElement('p');m.className='ferr12';m.dataset.for=id;m.id=id+'-err';m.setAttribute('role','alert');f.appendChild(m)}m.textContent=msg;el.setAttribute('aria-describedby',id+'-err');return el}
+/* [[id, 오류 문장 또는 ''], …] → 첫 오류 칸에 초점. 모두 맞으면 true */
+function vRun(checks){let first=null;checks.forEach(([id,msg])=>{const el=vErr(id,msg||'');if(msg&&el&&!first)first=el});if(first){try{first.focus({preventScroll:false});first.scrollIntoView({block:'center'})}catch(e){}}return !first}
+document.addEventListener('input',e=>{const t=e.target;if(t&&t.id&&t.getAttribute&&t.getAttribute('aria-invalid')==='true')vErr(t.id,'')});
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.id&&t.getAttribute&&t.getAttribute('aria-invalid')==='true')vErr(t.id,'')});
+const TIME_RE=/^\s*(\d{1,2}):(\d{2})\s*~\s*(\d{1,2}):(\d{2})\s*$/;
+function timeErr(v){const m=(v||'').match(TIME_RE);if(!v||!v.trim())return '시간을 적어 주세요';if(!m)return '14:00~16:00처럼 시작과 끝을 적어 주세요';const a=+m[1]*60+ +m[2],b=+m[3]*60+ +m[4];if(+m[1]>23||+m[3]>23||+m[2]>59||+m[4]>59)return '시각을 다시 확인해 주세요';if(b<=a)return '끝나는 시각이 시작보다 늦어야 해요';return ''}
+/* '11/17', '11/17 (화)', '11.17' → '11/17 (화)' (2026년 기준). 틀리면 null */
+function normDate(v){const m=(v||'').match(/^\s*(\d{1,2})\s*[\/.\-]\s*(\d{1,2})/);if(!m)return null;const mo=+m[1],d=+m[2];const dt=new Date(2026,mo-1,d);if(mo<1||mo>12||dt.getMonth()!==mo-1)return null;return `${mo}/${String(d).padStart(2,'0')} (${'일월화수목금토'[dt.getDay()]})`}
 const inp=(ph,v,c='')=>`<input type="text" class="${c}" placeholder="${esc(ph||'')}" value="${esc(v||'')}">`;
 const ta=(ph,v,c='')=>`<textarea class="${c}" placeholder="${esc(ph||'')}">${esc(v||'')}</textarea>`;
 const callBtn=(t,l)=>`<button class="btn sm" type="button" onclick="event.stopPropagation();toast('${t} 로 전화를 걸어요 (시연)')">${icon('phone')}${l||t}</button>`;
@@ -4001,8 +4015,8 @@ function actRow(key,text,sub,verb,js,arrow,extra=''){const d=F(key);return `<div
 let DLG=null;
 function confirmBox({title,text,ok,danger,extra='',onOk}){
   S.layer=null;DLG={onOk};
-  $('#layer').innerHTML=`<div class="scrim" onclick="if(event.target===this)closeLayer()"><div class="dialog enter" role="dialog" aria-modal="true" aria-labelledby="dlgt"><div class="dlg-h">${itile(danger?'warn':'bell',danger?'neg':'')}<h3 id="dlgt">${title}</h3></div>${/알림이|전달돼요|알림 받/.test(text)?`<div class="notify"><span class="tile">${icon('bell')}</span><div><b>알림이 가요</b><p>${text}</p></div></div>`:`<p>${text}</p>`}${extra}<div class="err" id="dlgerr"></div><div class="btns"><button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn ${danger?'danger':'primary'}" id="dlgok" type="button" onclick="dlgOk()">${ok}</button></div></div></div>`;
-  setTimeout(()=>{const b=$('#dlgok');b&&b.focus()},0);
+  $('#layer').innerHTML=`<div class="scrim" onclick="if(event.target===this)closeLayer()"><div class="dialog enter" role="dialog" aria-modal="true" aria-labelledby="dlgt"><div class="dlg-h">${itile(danger?'warn':'bell',danger?'neg':'')}<h3 id="dlgt">${title}</h3></div>${/알림이|전달돼요|알림 받/.test(text)?`<div class="notify"><span class="tile">${icon('bell')}</span><div><b>알림이 가요</b><p>${text}</p></div></div>`:`<p>${text}</p>`}${extra}<div class="err" id="dlgerr"></div><div class="btns"><button class="btn" type="button" id="dlgcancel" onclick="closeLayer()">취소</button><button class="btn ${danger?'danger':'primary'}" id="dlgok" type="button" onclick="dlgOk()">${ok}</button></div></div></div>`;
+  setTimeout(()=>{const b=danger?$('#dlgcancel'):$('#dlgok');b&&b.focus()},0);
 }
 function dlgOk(){if(DLG&&DLG.onOk()!==false)closeLayer()}
 function closeLayer(){$('#layer').innerHTML='';DLG=null;S.layer=null}
@@ -4057,12 +4071,12 @@ function regDg(eid,pk){const e=EL(eid),a=dgOf(e);if(!a.includes(pk))a.push(pk);r
 function unDg(eid,pk){const e=EL(eid);confirmBox({title:`${P[pk].n} 님 단골을 해지할까요?`,text:`${e.n} 님의 단골 목록에서 빠져요. 지난 기록은 그대로 남아요.`,ok:'해지하기',danger:true,onOk:()=>{e.dgs=dgOf(e).filter(x=>x!==pk);render();toast('단골을 해지했어요')}})}
 function schedFor(id){S.f.sview='사람';S.f.sp=id;S.f.spq='';go('sched')}
 const todo=()=>REQS.filter(r=>[0,1,4].includes(r.st)&&rIn(r)).sort((a,b)=>dueI(a)-dueI(b));
-const todoTxt=r=>r.st===0?`지원자 ${(r.apps||[]).length}명 · 한 분 정하기`:r.st===1?'대신 최종 수락 필요':'일지 확인 필요';
+const todoTxt=r=>r.st===0?((r.apps||[]).length?`지원자 ${(r.apps||[]).length}명 · 한 분 정하기`:'지원자 기다리는 중'):r.st===1?'대신 최종 수락 필요':'일지 확인 필요';
 const gapList=()=>Object.entries(SCHED).filter(([id])=>inScope(EL(id))).flatMap(([id,o])=>Object.entries(o).filter(([k,c])=>c.gap&&!c.done).map(([k,c])=>({id,k:+k,c}))).sort((a,b)=>a.k-b.k);
 const slot=k=>DAYS[Math.floor(k/2)].split(' ')[0]+' '+(k%2?'오후':'오전');
 const AMT=[9,10.5,9.5,11,9,10,11.5,9.5,10.5],PMT=[13,14.5,16,13.5,15,16.5,14,15.5,13];
 const hm=h=>`${String(Math.floor(h)).padStart(2,'0')}:${h%1?'30':'00'}`;
-function evs(L){const out=[];L.forEach(e=>{const ei=ELDERS.indexOf(e);Object.entries(SCHED[e.id]||{}).forEach(([k,c])=>{k=+k;const st=(k%2?PMT:AMT)[ei%9];const du=c.gap?1.5:(ei%2?1:1.5);out.push({e,k,day:Math.floor(k/2),st,du,c,gap:!!(c.gap&&!c.done)})})});return out}
+function evs(L){const out=[];L.forEach(e=>{const ei=ELDERS.indexOf(e);Object.entries(SCHED[e.id]||{}).forEach(([k,c])=>{k=+k;const st=(k%2?PMT:AMT)[ei%9];const du=c.gap?1.5:(ei%2?1:1.5);out.push({e,k,day:Math.floor(k/2),st:c.st??st,du:c.du??du,c,gap:!!(c.gap&&!c.done)})})});return out}
 const lone=()=>SE().filter(e=>e.home==='혼자').sort((a,b)=>ORDER.indexOf(a.id)-ORDER.indexOf(b.id));
 const newApps=()=>APPS.filter(a=>a.st===0);
 const unread=()=>NOTI.filter(n=>n[4]).length;
@@ -4074,18 +4088,17 @@ function sid(v,p){if(S.layer)return {noti:'O-HOME-02',me:'O-HOME-03',careForm:'O
 function sid2(v,p){return {home:'O-HOME-01',alerts:'O-ALERT-01',care:p?'O-CARE-02':'O-CARE-01',sched:'O-SCHED-01',req:!p?'O-POST-01':/^ap/.test(p)?'O-POST-09':'O-POST-03',newreq:'O-POST-02',find:'O-POST-04',pub:p?'O-PUB-02':'O-PUB-01',posts:'O-POST-05',events:'O-POST-06',dlg:p&&/^e/.test(p)?'O-DLG-02':'O-DLG-01',report:p?'O-RPT-02':'O-RPT-01',noti:'O-HOME-04'}[v]}
 function renderNav(cur){
   const g=gapList().length,t=todo().length+newApps().length,pb=PUBR.filter(x=>x.st===0&&rIn(x)).length;
-  const NAV=[['돌봄',[['home','홈'],['alerts','특보 알림','진행 1','urgent'],['care','관리 대상',SE().length],['sched','돌봄 편성표',g?'빈칸 '+g:'',g?'soft':''],['req','요청 관리',t],['pub','공공 서비스 연계',pb]]],
+  const NAV=[['돌봄',[['home','홈'],['alerts','특보 알림',WX.filter(w=>w.mine).length?'진행 '+WX.filter(w=>w.mine).length:'',WX.filter(w=>w.mine).length?'urgent':''],['care','관리 대상',SE().length],['sched','돌봄 편성표',g?'빈칸 '+g:'',g?'soft':''],['req','요청 관리',t],['pub','공공 서비스 연계',pb]]],
    ['기관 공고',[['posts','기관 공고'],['events','기관 행사']]],
    ['관리',[['report','리포트'],['dlg','권한 위임',DLGREQ.length]]]];
-  $('#nav').innerHTML=NAV.map(([gn,items])=>`<div class="nav-sec">${gn}</div>`+items.map(([id,n,c,u])=>`<a href="#${id}" class="${id===cur?'on':''}" ${id===cur?'aria-current="page"':''}>${icon(id)}<span>${n}</span>${c?`<span class="n ${u||''}">${c}</span>`:''}</a>`).join('')).join('');
+  $('#nav').innerHTML=NAV.map(([gn,items])=>`<div class="nav-sec">${gn}</div>`+items.map(([id,n,c,u])=>`<a href="#${id}" class="${id===cur?'on':''}" ${id===cur?'aria-current="page"':''}>${icon(id)}<span>${n}</span>${c?`<span class="n ${u||''}" ${id==='sched'?'title="이번 주(11/09~11/13) 빈칸"':id==='alerts'?'title="지금 우리 지역에 내려진 기상 특보"':''}>${c}</span>`:''}</a>`).join('')).join('');
 }
 function head(id,p){const [t,d]=TITLES[id];return `<header class="pagehead"><div><div class="crumb">${({home:'돌봄',alerts:'돌봄',care:'돌봄',sched:'돌봄',req:'돌봄',pub:'돌봄',newreq:'요청 관리',find:'요청 관리',posts:'기관 공고',events:'기관 공고',dlg:'관리',report:'관리',noti:'알림'})[id]||'돌봄'} </div><div class="h1row12"><h1>${t}</h1>${['home','alerts','care','sched','req','pub','dlg','report'].includes(id)?scopeSeg():''}</div></div><div class="head-tools"><span class="stamp tn" id="stamp" title="${sid(id,p)}">${TODAY}</span><button class="btn sm aib-top" type="button" onclick="S.ai.open=true;S.ai.size='';drawAib()">${icon('spark')}AI 도우미</button><button class="iconbtn" type="button" aria-label="알림 ${unread()}건" onclick="openLayer('noti')">${icon('bell')}${unread()?'<span class="dot"></span>':''}</button><button class="btn sm" type="button" onclick="openLayer('me')">${icon('user')}박지현</button>${id==='home'&&todo()[0]?`<button class="btn sm primary" type="button" onclick="go('req','${todo()[0].id}')">가장 급한 것부터</button>`:''}<button class="iconbtn" type="button" onclick="toggleTheme()" aria-label="밝기 전환" title="밝기 전환"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button></div></header>`}
-function toggleTheme(){const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark'}
 
 /* ---------- 작은 그래프 ---------- */
 /* 그래프용 시연 자료 (기록 숫자). 기존 화면 숫자와 맞춤: 이번 주 확정 21건·빈칸 5개, 관리 대상별 지난달→이번 달 횟수 */
 const WK8=['09/21','09/28','10/05','10/12','10/19','10/26','11/02','11/09'];
-const W_OK=[16,17,18,17,19,20,19,21],W_GAP=[2,3,2,4,3,3,4,5];
+const W_OK=[16,17,18,17,19,20,19,22],W_GAP=[2,3,2,4,3,3,4,5];
 const MONL=['6월','7월','8월','9월','10월','11월'];
 const MON={e1:[3,4,4,5,3,1],e2:[4,3,4,4,4,4],e3:[2,3,2,2,2,2],e4:[4,4,4,5,3,1],e5:[1,2,2,2,2,2],e6:[3,3,2,3,3,3],e7:[3,4,3,4,4,2],e8:[3,3,2,3,2,1],e9:[2,3,3,4,3,4]};
 const VOLM={hn:6,mk:9,th:8,ok:7,dy:5,sh:4};
@@ -4137,18 +4150,18 @@ function dumbRows(rows,max=5){const p=v=>(v/max*100).toFixed(1)+'%';
 const cap=t=>{const [a,...r]=t.split(' · ');return `<p class="cap"><b>${a}</b>${r.join(', ')}</p>`};
 
 /* ---------- O-HOME-01 홈 ---------- */
-function reqActBtn(r){return `<button class="btn sm" type="button" onclick="event.stopPropagation();go('req','${r.id}')">${r.st===0?'지원자 보기':r.st===1?'전화 확인':'일지 확인'}</button>`}
+function reqActBtn(r){return `<button class="btn sm" type="button" onclick="event.stopPropagation();go('req','${r.id}')">${r.st===0?'지원자 보기':r.st===1?'대신 최종 수락':'일지 확인'}</button>`}
 function vHome(){
   const T=todo(),day=F('hd',4),E=evs(SE()).filter(x=>x.day===day).sort((a,b)=>a.st-b.st),a=ALERTS[0];
   const doneAll=Object.values(SCHED).reduce((s,o)=>s+Object.values(o).filter(c=>!c.gap).length,0),done=SE().reduce((s,e)=>s+Object.values(SCHED[e.id]||{}).filter(c=>!c.gap).length,0),G=gapList(),logs=REQS.filter(r=>r.log&&rIn(r)),PR=PRI.filter(x=>inScope(EL(x[0])));
   const links=[['alerts/wx1','특보 확인 필요',needN()],['pub','공공 연계 안내 전',PUBR.filter(x=>x.st===0&&rIn(x)).length],['req/apps','기관 공고 신청',newApps().length],['dlg/inbox','담당자 요청',DLGREQ.length]].filter(x=>x[2]);
-  const short=r=>r.st===0?`지원자 ${(r.apps||[]).length}명`:r.st===1?'최종 수락 필요':'일지 도착';
+  const short=r=>r.st===0?((r.apps||[]).length?`지원자 ${(r.apps||[]).length}명`:'지원자 기다림'):r.st===1?'최종 수락 필요':'일지 도착';
   const past=x=>day<4||(day===4&&x.st+x.du<=NOW);
   const nowline='<div class="nowline" role="separator" aria-label="지금 15:50" title="지금 15:50"><span>지금 15:50</span></div>';let nd=false;
   const pastN=E.filter(x=>past(x)&&!x.gap).length,hideP=day===4&&pastN>0&&!S.open.hPast;
   const pastBtn=day===4&&pastN?`<button type="button" class="lrow pastfold" aria-expanded="${!hideP}" onclick="S.open.hPast=${hideP};render()"><span class="sp">지난 일정 ${pastN}건</span><span class="small">${hideP?'펼치기':'접기'}</span>${icon('chev')}</button>`:'';
   const rows=pastBtn+lim('hS',E.filter(x=>!(hideP&&past(x)&&!x.gap)),6).map(x=>{let pre='';if(day===4&&!nd&&!past(x)){nd=true;pre=nowline}
-    return pre+`<button type="button" class="lrow ${past(x)&&!x.gap?'past':''}" onclick="S.f.sview='월';S.f.sd=${9+day};S.f.gsel='${x.gap?x.e.id+'|'+x.k:''}';go('sched')"><span class="tn" style="width:46px;font-weight:600;color:${x.gap?'var(--neg)':'var(--ink-2)'}">${hm(x.st)}</span><span class="sp"><span class="t">${x.e.n} 님</span> <span class="muted">${x.gap?x.c.gap:x.c.c||x.c.gap}</span></span>${x.gap?'<span class="tag neg">빈칸, 대안 보기</span>':`<span class="muted small">${x.c.v||x.c.done}${x.c.dg?' (단골)':''}</span>`}</button>`}).join('')+(day===4&&!nd&&E.length?nowline:'');
+    return pre+`<button type="button" class="lrow ${past(x)&&!x.gap?'past':''}" onclick="S.f.sview='월';S.f.sd=${9+day};S.f.gsel='${x.gap?x.e.id+'|'+x.k:''}';go('sched')"><span class="tn" style="width:46px;font-weight:600;color:${x.gap?'var(--neg)':'var(--ink-2)'}">${hm(x.st)}</span><span class="sp"><span class="t">${x.e.n} 님</span> <span class="muted">${x.gap?x.c.gap:x.c.c||x.c.gap}</span></span>${x.gap?'<span class="tag neg gap12">빈칸, 대안 보기</span>':`<span class="muted small">${x.c.v||x.c.done}${x.c.dg?' (단골)':''}</span>${x.c.live?'<span class="tag live12">활동 중</span>':''}`}</button>`}).join('')+(day===4&&!nd&&E.length?nowline.replace('class="nowline"','class="nowline end12"'):'');
   const hst=F('hst',-1),TT=hst<0?T:T.filter(r=>r.st===hst);
   const doneT=S.doneT||0,first=T[0],tot=doneT+T.length,hot=r=>(DUE[r.id]||[0,0])[1]>0;
   const CHK='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.500l3 3 5-6"/></svg>';
@@ -4162,8 +4175,8 @@ function vHome(){
    ['req/list','오늘 남은 일',T.length,'건',first?`<span class="up dn">${(DUE[first.id]||['오늘'])[0]}</span><span>먼저 ${EL(first.e).n} 님 ${first.cat}</span>`:'<span>오늘 할 일을 다 처리했어요</span>'],
    ['sched','이번 주 돌봄',done,'건',allScope()?`<span class="up">▲ ${W_OK[7]-W_OK[6]}</span><span>지난주 ${W_OK[6]}건</span>`:`<span>기관 전체 ${doneAll}건</span>`],
    ['sched','편성 빈칸',G.length,'개',`<span>대안 있음 ${G.filter(x=>x.c.altP).length}개</span>`],
-   ['care',allScope()?'관리 대상':'내 담당 관리 대상',SE().length,'명',`<span>먼저 살펴볼 분 ${SE().filter(e=>e.pri==='높음').length}명</span>`]
-  ].map(([h,l,v,u,m])=>`<a class="kpi" href="#${h}"><div class="label">${l}</div><div class="value tn">${v}<span class="u">${u}</span></div><div class="meta">${m}</div></a>`).join('')+`</div>`;
+   ['care','위임 받은 분',SE().filter(canReq).length,'명',`<span>${allScope()?'기관 전체':'내 담당'} ${SE().length}명 중 · 위임 전 ${SE().filter(e=>!canReq(e)).length}명</span>`]
+  ].map(([h,l,v,u,m])=>`<a class="kpi" href="#${h}" ${l==='위임 받은 분'?`onclick="S.f.ep='위임 받은 분'" title="관리 대상에서 위임 받은 분만 보기"`:''}><div class="label">${l}</div><div class="value tn">${v}<span class="u">${u}</span></div><div class="meta">${m}</div></a>`).join('')+`</div>`;
   const flow=`<div class="flow10"><nav class="flow7" aria-label="오늘 처리할 일 단계별로 거르기">${[[-1,'전체'],[0,'요청 대기'],[1,'수락'],[4,'일지 작성']].map(([s,l])=>{const L=s<0?T:T.filter(r=>r.st===s),n=L.length,h=L.filter(hot).length,on=hst===s;return `<button type="button" class="${on?'on':''} ${n?'':'zero'}" aria-pressed="${on}" title="${s<0?'오늘 처리할 일 전체 '+n+'건':l+' '+n+'건만 보기'}" onclick="setF('hst',${on&&s>=0?-1:s})"><span>${l}</span><b class="c tn ${s>=0&&h?'urgent':''}">${n}</b></button>`}).join('')}</nav><a class="flow-wait" href="#req" title="요청 관리 보드에서 보기">기다리는 중<span>최종 수락 <b class="tn">${REQS.filter(r=>r.st===2&&rIn(r)).length}</b></span><span>활동 중 <b class="tn">${REQS.filter(r=>r.st===3&&rIn(r)).length}</b></span></a></div>`;
   return head('home')+`
   ${F('alert',true)?`<div class="banner nb" role="status">${icon('warn')}<span class="sp"><strong>${a.k}</strong> <span class="tn">11/12~11/14 ${a.area}</span><span class="b-msg">AI 분석: 확인이 필요한 분 <b class="tn">${needN()}</b>명 (혼자 사심·85세 이상·안부 기록 오래됨)</span></span><span class="rowx nw"><a class="link" style="margin:0" href="#alerts/wx1">대응 보기</a><button class="btn sm ghost" type="button" onclick="setF('alert',false)">닫기</button></span></div>`:''}
@@ -4173,15 +4186,15 @@ function vHome(){
     <section class="panel lead o1"><div class="panel-h tight"><h2>오늘 처리할 일 <span class="tn cnt-n">${T.length}</span></h2><div class="hlinks"><span class="flabel">새로 온 것</span>${links.map(([to,l,c])=>`<a class="link" href="#${to}">${l} <b class="tn">${c}</b></a>`).join('')}</div></div>
       ${flow}
       <div class="tw"><table class="tight1"><thead><tr><th>관리 대상</th><th>할 일</th><th>일시</th><th>응답 기한</th><th></th></tr></thead><tbody>
-      ${TT.length?lim('hT',TT,4).map(r=>{const du=DUE[r.id]||['—',0];return `<tr class="row ${du[1]===2?'urgent':''}" tabindex="0" onclick="go('req','${r.id}')" onkeydown="if(event.key==='Enter')go('req','${r.id}')"><td><span class="who" style="gap:10px">${ctile(r.cat)}${av(EL(r.e).n,'s')}<b style="font-weight:600">${EL(r.e).n}</b>${mgrTag(EL(r.e))}</span></td><td>${mt(r.cat,short(r))}<div class="muted small">${r.v?'봉사자 '+P[r.v].n:'채팅하고 한 분 정하기'}</div></td><td class="tn">${r.d} ${r.tm.split('~')[0]}</td><td class="tn"><span class="duep ${du[1]===2?'hot':du[1]?'today':''}">${du[1]===2?icon('clock'):''}${du[0]}</span></td><td class="act">${reqActBtn(r)}</td></tr>`}).join(''):`<tr><td colspan="5">${emptyArt('tea','오늘 할 일을 다 처리했어요.')}</td></tr>`}</tbody></table></div>
-      ${T.length>4?`<button type="button" class="more" onclick="go('req','list')">요청 관리에서 전체 보기 (${T.length}건)</button>`:''}</section>
+      ${TT.length?lim('hT'+hst,TT,5).map(r=>{const du=DUE[r.id]||['—',0];return `<tr class="row ${du[1]===2?'urgent':''}" tabindex="0" onclick="go('req','${r.id}')" onkeydown="if(event.key==='Enter')go('req','${r.id}')"><td><span class="who" style="gap:10px">${ctile(r.cat)}${av(EL(r.e).n,'s')}<b style="font-weight:600">${EL(r.e).n}</b>${mgrTag(EL(r.e))}</span></td><td>${mt(r.cat,short(r))}<div class="muted small">${r.v?'봉사자 '+P[r.v].n:'채팅하고 한 분 정하기'}</div></td><td class="tn">${r.d} ${r.tm.split('~')[0]}</td><td class="tn"><span class="duep ${du[1]===2?'hot':du[1]?'today':''}">${du[1]===2?icon('clock'):''}${du[0]}</span></td><td class="act">${reqActBtn(r)}</td></tr>`}).join(''):T.length?`<tr><td colspan="5"><div class="empty line">이 단계에는 오늘 처리할 일이 없어요. <button class="link" type="button" onclick="setF('hst',-1)">필터 풀기 (전체 ${T.length}건 보기)</button></div></td></tr>`:`<tr><td colspan="5">${emptyArt('tea','오늘 할 일을 다 처리했어요.')}</td></tr>`}</tbody></table></div>
+      ${moreBtn('hT'+hst,TT.length,5,'더 보기')}</section>
     <section class="panel o3"><div class="panel-h tight"><h2>${day===4?'오늘 일정':DAYS[day].split(' ')[1]+' ('+DAYS[day].split(' ')[0]+') 일정'}</h2><div class="rowx nw"><div class="seg" role="group" aria-label="요일">${DAYS.map((d,i)=>{const [w,dt]=d.split(' ');return `<button type="button" class="${i===day?'on':''}" aria-pressed="${i===day}" onclick="setF('hd',${i})">${w} ${+dt.split('/')[1]}${i===4?' (오늘)':''}</button>`}).join('')}</div><a class="link" href="#sched">편성표</a></div></div>
       <div>${E.length?rows:'<div class="empty line">이 날은 일정이 없어요.</div>'}</div>
       ${moreBtn('hS',E.length,6)}</section>
     </div>
     <div class="stackv">
       <section class="panel o2"><div class="panel-h"><h2>먼저 살펴볼 분</h2><span class="ai-tag">AI 우선순위</span></div>
-        <div style="padding:8px 0 0">${PR.slice(0,3).map(([id,,,w],i)=>{const e=EL(id);return `<button type="button" class="lrow" onclick="go('report','${id}')"><span class="rank tile ${i===0?'first':''}">${i+1}</span><span class="sp"><span class="t">${e.n}</span> <span class="muted small">${mt(e.age+'세',e.dong)}</span><span class="d">${mt(...w.split(' · '))}</span></span></button>`}).join('')}</div>
+        <div style="padding:8px 0 0">${PR.slice(0,3).map(([id,,,w],i)=>{const e=EL(id);return `<button type="button" class="lrow" title="${e.n} 님 관리 대상 정보 보기" onclick="go('care','${id}')"><span class="rank tile ${i===0?'first':''}">${i+1}</span><span class="sp"><span class="t">${e.n}</span> <span class="muted small">${mt(e.age+'세',e.dong)}</span><span class="d">${mt(...w.split(' · '))}</span></span></button>`}).join('')}</div>
         <div class="panel-f line-note">리포트 분석 기준, 건강 판단 아님 <a class="link" href="#report" style="margin-left:auto">리포트</a></div></section>
       <section class="panel o4"><div class="panel-h"><h2>최근 도착한 일지 ${logs.filter(r=>r.st===4).length?`<span class="tag warn" style="margin-left:6px">확인 전 ${logs.filter(r=>r.st===4).length}건</span>`:''}</h2><a class="link" href="#req/list">전체 ${logs.length}건</a></div>
       <div class="tline" style="padding-top:8px">${logs.slice(0,3).map(r=>`<button type="button" class="lrow tl-row" onclick="go('req','${r.id}')"><i class="tl-dot" aria-hidden="true"></i><span class="sp"><span class="t">${EL(r.e).n}</span> <span class="muted small">${mt(`${r.d.split(' ')[0]} ${r.cat}`,`${vn(r)}`)}</span><span class="d ellip">"${r.log}"</span></span></button>`).join('')||'<div class="empty line">도착한 일지가 없어요.</div>'}</div></section>
@@ -4191,7 +4204,7 @@ function vHome(){
       <a class="bt bar-neg" href="#sched">${itile('alerts','neg')}<span class="bt-l">편성 빈칸</span><b class="tn">${G.length}<small>개</small></b><span class="bt-s">대안 있음 ${G.filter(x=>x.c.altP).length}개</span></a>
       <a class="bt" href="#care">${itile('care')}<span class="bt-l">관리 대상</span><b class="tn">${SE().length}<small>명</small></b><span class="bt-s">우선 ${SE().filter(e=>e.pri==='높음').length}명</span></a>
       <a class="bt" href="#req/apps">${itile('posts','req')}<span class="bt-l">새 신청</span><b class="tn">${newApps().length}<small>건</small></b><span class="bt-s">기관 공고</span></a></div>
-    <div class="split2" style="margin:8px -22px -22px"><div><h3 class="sec-t">주별 편성 <span class="sub">${mt(`최근 8주`,`기관 전체`,`봉사자 있음과 빈칸`)}</span></h3>${colChart({labels:WK8,series:[{name:'봉사자 있음',color:'var(--a500)',values:W_OK},{name:'빈칸',color:'var(--neg)',values:W_GAP,hatch:1,unit:'개'}],max:30,step:10,every:2,lastNote:'(이번 주)',aria:'기관 전체 주별 편성 건수, 최근 8주. 봉사자가 정해진 돌봄은 16건에서 이번 주 21건으로, 빈칸은 2개에서 이번 주 5개로 늘었어요.'})}<div class="legend" style="margin-top:6px"><span><i class="sw box" style="background:var(--a500)"></i>봉사자 있음</span><span><i class="sw box hatch" style="background-color:var(--neg)"></i>빈칸</span></div>${cap('기록 숫자 · 주(월요일 시작)마다 편성된 돌봄 건수 · 기관 전체 · 이번 주는 봉사자 있음 21 · 빈칸 5')}</div>
+    <div class="split2" style="margin:8px -22px -22px"><div><h3 class="sec-t">주별 편성 <span class="sub">${mt(`최근 8주`,`기관 전체`,`봉사자 있음과 빈칸`)}</span></h3>${colChart({labels:WK8,series:[{name:'봉사자 있음',color:'var(--a500)',values:W_OK},{name:'빈칸',color:'var(--neg)',values:W_GAP,hatch:1,unit:'개'}],max:30,step:10,every:2,lastNote:'(이번 주)',aria:'기관 전체 주별 편성 건수, 최근 8주. 봉사자가 정해진 돌봄은 16건에서 이번 주 '+W_OK[7]+'건으로, 빈칸은 2개에서 이번 주 '+W_GAP[7]+'개로 늘었어요.'})}<div class="legend" style="margin-top:6px"><span><i class="sw box" style="background:var(--a500)"></i>봉사자 있음</span><span><i class="sw box hatch" style="background-color:var(--neg)"></i>빈칸</span></div>${cap('기록 숫자 · 주(월요일 시작)마다 편성된 돌봄 건수 · 기관 전체 · 이번 주는 봉사자 있음 '+W_OK[7]+' · 빈칸 '+W_GAP[7])}</div>
       <div><h3 class="sec-t">도움 종류 <span class="sub">이번 달 요청 34건</span></h3>${rbars([['동행',14],['장보기',9],['말동무',7],['디지털',4]],{lw:56})}${cap('기록 숫자 · 11/01~11/13 관리 대상 요청 건수')}</div></div></div>`)}
   ${fold('hVol','봉사자 현황',`활동 중 ${VOLS.filter(v=>v[2]==='활동 중').length}명 · 대기 ${VOLS.filter(v=>v[2]==='대기').length}명`,`<div class="tw"><table><thead><tr><th>봉사자</th><th>요즘</th><th style="width:230px">이번 달 활동 <span style="font-weight:400">(11/01~11/13 · 많은 순)</span></th><th>지금</th></tr></thead><tbody>${[...VOLS].sort((a,b)=>VOLM[b[0]]-VOLM[a[0]]).map(([k,s,t])=>`<tr><td><span class="who">${av(P[k].n,'s')}<span><b style="font-weight:600">${P[k].n}</b> <span class="muted small">${mt(P[k].ag,P[k].dong)}</span></span></span></td><td class="muted">${s}</td><td><div class="rowx nw" ${tip(`<b>${P[k].n}</b><br>이번 달 활동 ${VOLM[k]}회`)}><div class="pbar sp" role="img" aria-label="이번 달 활동 ${VOLM[k]}회"><i style="width:${VOLM[k]/10*100}%;background:var(--a500)"></i></div><span class="tn small" style="width:30px;text-align:right">${VOLM[k]}회</span></div></td><td><span class="status ${t==='활동 중'?'ok':t==='대기'?'wait':''}">${t}</span></td></tr>`).join('')}</tbody></table></div><div class="panel-f"><a class="link" href="#find">도움 찾기에서 봉사 가능 공고 보기</a></div>`)}
   ${fold('hPost','기관 공고 진행',`모집·신청 받는 중 ${OPOSTS.filter(o=>o.st!=='마감').length}건`,`<div class="tw"><table><tbody>${OPOSTS.slice(0,4).map(o=>`<tr class="row" tabindex="0" onclick="go('posts')" onkeydown="if(event.key==='Enter')go('posts')"><td>${kindTag(o.kind)}</td><td><b style="font-weight:600">${o.t}</b></td><td class="tn muted">${o.d}</td><td style="width:180px"><div class="rowx" style="flex-wrap:nowrap"><div class="pbar sp"><i style="width:${Math.min(100,o.app/o.need*100)}%"></i></div><span class="tn small muted">${o.app}/${o.need}</span></div></td><td class="muted">${o.st}</td></tr>`).join('')}</tbody></table></div><div class="panel-f"><a class="link" href="#posts">기관 공고 전체 보기</a></div>`)}`;
@@ -4212,8 +4225,8 @@ function vAlerts(p){
     detail=`<section class="panel lead" data-dg9-title="특보 내용"><span class="dg9-corner" aria-label="특보 내용 카드 옮기기"></span><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="margin-bottom:8px"><div><h3><span class="sev bad">${w.k}</span> ${w.area}</h3><div class="note">${mt(`기상청`,`${w.per}`,`${w.at} 발표`)}</div></div><span class="tag neg">우리 지역</span></div><p style="margin:0;color:var(--ink-2)">${w.txt} ${a.sum}</p></div>
       <div class="panel-f"><div class="figures three fig10">${[['확인이 필요한 분',nN,'명'],['오늘 안부 확인',doneN+' / '+NL.length,'명'],['특보 기간 예정 돌봄',inP.length,'건']].map(([l,v,u],i)=>`<div><b class="tn">${v}<small class="u">${u}</small></b><small>${l}</small>${i===1?ring(doneN,NL.length,{label:'안부 확인 '+doneN+'명 완료, 전체 '+NL.length+'명',center:''}):''}</div>`).join('')}</div></div></section>
     <section class="panel ai12" id="calltbl"><div class="panel-h tight"><h2>AI 분석 · 확인이 필요한 분 <span class="tn cnt-n">${nN}</span></h2><span class="rowx nw"><span class="ai-tag">AI 분석</span><button class="link" type="button" onclick="S.f.ep='혼자 사는 분';go('care')">관리 대상에서 보기</button></span></div>
-      <div class="panel-b" style="padding-top:0;padding-bottom:14px">${insight(`<p><strong>${w.k} 기간(${w.per})에 확인이 필요한 분이 ${NL.length}명이에요.</strong> 혼자 사시거나 85세 이상이거나, 방문 주의사항이 있거나, 안부 기록이 오래된 분을 기록에서 골랐어요. 오늘 아직 확인하지 않은 분부터 보여 드려요. 누구에게 먼저 연락할지는 담당자가 정해요.</p>`,'기상청 특보 · 관리 대상 가구 형태·나이·방문 주의사항 · 안부 확인 기록','AI 분석')}</div>
-      <div class="tw"><table><thead><tr><th>관리 대상 · 확인할 이유</th><th title="모든 담당자가 남긴 기록">마지막 안부</th><th></th></tr></thead><tbody>${lim('alL',NL,5).map(({e,w})=>{const ok=okToday(e.id),lc=lastChk(e.id);return `<tr class="${ok?'off':''}"><td><span class="who" style="gap:10px;align-items:flex-start">${av(e.n,'s')}<span><b style="font-weight:600">${ok?'':pdot(e)}${e.n}</b> <span class="muted small">${mt(e.age+'세',e.dong)}</span> ${mgrTag(e)}<span class="tags why12">${w.map(x=>`<span class="tag">${x}</span>`).join('')}</span></span></span></td><td class="lc12"><span class="tn">${lc?(lc[0]===TD?'오늘':lc[0])+' · '+lc[1]:'기록 없음'}</span>${lc?`<span class="muted small ellip" title="${esc(lc[2]+(lc[3]?' · '+lc[3]:''))}">${lc[2]}${lc[3]?' · '+esc(lc[3]):''}</span>`:''}</td><td class="act"><div class="btns" style="justify-content:flex-end;flex-wrap:nowrap"><button class="iconbtn sm" type="button" title="본인 ${e.tel} 로 전화" aria-label="${e.n} 님 본인에게 전화" onclick="toast('${e.tel} 로 전화를 걸어요 (시연)')">${icon('phone')}</button>${e.fam.length?`<button class="iconbtn sm" type="button" title="가족(${e.fam[0][0]}) ${e.fam[0][2]} 로 전화" aria-label="${e.n} 님 가족에게 전화" onclick="toast('가족(${e.fam[0][0]}) ${e.fam[0][2]} 로 전화를 걸어요 (시연)')">${icon('care')}</button>`:''}${chkBtn(e.id)}</div></td></tr>`}).join('')||'<tr><td colspan="3" class="muted">확인이 필요한 분이 없어요.</td></tr>'}</tbody></table></div>${moreBtn('alL',NL.length,5)}
+      <div class="panel-b" style="padding-top:0;padding-bottom:14px">${insight(`<p><strong>${w.k} 기간(${w.per})에 확인이 필요한 분이 ${nN}명이에요.</strong>${doneN?` (오늘 이미 안부를 확인한 ${doneN}명은 빼고 셌어요. 명단 아래쪽에 흐리게 보여요.)`:''} 혼자 사시거나 85세 이상이거나, 방문 주의사항이 있거나, 안부 기록이 오래된 분을 기록에서 골랐어요. 오늘 아직 확인하지 않은 분부터 보여 드려요. 누구에게 먼저 연락할지는 담당자가 정해요.</p>`,'기상청 특보 · 관리 대상 가구 형태·나이·방문 주의사항 · 안부 확인 기록','AI 분석')}</div>
+      <div class="tw"><table><thead><tr><th>관리 대상 · 확인할 이유</th><th title="모든 담당자가 남긴 기록">마지막 안부</th><th></th></tr></thead><tbody>${lim('alL',NL,5).map(({e,w})=>{const ok=okToday(e.id),lc=lastChk(e.id);return `<tr class="${ok?'off':''}"><td><span class="who" style="gap:10px;align-items:flex-start">${av(e.n,'s')}<span><b style="font-weight:600">${ok?'':pdot(e)}${e.n}</b> <span class="muted small">${mt(e.age+'세',e.dong)}</span> ${mgrTag(e)}<span class="tags why12">${w.map(x=>`<span class="tag">${x}</span>`).join('')}</span></span></span></td><td class="lc12" ${lc?`title="${esc((lc[0]===TD?'오늘':lc[0])+' · '+lc[1]+' · '+lc[2]+(lc[3]?' · '+lc[3]:''))}"`:''}><span class="tn lc12-d">${lc?(lc[0]===TD?'오늘':lc[0])+' · '+lc[1]:'기록 없음'}</span>${lc?`<span class="small lc12-m"><b>${lc[2]}</b>${lc[3]?' · '+esc(lc[3]):''}</span>`:''}</td><td class="act"><div class="btns" style="justify-content:flex-end;flex-wrap:nowrap"><button class="iconbtn sm" type="button" title="본인 ${e.tel} 로 전화" aria-label="${e.n} 님 본인에게 전화" onclick="toast('${e.tel} 로 전화를 걸어요 (시연)')">${icon('phone')}</button>${e.fam.length?`<button class="iconbtn sm" type="button" title="가족(${e.fam[0][0]}) ${e.fam[0][2]} 로 전화" aria-label="${e.n} 님 가족에게 전화" onclick="toast('가족(${e.fam[0][0]}) ${e.fam[0][2]} 로 전화를 걸어요 (시연)')">${icon('care')}</button>`:''}${chkBtn(e.id)}</div></td></tr>`}).join('')||'<tr><td colspan="3" class="muted">확인이 필요한 분이 없어요.</td></tr>'}</tbody></table></div>${moreBtn('alL',NL.length,5)}
       <div class="panel-f line-note">안부 기록은 담당자 모두가 같이 봐요. "연락 안 됨"은 오늘 확인으로 세지 않아요.</div></section>
     <section class="panel"><div class="panel-h"><h2>AI가 제안하는 조치</h2><span class="sub">${a.acts.filter((x,i)=>F('ald'+i)).length} / ${a.acts.length} 함</span></div><div style="padding-top:8px">${a.acts.map((x,i)=>actRow('ald'+i,x[1],x[2],VERB[i][0],VERB[i][1],VERB[i][2],i===1?inCare:'')).join('')}</div>
       <div class="panel-f line-note"><b class="lbl">근거</b>기상청 특보, 관리 대상 가구 형태, 특보 기간 예정 돌봄 · 할지는 담당자가 정해요</div></section>`;
@@ -4234,7 +4247,7 @@ function vCare(p){
   const list=`<section class="panel" style="align-self:start"><div class="panel-b" style="padding-bottom:12px;display:grid;gap:10px;grid-template-columns:minmax(0,1fr)"><div class="rowx nw"><input class="search sp" id="eq" type="text" style="width:auto" placeholder="기관 전체에서 찾기" title="이름이나 전화번호로 기관 전체에서 찾아요" aria-label="관리 대상 찾기 (기관 전체에서)" value="${esc(F('eq',''))}" oninput="S.f.eq=this.value;renderKeep('eq')"><button class="btn sm" type="button" style="height:42px" onclick="openLayer('careForm')">${icon('plus')}등록</button></div>
       <select class="sel fsel" aria-label="거르기" onchange="setF('ep',this.value)">${FL.map(([v])=>`<option ${fp===v?'selected':''}>${v}</option>`).join('')}</select>
       <div><span class="ai-tag" style="margin:0" title="리포트 분석 기준으로 먼저 살펴볼 순서를 정했어요. 건강 상태를 판단한 것이 아니에요.">AI 우선순위 (건강 판단 아님)</span></div>${q?`<p class="muted small" style="margin:0">"${esc(q)}" 기관 전체에서 ${L.length}명</p>`:''}</div>
-    <div style="border-top:1px solid var(--rule-2)">${lim('care',L,6).map(x=>{const w=(priOf(x.id)||[])[3];return `<button type="button" class="lrow ${e&&x.id===e.id?'on':''}" aria-pressed="${!!e&&x.id===e.id}" onclick="go('care','${x.id}')">${av(x.n)}<span class="sp"><span class="t">${pdot(x)}${x.n}</span> <span class="muted small meta">${mt(x.age+'세',x.dong,x.home)}</span>${mgrTag(x)}${canReq(x)?'':'<span class="tag warn">위임 전</span>'}<span class="d">${w?mt(...w.split(' · ')):mt('안부 '+lastTxt(x.id),'이번 달 '+x.month+'회')}</span></span><span class="rcol">${pill(x.month,Math.max(x.prev,x.month,4),'이번 달 '+x.month+'회 / 지난달 '+x.prev+'회')}<span class="small tn mo10" aria-hidden="true">${x.month}회</span></span></button>`}).join('')||'<div class="empty line">조건에 맞는 분이 없어요.</div>'}</div>
+    <div style="border-top:1px solid var(--rule-2)">${lim('care',L,6).map(x=>{const w=(priOf(x.id)||[])[3];return `<button type="button" class="lrow ${e&&x.id===e.id?'on':''}" aria-pressed="${!!e&&x.id===e.id}" onclick="go('care','${x.id}')">${av(x.n)}<span class="sp"><span class="t">${pdot(x)}${x.n}</span> <span class="muted small meta">${mt(x.age+'세',x.dong,x.home)}</span>${mgrTag(x)}${canReq(x)?'':'<span class="tag warn">위임 전</span>'}<span class="d">${w?mt(...w.split(' · ')):mt('안부 '+lastTxt(x.id),'이번 달 '+x.month+'회')}</span></span><span class="rcol">${pill(x.month,Math.max(x.prev,x.month,4),'이번 달 '+x.month+'회 / 지난달 '+x.prev+'회')}<span class="small tn mo10" aria-hidden="true">${x.month}회</span></span></button>`}).join('')||`<div class="empty line">${q?`"${esc(q)}"에 맞는 분이 없어요.`:`'${fp}' 조건에 맞는 분이 없어요.`} <button class="link" type="button" onclick="S.f.eq='';S.f.ep='전체';render()">필터 풀기</button></div>`}</div>
     ${moreBtn('care',L.length,6)}</section>`;
   const S5=SE();
   return head('care',p)+srow([['care',allScope()?'관리 대상':'내 담당',S5.length,'명',allScope()?STAFF.map(s=>`${s[0]} ${ELDERS.filter(x=>x.mgr===s[0]).length}`).join(' · '):`기관 전체 ${ELDERS.length}명 · 이름으로 찾기`],['alerts','먼저 살펴볼 분',S5.filter(x=>x.pri==='높음').length,'명','AI 우선순위'],['home','혼자 사는 분',lone().length,'명',`오늘 안부 확인 ${lone().filter(x=>okToday(x.id)).length}명`],['dlg','위임 받은 분',S5.filter(canReq).length,'명',`위임 전 ${S5.filter(x=>!canReq(x)).length}명 · 대신 요청 안 됨`]])+`<div class="cols c-side keep">${list}<div class="stackv">${e?careDetail(e):`<section class="panel"><div class="panel-b">${emptyArt('mailbox','조건에 맞는 분이 없어요. 검색어나 거르기를 바꿔 보세요.',`<button class="link" type="button" onclick="S.f.eq='';S.f.ep='전체';render()">모두 보기</button>`)}</div></section>`}</div></div>`;
@@ -4290,15 +4303,17 @@ function dayItems(d,L){const ids=new Set(L.map(e=>e.id));let out;
 const WD=d=>['일','월','화','수','목','금','토'][new Date(2026,10,d).getDay()];
 function monthView(L,sd){const first=new Date(2026,10,1).getDay(),cells=[];for(let i=0;i<(first+6)%7;i++)cells.push(null);for(let d=1;d<=30;d++)cells.push(d);while(cells.length%7)cells.push(null);
   return `<div class="cm cm12"><div class="cm-hd">${['월','화','수','목','금','토','일'].map(w=>`<div>${w}</div>`).join('')}</div><div class="cm-g">${cells.map(d=>{if(!d)return '<div class="cm-c we blank"></div>';const it=dayItems(d,L),wk=(first+d-1)%7,we=wk===0||wk===6,g=it.filter(x=>x.kind==='gap').length;
-    return `<button type="button" class="cm-c ${d===13?'today':''} ${we?'we':''} ${d===sd?'sel':''} ${d<13?'past':''}" aria-pressed="${d===sd}" aria-label="11월 ${d}일 ${WD(d)}요일 일정 ${it.length}건${g?', 빈칸 '+g+'개':''}${d===13?', 오늘':''}" onclick="pickDay(${d})"><span class="cm-top"><span class="cm-n">${d}</span>${d===13?'<i class="now12" title="오늘"></i>':''}<span class="sp"></span>${g?`<span class="cm-gn tn">빈칸 ${g}</span>`:it.length>3?`<span class="cm-k tn">${it.length}건</span>`:''}</span>${it.slice(0,3).map(x=>`<span class="cm-e k-${KCLS[x.cat]||'home'} ${x.kind}">${x.kind==='gap'?'빈칸 ':''}${x.e.n} ${x.cat}</span>`).join('')}${it.length>3?`<span class="cm-more">+${it.length-3}건 더</span>`:''}</button>`}).join('')}</div></div>`}
+    return `<button type="button" class="cm-c ${d===13?'today':''} ${we?'we':''} ${d===sd?'sel':''} ${d<13?'past':''}" aria-pressed="${d===sd}" aria-label="11월 ${d}일 ${WD(d)}요일 일정 ${it.length}건${g?', 빈칸 '+g+'개':''}${d===13?', 오늘':''}" onclick="pickDay(${d})"><span class="cm-top"><span class="cm-n">${d}</span>${d===13?'<i class="now12" title="오늘"></i>':''}<span class="sp"></span>${g?`<span class="cm-gn tn">빈칸 ${g}</span>`:it.length>3?`<span class="cm-k tn">${it.length}건</span>`:''}</span>${it.slice(0,3).map(x=>`<span class="cm-e k-${KCLS[x.cat]||'home'} ${x.kind}" title="${esc(`${x.t} ${x.e.n} 님 · ${x.cat} · ${x.kind==='gap'?'빈칸 (봉사자 없음)':x.c&&x.c.live?'활동 중 · 봉사자 '+x.v:x.kind==='wait'?(x.v||'요청 대기'):'봉사자 '+x.v}`)}"><b class="cm-en">${x.e.n}</b><small class="cm-ec">${x.kind==='gap'?'빈칸·':''}${x.cat}</small></span>`).join('')}${it.length>3?`<span class="cm-more">+${it.length-3}<span class="cm-mt">건 더</span></span>`:''}</button>`}).join('')}</div></div>`}
 function altBox(x){const c=x.c||{},has=!!c.altP;const [id,k]=x.key.split('|');
   return `<div class="dp-alt">${insight(`<p><strong>${has?(c.same?'같은 시간 가능한 분':'다른 요일 제안'):'대안이 없어요'}</strong> ${c.alt||'가능한 분이 없어요. 공고로 올리는 걸 추천해요'}</p>`,c.altWhy||`${x.e.dong} 그 시간 봉사 가능자 0명`,'AI 안내')}
     <div class="btns">${has?`<button class="btn sm line" type="button" onclick="askGap('${id}','${k}')">${c.altP} 님께 요청</button>`:''}<button class="btn sm ${has?'':'line'}" type="button" onclick="${x.m?`gappostM('${x.key}')`:`gappost('${id}','${k}')`}">공고로 올리기</button></div><p class="note" style="margin:6px 0 0">요청할지 공고로 올릴지는 담당자가 정해요</p></div>`}
+/* 수정 1회차: 편성 칸과 같은 요청 찾기 (관리 대상 + 날짜, 같으면 분류까지) */
+function reqOfSlot(x,d){if(x.c&&x.c.r)return REQS.find(r=>r.id===x.c.r)||null;const L=REQS.filter(r=>r.e===x.e.id&&+(r.d.split(' ')[0].split('/')[1])===d&&r.d.startsWith('11/'));return L.find(r=>CKS(r.cat)===x.cat)||L[0]||null}
 function dayPanel(d,L,pe){const it=dayItems(d,L),gs=it.filter(x=>x.kind==='gap').length,sel=F('gsel','');
-  const row=x=>{const open=x.kind==='gap'&&sel===x.key;return `<div class="dp-r ${x.kind} k-${KCLS[x.cat]||'home'}"><span class="dp-t tn">${x.t}${x.te?`<small>${x.te}</small>`:''}</span><span class="dp-b"><span class="dp-n"><b>${x.e.n} 님</b>${mgrTag(x.e)}</span><span class="dp-c"><i class="kd12"></i>${x.cat}</span><span class="dp-v">${x.kind==='gap'?'<span class="flag-neg">빈칸 · 봉사자 없음</span>':x.kind==='wait'?`<span class="tag wt12">${x.v||'요청 대기'}</span>`:`봉사자 ${x.v}${x.dg?' (단골)':''}`}</span></span>${x.kind==='gap'?`<button class="btn sm" type="button" aria-expanded="${open}" onclick="setF('gsel','${open?'':x.key}')">${open?'접기':'대안 보기'}</button>`:x.kind==='ok'?'':`<button class="btn sm ghost" type="button" onclick="go('req')">요청 보기</button>`}</div>${open?altBox(x):''}`};
+  const row=x=>{const open=x.kind==='gap'&&sel===x.key;const rq=x.kind==='gap'?null:reqOfSlot(x,d);const to=rq?`#req/${rq.id}`:`#care/${x.e.id}`,tl=rq?`${x.e.n} 님 ${rq.cat} 요청 상세 보기`:`${x.e.n} 님 관리 대상 정보 보기`;return `<div class="dp-r ${x.kind} k-${KCLS[x.cat]||'home'} dp-go12" title="${tl}" onclick="if(!event.target.closest('button,a'))navTo('${to}')"><span class="dp-t tn">${x.t}${x.te?`<small>${x.te}</small>`:''}</span><span class="dp-b"><span class="dp-n"><a class="dp-a12" href="${to}" aria-label="${tl}">${x.e.n} 님</a>${mgrTag(x.e)}</span><span class="dp-c"><i class="kd12"></i>${x.cat}</span><span class="dp-v">${x.kind==='gap'?'<span class="flag-neg">빈칸 · 봉사자 없음</span>':x.kind==='wait'?`<span class="tag wt12">${x.v||'요청 대기'}</span>`:`봉사자 ${x.v}${x.dg?' (단골)':''}${x.c&&x.c.live?' <span class="tag live12">활동 중</span>':''}`}</span></span>${x.kind==='gap'?`<button class="btn sm" type="button" aria-expanded="${open}" onclick="setF('gsel','${open?'':x.key}')">${open?'접기':'대안 보기'}</button>`:x.kind==='ok'?'':`<button class="btn sm ghost" type="button" onclick="go('req'${rq?`,'${rq.id}'`:''})">요청 보기</button>`}</div>${open?altBox(x):''}`};
   return `<section class="panel dayp12" id="dayp" data-dg9-title="그날 일정"><div class="panel-h tight"><h2>11월 ${d}일 (${WD(d)})${d===13?' · 오늘':''}</h2><span class="sub tn">${mt(it.length+'건',gs?'빈칸 '+gs:'')}</span></div>
     ${pe?`<p class="muted small" style="margin:0 20px 8px">${pe.n} 님 일정만 보고 있어요</p>`:''}<div class="dp-l">${it.length?it.map(row).join(''):'<div class="empty line">이 날은 일정이 없어요.</div>'}</div>
-    <div class="panel-f line-note">다른 날짜를 누르면 이 자리에서 바뀌어요.</div></section>`}
+    <div class="panel-f line-note">일정을 누르면 요청 상세(없으면 관리 대상)로 가요. 다른 날짜를 누르면 이 자리에서 바뀌어요.</div></section>`}
 function pickDay(d){S.f.sd=d;S.f.gsel='';render();const el=$('#dayp');if(el){const r=el.getBoundingClientRect();if(r.top<70||r.top>innerHeight-120)el.scrollIntoView({block:'nearest'})}}
 function vSched(){
   const v=F('sview','월')==='사람'?'사람':'월',G=gapList(),sd=F('sd',13),pe=v==='사람'?EL(F('sp','')):null,q=F('spq','').trim();
@@ -4307,16 +4322,12 @@ function vSched(){
   const search=v==='사람'?`<div class="ps12"><input class="search" id="spq" type="text" placeholder="이름으로 찾기 (기관 전체)" aria-label="한 사람 일정 찾기" value="${esc(q)}" oninput="S.f.spq=this.value;renderKeep('spq')" onkeydown="if(event.key==='Enter'&&this.value.trim()){const h=ORDER.map(EL).find(e=>e.n.includes(this.value.trim()));if(h)schedFor(h.id)}">${q?`<div class="ps12-l" role="listbox" aria-label="찾은 사람">${hits.map(e=>`<button type="button" role="option" onclick="schedFor('${e.id}')"><b>${e.n}</b> <span class="muted small">${mt(e.age+'세',e.dong)}</span>${mgrTag(e)}</button>`).join('')||'<div class="muted small" style="padding:10px 12px">찾는 분이 없어요.</div>'}</div>`:''}</div>`:'';
   const leg=`<div class="panel-f legend cat12">${Object.entries(KCLS).map(([k,c])=>`<span><i class="kd12 k-${c}"></i>${k}</span>`).join('')}<span class="lg-sep"></span><span><i class="lg12 gap"></i>빈칸 (누르면 옆에 대안)</span><span><i class="lg12 wait"></i>요청 대기 · 최종 수락 전</span><span><i class="now12"></i>오늘</span></div>`;
   let main;
-  if(v==='사람'&&!pe)main=`<section class="panel lead"><div class="panel-b" style="padding:28px 24px">${emptyArt('mailbox','이름으로 찾아 한 사람 일정만 봐요. 위 검색칸에 이름을 적어 주세요.')}<div class="rowx" style="justify-content:center;margin-top:6px"><span class="flabel">내 담당</span>${ELDERS.filter(e=>e.mgr===ME).map(e=>`<button class="chip" type="button" onclick="schedFor('${e.id}')">${e.n}</button>`).join('')}</div></div></section>`;
+  if(v==='사람'&&!pe)main=`<section class="panel lead"><div class="panel-b" style="padding:28px 24px">${emptyArt('mailbox','이름으로 찾아 한 사람 일정만 봐요. 위 검색칸에 이름을 한 글자 이상 적으면 기관 전체에서 찾아 드려요.')}<div class="rowx" style="justify-content:center;margin-top:6px"><button class="btn sm" type="button" onclick="const i=document.getElementById('spq');if(i)i.focus()">이름 검색칸으로</button></div></div></section>`;
   else main=`<div class="cols sch12"><section class="panel lead">${pe?`<div class="pe12"><div class="who">${av(pe.n)}<div><b style="font-weight:600">${pe.n} 님</b> <span class="muted small">${mt(pe.age+'세',pe.dong,pe.home)}</span> ${mgrTag(pe)}</div></div><span class="sp"></span><a class="link" href="#care/${pe.id}">관리 대상 정보</a><button class="btn sm ghost" type="button" onclick="S.f.sp='';render()">다른 사람 찾기</button></div>`:''}<div style="padding:6px 14px 4px">${monthView(L,sd)}</div>${leg}</section>${dayPanel(sd,L,pe)}</div>`;
-  const days=DAYS.map((dd,di)=>{let f=0,g=0;SE().forEach(e=>Object.entries(SCHED[e.id]||{}).forEach(([k,c])=>{if(Math.floor(k/2)===di)c.gap&&!c.done?g++:f++}));return [dd,f,g]});
-  const vc={};SE().forEach(e=>Object.values(SCHED[e.id]||{}).forEach(c=>{if(c.v)vc[c.v]=(vc[c.v]||0)+1}));const vl=Object.entries(vc).sort((a,b)=>b[1]-a[1]).slice(0,5);
   return head('sched')+`<div class="toolbar"><div class="caltools"><button class="btn sm" type="button" aria-label="이전 달" onclick="toast('시연에서는 이번 달만 볼 수 있어요')">${icon('left')}</button><b class="range tn">2026년 11월</b><button class="btn sm" type="button" aria-label="다음 달" onclick="toast('시연에서는 이번 달만 볼 수 있어요')">${icon('go')}</button>
       <div class="seg" role="group" aria-label="보기">${[['월','전체 달력'],['사람','사람별']].map(([k,l])=>`<button type="button" class="${v===k?'on':''}" aria-pressed="${v===k}" onclick="setF('sview','${k}')">${l}</button>`).join('')}</div>${search}</div>
     <button class="btn primary" type="button" ${G.length?'':'disabled'} onclick="openLayer('bulk')">이번 주 빈칸 ${G.length}개 한꺼번에 공고 올리기</button></div>
-  ${main}
-  ${fold('scStat','요일별 편성 · 이번 주 봉사자',`봉사자 있음 ${days.reduce((a,x)=>a+x[1],0)}건 · 빈칸 ${G.length}개 · 봉사자 ${Object.keys(vc).length}명`,`<div class="split2"><div><h3 class="sec-t">요일별 편성 <span class="sub">${mt(`봉사자 있음`,`빈칸`)}</span></h3>${days.map(([dd,f,g])=>`<div class="dayrow"><b style="font-weight:600">${dd.split(' ')[0]} ${+dd.split('/')[1]}</b><div class="db" role="img" aria-label="${dd} 봉사자 있음 ${f}건, 빈칸 ${g}개" ${tip(`<b>${dd}</b><br>봉사자 있음 ${f}건<br>빈칸 ${g}개`)}><i style="flex:${f};background:var(--a500)"></i><i class="hatch" style="flex:${g};background-color:var(--neg)"></i><i style="flex:${Math.max(0,8-f-g)}"></i></div><span class="tn">${f}건${g?` · <b style="color:var(--neg)">${g}</b>`:''}</span></div>`).join('')}<div class="legend" style="margin-top:8px"><span><i class="sw box" style="background:var(--a500)"></i>봉사자 있음</span><span><i class="sw box hatch" style="background-color:var(--neg)"></i>빈칸</span></div>${cap('기록 숫자 · 이번 주(11/09~11/13) 요일별 편성 건수')}</div>
-    <div><h3 class="sec-t">이번 주 봉사자 <span class="sub">편성 많은 순</span></h3>${vl.map(([n,c])=>`<div class="dayrow" style="grid-template-columns:28px minmax(0,1fr) auto">${av(n,'s')}<b style="font-weight:600">${n}</b><span class="tn muted">${c}건</span></div>`).join('')}</div></div>`)}`;
+  ${main}`;
 }
 function gapfill(id,k){const c=SCHED[id][k];c.done=c.altP+' (요청 중)';S.f.gsel='';render();toast(c.altP+' 님께 요청했어요')}
 function gappost(id,k){SCHED[id][k].done='공고 올림';S.f.gsel='';render();toast('공고로 올렸어요')}
@@ -4325,7 +4336,7 @@ function gappostM(key){const [d,id]=key.slice(1).split('|');const r=(MEX[d]||[])
 /* ---------- O-POST-01 보드 · O-POST-03 목록+상세 · O-POST-09 기관 공고 신청 ---------- */
 function vReq(p){
   const isApp=p==='apps'||/^ap/.test(p||'');
-  const tabs=`<div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="${!isApp}" class="${!isApp?'on':''}" onclick="go('req')">관리 대상 요청<span class="cnt">처리할 일 ${todo().length}</span></button><button type="button" role="tab" aria-selected="${isApp}" class="${isApp?'on':''}" onclick="go('req','apps')">기관 공고 신청<span class="cnt">처리할 일 ${newApps().length}</span></button></div>`;
+  const tabs=`<div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="${!isApp}" class="${!isApp?'on':''}" onclick="go('req')">관리 대상 요청<span class="cnt"><span class="cnt-l">처리할 일 </span>${todo().length}</span></button><button type="button" role="tab" aria-selected="${isApp}" class="${isApp?'on':''}" onclick="go('req','apps')">기관 공고 신청<span class="cnt"><span class="cnt-l">처리할 일 </span>${newApps().length}</span></button></div>`;
   const tools=isApp?'':`<div class="seg" role="group" aria-label="보기"><button type="button" class="${!p?'on':''}" aria-pressed="${!p}" onclick="go('req')">보드</button><button type="button" class="${p?'on':''}" aria-pressed="${!!p}" onclick="go('req','list')">목록</button></div><button class="btn sm" type="button" onclick="go('find')">${icon('search')}도움 찾기</button><button class="btn sm primary" type="button" onclick="go('newreq')">${icon('plus')}대신 요청</button>`;
   return head('req',p)+`<div class="toolbar">${tabs}<div class="filters">${tools}</div></div>`+(isApp?appPage(p):!p?reqBoard():reqList(p));
 }
@@ -4342,26 +4353,43 @@ function reqList(p){
   const sr=REQS.find(x=>x.id===p),t=sr?Object.keys(RGRP).find(g=>RGRP[g].includes(sr.st)):F('rq','처리할 일'),L=REQS.filter(r=>RGRP[t].includes(r.st)&&(rIn(r)||r===sr)),r=sr||L[0];
   if(L.indexOf(r)>=6)S.more.rl=true;
   return `<div class="cols c-side"><section class="panel" style="align-self:start"><div class="panel-b" style="padding-bottom:12px"><div class="seg" role="group">${Object.keys(RGRP).map(g=>`<button type="button" class="${t===g?'on':''}" aria-pressed="${t===g}" onclick="S.f.rq='${g}';go('req','list')">${g} <span class="tn" style="opacity:.7;font-weight:500">${REQS.filter(x=>RGRP[g].includes(x.st)&&rIn(x)).length}</span></button>`).join('')}</div></div>
-    <div style="border-top:1px solid var(--rule-2)">${lim('rl',L,6).map(x=>`<button type="button" class="lrow ${r&&x.id===r.id?'on':''}" onclick="go('req','${x.id}')"><span class="sp"><span class="t">${EL(x.e).n} 님 ${x.cat}</span>${mgrTag(EL(x.e))}<span class="d">${mt(`${x.d}`,x.v?`봉사자 ${P[x.v].n}`:vn(x))}</span><span class="d" style="${t==='처리할 일'?'color:var(--a700);font-weight:600':''}">${t==='처리할 일'?todoTxt(x):x.what}</span></span></button>`).join('')||'<div class="empty line">없어요.</div>'}</div>${moreBtn('rl',L.length,6)}</section>
+    <div style="border-top:1px solid var(--rule-2)">${lim('rl',L,6).map(x=>`<button type="button" class="lrow ${r&&x.id===r.id?'on':''}" onclick="go('req','${x.id}')"><span class="sp"><span class="t">${EL(x.e).n} 님 ${x.cat}</span>${mgrTag(EL(x.e))}<span class="d">${mt(`${x.d}`,x.v?`봉사자 ${P[x.v].n}`:vn(x))}</span><span class="d" style="${t==='처리할 일'?'color:var(--a700);font-weight:600':''}">${t==='처리할 일'?todoTxt(x):x.what}</span></span></button>`).join('')||`<div class="empty line">'${t}'에 해당하는 요청이 없어요. ${t==='처리할 일'?'담당자 차례인 일을 다 처리했어요.':`<button class="link" type="button" onclick="S.f.rq='처리할 일';go('req','list')">처리할 일 보기</button>`}</div>`}</div>${moreBtn('rl',L.length,6)}</section>
     <div class="stackv">${r?reqDetail(r):'<section class="panel"><div class="empty line">요청을 골라 주세요.</div></section>'}</div></div>`.replace('<section class="panel" style="align-self:start">','<section class="panel" data-dg9-title="요청 목록" style="align-self:start">');
 }
-function reqDetail(r){
+function reqDetail(r,ro){
+  if(!ro&&EL(r.e).mgr!==ME)return reqDetailRO(r);
   const e=EL(r.e),v=r.v?P[r.v]:null,stars=F('ostars_'+r.id,0),called=F('callok_'+r.id),dg=v&&dgOf(e).includes(r.v);
   const next=[
-   ()=>`<div class="k">다음 할 일: 지원자와 채팅하고 한 분 정하기</div><p>지원자 ${r.apps.length}명이 왔어요. 여러 분과 채팅해 보고 한 분을 정하면, 나머지 지원자에게는 마감 알림이 가요. 24시간 안에 정해 주세요.</p>${appList(r)}`,
-   ()=>`<div class="k">다음 할 일: 전화로 확인하고 최종 수락하기</div>${r.closed?`<p class="muted small" style="margin:0 0 8px">${v.n} 님으로 정했어요. 나머지 지원자 ${r.closed.length}명에게 마감 알림이 갔어요.</p>`:''}<label class="rowx" style="flex-wrap:nowrap">${sw('callok_'+r.id,false,1,'전화 확인')}<span>${e.n} 님(또는 보호자)께 전화로 일정을 설명하고 확인했어요</span></label><div class="btns"><button class="btn primary" type="button" ${called?'':'disabled'} onclick="askFinal('${r.id}')">대신 최종 수락</button>${callBtn(e.tel,'전화 걸기')}</div><p class="warn12">${icon('warn')}최종 수락하면 취소할 수 없어요.</p>`,
+   ()=>!(r.apps||[]).length?`<div class="k">지원자를 기다리고 있어요</div><p>${r.reopen?esc(r.reopen)+' ':''}공고가 올라가 있어요. 봉사자가 지원하면 여기에 보이고, 채팅해 본 뒤 한 분을 정하면 돼요.</p>${r.body?`<p class="muted small" style="margin:0">${esc(r.body)}</p>`:''}<div class="btns dec12"><button class="btn sm ghost danger-t" type="button" onclick="askCancel('${r.id}')">요청 취소</button></div>`:`<div class="k">다음 할 일: 지원자와 채팅하고 한 분 정하기</div><p>지원자 ${r.apps.length}명이 왔어요. 여러 분과 채팅해 보고 한 분을 정하면, 나머지 지원자에게는 마감 알림이 가요. 24시간 안에 정해 주세요.</p>${appList(r)}`,
+   ()=>`<div class="k">다음 할 일: 전화로 확인하고 최종 수락하기</div>${r.closed?`<p class="muted small" style="margin:0 0 8px">${v.n} 님으로 정했어요. 나머지 지원자 ${r.closed.length}명에게 마감 알림이 갔어요.</p>`:''}<label class="rowx" style="flex-wrap:nowrap">${sw('callok_'+r.id,false,1,'전화 확인')}<span>${e.n} 님(또는 보호자)께 전화로 일정을 설명하고 확인했어요</span></label><div class="btns"><button class="btn primary" type="button" ${called?'':'disabled'} onclick="askFinal('${r.id}')">대신 최종 수락</button>${callBtn(e.tel,'전화 걸기')}</div><p class="warn12">${icon('warn')}최종 수락하면 취소할 수 없어요. 그 전에는 거절하거나 요청을 취소할 수 있어요.</p><div class="btns dec12"><button class="btn sm" type="button" onclick="askDecline('${r.id}')">대신 거절 (다른 봉사자 찾기)</button><button class="btn sm ghost danger-t" type="button" onclick="askCancel('${r.id}')">요청 취소</button></div>`,
    ()=>`<div class="k">최종 수락했어요</div><p>시작 QR 전이에요. 봉사자에게 이슈 메모가 공개됐어요. 정확한 주소는 아래 채팅으로 알려 주세요.</p>`,
    ()=>`<div class="k">활동 중</div><p>시작 QR ${r.tm.split('~')[0]} 기록 · 끝나면 봉사자가 일지를 써요</p>`,
    ()=>`<div class="k">다음 할 일: 일지 확인하고 평가하기</div><p><b style="font-weight:600">${v.n} 님이 쓴 일지</b><br>${r.log||''}</p><div class="note">${mt(`영수증 사진 1장`,`QR 10:01 ~ 11:03 (1시간 2분)`)}</div>
     <div class="rowx"><div class="stars" role="group" aria-label="별점 (비공개)">${[1,2,3,4,5].map(i=>`<button type="button" class="${i<=stars?'on':''}" aria-label="${i}점" onclick="setF('ostars_${r.id}',${i===stars?0:i})">★</button>`).join('')}</div><span class="note">${stars?stars+'점. ':'별점을 눌러 주세요. '}평가는 비공개예요</span></div>
     ${mch('good_'+r.id,['시간 약속을 잘 지켜요','친절해요','꼼꼼해요'],[])}<div class="btns"><button class="btn primary" type="button" onclick="orate('${r.id}')">일지 확인했어요</button></div>`,
-   ()=>r.what==='대신 거절'?`<div class="k">대신 거절했어요</div><p>봉사자에게 알림이 갔어요.</p>`:`<div class="k">완료</div><p>QR 10:01 ~ 11:03 · ${v.n} 님 1시간 적립</p><div class="btns">${dg?`<span class="tag vol">${e.n} 님의 단골</span>`:`<button class="btn sm" type="button" onclick="regDg('${e.id}','${r.v}')">${v.n} 님을 단골로 등록</button>`}</div>`][r.st];
-  return `<section class="panel lead" data-dg9-title="요청 상세"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="margin:0"><div><h3>${e.n} 님 ${r.cat}</h3><div class="note tn">${mt(`${r.d} ${r.tm}`,`${e.dong}`,`담당 ${e.mgr}`)}</div></div><a class="link" href="#care/${e.id}">관리 대상 정보</a></div>${steps(STN,r.st)}<div class="nextbox" style="margin-top:16px">${next?next():''}</div></div></section>
+   ()=>r.what==='요청 취소'?`<div class="k">요청을 취소했어요</div><p>봉사자와 지원자에게 취소 알림이 갔어요.${r.why?' 사유: '+esc(r.why):''}</p>`:r.what==='대신 거절'?`<div class="k">대신 거절했어요</div><p>봉사자에게 알림이 갔어요.</p>`:`<div class="k">완료</div><p>QR 10:01 ~ 11:03 · ${v.n} 님 1시간 적립</p><div class="btns">${dg?`<span class="tag vol">${e.n} 님의 단골</span>`:`<button class="btn sm" type="button" onclick="regDg('${e.id}','${r.v}')">${v.n} 님을 단골로 등록</button>`}</div>`][r.st];
+  return `<section class="panel lead" data-dg9-title="요청 상세"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="margin:0"><div><h3>${e.n} 님 ${r.cat}${r.title?` <span class="muted" style="font-weight:500">· ${esc(r.title)}</span>`:''}</h3><div class="note tn">${mt(`${r.d} ${r.tm}`,`${e.dong}`,`담당 ${e.mgr}`)}</div></div><a class="link" href="#care/${e.id}">관리 대상 정보</a></div>${steps(STN,r.st)}<div class="nextbox" style="margin-top:16px">${next?next():''}</div></div></section>
   ${v?`<section class="panel" data-dg9-title="봉사자 · 이슈 메모"><div class="split2"><div><h3 class="sec-t">봉사자</h3>${pcard(r.v)}</div><div><h3 class="sec-t">이슈 메모 <span class="sub">최종 수락된 봉사자에게만 보여요</span></h3><p style="margin:0;color:var(--ink-2)">${r.issue||'<span class="muted">남긴 메모가 없어요.</span>'}</p></div></div></section>`:''}
   ${chatPanel(r)}`;
 }
+/* 수정 1회차: 남의 담당 대상 요청은 보기만. 같은 화면을 그린 뒤 조작 칸을 막는다 */
+function reqDetailRO(r){const e=EL(r.e);const box=document.createElement('div');const mg=e.mgr;box.innerHTML=reqDetail(r,true);
+  box.querySelectorAll('.nextbox button,.nextbox input,.nextbox [role=switch],.apl12 button,.chat12-f input,.chat12-f button').forEach(b=>{if(/전화/.test(b.textContent))return;b.setAttribute('disabled','');b.setAttribute('aria-disabled','true');b.removeAttribute('onclick');b.title='담당 '+ME+'이 아니에요 · 보기만 가능'});
+  box.querySelectorAll('.chat12-f').forEach(f=>f.setAttribute('onsubmit','event.preventDefault()'));
+  const note=`<div class="ro12" role="note">${icon('lock')}<span class="sp"><b>담당 ${ME}이 아니에요 · 보기만 가능</b><span class="muted small">이 분 담당은 ${mg} 님이에요. 지원자 정하기·채팅·수락은 담당자가 해요. 안부 기록은 남길 수 있어요.</span></span>${chkBtn(e.id)}</div>`;
+  const nb=box.querySelector('.nextbox');if(nb)nb.insertAdjacentHTML('beforebegin',note);
+  box.querySelectorAll('.chat12-note .hint').forEach(x=>x.innerHTML=`<b>보기만 가능해요.</b> 채팅은 담당 ${mg} 님이 해요.`);
+  return box.innerHTML}
+/* 수정 1회차: 최종 수락 전 거절·취소 (위험 동작 → 확인 창, 초점은 '취소') */
+const REASONS=['일정이 맞지 않아요','관리 대상(보호자)이 원하지 않아요','다른 방법으로 해결했어요','기타'];
+function askDecline(id){const r=REQS.find(x=>x.id===id),e=EL(r.e),v=P[r.v];
+  confirmBox({title:`${v.n} 님을 대신 거절할까요?`,text:`${e.n} 님 ${r.cat} · ${r.d} ${r.tm}. ${v.n} 님께 거절 알림이 가고, 요청은 '요청 대기'로 돌아가 다른 봉사자를 다시 찾아요.`,ok:'대신 거절하기',danger:true,extra:`<div class="field"><label for="decr">사유 <span class="note">봉사자에게는 "일정이 맞지 않아요"처럼 짧게 보여요</span></label><select class="sel" id="decr">${REASONS.map(x=>`<option>${x}</option>`).join('')}</select></div>`,
+   onOk:()=>{const why=$('#decr').value;const old=r.v;r.apps=(r.apps||[]).filter(a=>a.p!==old);r.v=null;r.st=0;r.closed=null;r.reopen=`${P[old].n} 님을 거절했어요(${why}).`;r.what=r.apps.length?`지원자 ${r.apps.length}명`:'다시 모집 중';S.doneT=(S.doneT||0)+1;render();toast(`${P[old].n} 님께 거절 알림을 보냈어요. 다른 봉사자를 다시 찾아요`)}})}
+function askCancel(id){const r=REQS.find(x=>x.id===id),e=EL(r.e);
+  confirmBox({title:`${e.n} 님 ${r.cat} 요청을 취소할까요?`,text:`${r.d} ${r.tm}. ${r.v?P[r.v].n+' 님께':'지원자에게'} 취소 알림이 가요. 취소한 요청은 되살릴 수 없어요.`,ok:'요청 취소하기',danger:true,extra:`<div class="field"><label for="canr">사유</label><select class="sel" id="canr">${REASONS.map(x=>`<option>${x}</option>`).join('')}</select></div>`,
+   onOk:()=>{r.why=$('#canr').value;r.st=5;r.what='요청 취소';S.doneT=(S.doneT||0)+1;render();toast('요청을 취소했어요. 알림을 보냈어요')}})}
 /* 지원자 목록 (2): 승인/거절 대신 채팅 → 한 분 정하기 */
-function appList(r){const cur=F('chat_'+r.id,r.apps[0].p);return `<div class="apl12" role="list" aria-label="지원자 ${r.apps.length}명">${r.apps.map(a=>{const p=P[a.p],n=chatOf(r,a.p).length;return `<div class="apl12-r ${cur===a.p?'on':''}" role="listitem">${av(p.n)}<div class="sp"><div class="apl12-n"><b>${p.n}</b> <span class="muted small">${mt(p.ag,p.dong,'평점 '+p.rate,'함께한 활동 '+p.cnt+'회')}</span>${p.dg?' <span class="tag vol">단골</span>':''}</div><div class="muted small ellip" title="${esc(a.msg)}">"${a.msg}" · ${a.at}</div></div><div class="btns nw"><button class="btn sm" type="button" onclick="openChat('${r.id}','${a.p}')">${icon('talk')}채팅하기${n?` <span class="tn muted">${n}</span>`:''}</button><button class="btn sm line" type="button" onclick="pickApp('${r.id}','${a.p}')">이 분으로 정하기</button></div></div>`}).join('')}</div>`}
+function appList(r){if(!(r.apps||[]).length)return '';const cur=F('chat_'+r.id,r.apps[0].p);return `<div class="apl12" role="list" aria-label="지원자 ${r.apps.length}명">${r.apps.map(a=>{const p=P[a.p],n=chatOf(r,a.p).length;return `<div class="apl12-r ${cur===a.p?'on':''}" role="listitem">${av(p.n)}<div class="sp"><div class="apl12-n"><b>${p.n}</b> <span class="muted small">${mt(p.ag,p.dong,'평점 '+p.rate,'함께한 활동 '+p.cnt+'회')}</span>${p.dg?' <span class="tag vol">단골</span>':''}</div><div class="muted small ellip" title="${esc(a.msg)}">"${a.msg}" · ${a.at}</div></div><div class="btns nw"><button class="btn sm" type="button" onclick="openChat('${r.id}','${a.p}')">${icon('talk')}채팅하기${n?` <span class="tn muted">${n}</span>`:''}</button><button class="btn sm line" type="button" onclick="pickApp('${r.id}','${a.p}')">이 분으로 정하기</button></div></div>`}).join('')}</div>`}
 const chatOf=(r,p)=>CHATS[r.id+':'+p]||(CHATS[r.id+':'+p]=r.st>0&&p===r.v?[['them',`안녕하세요, ${r.d.split(' ')[0]}에 뵐게요!`,'어제'],['me','감사합니다. 1층 로비에서 기다리실 거예요.','어제']]:[]);
 function chatPanel(r){const e=EL(r.e),ps=r.v?[r.v]:(r.apps||[]).map(a=>a.p);if(!ps.length)return '';const cur=r.v||F('chat_'+r.id,ps[0]),th=chatOf(r,cur),done=r.st===5;
   return `<section class="panel chat12" id="chat-${r.id}"><div class="panel-h tight"><h2>채팅</h2><span class="sub">${r.v?`${P[cur].n} 님과`:`지원자 ${ps.length}명과 따로따로`}</span></div>
@@ -4384,7 +4412,7 @@ function appPage(p){
   if(L.indexOf(a)>=6)S.more.al=true;
   return `<div class="cols c-side"><section class="panel" style="align-self:start"><div class="panel-b" style="padding-bottom:12px;display:grid;gap:10px"><div class="seg" role="group">${Object.keys(AGRP).map(g=>`<button type="button" class="${t===g?'on':''}" aria-pressed="${t===g}" onclick="S.f.aq='${g}';go('req','apps')">${g} <span class="tn" style="opacity:.7;font-weight:500">${APPS.filter(x=>AGRP[g].includes(x.st)).length}</span></button>`).join('')}</div>
       <select class="sel" aria-label="공고 종류" onchange="S.f.ak=this.value;go('req','apps')">${['전체','봉사자 모집','단체 봉사','해 드려요'].map(k=>`<option ${fk===k?'selected':''}>${k}</option>`).join('')}</select></div>
-    <div style="border-top:1px solid var(--rule-2)">${lim('al',L,6).map(x=>`<button type="button" class="lrow ${a&&x.id===a.id?'on':''}" onclick="go('req','${x.id}')"><span class="sp"><span class="t">${P[x.who].n}${x.n>1?` 외 ${x.n-1}명`:''} ${x.kind==='해 드려요'?'신청':'참여 신청'}</span><span class="d">${mt(x.kind,x.post)}</span><span class="d">${mt(x.d,x.at+' 신청')}</span></span></button>`).join('')||'<div class="empty line">없어요.</div>'}</div>${moreBtn('al',L.length,6)}</section>
+    <div style="border-top:1px solid var(--rule-2)">${lim('al',L,6).map(x=>`<button type="button" class="lrow ${a&&x.id===a.id?'on':''}" onclick="go('req','${x.id}')"><span class="sp"><span class="t">${P[x.who].n}${x.n>1?` 외 ${x.n-1}명`:''} ${x.kind==='해 드려요'?'신청':'참여 신청'}</span><span class="d">${mt(x.kind,x.post)}</span><span class="d">${mt(x.d,x.at+' 신청')}</span></span></button>`).join('')||`<div class="empty line">${fk==='전체'?`'${t}' 신청이 없어요.`:`'${fk}' 공고의 '${t}' 신청이 없어요.`} ${fk!=='전체'?`<button class="link" type="button" onclick="S.f.ak='전체';go('req','apps')">필터 풀기</button>`:''}</div>`}</div>${moreBtn('al',L.length,6)}</section>
     <div class="stackv">${a?appDetail(a):'<section class="panel"><div class="empty line">신청을 골라 주세요.</div></section>'}</div></div>`.replace('<section class="panel" style="align-self:start">','<section class="panel" data-dg9-title="신청 목록" style="align-self:start">');
 }
 function appDetail(a){
@@ -4414,24 +4442,34 @@ function vNewReq(p){
   const stepbar=`<div class="stepper" style="margin-bottom:16px"><button type="button" class="${stg===1?'done':'on'}" onclick="setF('nrs',0)"><i>1</i>전화 내용</button><button type="button" class="${stg===1?'on':''}" ${stg===1?'':'disabled'}><i>2</i>공고 확인하고 올리기</button></div>`;
   const s0=`${nrPick(E)}
     <div class="field"><label for="nrt">전화로 들은 내용</label><textarea id="nrt" style="min-height:140px" oninput="S.f.nrtxt=this.value">${esc(F('nrtxt',NRTXT))}</textarea></div>
-    ${stg==='load'?`<div class="rowx muted"><span class="dots"><i></i><i></i><i></i></span>전화 내용을 정리하고 있어요</div>`:`<div class="btns" style="justify-content:flex-end"><button class="btn" type="button" onclick="history.back()">취소</button><button class="btn primary" type="button" onclick="nrRun()">${icon('spark')}AI로 공고 정리</button></div>`}`;
+    ${stg==='load'?`<div class="rowx muted"><span class="dots"><i></i><i></i><i></i></span>전화 내용을 정리하고 있어요</div>`:`<div class="btns" style="justify-content:flex-end"><button class="btn" type="button" onclick="go('req')">취소</button><button class="btn primary" type="button" onclick="nrRun()">${icon('spark')}AI로 공고 정리</button></div>`}`;
   const s1=`${insight('<p><strong>이렇게 정리했어요.</strong> 틀린 곳은 고쳐서 올려 주세요. 올릴지는 담당자님이 정해요.</p>','전화 내용에서 찾은 정보: 화요일, 오후 2시, 정형외과, 약국')}
-    <div style="height:16px"></div><div class="field2">${fld('카테고리',inp('','동행'))}${fld('날짜',inp('','11/17 (화)'))}</div><div class="field2">${fld('시간',inp('','13:40 ~ 16:00'))}${fld('동네',inp('',E.dong+' → 서울정형외과, 약국'),'정확한 주소는 채팅으로')}</div>
-    ${fld('내용',ta('','정형외과 진료(14:00 예약)에 같이 가 주실 분을 찾아요. 진료 후 약국에 들러 처방약을 받아 오시면 돼요.','sm'))}${nrRecip(E)}${fld('이슈 메모',ta('',E.caution,'sm'),'최종 수락된 봉사자에게만 보여요')}
-    <div class="btns" style="justify-content:flex-end;margin-top:16px"><button class="btn" type="button" onclick="setF('nrs',0)">전화 내용 고치기</button><button class="btn primary" type="button" onclick="S.f.nrs=0;toast('대신 요청을 공고로 올렸어요');go('req')">올리기</button></div>`;
+    <div style="height:16px"></div><div class="field2">${fld('카테고리',`<input type="text" id="nac" value="동행">`)}${fld('날짜',`<input type="text" id="nad" value="11/17 (화)">`)}</div><div class="field2">${fld('시간',`<input type="text" id="natm" value="13:40~16:00">`)}${fld('동네',inp('',E.dong+' → 서울정형외과, 약국'),'정확한 주소는 채팅으로')}</div>
+    ${fld('내용',`<textarea class="sm" id="nabd">정형외과 진료(14:00 예약)에 같이 가 주실 분을 찾아요. 진료 후 약국에 들러 처방약을 받아 오시면 돼요.</textarea>`)}${nrRecip(E)}${fld('이슈 메모',`<textarea class="sm" id="naim">${esc(E.caution)}</textarea>`,'최종 수락된 봉사자에게만 보여요')}
+    <div class="btns" style="justify-content:flex-end;margin-top:16px"><button class="btn" type="button" onclick="setF('nrs',0)">전화 내용 고치기</button><button class="btn primary" type="button" onclick="postReqAI()">올리기</button></div>`;
   const d0=`${nrPick(E)}
-    <div class="field"><label for="nrc">카테고리</label><div class="rowx nw"><select class="sel sp" id="nrc">${CATS.map(c=>`<option ${c.k===E.needs[0]?'selected':''}>${c.k}</option>`).join('')}</select><button class="btn sm" type="button" style="height:42px" onclick="askCat()">카테고리 건의</button></div></div>
+    <div class="field"><label for="nrc">카테고리</label><div class="rowx nw"><select class="sel sp" id="nrc" onchange="S.f['nrc_${E.id}']=this.value"><option value="">카테고리 고르기</option>${CATS.map(c=>`<option ${c.k===F('nrc_'+E.id,E.needs[0])?'selected':''}>${c.k}</option>`).join('')}</select><button class="btn sm" type="button" style="height:42px" onclick="askCat()">카테고리 건의</button></div></div>
     ${fld('제목',`<input type="text" id="nrti" placeholder="예: 정형외과 진료에 같이 가 주실 분" value="${esc(F('nrti_'+E.id,''))}" oninput="S.f['nrti_${E.id}']=this.value">`)}
     ${fld('내용',`<textarea class="sm" id="nrbd" placeholder="어떤 도움이 필요한지, 만나는 곳과 끝나는 때를 적어 주세요" oninput="S.f['nrbd_${E.id}']=this.value">${esc(F('nrbd_'+E.id,''))}</textarea>`)}
-    <div class="field2">${fld('날짜',inp('예: 11/17 (화)',''))}${fld('시간',inp('예: 14:00~16:00',''))}</div>
+    <div class="field2">${fld('날짜',`<input type="text" id="nrd" placeholder="예: 11/17 (화)" value="${esc(F('nrd_'+E.id,''))}" oninput="S.f['nrd_${E.id}']=this.value">`)}${fld('시간',`<input type="text" id="nrtm" placeholder="예: 14:00~16:00" value="${esc(F('nrtm_'+E.id,''))}" oninput="S.f['nrtm_${E.id}']=this.value">`)}</div>
     ${fld('동네',inp('',E.dong),'정확한 주소는 최종 수락 뒤 채팅으로 알려요')}
-    ${nrRecip(E)}${fld('이슈 메모',ta('',E.caution,'sm'),'최종 수락된 봉사자에게만 보여요')}
-    <div class="btns" style="justify-content:flex-end;margin-top:16px"><button class="btn" type="button" onclick="history.back()">취소</button><button class="btn primary" type="button" onclick="postReq()">공고 올리기</button></div>`;
+    ${nrRecip(E)}${fld('이슈 메모',`<textarea class="sm" id="nrim">${esc(E.caution)}</textarea>`,'최종 수락된 봉사자에게만 보여요')}
+    <div class="btns" style="justify-content:flex-end;margin-top:16px"><button class="btn" type="button" onclick="go('req')">취소</button><button class="btn primary" type="button" onclick="postReq()">공고 올리기</button></div>`;
   return head('newreq',p)+`<div class="formwide" style="margin:0"><section class="panel"><div class="panel-b" style="padding-top:20px"><div class="rowx nrh12">${modeSeg}<span class="note hint" style="margin:0">${mode==='ai'?'전화 내용을 적으면 AI가 공고 초안으로 바꿔요':'AI 없이 칸을 직접 채워요'}</span></div>${warn}${mode==='ai'?stepbar+(stg===1?s1:s0):d0}</div></section>
     ${stg===1&&mode==='ai'?'':`<section class="panel"><div class="panel-h"><h2>${E.n} 님의 단골</h2></div><div class="panel-b"><p class="muted small" style="margin:0 0 10px">공고 없이 단골에게 바로 요청할 수도 있어요.</p>${dgs.length?dgs.map(n=>`<div class="rowx" style="padding:6px 0;flex-wrap:nowrap">${av(n,'s')}<b class="sp" style="font-weight:600">${n}</b><button class="btn sm" type="button" onclick="askDirect('${n}','${E.id}')">바로 요청</button></div>`).join(''):emptyArt('chairs','아직 단골이 없어요. 받은 도움 기록이나 끝난 요청에서 "단골로 등록"을 누르면 생겨요.')}</div></section>`}${mode==='ai'&&stg!==1?`<div class="artcard wide">${ART.strip}<ol class="how"><li><b>전화 내용</b>들은 대로 적어요</li><li><b>AI 정리</b>공고 초안으로 바꿔 줘요</li><li><b>확인하고 올리기</b>고칠 곳은 고쳐서 담당자가 올려요</li></ol></div>`:''}</div>`;
 }
 function nrRun(){S.f.nrs='load';render();setTimeout(()=>{if(S.f.nrs==='load'){S.f.nrs=1;render()}},900)}
-function postReq(){const t=$('#nrti');if(t&&!t.value.trim()){t.classList.add('bad');t.focus();toast('제목을 적어 주세요');return}toast('대신 요청을 공고로 올렸어요');go('req')}
+/* 수정 1회차: 새 요청을 REQS에 넣고 그 상세로 간다 (요청 대기 · 지원자 0명) */
+function addReq(o){const n=REQS.reduce((m,r)=>Math.max(m,+r.id.slice(1)||0),0)+1;const r=Object.assign({id:'r'+n,v:null,st:0,what:'지원자 0명',apps:[]},o);REQS.unshift(r);return r}
+function postReq(){const v=id=>(($('#'+id)||{}).value||'').trim();const d=v('nrd'),nd=normDate(d);
+  const ok=vRun([['nrc',v('nrc')?'':'카테고리를 골라 주세요'],['nrti',v('nrti')?(v('nrti').length>40?'제목은 40자까지 적어 주세요':''):'제목을 적어 주세요'],['nrbd',v('nrbd')?(v('nrbd').length<10?'어떤 도움인지 10자 이상 적어 주세요':''):'내용을 적어 주세요'],['nrd',!d?'날짜를 적어 주세요':!nd?'11/17처럼 월/일로 적어 주세요':''],['nrtm',timeErr(v('nrtm'))]]);
+  if(!ok)return;const E=EL(($('#nre')||{}).value)||EL('e1');const m=v('nrtm').match(TIME_RE);
+  const r=addReq({e:E.id,cat:v('nrc'),d:nd,tm:`${m[1].padStart(2,'0')}:${m[2]}~${m[3].padStart(2,'0')}:${m[4]}`,issue:v('nrim'),title:v('nrti'),body:v('nrbd')});
+  ['nrti_','nrbd_','nrd_','nrtm_','nrc_'].forEach(k=>delete S.f[k+E.id]);toast('대신 요청을 공고로 올렸어요 · 요청 대기');go('req',r.id)}
+function postReqAI(){const v=id=>(($('#'+id)||{}).value||'').trim();const d=v('nac'),nd=normDate(v('nad'));
+  const ok=vRun([['nac',d?(CATS.some(c=>c.k===d)?'':'카테고리는 '+CATS.map(c=>c.k).join(', ')+' 중에서 적어 주세요'):'카테고리를 적어 주세요'],['nad',!v('nad')?'날짜를 적어 주세요':!nd?'11/17처럼 월/일로 적어 주세요':''],['natm',timeErr(v('natm'))],['nabd',v('nabd')?'':'내용을 적어 주세요']]);
+  if(!ok)return;const E=EL(($('#nre')||{}).value)||EL('e1');const m=v('natm').match(TIME_RE);S.f.nrs=0;
+  const r=addReq({e:E.id,cat:d,d:nd,tm:`${m[1].padStart(2,'0')}:${m[2]}~${m[3].padStart(2,'0')}:${m[4]}`,issue:v('naim'),title:'',body:v('nabd')});toast('대신 요청을 공고로 올렸어요 · 요청 대기');go('req',r.id)}
 function askCat(){confirmBox({title:'카테고리를 건의할까요?',text:'맞는 카테고리가 없을 때 운영자에게 건의해요. 운영자가 보고 새 카테고리로 넣을지 정해요.',ok:'건의 보내기',extra:`<div class="field"><label for="catq">원하는 카테고리</label><input id="catq" type="text" placeholder="예: 병원 약 대신 받아 오기"></div>`,onOk:()=>{const v=$('#catq').value.trim();if(!v){$('#dlgerr').textContent='카테고리 이름을 적어 주세요.';$('#catq').classList.add('bad');return false}toast(`"${v}" 카테고리 건의를 보냈어요`)}})}
 
 /* ---------- O-POST-04 도움 찾기 ---------- */
@@ -4498,16 +4536,16 @@ function vPosts(){
   const t=F('opk','전체'),ost=F('ost','전체'),L=OPOSTS.filter(p=>(t==='전체'||p.kind===t)&&(ost==='전체'||(ost==='모집 중'&&p.st!=='마감')||(ost==='신청 있음'&&p.app>0)||(ost==='새 신청'&&APPS.some(a=>a.st===0&&a.post===p.t)))).sort((a,b)=>(a.st==='마감')-(b.st==='마감'));
   return head('posts')+srow([['posts','올린 공고',OPOSTS.length,'건',`봉사 ${OPOSTS.filter(o=>o.kind!=='해 드려요').length} · 해 드려요 ${OPOSTS.filter(o=>o.kind==='해 드려요').length}`],['sched','모집·신청 받는 중',OPOSTS.filter(o=>o.st!=='마감').length,'건',`마감 ${OPOSTS.filter(o=>o.st==='마감').length}건`],['care','신청',OPOSTS.reduce((a,o)=>a+o.app,0),'명','정원 '+OPOSTS.reduce((a,o)=>a+o.need,0)+'명'],['req','새 신청',newApps().length,'건','확인 전']])+`<div class="toolbar"><div class="tabs" role="tablist">${['전체','봉사자 모집','단체 봉사','해 드려요'].map(x=>`<button type="button" role="tab" aria-selected="${t===x}" class="${t===x?'on':''}" onclick="setF('opk','${x}')">${x}<span class="cnt">${x==='전체'?OPOSTS.length:OPOSTS.filter(p=>p.kind===x).length}</span></button>`).join('')}</div>
       <div class="filters"><button class="btn sm" type="button" onclick="S.f.ak='전체';go('req','apps')">신청 ${newApps().length}건 보기</button><button class="btn sm primary" type="button" onclick="openLayer('postKind')">${icon('plus')}공고 올리기</button></div></div>
-  <section class="panel"><div class="tw"><table><thead><tr><th>종류</th><th>공고</th><th>일시</th><th style="width:186px">신청</th><th>상태</th><th></th></tr></thead><tbody>${lim('op',L,6).map(p=>`<tr class="${p.st==='마감'?'off':''}"><td>${kindTag(p.kind)}</td><td style="max-width:340px"><b style="font-weight:600">${p.t}</b><span class="muted small clamp2" title="${esc(p.txt)}">${p.cat}: ${p.txt}</span></td><td class="tn" style="white-space:nowrap">${p.d}<div class="muted small">${p.tm}</div></td><td><div class="appc" title="신청 ${p.app}명 / 정원 ${p.need}명"><div class="pbar" role="img" aria-label="신청 ${p.app}명, 정원 ${p.need}명"><i style="width:${Math.min(100,p.app/p.need*100)}%"></i></div><span class="tn small muted">${p.app} / ${p.need}명</span></div></td><td style="white-space:nowrap"><span class="status ${p.st==='마감'?'':'ok'}">${p.st}</span>${p.app>p.need?`<div style="margin-top:6px"><span class="tag warn over10">정원 ${p.app-p.need}명 초과</span></div>`:''}</td><td class="act"><div class="btns" style="justify-content:flex-end"><button class="btn sm" type="button" onclick="S.f.ak='${p.kind}';S.f.aq='처리할 일';go('req','apps')">신청 보기</button>${p.st==='마감'?'':`<details class="menu r"><summary class="iconbtn sm" aria-label="${p.t} 더 보기" title="더 보기">${icon('dots')}</summary><div class="menu-b"><button type="button" onclick="closePost('${p.id}')">마감하기</button></div></details>`}</div></td></tr>`).join('')}</tbody></table></div>${moreBtn('op',L.length,6)}
+  <section class="panel"><div class="tw"><table><thead><tr><th>종류</th><th>공고</th><th>일시</th><th style="width:186px">신청</th><th>상태</th><th></th></tr></thead><tbody>${L.length?'':`<tr><td colspan="6"><div class="empty line">고른 조건에 맞는 공고가 없어요. <button class="link" type="button" onclick="S.f.ost='전체';S.f.opk='전체';render()">필터 풀기</button></div></td></tr>`}${lim('op',L,6).map(p=>`<tr class="${p.st==='마감'?'off':''}"><td>${kindTag(p.kind)}</td><td style="max-width:340px"><b style="font-weight:600">${p.t}</b><span class="muted small clamp2" title="${esc(p.txt)}">${p.cat}: ${p.txt}</span></td><td class="tn" style="white-space:nowrap">${p.d}<div class="muted small">${p.tm}</div></td><td><div class="appc" title="신청 ${p.app}명 / 정원 ${p.need}명"><div class="pbar" role="img" aria-label="신청 ${p.app}명, 정원 ${p.need}명"><i style="width:${Math.min(100,p.app/p.need*100)}%"></i></div><span class="tn small muted">${p.app} / ${p.need}명</span></div></td><td style="white-space:nowrap"><span class="status ${p.st==='마감'?'':'ok'}">${p.st}</span>${p.app>p.need?`<div style="margin-top:6px"><span class="tag warn over10">정원 ${p.app-p.need}명 초과</span></div>`:''}</td><td class="act"><div class="btns" style="justify-content:flex-end"><button class="btn sm" type="button" onclick="S.f.ak='${p.kind}';S.f.aq='처리할 일';go('req','apps')">신청 보기</button>${p.st==='마감'?'':`<details class="menu r"><summary class="iconbtn sm" aria-label="${p.t} 더 보기" title="더 보기">${icon('dots')}</summary><div class="menu-b"><button type="button" onclick="closePost('${p.id}')">마감하기</button></div></details>`}</div></td></tr>`).join('')}</tbody></table></div>${moreBtn('op',L.length,6)}
     <div class="panel-f line-note">특정 관리 대상 분을 위한 요청은 <a class="link" href="#newreq">요청 관리 › 대신 요청</a>에서 올려요. 여기는 기관 이름으로 동네 전체에 올리는 공고예요.</div></section>`;
 }
 function closePost(id){const p=OPOSTS.find(x=>x.id===id);confirmBox({title:'이 공고를 마감할까요?',text:`"${p.t}" 공고에 더는 신청을 받지 않아요.`,ok:'마감하기',onOk:()=>{p.st='마감';render();toast('공고를 마감했어요')}})}
 
 /* ---------- O-POST-06 기관 행사 ---------- */
-const EV_STATS=[[23,4],[11,2]]; /* 관심 표시 · 문의 (행사 상세 서랍과 같은 값) */
+/* 관심 표시·문의는 행사마다 save·ask로 둔다 (순번으로 붙이지 않음) */
 function vEvents(){
   return head('events')+`<div class="toolbar"><span class="line-note" style="font-size:calc(15px*var(--fz))">시간이 적립·차감되지 않고, 근처 사용자 홈의 "동네 기관 소식"에 보여요.</span><div class="filters"><button class="btn sm primary" type="button" onclick="openLayer('eventForm')">${icon('plus')}행사 올리기</button></div></div>
-  <section class="panel evwrap"><div class="evs">${EVENTS.map((e,i)=>{const m=e.d.match(/(\d+)\/(\d+) \((.)\) (.*)/)||[0,'','','',e.d];return `<article class="ev"><div class="ev-d"><small>${+m[1]}월</small><b class="num">${+m[2]}</b><small>${m[3]}요일</small></div><div class="ev-b"><span class="tag">${e.kind}</span><h3>${esc(e.t)}</h3><p class="muted small tn">${m[4]} · 반경 1km 동네 기관 소식${e.url?` · <a class="link ext12" href="${esc(e.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">사이트로 이동 ↗</a>`:''}</p><div class="rowx nw"><span class="status ok">노출 중</span><span class="sp"></span><span class="small tn muted evst10">조회 ${e.view} · 관심 ${(EV_STATS[i]||[0,0])[0]} · 문의 ${(EV_STATS[i]||[0,0])[1]}</span></div></div></article>`}).join('')}</div><div class="evart">${ART.fest}</div>
+  <section class="panel evwrap"><div class="evs">${EVENTS.map((e,i)=>{const m=e.d.match(/(\d+)\/(\d+) \((.)\)\s*(.*)/)||[0,'','','',e.d];return `<article class="ev" data-ev="${e.id}"><div class="ev-d"><small>${+m[1]}월</small><b class="num">${+m[2]}</b><small>${m[3]}요일</small></div><div class="ev-b"><span class="tag">${e.kind}</span><h3>${esc(e.t)}</h3><p class="muted small tn">${m[4]} · 반경 1km 동네 기관 소식${e.url?` · <a class="link ext12" href="${esc(e.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">사이트로 이동 ↗</a>`:''}</p><div class="rowx nw"><span class="status ok">노출 중</span><span class="sp"></span><span class="small tn muted evst10">조회 ${e.view} · 관심 ${e.save||0} · 문의 ${e.ask||0}</span></div></div></article>`}).join('')}</div><div class="evart">${ART.fest}</div>
     <div class="panel-f line-note">봉사자가 필요한 일은 <button class="link" type="button" onclick="S.after='postKind';go('posts')">기관 공고</button>로 올려요.</div></section>`;
 }
 
@@ -4578,18 +4616,19 @@ const LAYERS={
  /* O-CARE-03 관리 대상 등록 · 수정 */
  careForm:p=>{const e=EL(p);const names=['기본 정보 · 연락처',e?'돌봄 정보':'돌봄 · 위임 동의'];
   return drawer(e?e.n+' 님 정보 수정':'관리 대상 등록',`${stepper(names)}
-   <div class="stepsec">${fld('이름',inp('',e?e.n:''),'봉사자에게는 "이○례"처럼 가려서 보여요')}<div class="rowf"><div class="field" style="width:100px;flex:none"><label>나이</label>${inp('',e?e.age:'')}</div><div class="field" style="width:110px;flex:none"><label>성별</label>${fch('esex',['여','남'],e?e.sex:'여')}</div><div class="field sp"><label>동</label>${fch('edong',['행복동','희망동','은빛동'],e?e.dong:'행복동')}</div></div>${fld('가구 형태',fch('ehh',['혼자','배우자와','자녀와','기타'],e?e.home:'혼자'))}${fld('담당 담당자',fch('emgr',STAFF.map(x=>x[0]),e?e.mgr:ME),'담당을 바꾸면 새 담당자에게 알림이 가요')}<h4 class="sec-t" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule-2)">연락처</h4>${fld('본인 전화번호',inp('010-0000-0000',e?e.tel:''))}
+   <div class="stepsec">${fld('이름 <span class="req12">필수</span>',`<input type="text" id="cfn" value="${esc(e?e.n:'')}" autocomplete="off"><p class="hint only12" style="margin:6px 0 0">${icon('lock')}담당자만 볼 수 있어요.</p>`,'봉사자에게는 "이○례"처럼 가려서 보여요')}<div class="rowf"><div class="field" style="width:100px;flex:none"><label for="cfa">나이</label><input type="text" id="cfa" inputmode="numeric" value="${esc(e?e.age:'')}"></div><div class="field" style="width:110px;flex:none"><label for="cfs">성별</label><select class="sel" id="cfs">${['여','남'].map(o=>`<option ${(e?e.sex:'여')===o?'selected':''}>${o}</option>`).join('')}</select></div><div class="field sp"><label for="cfd">동 <span class="req12">필수</span></label><select class="sel" id="cfd"><option value="">동 고르기</option>${['행복동','희망동','은빛동'].map(o=>`<option ${e&&e.dong===o?'selected':''}>${o}</option>`).join('')}</select></div></div>${fld('가구 형태',`<select class="sel" id="cfh">${['혼자','배우자와','자녀와','기타'].map(o=>`<option ${(e?e.home:'혼자')===o?'selected':''}>${o}</option>`).join('')}</select>`)}${fld('담당 담당자',`<select class="sel" id="cfm">${STAFF.map(x=>`<option ${(e?e.mgr:ME)===x[0]?'selected':''}>${x[0]}</option>`).join('')}</select>`,'담당을 바꾸면 새 담당자에게 알림이 가요')}<h4 class="sec-t" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule-2)">연락처 <span class="req12">연락 방법 필수</span> <span class="sub">본인 전화나 가족 연락처 중 하나</span></h4>${fld('본인 전화번호',`<input type="text" id="cft" inputmode="tel" placeholder="010-0000-0000" value="${esc(e?e.tel:'')}">`)}
      ${fld('주소',`<div class="rowx" style="flex-wrap:nowrap"><input type="text" class="sp" placeholder="도로명 주소 검색" value="${e?esc(e.addr.split(',')[0]):''}"><button class="btn" type="button" style=" onclick="toast('주소 검색 창을 열어요 (시연)')">주소 검색</button></div><input type="text" style="margin-top:8px" placeholder="상세 주소 (동·호수, 엘리베이터 여부)" value="${e&&e.addr.includes(',')?esc(e.addr.split(',').slice(1).join(',').trim()):''}">`)}
      ${fld('가족 연락처',`<div id="famrows">${(e?e.fam:[['','','']]).map(famRow).join('')}</div><button class="btn sm" type="button" onclick="$('#famrows').insertAdjacentHTML('beforeend',famRow(['','','']));toast('가족 연락처 칸을 추가했어요')">${icon('plus')}가족 추가</button>`)}
      <div class="callout plain">${icon('lock')}<div>전화번호·주소·가족 연락처는 이 기관 담당자만 봐요. 봉사자에게는 최종 수락 뒤 방문 주소만 담당자가 채팅으로 알려요.</div></div></div>
-   <div class="stepsec">${fld('필요한 도움',mch('eneed_'+(p||'new'),CATS.map(c=>c.k),e?e.needs:[]))}${fld('방문 주의사항',ta('예: 귀가 어두우세요',e?e.caution:'','sm'))}
-     ${e?'':`<h4 class="sec-t" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule-2)">권한 위임 동의 <span class="sub">등록하면 권한 위임 목록에 올라가요</span></h4>${fld('동의 방법',fch('ehow',['서면 동의서 올리기','보호자 동의 (문자)','나중에 받기'],'서면 동의서 올리기'),'위임 전에는 대신 요청·수락을 할 수 없어요')}${fld('맡길 일',mch('escope',ALLSCOPE,['대신 공고','대신 수락','일지 확인','안부 확인']))}`}</div>`,
-   stepFoot('저장',"closeLayer();toast('저장했어요')",!!e),true)},
+   <div class="stepsec">${fld('필요한 도움',mch('eneed_'+(p||'new'),CATS.map(c=>c.k),e?e.needs:[]))}${fld('방문 주의사항',`<textarea class="sm" id="cfc2" placeholder="예: 귀가 어두우세요">${esc(e?e.caution:'')}</textarea>`)}
+     ${e?'':`<h4 class="sec-t" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule-2)">권한 위임 동의 <span class="sub">등록하면 권한 위임 목록에 올라가요</span></h4>${fld('동의 방법',fch('ehow',['서면 동의서 올리기','보호자 동의 (문자)','나중에 받기'],'서면 동의서 올리기'),'위임 전에는 대신 요청·수락을 할 수 없어요')}${fld('맡길 일',mch('escope',ALLSCOPE,['대신 공고','대신 수락','일지 확인','안부 확인']))}`}
+     <div class="vbox12 consent12"><label class="ck12" for="cfok"><input type="checkbox" id="cfok" ${e&&e.how!=='동의 전'?'checked':''}><span><b>본인·보호자 동의를 받았어요</b> <span class="req12">필수</span><span class="note" style="display:block">정보 등록과 연락처 보관에 대한 동의예요. 대신 요청·수락 위임은 따로 받아요.</span></span></label></div></div>`,
+   stepFoot(e?'저장':'등록하기',`saveCare(${e?`'${e.id}'`:''})`,!!e),true)},
  /* O-SCHED-02 빈칸 공고 한꺼번에 */
  bulk:()=>{const G=gapList(),off=F('bo',[]),n=G.filter(x=>!off.includes(x.id+x.k)).length,ed=F('bedit','');
-  return modal('빈칸 공고 한꺼번에 올리기',`<p class="rowx" style="margin-bottom:12px"><span class="ai-tag" style="margin:0">AI 초안</span>빈칸마다 공고 글을 미리 써 뒀어요. 읽어 보고 고친 뒤, 올릴 것만 고르세요.</p><div class="tw"><table class="bulkt"><thead><tr><th style="width:44px"></th><th>관리 대상</th><th>도움 · 일시</th><th>공고 글 (AI 초안)</th><th></th></tr></thead><tbody>
-   ${G.map(x=>{const e=EL(x.id),key=x.id+x.k,on=!off.includes(key),dr=bulkDraft(x),chg=S.f['bd_'+key]!==undefined||S.f['bi_'+key]!==undefined;return `<tr class="${ed===key?'edon':''}"><td><input type="checkbox" ${on?'checked':''} aria-label="${e.n} ${x.c.gap} 올리기" style="width:18px;height:18px;accent-color:var(--acc-ink)" onchange="bulkT('${key}')"></td><td style="white-space:nowrap"><b style="font-weight:600">${e.n}</b><div class="muted small">${e.dong}</div></td><td style="white-space:nowrap">${x.c.gap}<div class="muted small tn">${DAYS[Math.floor(x.k/2)].split(' ')[1]} (${DAYS[Math.floor(x.k/2)].split(' ')[0]}) ${x.k%2?'14:00~16:00':'10:00~12:00'}</div></td><td class="drc"><span>${esc(dr)}</span><span class="muted small" style="display:block;margin-top:2px">이슈 메모: ${esc(bulkIssue(x))}</span></td><td class="act">${chg?'<span class="tag" style="margin-right:6px">고침</span>':''}<button class="btn sm" type="button" aria-expanded="${ed===key}" onclick="S.f.bedit='${ed===key?'':key}';drawLayer()">${ed===key?'접기':'고치기'}</button></td></tr>
-     ${ed===key?`<tr class="edrow"><td></td><td colspan="4"><div class="field"><label for="bd${key}">공고 글</label><textarea id="bd${key}" class="sm" oninput="S.f['bd_${key}']=this.value">${esc(dr)}</textarea></div><div class="field"><label for="bi${key}">이슈 메모 <span class="note">최종 수락된 봉사자에게만 보여요</span></label><input id="bi${key}" type="text" value="${esc(bulkIssue(x))}" oninput="S.f['bi_${key}']=this.value"></div></td></tr>`:''}`}).join('')}</tbody></table></div>`,
+  return modal('빈칸 공고 한꺼번에 올리기',`<p class="rowx" style="margin-bottom:12px"><span class="ai-tag" style="margin:0">AI 초안</span>빈칸마다 공고 글을 미리 써 뒀어요. 읽어 보고 고친 뒤, 올릴 것만 고르세요.</p><div class="tw"><table class="bulkt"><thead><tr><th style="width:44px"></th><th>관리 대상</th><th>도움 · 일시</th><th>공고 글 (AI 초안 · 공개)</th><th>이슈 메모 (비공개)</th><th></th></tr></thead><tbody>
+   ${G.map(x=>{const e=EL(x.id),key=x.id+x.k,on=!off.includes(key),dr=bulkDraft(x),chg=S.f['bd_'+key]!==undefined||S.f['bi_'+key]!==undefined;return `<tr class="${ed===key?'edon':''}"><td><input type="checkbox" ${on?'checked':''} aria-label="${e.n} ${x.c.gap} 올리기" style="width:18px;height:18px;accent-color:var(--acc-ink)" onchange="bulkT('${key}')"></td><td style="white-space:nowrap"><b style="font-weight:600">${e.n}</b><div class="muted small">${e.dong}</div></td><td style="white-space:nowrap">${x.c.gap}<div class="muted small tn">${DAYS[Math.floor(x.k/2)].split(' ')[1]} (${DAYS[Math.floor(x.k/2)].split(' ')[0]}) ${gapTime(x)}</div></td><td class="drc"><span>${esc(dr)}</span></td><td class="bimemo12"><span class="muted small">${icon('lock')}${esc(bulkIssue(x))}</span><span class="note" style="display:block">최종 수락된 봉사자에게만 보여요</span></td><td class="act">${chg?'<span class="tag" style="margin-right:6px">고침</span>':''}<button class="btn sm" type="button" aria-expanded="${ed===key}" onclick="S.f.bedit='${ed===key?'':key}';drawLayer()">${ed===key?'접기':'고치기'}</button></td></tr>
+     ${ed===key?`<tr class="edrow"><td></td><td colspan="5"><div class="field"><label for="bd${key}">공고 글 <span class="note">공개돼요 · 건강·도구 정보는 이슈 메모에</span></label><textarea id="bd${key}" class="sm" oninput="S.f['bd_${key}']=this.value">${esc(dr)}</textarea></div><div class="field"><label for="bi${key}">이슈 메모 <span class="note">최종 수락된 봉사자에게만 보여요</span></label><input id="bi${key}" type="text" value="${esc(bulkIssue(x))}" oninput="S.f['bi_${key}']=this.value"></div></td></tr>`:''}`}).join('')}</tbody></table></div>`,
    `<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" ${n?'':'disabled'} onclick="bulkGo()">선택한 ${n}건 올리기</button>`)},
  /* O-POST-07 공고 종류 고르기 */
  postKind:()=>modal('어떤 공고를 올릴까요?',`<div class="kindpick">${Object.entries(OKIND).map(([k,v],i)=>`<button type="button" ${i===0?'data-focus':''} onclick="openLayer('postForm','${k}')">${kindTag(k)}<span><b>${v[0]}</b><small>${v[1]}</small><small>${v[2]}</small></span>${icon('go','go')}</button>`).join('')}</div>
@@ -4606,10 +4645,10 @@ const LAYERS={
    <div class="callout plain" style="margin-bottom:16px">${icon('clock')}<div>${v[1]}<br><b>${v[2]}</b></div></div>${form}`,
    `<button class="btn ai" type="button" style="margin-right:auto" onclick="toast('AI가 제목과 내용을 다듬었어요. 확인하고 올려 주세요')">${icon('spark')}AI로 문장 다듬기</button><button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="closeLayer();toast('공고를 올렸어요')">올리기</button>`,true)},
  /* 기관 행사 쓰기 (O-POST-06 안의 작성 폼) */
- eventForm:()=>drawer('새 기관 행사',`${fld('행사 종류',fch('ek',['교실','모임','행사','모집'],'행사'))}<div class="field"><label for="evt">제목</label><input id="evt" type="text" value="가족과 함께하는 음악회"></div><div class="field2"><div class="field"><label for="evd">날짜</label><input id="evd" type="text" value="11/25 (수)"></div><div class="field"><label for="evh">시간</label><input id="evh" type="text" value="15:00"></div></div>${fld('장소',inp('','행복요양원 1층'))}<div class="field"><label for="evu">외부 링크 <span class="note">신청·자세한 안내 페이지 (선택)</span></label><input id="evu" type="url" inputmode="url" placeholder="https://"></div>
-   <details class="opt"><summary>선택 항목 <span class="note">${mt(`대상`,`정원`,`포스터`,`노출 범위`)}</span></summary><div class="field2">${fld('대상',inp('','누구나'))}${fld('정원',inp('','40'))}</div>${fld('이미지',`<button type="button" class="drop" style="width:100%" onclick="toast('포스터 파일을 골라요 (시연)')">포스터 올리기</button>`)}${fld('노출 범위',fch('er',['1km','3km','구 전체'],'1km'))}</details>
+ eventForm:id=>{const E=evOf(id)||null,dm=E?(E.d.match(/^(\d+\/\d+ \(.\))\s*(.*)$/)||[0,E.d,'']):null;return drawer(E?'기관 행사 수정':'새 기관 행사',`${fld('행사 종류',fch('ek',['교실','모임','행사','모집'],E?E.kind:'행사'))}<div class="field"><label for="evt">제목 <span class="note">필수</span></label><input id="evt" type="text" placeholder="예: 가족과 함께하는 음악회" value="${esc(E?E.t:'')}"></div><div class="field2"><div class="field"><label for="evd">날짜 <span class="note">필수</span></label><input id="evd" type="text" placeholder="예: 11/25 (수)" value="${esc(E?dm[1]:'')}"></div><div class="field"><label for="evh">시간</label><input id="evh" type="text" placeholder="예: 15:00" value="${esc(E?dm[2]:'')}"></div></div>${fld('장소',`<input type="text" id="evp" placeholder="예: 행복요양원 1층" value="${esc(E?E.place||'':'')}">`)}<div class="field"><label for="evu">외부 링크 <span class="note">신청·자세한 안내 페이지 (선택)</span></label><input id="evu" type="url" inputmode="url" placeholder="https://" value="${esc(E?E.url||'':'')}"></div>
+   <details class="opt" ${E?'open':''}><summary>선택 항목 <span class="note">${mt(`대상`,`정원`,`포스터`,`노출 범위`)}</span></summary><div class="field2">${fld('대상',`<input type="text" id="evw" placeholder="누구나" value="${esc(E?E.who||'':'')}">`)}${fld('정원',inp('','40'))}</div>${fld('이미지',`<button type="button" class="drop" style="width:100%" onclick="toast('포스터 파일을 골라요 (시연)')">포스터 올리기</button>`)}${fld('노출 범위',fch('er',['1km','3km','구 전체'],'1km'))}</details>
    <p class="hint">기관 행사는 시간이 적립·차감되지 않아요. 근처 사용자 홈의 "동네 기관 소식"에 보여요.</p>`,
-   `<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="saveEvent()">올리기</button>`,true),
+   `<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="saveEvent(${E?`'${E.id}'`:''})">${E?'고친 내용 저장':'올리기'}</button>`,true)},
  /* O-DLG-03 새 위임 등록 */
  dlgNew:()=>{const how=F('dgh','서면 동의서 올리기')==='앱으로 동의 요청'?'서면 동의서 올리기':F('dgh','서면 동의서 올리기');
   return drawer('새 위임 등록',`<div><div class="field"><label for="dge">관리 대상</label><select class="sel" id="dge" onchange="S.f.dge=this.value">${ELDERS.map(x=>`<option value="${x.id}" ${F('dge',(ELDERS.find(y=>!canReq(y))||ELDERS[3]).id)===x.id?'selected':''}>${x.n} (${x.age}세 · ${x.dong})${canReq(x)?' · 위임 중':' · 위임 전'}</option>`).join('')}</select></div>
@@ -4627,6 +4666,16 @@ const LAYERS={
    ${fld('맡길 일',mch('dgsc',ALLSCOPE,['대신 수락','일지 확인','안부 확인']))}<p class="hint">저장하면 받는 담당자에게 알림이 가고, 보호자에게 "이 기간에는 다른 담당자가 연락드려요" 문자가 가요.</p>`,
    `<button class="btn" type="button" onclick="closeLayer()">취소</button><button class="btn primary" type="button" onclick="saveDeleg(${d?i:-1})">${d?'고친 내용 저장':'지정하기'}</button>`,true)}
 };
+/* 수정 1회차: 등록·수정 확인 뒤 저장 (빈 값이면 칸 아래 문장, 첫 오류 칸으로 초점, 성공 토스트 없음) */
+function saveCare(id){const e=EL(id),g=k=>(($('#'+k)||{}).value||'').trim();const famP=[...document.querySelectorAll('#famrows .rowx')].map(r=>[...r.querySelectorAll('input')].map(i=>i.value.trim()));const tel=g('cft'),hasFam=famP.some(f=>f[2]);
+  const PH=/^0\d{1,2}-?\d{3,4}-?\d{4}$/;const badFam=famP.find(f=>f[2]&&!PH.test(f[2]));
+  const errs=[['cfn',g('cfn')?'':'이름을 적어 주세요'],['cfa',g('cfa')&&!/^\d{2,3}$/.test(g('cfa'))?'나이는 숫자로 적어 주세요':''],['cfd',g('cfd')?'':'동을 골라 주세요'],['cft',!tel&&!hasFam?'본인 전화번호나 가족 연락처 중 하나는 적어 주세요':tel&&!PH.test(tel)?'전화번호를 010-0000-0000처럼 적어 주세요':badFam?'가족 연락처 전화번호를 010-0000-0000처럼 적어 주세요':''],['cfok',$('#cfok')&&$('#cfok').checked?'':'본인·보호자 동의를 받았는지 확인해 주세요']];
+  const first=errs.find(x=>x[1]);if(first){const sec=($('#'+first[0])||{}).closest&&$('#'+first[0]).closest('.stepsec');const secs=[...document.querySelectorAll('#layer .stepsec')];const si=secs.indexOf(sec);if(si>=0&&si!==S.step)stepGo(si,true);vRun(errs);return}
+  const o={n:g('cfn'),age:+g('cfa')||(e?e.age:70),sex:g('cfs')||'여',dong:g('cfd'),home:g('cfh')||'혼자',mgr:g('cfm')||ME,tel:tel||'',caution:g('cfc2')||'-',needs:[...(S.f['eneed_'+(id||'new')]||[])],fam:famP.filter(f=>f[0]||f[1]||f[2])};
+  if(!o.needs.length&&e)delete o.needs;if(!o.fam.length&&e)delete o.fam;if(e){Object.assign(e,o);closeLayer();render();toast(`${e.n} 님 정보를 저장했어요`);return}
+  const n=ELDERS.reduce((m,x)=>Math.max(m,+x.id.slice(1)||0),0)+1,nid='e'+n;const how=F('ehow','서면 동의서 올리기');
+  ELDERS.push(Object.assign({id:nid,month:0,prev:0,dg:0,pri:'보통',addr:'',how:'동의 전',scope:[],until:'',consent:how==='나중에 받기'?'위임 동의는 나중에 받기로 했어요.':`${how}로 위임 동의를 받는 중이에요.`,ltc:'모름',pen:'모름',aids:[]},o));
+  ORDER.push(nid);MON[nid]=[0,0,0,0,0,0];S.f['eneed_new']=undefined;closeLayer();toast(`${o.n} 님을 등록했어요`);go('care',nid)}
 const famRow=f=>`<div class="rowx" style="flex-wrap:nowrap;margin-bottom:8px"><input type="text" style="width:84px" placeholder="관계" aria-label="관계" value="${esc(f[0])}"><input type="text" style="width:110px" placeholder="이름" aria-label="이름" value="${esc(f[1])}"><input type="text" class="sp" placeholder="010-0000-0000" aria-label="전화번호" value="${esc(f[2])}"></div>`;
 /* 알림 종류 필터 — 알림 담당 결정 전 임시 */
 const NTYPES=['전체','요청','일지','특보','공공 연계','위임'];
@@ -4635,13 +4684,18 @@ const notiChips=(key,k,after)=>`<div class="nchips12" role="group" aria-label="�
 const NGO={req:'요청 관리',alerts:'특보 알림',pub:'공공 서비스 연계',dlg:'권한 위임',me:'내 정보'};
 function vNoti(){const k=F('ntp','전체'),L=notiF(k);
   return head('noti')+`<div class="toolbar">${notiChips('ntp',k,'render()')}<div class="filters"><button class="btn sm" type="button" onclick="NOTI.forEach(n=>n[4]=0);render();toast('모두 읽었어요')">모두 읽음</button></div></div>
-  <section class="panel"><div class="panel-h tight"><h2>${k==='전체'?'모든 알림':k+' 알림'} <span class="tn cnt-n">${L.length}</span></h2><span class="sub">안 읽음 ${L.filter(([n])=>n[4]).length}건 · 최근 30일</span></div><div class="nlist12">${L.map(([n,i])=>`<button type="button" class="lrow ${n[4]?'unread':''}" onclick="notiGo(${i})">${itile(n[0],n[5])}<span class="sp"><span class="t" style="font-weight:${n[4]?600:400}">${n[1]}</span><span class="d">${mt(n[2],n[6]||'계정')}</span></span><span class="small muted nw">${NGO[n[3].split('/')[0]]||''}</span>${icon('go')}${n[4]?'<span class="udot" aria-label="안 읽음"></span>':''}</button>`).join('')||'<div class="empty line">이 종류 알림이 없어요.</div>'}</div><div class="panel-f line-note">알림 담당 결정 전 임시 화면이에요. 누르면 관련 화면으로 가요.</div></section>`}
+  <section class="panel"><div class="panel-h tight"><h2>${k==='전체'?'모든 알림':k+' 알림'} <span class="tn cnt-n">${L.length}</span></h2><span class="sub">안 읽음 ${L.filter(([n])=>n[4]).length}건 · 최근 30일</span></div><div class="nlist12">${L.map(([n,i])=>`<button type="button" class="lrow ${n[4]?'unread':''}" onclick="notiGo(${i})">${itile(n[0],n[5])}<span class="sp"><span class="t" style="font-weight:${n[4]?600:400}">${n[1]}</span><span class="d">${mt(n[2],n[6]||'계정')}</span></span><span class="small muted nw">${NGO[n[3].split('/')[0]]||''}</span>${icon('go')}${n[4]?'<span class="udot" aria-label="안 읽음"></span>':''}</button>`).join('')||`<div class="empty line">'${k}' 알림이 없어요. <button class="link" type="button" onclick="setF('ntp','전체')">전체 알림 보기</button></div>`}</div><div class="panel-f line-note">알림 담당 결정 전 임시 화면이에요. 누르면 관련 화면으로 가요.</div></section>`}
 function notiGo(i){const n=NOTI[i];n[4]=0;closeLayer();if(n[3]==='me'){render();openLayer('me')}else{const [v,p]=n[3].split('/');go(v,p)}}
 function bulkT(k){const a=[...F('bo',[])];const i=a.indexOf(k);i>=0?a.splice(i,1):a.push(k);S.f.bo=a;drawLayer()}
-function bulkDraft(x){const k=x.id+x.k;if(S.f['bd_'+k]!==undefined)return S.f['bd_'+k];const e=EL(x.id),d=DAYS[Math.floor(x.k/2)].split(' ');return `${d[1]} (${d[0]}) ${x.k%2?'14:00~16:00':'10:00~12:00'}, ${e.dong}에서 ${x.c.gap} 도와주실 분을 찾아요.`}
+function gapTime(x){const e=EL(x.id),ei=ELDERS.indexOf(e),st=x.c.st??(x.k%2?PMT:AMT)[ei%9],du=x.c.du??1.5;return hm(st)+'~'+hm(st+du)}
+function bulkDraft(x){const k=x.id+x.k;if(S.f['bd_'+k]!==undefined)return S.f['bd_'+k];const e=EL(x.id),d=DAYS[Math.floor(x.k/2)].split(' ');return `${d[1]} (${d[0]}) ${gapTime(x)}, ${e.dong}에서 ${x.c.gap} 도와주실 분을 찾아요.`}
 function bulkIssue(x){const k=x.id+x.k;return S.f['bi_'+k]!==undefined?S.f['bi_'+k]:EL(x.id).caution}
 function bulkGo(){const off=F('bo',[]);let n=0;gapList().forEach(x=>{if(!off.includes(x.id+x.k)){x.c.done='공고 올림';n++}});S.f.bo=[];closeLayer();render();toast(n+'건을 공고로 올렸어요')}
-function saveEvent(){const t=$('#evt').value.trim();if(!t){$('#evt').classList.add('bad');$('#evt').focus();return}const u=($('#evu')||{value:''}).value.trim();if(u&&!/^https?:\/\//.test(u)){$('#evu').classList.add('bad');$('#evu').focus();toast('링크는 https:// 로 시작해요');return}EVENTS.unshift({kind:F('ek','행사'),t,d:$('#evd').value+' '+$('#evh').value,view:0,url:u});closeLayer();render();toast('행사를 올렸어요')}
+function saveEvent(id){const g=k=>(($('#'+k)||{}).value||'').trim();const t=g('evt'),u=g('evu'),d=g('evd'),nd=normDate(d),h=g('evh');
+  const ok=vRun([['evt',t?(t.length>40?'제목은 40자까지 적어 주세요':''):'제목을 적어 주세요'],['evd',!d?'날짜를 적어 주세요':!nd?'11/25처럼 월/일로 적어 주세요':''],['evh',h&&!/^\d{1,2}:\d{2}$/.test(h)?'15:00처럼 적어 주세요':''],['evu',u&&!/^https:\/\/[^\s.]+\.[^\s]+$/i.test(u)?(/^http:\/\//i.test(u)?'보안 연결 주소(https://)만 올릴 수 있어요':'https:// 로 시작하는 주소를 적어 주세요'):'']]);
+  if(!ok)return;const o={kind:F('ek','행사'),t,d:nd+(h?' '+h:''),url:u,place:g('evp')||'-',who:g('evw')||'누구나'};
+  const E=evOf(id);if(E){Object.assign(E,o);S.f.ek=undefined;closeLayer();render();toast('고친 내용을 저장했어요');return}
+  const n=EVENTS.reduce((m,e)=>Math.max(m,+String(e.id).slice(2)||0),0)+1;EVENTS.unshift(Object.assign({id:'ev'+n,view:0,desc:'',save:0,ask:0},o));S.f.ek=undefined;closeLayer();render();toast('행사를 올렸어요')}
 function saveDeleg(i){const to=F('dgto','이수진 사회복지사').split(' ')[0],old=DELEG[i];
   const row={to,from:$('#dgf').value,until:F('dgw')==='완전히 이관'?'계속':$('#dgu').value,who:old?old.who:(F('dgwho','전체')==='전체'?`전체 (${ELDERS.length}명)`:'골라서'),why:old?old.why:F('dgw','기간 동안 대리'),scope:(S.f.dgsc||[]).join(' · '),st:old?old.st:'예정'};
   if(old)DELEG[i]=row;else DELEG.unshift(row);S.f.dgedit=undefined;S.f.dgw=S.f.dgto=S.f.dgwho=S.f.dgsc=undefined;closeLayer();render();toast(old?'고친 내용을 저장했어요':'대리 담당자를 지정했어요')}
@@ -4786,19 +4840,18 @@ const _rP=render;render=function(){_rP.apply(this,arguments);try{mark()}catch(e)
 </style>
 <script>
 (function(){
-const EXTRA=[{place:'행복요양원 1층 강당',who:'어르신과 가족 누구나',desc:'지역 청소년 오케스트라가 찾아와 익숙한 가요와 동요를 연주해요. 가족과 함께 오시면 좋아요. 휠체어로도 들어올 수 있어요.',save:EV_STATS[0][0],ask:EV_STATS[0][1]},
- {place:'행복요양원 2층 프로그램실',who:'65세 이상 어르신 (12명)',desc:'손뜨개로 목도리를 함께 떠요. 실과 바늘은 기관에서 준비해요. 처음 하시는 분도 괜찮아요.',save:EV_STATS[1][0],ask:EV_STATS[1][1]}];
-const wk=(e,i)=>Object.assign({},EXTRA[i]||{place:'-',who:'누구나',desc:'',save:0,ask:0},e);
-LAYERS.eventDetail=i=>{const e=wk(EVENTS[i],i);const m=e.d.match(/(\d+)\/(\d+) \((.)\) (.*)/)||[0,'','','',e.d];const off=!!e.off;
+/* 수정 1회차: 상세 자료는 행사 id로 찾는다(새 행사를 올려도 밀리지 않음) */
+const wk=e=>Object.assign({place:'-',who:'누구나',desc:'',save:0,ask:0},e);
+LAYERS.eventDetail=id=>{const E=evOf(id);if(!E)return drawer('기관 행사','<p class="muted">행사를 찾지 못했어요.</p>','');const e=wk(E);const m=e.d.match(/(\d+)\/(\d+) \((.)\)\s*(.*)/)||[0,'','','',e.d];const off=!!e.off;
  return drawer('기관 행사',`<div class="evd9"><div class="evd9-top"><div class="evd9-date"><small>${+m[1]}월</small><b>${+m[2]}</b><small>${m[3]}요일</small></div><div><span class="tag">${e.kind}</span><h4>${esc(e.t)}</h4></div></div>
  <dl><dt>일시</dt><dd>${e.d}</dd><dt>장소</dt><dd>${e.place}</dd><dt>대상</dt><dd>${e.who}</dd><dt>보이는 곳</dt><dd>반경 1km 사용자 홈 "동네 기관 소식"</dd><dt>외부 링크</dt><dd>${e.url?`<a class="link ext12" href="${esc(e.url)}" target="_blank" rel="noopener">사이트로 이동 ↗</a> <span class="muted small" style="word-break:break-all">${esc(e.url)}</span>`:'<span class="muted">없음</span>'}</dd><dt>상태</dt><dd>${off?'<span class="status">노출 끔</span>':'<span class="status ok">노출 중</span>'}</dd></dl>
  ${e.desc?`<div class="evd9-desc">${e.desc}</div>`:''}
  <div class="evd9-stats"><div><span class="muted small">조회</span><b class="tn">${e.view}</b></div><div><span class="muted small">관심 표시</span><b class="tn">${e.save}</b></div><div><span class="muted small">문의</span><b class="tn">${e.ask}</b></div></div>
  <p class="note" style="margin-top:18px">시간이 적립·차감되지 않는 소식이에요. 봉사자가 필요하면 기관 공고로 올려요.</p></div>`,
- `<button class="btn" type="button" onclick="EVENTS[${i}].off=${!off};drawLayer();render();toast('${off?'다시 보이게 했어요':'노출을 껐어요'}')">${off?'다시 보이기':'노출 끄기'}</button><span class="sp"></span><button class="btn primary" type="button" onclick="openLayer('eventForm')">수정</button>`)};
-function ev9(){if(((location.hash||'').slice(1).split('/')[0])!=='events')return;document.querySelectorAll('#main .evs .ev').forEach((a,i)=>{if(a.dataset.ev9)return;a.dataset.ev9='1';a.tabIndex=0;a.setAttribute('role','button');a.setAttribute('aria-label',EVENTS[i].t+' 상세 보기');
-  if(EVENTS[i].off){const s=a.querySelector('.status');if(s){s.className='status';s.textContent='노출 끔'}}
-  const op=()=>openLayer('eventDetail',i);a.addEventListener('click',op);a.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();op()}})})}
+ `<button class="btn" type="button" onclick="evOf('${e.id}').off=${!off};drawLayer();render();toast('${off?'다시 보이게 했어요':'노출을 껐어요'}')">${off?'다시 보이기':'노출 끄기'}</button><span class="sp"></span><button class="btn primary" type="button" onclick="openLayer('eventForm','${e.id}')">수정</button>`)};
+function ev9(){if(((location.hash||'').slice(1).split('/')[0])!=='events')return;document.querySelectorAll('#main .evs .ev').forEach(a=>{if(a.dataset.ev9)return;const E=evOf(a.dataset.ev);if(!E)return;a.dataset.ev9='1';a.tabIndex=0;a.setAttribute('role','button');a.setAttribute('aria-label',E.t+' 상세 보기');
+  if(E.off){const s=a.querySelector('.status');if(s){s.className='status';s.textContent='노출 끔'}}
+  const op=()=>openLayer('eventDetail',E.id);a.addEventListener('click',op);a.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();op()}})})}
 const _rE=render;render=function(){_rE.apply(this,arguments);try{ev9()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(()=>{try{ev9()}catch(e){}},0));
 })();
 </script>
@@ -5625,5 +5678,189 @@ html body #main.m-narrow .dayp12{position:static}
  .ps12-l{min-width:0;right:0}
 }
 </style>
+<style id="qa1">
+/* ===== 수정 1회차 (QA 1차 결함 수정, 2026-11-23) — 이 층은 맨 마지막에 둔다 ===== */
+/* 23 보조 글자 대비: #80879A(3.6:1) → #646B7D (흰 바탕 약 5.3:1). 어두운 테마 값은 더 강한 선택자가 그대로 이김 */
+:root{--ink-4:#646B7D;--side-mute:#646B7D}
+html body .stamp,html body .head-tools .stamp{color:var(--ink-3,#5F6672)!important}
+html body .cm12 .cm-c.past .cm-n{color:var(--ink-4)!important}
+/* 8 어두운 화면 토스트: 어두운 면 위 어두운 글자(약 1:1) → 흰 글자 */
+html body .toast,:root[data-theme="dark"] body .toast{color:#fff!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body .toast{color:#fff!important}}
+
+/* 2 카드가 좁아지면(2분할·모바일) 표를 카드형 줄로: 칸이 잘리거나 버튼이 숨지 않게 */
+@container card (max-width:640px){
+ html body #main .tw{overflow:visible!important}
+ html body #main .tw>table{min-width:0!important;width:100%!important;display:block}
+ html body #main .tw>table>thead{display:none}
+ html body #main .tw>table>tbody{display:block}
+ html body #main .tw>table>tbody>tr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:12px 16px;border-top:1px solid var(--rule-2)}
+ html body #main .tw>table>tbody>tr:first-child{border-top:0}
+ html body #main .tw>table>tbody>tr>td{display:block;padding:0!important;border:0!important;min-width:0;max-width:100%;width:auto!important;text-align:left!important;white-space:normal}
+ html body #main .tw>table>tbody>tr>td:first-child{flex:1 1 55%;order:0}
+ html body #main .tw>table>tbody>tr>td.act{order:1;margin-left:auto;flex:none}
+ html body #main .tw>table>tbody>tr>td:not(:first-child):not(.act){order:2}
+ html body #main .tw>table>tbody>tr>td:nth-child(2):not(.act),html body #main .tw>table>tbody>tr>td[colspan]{flex:1 1 100%}
+ html body #main .tw .act .btns{flex-wrap:wrap!important;justify-content:flex-end}
+ html body #main .tw .lc12{max-width:none;min-width:0}
+}
+@media (max-width:600px){
+ html body .tw{overflow:visible!important}
+ html body .tw>table{min-width:0!important;width:100%!important;display:block}
+ html body .tw>table>thead{display:none}
+ html body .tw>table>tbody{display:block}
+ html body .tw>table>tbody>tr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:12px 16px;border-top:1px solid var(--rule-2)}
+ html body .tw>table>tbody>tr:first-child{border-top:0}
+ html body .tw>table>tbody>tr>td{display:block;padding:0!important;border:0!important;min-width:0;max-width:100%;width:auto!important;text-align:left!important;white-space:normal}
+ html body .tw>table>tbody>tr>td:first-child{flex:1 1 55%;order:0}
+ html body .tw>table>tbody>tr>td.act{order:1;margin-left:auto;flex:none}
+ html body .tw>table>tbody>tr>td:not(:first-child):not(.act){order:2}
+ html body .tw>table>tbody>tr>td:nth-child(2):not(.act),html body .tw>table>tbody>tr>td[colspan]{flex:1 1 100%}
+ html body .tw .act .btns{flex-wrap:wrap!important;justify-content:flex-end}
+ html body .bulkt td.bimemo12{flex:1 1 100%}
+}
+
+/* 3 편성표 월 칸 칩: 이름은 한 줄, 분류는 작게 옆에(자리 없으면 다음 줄). 전체 글은 title */
+html body #main .cm12 .cm-e{display:flex!important;flex-wrap:wrap;align-items:baseline;column-gap:4px;row-gap:0;white-space:normal!important;overflow:hidden;text-overflow:clip!important;line-height:1.35;padding:2px 6px}
+html body #main .cm12 .cm-e .cm-en{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;min-width:0}
+html body #main .cm12 .cm-e .cm-ec{font-size:calc(13px*var(--fz));font-weight:400;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;min-width:0}
+html body #main .cm12 .cm-e.gap .cm-ec{color:var(--neg);font-weight:600}
+/* 10 빈칸은 빨간 점선 (C10) — 달력 칩·범례·옆 패널·홈 오늘 일정·관리 대상 이번 주 돌봄 */
+html body #main .cm12 .cm-e.gap{border:1.5px dashed var(--neg)!important;background:var(--neg-weak)}
+html body .lg12.gap{border:1.5px dashed var(--neg)!important;background:var(--neg-weak)}
+html body #main .dp-r.gap{border:1.5px dashed var(--neg)!important;border-left-width:4px!important;margin:2px 0}
+html body #main .tag.gap12{border:1.5px dashed var(--neg)!important;background:var(--neg-weak)!important}
+html body #main .vars .flag-neg{border:1.5px dashed var(--neg);border-radius:6px;padding:1px 6px;background:var(--neg-weak)}
+html body #main .flag-neg{white-space:nowrap}
+/* 3·11 옆 패널: 좁은 패널(1280·1440 오른쪽 칸)은 버튼을 둘째 줄로 → '빈칸 · 봉사자 없음'이 끊기지 않음. 줄을 누르면 상세로 */
+@container card (max-width:360px){
+ html body #main .dp-r{grid-template-columns:50px minmax(0,1fr)!important;row-gap:8px}
+ html body #main .dp-r>.btn{grid-column:2;justify-self:start}
+}
+/* 23 편성표 달력·옆 패널 윗선 맞춤 (옆 패널에 남은 top:16px 없앰) */
+html body #main .dayp12{top:0!important}
+html body #main .dp-go12{cursor:pointer}
+html body #main .dp-go12:hover{background:var(--hover)}
+html body #main .dp-r.gap.dp-go12:hover{background:color-mix(in srgb,var(--neg-weak) 80%,var(--surface))}
+.dp-a12{color:inherit;font-weight:600;text-decoration:none}
+.dp-a12:hover,.dp-a12:focus-visible{text-decoration:underline;color:var(--acc-text)}
+.tag.live12{background:#E8F5EE!important;color:#1F7A4D!important;margin-left:6px}
+:root[data-theme="dark"] .tag.live12{background:#1F3A2C!important;color:#8FD9B0!important}
+
+/* 12 기관 공고: 숫자 카드 필터가 켜지면 '전체' 탭은 테두리만 (v11 탭 규칙보다 강하게) */
+html body #main .toolbar.kf10 .tabs>button.on,html body #main .toolbar.kf10 .tabs>[aria-selected="true"]{background:var(--surface,#fff)!important;color:var(--acc-text,#A8432A)!important;box-shadow:inset 0 0 0 1.5px var(--acc,#C2502F)!important}
+
+/* 15 자동 한 칸일 때 2단 버튼은 흐리게(켜진 것처럼 보이지 않게) */
+html body .dg12-seg.dg12-auto [data-cm="2"]{opacity:.38!important;background:transparent!important;box-shadow:none!important;color:var(--ink-3)!important;cursor:help}
+
+/* 22 특보 '마지막 안부': 날짜·담당자 한 줄, 결과·메모 둘째 줄부터 2줄까지(전체는 title) */
+html body #main .lc12{width:auto!important}
+html body #main #calltbl table>thead th:nth-child(2){width:220px!important}html body #main #calltbl table>thead th:nth-child(3){width:200px!important}
+html body #main .lc12 .lc12-d{display:block;white-space:nowrap;font-weight:600;color:var(--ink-2)}
+html body #main .lc12 .lc12-m{font-size:calc(14px*var(--fz));display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--ink-3);margin-top:2px;line-height:1.45;white-space:normal}
+html body #main .lc12 .lc12-m b{font-weight:600;color:var(--ink-2)}
+
+/* 4·7·9 칸 아래 오류 문장, 필수 표시, 동의 체크 */
+.ferr12{margin:6px 0 0;color:var(--neg,#C8372D);font-size:calc(13px*var(--fz));font-weight:600;line-height:1.45}
+.ferr12::before{content:"! ";font-weight:800}
+html body [aria-invalid="true"]{border-color:var(--neg)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--neg) 16%,transparent)!important}
+.req12{font-size:calc(13px*var(--fz));font-weight:600;color:var(--acc-text,#A8432A);margin-left:4px}
+.consent12{margin-top:20px;padding:14px 16px;border-radius:12px;background:var(--sunken);border:1px solid var(--rule-2)}
+.ck12{display:flex;gap:10px;align-items:flex-start;cursor:pointer;line-height:1.5}
+.ck12 input{width:18px;height:18px;margin-top:3px;flex:none;accent-color:var(--acc-ink,#A8432A)}
+.ck12 input[aria-invalid="true"]{outline:2px solid var(--neg);outline-offset:2px}
+/* 5 거절·취소 */
+.dec12{margin-top:12px;padding-top:12px;border-top:1px dashed var(--rule)}
+html body .btn.danger-t{color:var(--neg)!important}
+/* 19 남의 담당 대상: 보기만 */
+.ro12{display:flex;gap:12px;align-items:center;background:var(--sunken);border:1px solid var(--rule-2);border-radius:12px;padding:12px 14px;margin:16px 0 0}
+.ro12>svg.i{width:18px;height:18px;flex:none;color:var(--ink-3)}
+.ro12 .sp{display:grid;gap:2px;min-width:0}
+html body #main [aria-disabled="true"][disabled]{opacity:.45;cursor:not-allowed}
+/* 18 빈칸 한꺼번에: 이슈 메모는 공개 글과 따로 */
+.bimemo12{max-width:230px}
+.only12{display:flex;align-items:center;gap:6px;color:var(--ink-3)}.only12 svg.i{width:14px;height:14px;flex:none}
+.bimemo12 svg.i{width:14px;height:14px;vertical-align:-2px;margin-right:4px}
+/* 23 홈 '지금' 점: 모두 지났을 때도 카드 테두리에 걸치지 않게 */
+html body .nowline.end12{height:16px!important}
+html body .nowline.end12>span{top:4px!important}
+
+@media (max-width:900px){
+ /* 23 모바일 머리: 위쪽 줄에 이미 알림이 있으니 머리 도구의 알림·밝기·이름은 숨김(서랍·담당자 정보에서) */
+ html body .head-tools .iconbtn[aria-label^="알림"],html body .head-tools .iconbtn[aria-label="밝기 전환"],html body .head-tools button[onclick="openLayer('me')"]{display:none!important}
+ html body .pagehead{row-gap:8px!important}
+ html body .head-tools{gap:8px!important}
+ html body .topbar{padding:10px 16px 6px!important}
+}
+@media (max-width:600px){
+ html body .cnt-l,html body .cm12 .cm-mt{display:none!important}
+ html body .caltools{flex-wrap:wrap!important;overflow:visible!important;row-gap:8px}
+ html body #main .cm12 .cm-e>*{display:none!important}
+ html body #main .cm12 .cm-e.gap{height:8px;border-width:1.5px!important;background:transparent}
+ html body .cm12 .cm-more{padding-left:2px}
+}
+/* 22 넘치는 탭·세그먼트: 오른쪽 흐림으로 더 있음을 알림 */
+html body .qa-ovf{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent)}
+html body .qa-ovf.qa-end{-webkit-mask-image:none;mask-image:none}
+/* 2 카드형 줄: 급한 줄은 줄 전체를 칠한다(칸마다 칠하지 않음) */
+html body #main .tw>table>tbody>tr.urgent{position:relative}
+@container card (max-width:640px){html body #main .tw>table>tbody>tr.urgent{background:color-mix(in srgb,var(--acc-soft,#FEF2EE) 75%,var(--surface));box-shadow:inset 3px 0 0 var(--acc,#C2502F)}html body #main .tw>table>tbody>tr.urgent>td{background:transparent!important;box-shadow:none!important}html body #main .tw>table>tbody>tr.urgent>td::before,html body #main .tw>table>tbody>tr.urgent>td::after{display:none!important}}
+html body #main .tabs .cnt{white-space:nowrap}html body #main .tabs .cnt-l{display:inline}
+/* 홈 오늘 일정 시각은 한 줄 */
+html body #main .lrow>.tn:first-child{white-space:nowrap;flex:none}
+@media (max-width:600px){html body #main .panel-h .rowx.nw{flex-wrap:wrap!important;row-gap:8px;max-width:100%}html body #main .panel-h .rowx.nw>.seg{max-width:100%}}
+</style>
+<script id="qa1-js">
+/* 수정 1회차: 초점 가두기·되돌리기, 탭 화살표, 끌기 스크롤 다시 재기, 띠 마우스 끌기, 자동 한 칸 표시 */
+(function(){
+const $q=s=>document.querySelector(s);
+/* ---- 23 서랍·창: 연 버튼 기억 → 닫으면 그 버튼(다시 그려졌으면 같은 이름의 버튼)으로 초점 ---- */
+let opener=null;
+const desc=el=>el&&el!==document.body?{el,tag:el.tagName,label:el.getAttribute('aria-label')||'',text:(el.textContent||'').trim().slice(0,40)}:null;
+const remember=()=>{if(!$q('#layer').innerHTML)opener=desc(document.activeElement)};
+const _ol=openLayer;openLayer=function(){remember();const r=_ol.apply(this,arguments);setTimeout(focusIn,0);return r};
+const _cb=confirmBox;confirmBox=function(){remember();return _cb.apply(this,arguments)};
+const _cl=closeLayer;closeLayer=function(){const had=!!$q('#layer').innerHTML;const r=_cl.apply(this,arguments);if(had&&opener){const o=opener;opener=null;setTimeout(()=>back(o),30)}return r};
+function back(o){let t=o.el&&o.el.isConnected&&o.el.offsetParent?o.el:null;
+ if(!t)t=[...document.querySelectorAll('#main button,#main a,#main [tabindex],#top button,.mbar button')].find(e=>e.tagName===o.tag&&e.offsetParent&&((o.label&&e.getAttribute('aria-label')===o.label)||(!o.label&&(e.textContent||'').trim().slice(0,40)===o.text)));
+ if(t&&!$q('#layer').innerHTML)try{t.focus({preventScroll:true})}catch(e){}}
+const FOC='a[href],button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"]),summary';
+const vis=e=>!!(e.offsetWidth||e.offsetHeight||e.getClientRects().length)&&getComputedStyle(e).visibility!=='hidden';
+function box(){const L=$q('#layer');if(L&&L.innerHTML){const ds=L.querySelectorAll('[role=dialog]');return ds[ds.length-1]||L}if(document.body.classList.contains('m-nav'))return $q('.side');return null}
+function focusIn(){const b=box();if(!b||b.contains(document.activeElement))return;const f=b.querySelector('[data-focus]')||[...b.querySelectorAll(FOC)].find(vis);if(f)f.focus()}
+document.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const b=box();if(!b)return;const L=[...b.querySelectorAll(FOC)].filter(vis);if(!L.length)return;const i=L.indexOf(document.activeElement);
+ if(i<0){e.preventDefault();(e.shiftKey?L[L.length-1]:L[0]).focus();return}
+ if(e.shiftKey&&i===0){e.preventDefault();L[L.length-1].focus()}else if(!e.shiftKey&&i===L.length-1){e.preventDefault();L[0].focus()}},true);
+document.addEventListener('focusin',e=>{const b=box();if(b&&!b.contains(e.target)&&!e.target.closest('.toast,.dg9-toast'))setTimeout(focusIn,0)});
+/* ---- 23 탭: ←/→로 옆 탭 ---- */
+document.addEventListener('keydown',e=>{if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft'||e.altKey)return;const t=e.target.closest&&e.target.closest('[role=tab]');if(!t)return;const list=t.closest('[role=tablist]');if(!list)return;
+ const tabs=[...list.querySelectorAll('[role=tab]')];let i=tabs.indexOf(t)+(e.key==='ArrowRight'?1:-1);i=(i+tabs.length)%tabs.length;e.preventDefault();
+ const li=[...document.querySelectorAll('[role=tablist]')].indexOf(list);tabs[i].click();setTimeout(()=>{const l2=document.querySelectorAll('[role=tablist]')[li];const t2=l2&&l2.querySelectorAll('[role=tab]')[i];if(t2)t2.focus()},0)});
+function tabIdx(){document.querySelectorAll('[role=tablist]').forEach(l=>{const T=[...l.querySelectorAll('[role=tab]')];if(!T.length)return;const on=T.find(t=>t.getAttribute('aria-selected')==='true')||T[0];T.forEach(t=>t.tabIndex=t===on?0:-1)})}
+/* ---- 13 끌기 스크롤: 크기가 바뀔 때마다(창·AI 도우미·다시 그림) 넘치는지 다시 잰다 ---- */
+function mark(){const m=$q('#main');if(!m)return;m.querySelectorAll('*').forEach(el=>{const ox=getComputedStyle(el).overflowX;const can=(ox==='auto'||ox==='scroll')&&el.scrollWidth>el.clientWidth+4;el.classList.toggle('pan9',can)});
+ document.querySelectorAll('#main .tabs,#main .seg,#main .nchips12,#top .seg').forEach(el=>{const o=el.scrollWidth>el.clientWidth+4;el.classList.toggle('qa-ovf',o);el.classList.toggle('qa-end',o&&el.scrollLeft+el.clientWidth>=el.scrollWidth-4);if(o&&!el.dataset.qaS){el.dataset.qaS='1';el.addEventListener('scroll',()=>el.classList.toggle('qa-end',el.scrollLeft+el.clientWidth>=el.scrollWidth-4),{passive:true})}})}
+/* ---- 15 자동 한 칸: 2단을 골랐어도 실제로 나란히 놓인 줄이 없으면 2단 버튼을 흐리게 + 안내 ---- */
+function segFix(){const s=$q('#top .dg12-seg');if(!s||s.hidden)return;const v=((location.hash||'#home').slice(1).split('/')[0]||'home');let mode='2';try{mode=(JSON.parse(localStorage.getItem('ts-layout:staff-1001')||'{}')||{})[v+':cols-mode']==='1'?'1':'2'}catch(e){}
+ const rows=[...document.querySelectorAll('#main .dg12>.dg12-row')].filter(r=>r.children.length===2&&!r.classList.contains('dg12-hid'));
+ const side=rows.some(r=>{const a=r.children[0].getBoundingClientRect(),b=r.children[1].getBoundingClientRect();return a.width&&b.width&&Math.abs(a.left-b.left)>20&&a.top<b.bottom-4&&b.top<a.bottom-4});
+ const auto=mode==='2'&&rows.length>0&&!side;const b1=s.querySelector('[data-cm="1"]'),b2=s.querySelector('[data-cm="2"]');if(!b1||!b2)return;
+ s.classList.toggle('dg12-auto',auto);b1.setAttribute('aria-pressed',String(auto||mode==='1'));b2.setAttribute('aria-pressed',String(!auto&&mode==='2'));
+ const t=auto?'공간이 좁아 한 칸으로 보는 중':'두 칸으로 보기';b2.title=t;b2.setAttribute('aria-label',t);s.title=auto?t:''}
+/* ---- 14 띠·카드 마우스 끌기: 끄는 동안 본문 어디서나 끌기를 받아(놓을 곳이 없으면 그대로) 끌기가 바로 취소되지 않게 ---- */
+let dragging=false;
+document.addEventListener('dragstart',e=>{dragging=!!(e.target&&e.target.closest&&e.target.closest('.dg11-sh,.dg11-top,.dg9-h'))},true);
+const stop=()=>{dragging=false};document.addEventListener('dragend',stop,true);document.addEventListener('drop',()=>setTimeout(stop,0),true);
+['dragenter','dragover'].forEach(t=>document.addEventListener(t,e=>{if(dragging)e.preventDefault()}));
+/* ---- 묶어서 실행 ---- */
+let rq=0;const later=()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{try{mark()}catch(e){}try{segFix()}catch(e){}})};
+const _r=render;render=function(){const r=_r.apply(this,arguments);try{tabIdx()}catch(e){}later();setTimeout(later,60);return r};
+const _ai=drawAib;drawAib=function(){const r=_ai.apply(this,arguments);later();setTimeout(later,350);return r};
+addEventListener('resize',later);addEventListener('load',()=>{setTimeout(later,120);try{tabIdx()}catch(e){}});
+try{const ro=new ResizeObserver(later);ro.observe($q('#main'));}catch(e){}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.dg12-seg'))setTimeout(later,30)});
+setTimeout(later,200);
+})();
+</script>
 </body>
 </html>
