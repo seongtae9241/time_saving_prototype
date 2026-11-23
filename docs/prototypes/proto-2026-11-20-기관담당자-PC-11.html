@@ -5805,7 +5805,9 @@ html body .qa-ovf.qa-end{-webkit-mask-image:none;mask-image:none}
 /* 2 카드형 줄: 급한 줄은 줄 전체를 칠한다(칸마다 칠하지 않음) */
 html body #main .tw>table>tbody>tr.urgent{position:relative}
 @container card (max-width:640px){html body #main .tw>table>tbody>tr.urgent{background:color-mix(in srgb,var(--acc-soft,#FEF2EE) 75%,var(--surface));box-shadow:inset 3px 0 0 var(--acc,#C2502F)}html body #main .tw>table>tbody>tr.urgent>td{background:transparent!important;box-shadow:none!important}html body #main .tw>table>tbody>tr.urgent>td::before,html body #main .tw>table>tbody>tr.urgent>td::after{display:none!important}}
-html body #main .tabs .cnt{white-space:nowrap}html body #main .tabs .cnt-l{display:inline}
+html body #main .tabs .cnt{white-space:nowrap;display:inline!important}html body #main .tabs .cnt-l{display:inline!important}@media (max-width:600px){html body #main .tabs .cnt-l{display:none!important}}
+/* 모바일 권한 위임 등: 카드 머리 부제가 화면 밖으로 밀리지 않게 */
+@media (max-width:900px){html body #main .panel-h>.sub{min-width:0;flex:1 1 100%;max-width:100%;white-space:normal!important}}
 /* 홈 오늘 일정 시각은 한 줄 */
 html body #main .lrow>.tn:first-child{white-space:nowrap;flex:none}
 @media (max-width:600px){html body #main .panel-h .rowx.nw{flex-wrap:wrap!important;row-gap:8px;max-width:100%}html body #main .panel-h .rowx.nw>.seg{max-width:100%}}
