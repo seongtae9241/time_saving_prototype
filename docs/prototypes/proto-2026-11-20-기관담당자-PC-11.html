@@ -3761,7 +3761,6 @@ const APPS=[
  {id:'ap14',kind:'해 드려요',post:'요양보호사 방문 상담 (무료)',d:'11/03 (화)',tm:'14:00~15:00',who:'ph',st:4,msg:'',at:'10/29'}
 ];
 const AGRP={'처리할 일':[0],'수락함':[1,2,3],'완료':[4,5]};
-const KTAG={'봉사자 모집':'vol','단체 봉사':'vol','해 드려요':'req'};
 const OPOSTS=[
  {id:'op1',kind:'봉사자 모집',t:'어르신 산책 동행',d:'11/18 (화)',tm:'10:00~12:00',cat:'말동무·정서',need:1,app:2,st:'모집 중',txt:'요양원 앞 공원까지 휠체어 산책을 함께해요.'},
  {id:'op2',kind:'봉사자 모집',t:'점심 배식 보조',d:'매주 목',tm:'11:30~13:00',cat:'가벼운 집안일',need:2,app:1,st:'모집 중',txt:'배식과 정리를 도와요.'},
@@ -3926,73 +3925,8 @@ function countUp(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)ret
 /* 인사 띠 그림: 동네 집 + 시계 + 시간 동전 (직접 그림, 한 가지 톤) */
 /* ---------- 직접 그린 그림 (인라인 SVG). 색은 강조색 톤 변수만: f0 흰 · f1~f7 = a100~a700 · lit = 빛나는 곳(낮엔 흰색, 밤엔 a400)
    규칙: 뒤쪽은 면만, 앞쪽만 선(l = a600 2px, l7 = a700 2.6px 한 군데, ls = 1.6px 작은 그림), 둥근 끝, 그림자는 납작한 타원, 사람은 얼굴 없이 머리 원 + 몸 한 덩어리 ---------- */
-const P2=(x,g,el,vo)=>`<g transform="translate(${x} ${g}) scale(1.28)"><ellipse class="f2" cx="9" cy="0" rx="13" ry="2.4"/><path class="${el}" d="M0 0c0-9 1.4-14 4-14s4 5 4 14z"/><circle class="f7" cx="4" cy="-17.5" r="3.4"/><path class="l" d="M-2.5-8v8"/><path class="${vo}" d="M9.5 0c0-11 1.5-17 4.5-17s4.5 6 4.5 17z"/><circle class="f7" cx="14" cy="-20.6" r="3.6"/><path class="l7" d="M7.6-8.5h3"/></g>`;
-const HOUSE=(x,w,h,o={})=>{const g=112,t=g-h,m=x+w/2,rf=o.rf||Math.round(w*.48);return `${o.ch?`<rect class="f4" x="${x+w-12}" y="${t-rf-2}" width="6" height="${Math.round(rf*.8)}" rx="1.5"/>`:''}<rect class="f2" x="${x}" y="${t}" width="${w}" height="${h}" rx="2"/><rect class="f3" x="${x+w-8}" y="${t}" width="8" height="${h}" rx="2"/><path class="f5 rj" d="M${x-5} ${t+2}L${m} ${t-rf}L${x+w+5} ${t+2}z"/>`};
-const WIN=(x,y,w=9,h=10)=>`<rect class="lit" x="${x}" y="${y}" width="${w}" height="${h}" rx="2"/><path class="lw5" d="M${x+w/2} ${y}v${h}M${x} ${y+h/2}h${w}"/>`;
-const ART={
- hero:`<svg class="il il-hero" viewBox="0 0 360 170" role="img" aria-label="해가 뜬 동네 길에서 봉사자가 지팡이 짚은 어르신의 팔을 잡고 함께 걷는 그림. 뒤로 집 두 채와 거리 시계, 앞에 쌓인 시간 동전이 있다">
-  <g class="day"><circle class="f1" cx="292" cy="50" r="48"/><circle class="f2" cx="292" cy="50" r="34"/><circle class="f3" cx="292" cy="50" r="21"/></g>
-  <g class="night"><circle class="f1" cx="292" cy="50" r="42"/><path class="f5" d="M300 26a26 26 0 1 0 20 43a22 22 0 0 1-20-43z"/><circle class="f4" cx="232" cy="22" r="1.800"/><circle class="f4" cx="196" cy="44" r="1.400"/><circle class="f4" cx="120" cy="20" r="1.600"/><circle class="f4" cx="52" cy="40" r="1.400"/><circle class="f4" cx="340" cy="96" r="1.400"/></g>
-  <path class="cl" d="M40 42a9 9 0 0 1 17-5a8.500 8.500 0 0 1 13 6a6.500 6.500 0 0 1 0 13H42a7 7 0 0 1-2-14z"/><path class="cl" d="M196 26a6 6 0 0 1 11-3a5.500 5.500 0 0 1 9 4a4.500 4.500 0 0 1 0 9h-19a5 5 0 0 1-1-10z"/>
-  <path class="f1" d="M0 122C40 96 92 92 142 106s92 10 132-6 58-8 86 2v68H0z"/>
-  <path class="f2" d="M6 124V102l15-11 15 11v22zM214 116V92l17-12 17 12v24zM306 118V100l13-10 13 10v18z"/><path class="f3" d="M2 104l19-14 19 14zM210 94l21-15 21 15zM302 102l17-13 17 13z"/>
-  <path class="f2" d="M0 140C52 120 122 118 182 130s120 8 178-10v50H0z"/>
-  <rect class="f5" x="48" y="112" width="5" height="32" rx="2.500"/><circle class="f3" cx="50" cy="98" r="19"/><circle class="f4" cx="59" cy="107" r="10"/><circle class="f2" cx="43" cy="91" r="6"/>
-  <rect class="f5" x="112" y="70" width="8" height="20" rx="2"/><path class="sm" d="M116 64c-5-5 4-8 0-14s3-7 1-11"/>
-  <rect class="w" x="72" y="102" width="58" height="44" rx="2"/><rect class="f1" x="118" y="102" width="12" height="44" rx="2"/><path class="f5 rj" d="M66 104l35-29 35 29z"/>
-  <rect class="lit" x="80" y="112" width="14" height="13" rx="2.500"/><path class="lw5" d="M87 112v13M80 118.500h14"/><rect class="f4" x="78" y="126" width="18" height="4" rx="2"/><circle class="f3" cx="82" cy="125" r="2.600"/><circle class="f5" cx="87" cy="124.500" r="2.600"/><circle class="f3" cx="92" cy="125" r="2.600"/>
-  <rect class="f5" x="104" y="118" width="15" height="28" rx="2.500"/><circle class="f0" cx="115.500" cy="133" r="1.400"/><rect class="f4" x="100" y="145" width="23" height="3" rx="1.500"/>
-  <rect class="w" x="146" y="86" width="50" height="60" rx="2"/><rect class="f1" x="186" y="86" width="10" height="60" rx="2"/><path class="f6 rj6" d="M140 88l31-27 31 27z"/>
-  <rect class="lit" x="153" y="97" width="11" height="12" rx="2.500"/><rect class="lit" x="170" y="97" width="11" height="12" rx="2.500"/><path class="lw5" d="M158.500 97v12M153 103h11M175.500 97v12M170 103h11"/>
-  <path class="f5" d="M160 146v-18a7.500 7.500 0 0 1 15 0v18z"/><circle class="f0" cx="171" cy="136" r="1.400"/><path class="f4" d="M150 113h34v3h-34z"/>
-  <circle class="f3" cx="136" cy="141" r="9"/><circle class="f4" cx="144" cy="145" r="6"/><circle class="f3" cx="202" cy="143" r="7"/>
-  <path class="pth" d="M96 170c26-14 70-21 122-21s96 5 142 15v6z"/>
-  <rect class="f5" x="263" y="96" width="6" height="52" rx="3"/><ellipse class="f3" cx="266" cy="149" rx="14" ry="3.200"/><circle class="lit" cx="266" cy="72" r="26"/><circle class="l" cx="266" cy="72" r="26"/><circle class="f1" cx="266" cy="72" r="19.500"/><path class="tk" d="M266 55.500v3M266 85.500v3M249.500 72h3M279.500 72h3"/><path class="l7 hand" d="M266 60v12l8.500 5.500"/><circle class="f7" cx="266" cy="72" r="2.600"/>
-  <ellipse class="f3" cx="218" cy="159" rx="30" ry="3.400"/>
-  <rect class="f7" x="200.500" y="147" width="4.400" height="11" rx="2"/><rect class="f7" x="207.500" y="147" width="4.400" height="11" rx="2"/><path class="f4" d="M196 149c-1.500-13 1-24 10-24s11 11 9.500 24z"/><circle class="sk" cx="206" cy="117" r="7"/><path class="f3" d="M199 116.500a7 7 0 0 1 14 0c-3-3.500-11-3.500-14 0z"/><circle class="f3" cx="212.500" cy="112.500" r="2.800"/>
-  <path class="l7" d="M193 134v24M193 134q-3.500-4-6 0"/><path class="arm4" d="M200 131l-6.500 4"/>
-  <rect class="f7" x="222.500" y="145" width="4.600" height="13" rx="2"/><rect class="f7" x="230" y="145" width="4.600" height="13" rx="2"/><path class="f6" d="M217.500 147c-1.500-17 2-30 11-30s12.500 13 11 30z"/><path class="f3" d="M223 119h11l-2 6h-7z"/><circle class="sk" cx="228.500" cy="109" r="7.500"/><path class="f7" d="M221 108.500a7.500 7.500 0 0 1 15 0c-2-4.500-13-4.500-15 0z"/><path class="f7" d="M235 106c3 1 4 5 2.500 9c-1-3-2-5-3.500-6z"/>
-  <path class="arm6" d="M221 129q-5 5-9 3"/><path class="arm6" d="M237 129l4.500 9"/><path class="l" d="M237 139a5 5 0 0 1 10 0"/><path class="f5" d="M234.500 139h15l-1.800 10h-11.400z"/><circle class="f3" cx="239" cy="138" r="2.600"/><circle class="f2" cx="244.500" cy="137.500" r="2.800"/>
-  <path class="f5" d="M20 152h17l-2.200 13H22.200z"/><path class="f4" d="M28.500 152c-2-9-8-13-13-13c1 7 5 12 13 13zM28.500 152c0-10 3-16 8-19c2 7 0 15-8 19z"/><path class="f3" d="M28.500 152c3-6 8-8 13-7c-2 5-6 8-13 7z"/>
-  <g class="coins"><rect class="f4" x="296" y="155" width="20" height="7" rx="3.500"/><rect class="f5" x="296" y="147" width="20" height="7" rx="3.500"/><rect class="f4" x="320" y="155" width="20" height="7" rx="3.500"/><rect class="f5" x="320" y="147" width="20" height="7" rx="3.500"/><rect class="f4" x="320" y="139" width="20" height="7" rx="3.500"/><g class="cointop"><rect class="f6" x="320" y="131" width="20" height="7" rx="3.500"/><path class="pw" d="M327.500 134.500h5M330 132v5"/></g></g></svg>`,
- side:`<svg class="il side-art" viewBox="0 0 220 86" aria-hidden="true">
-  <g class="day"><circle class="f1" cx="124" cy="15" r="14"/><circle class="f3" cx="124" cy="15" r="8"/></g>
-  <g class="night"><path class="f4" d="M128 6a10 10 0 1 0 7 17a8.5 8.5 0 0 1-7-17z"/><circle class="f3" cx="92" cy="12" r="1.3"/><circle class="f3" cx="160" cy="8" r="1.3"/><circle class="f3" cx="30" cy="20" r="1.2"/></g>
-  <path class="f1" d="M0 86V54l15-11 15 11v32zM38 86V42l20-15 20 15v44zM96 86V52l15-11 15 11v34zM148 86V38l22-16 22 16v48zM200 86V58l10-7 10 7v28z"/>
-  <circle class="f2" cx="64" cy="70" r="10"/><rect class="f3" x="62.5" y="72" width="3" height="14" rx="1.5"/><circle class="f2" cx="166" cy="72" r="9"/><rect class="f3" x="164.5" y="74" width="3" height="12" rx="1.5"/>
-  <rect class="f2" x="44" y="42" width="5" height="12" rx="1.5"/><path class="sm" d="M46.5 38c-3-3 3-6 0-10"/>
-  <path class="f2" d="M16 86V62l19-14 19 14v24zM72 86V58l20-15 20 15v28zM124 86V64l17-12 17 12v22zM172 86V60l19-14 19 14v26z"/>
-  <path class="f3" d="M12 64l23-17 23 17zM68 60l24-18 24 18zM120 66l21-15 21 15zM168 62l23-17 23 17z"/>
-  <rect class="lit" x="24" y="67" width="8" height="8" rx="1.5"/><rect class="f4" x="39" y="70" width="8" height="16" rx="1.5"/>
-  <rect class="lit" x="79" y="65" width="7" height="8" rx="1.5"/><rect class="lit" x="98" y="65" width="7" height="8" rx="1.5"/><path class="f4" d="M88 86V76a4 4 0 0 1 8 0v10z"/>
-  <rect class="lit" x="137" y="69" width="8" height="8" rx="1.5"/><rect class="lit" x="180" y="66" width="7" height="7" rx="1.5"/><rect class="lit" x="195" y="66" width="7" height="7" rx="1.5"/>
-  <path class="gl" d="M0 85.2h220"/></svg>`,
- mailbox:`<svg class="il il-s" viewBox="0 0 64 48" aria-hidden="true"><ellipse class="f2" cx="32" cy="44" rx="22" ry="3"/><rect class="f5" x="29" y="26" width="4" height="18" rx="2"/><path class="f2" d="M14 28V18a9 9 0 0 1 9-9h18a9 9 0 0 1 9 9v10z"/><path class="f0" d="M14 28V18a7 7 0 0 1 14 0v10z"/><path class="ls" d="M14 28V18a9 9 0 0 1 9-9h18a9 9 0 0 1 9 9v10zM28 28V18a7 7 0 0 0-5-6.7"/><path class="ls" d="M44 14v-8h6v4h-6"/><path class="f6" d="M44 6h6v4h-6z"/><ellipse class="f4" cx="36" cy="5.5" rx="4.2" ry="3"/><circle class="f4" cx="39.4" cy="3.6" r="2"/><path class="f6" d="M41.2 3.4l2.4.6-2.4.8z"/><path class="ls" d="M32 6l-3-1.6"/></svg>`,
- chairs:`<svg class="il il-s" viewBox="0 0 64 48" aria-hidden="true"><ellipse class="f2" cx="32" cy="44" rx="26" ry="3"/><path class="f3" d="M8 18a3 3 0 0 1 6 0v12H8z"/><rect class="f2" x="8" y="28" width="16" height="5" rx="2.5"/><path class="ls" d="M10 33v10M22 33v10M8 18a3 3 0 0 1 6 0v10"/><path class="f3" d="M50 18a3 3 0 0 1 6 0v12h-6z"/><rect class="f2" x="40" y="28" width="16" height="5" rx="2.5"/><path class="ls" d="M42 33v10M54 33v10M56 18a3 3 0 0 0-6 0v10"/><rect class="f5" x="26" y="33" width="12" height="2.5" rx="1.2"/><path class="ls" d="M32 35.5V43"/><path class="f0" d="M28.5 27h7v3.5a3 3 0 0 1-3 2.5h-1a3 3 0 0 1-3-2.5z"/><path class="ls" d="M28.5 27h7v3.5a3 3 0 0 1-3 2.5h-1a3 3 0 0 1-3-2.5zM31 24c-1-1.5 1-2 0-3.6"/></svg>`,
- tea:`<svg class="il il-s" viewBox="0 0 64 48" aria-hidden="true"><ellipse class="f2" cx="31" cy="43" rx="22" ry="3"/><ellipse class="f3" cx="30" cy="40" rx="17" ry="3"/><path class="f0" d="M16 22h28v8a11 11 0 0 1-11 11h-6a11 11 0 0 1-11-11z"/><path class="f2" d="M16 22h28v4H16z"/><path class="ls" d="M16 22h28v8a11 11 0 0 1-11 11h-6a11 11 0 0 1-11-11zM44 25h3a4.5 4.5 0 0 1 0 9h-3.6"/><path class="ls st" d="M24 17c-2-3 2-4 0-7M31 17c-2-3 2-4 0-7M38 17c-2-3 2-4 0-7"/></svg>`,
- puzzle:`<svg class="il" viewBox="0 0 96 72" width="96" height="72" aria-hidden="true"><ellipse class="f2" cx="44" cy="67" rx="36" ry="3.5"/><rect class="f0" x="8" y="12" width="64" height="52" rx="5"/><path class="f3" d="M8 17a5 5 0 0 1 5-5h54a5 5 0 0 1 5 5v7H8z"/><rect class="l" x="8" y="12" width="64" height="52" rx="5"/><path class="l" d="M22 7v9M58 7v9"/><rect class="f2" x="15" y="30" width="14" height="12" rx="2.5"/><rect class="f2" x="33" y="30" width="14" height="12" rx="2.5"/><rect class="f2" x="15" y="46" width="14" height="12" rx="2.5"/><rect class="f2" x="51" y="46" width="14" height="12" rx="2.5"/><rect class="dsh" x="33" y="46" width="14" height="12" rx="2.5"/><rect class="dsh" x="51" y="30" width="14" height="12" rx="2.5"/>
-  <g class="piece"><rect class="f5" x="62" y="14" width="18" height="16" rx="3.5"/><circle class="f0" cx="71" cy="19.5" r="2.6"/><path class="f0" d="M66.5 27.5a4.5 4.5 0 0 1 9 0z"/><path class="f4" d="M78 20c6-3 12-1 14 4s-1 10-7 10c-4 0-7-3-9-6z"/><path class="l" d="M78 20c6-3 12-1 14 4s-1 10-7 10c-4 0-7-3-9-6"/></g></svg>`,
- walk:`<svg class="il il-walk" viewBox="0 0 120 90" width="120" height="90" aria-hidden="true"><ellipse class="f1" cx="60" cy="84" rx="46" ry="4"/><path class="f2" d="M30 84c0-26 4-40 12-40s12 14 12 40z"/><circle class="f2" cx="42" cy="34" r="9"/><path class="f2" d="M62 84c0-32 5-48 14-48s14 16 14 48z"/><circle class="f2" cx="76" cy="25" r="9.5"/><rect class="f2" x="22" y="56" width="3.5" height="28" rx="1.7"/><path class="f2" d="M52 58h12v5H52z"/><path class="f1" d="M92 62h12l-2 12H94z"/><path class="f2" d="M95 62a3 3 0 0 1 6 0" fill="none" stroke-width="2"/></svg>`,
- snow:`<svg class="il" viewBox="0 0 200 120" role="img" aria-label="목도리를 두른 집과 눈송이 그림"><path class="f1" d="M0 100c30-16 70-18 100-10s70 6 100-8v38H0z"/><ellipse class="f2" cx="100" cy="108" rx="80" ry="8"/><rect class="f4" x="118" y="34" width="8" height="18" rx="2"/><path class="sm" d="M122 30c-4-4 3-7 0-12"/><rect class="f2" x="64" y="58" width="72" height="50" rx="3"/><rect class="f3" x="124" y="58" width="12" height="50" rx="3"/><path class="f5 rj" d="M56 61l44-34 44 34z"/><path class="f0" d="M66 54l34-26 34 26-5 1-29-22-29 22z"/>
-  <rect class="lit" x="72" y="82" width="14" height="14" rx="2.5"/><path class="lw5" d="M79 82v14M72 89h14"/><path class="f5" d="M98 108V86a8 8 0 0 1 16 0v22z"/><circle class="f0" cx="110" cy="98" r="1.4"/>
-  <path class="f6" d="M60 62h80v8a4 4 0 0 1-4 4H64a4 4 0 0 1-4-4z"/><path class="f5" d="M118 70h12v26l-6-4-6 4z"/><path class="f7" d="M116 66h16v8h-16z"/><path class="pw" d="M72 62v12M86 62v12M100 62v12"/>
-  <rect class="f5" x="28" y="84" width="4" height="24" rx="2"/><circle class="f3" cx="30" cy="76" r="13"/><path class="f0" d="M19 72a11 11 0 0 1 22 0c-4-3-18-3-22 0z"/>
-  <g class="fl"><path class="tk" d="M40 22v12M34 28h12M36 24l8 8M44 24l-8 8"/><path class="tk" d="M160 30v10M155 35h10M156.5 31.5l7 7M163.500 31.500l-7 7"/><path class="tk" d="M176 66v8M172 70h8"/><circle class="f3" cx="150" cy="56" r="2"/><circle class="f3" cx="52" cy="48" r="2"/><circle class="f3" cx="18" cy="56" r="1.6"/></g></svg>`,
- strip:`<svg class="il" viewBox="0 0 300 84" role="img" aria-label="전화로 들은 내용이 정리되어 게시판에 올라가는 세 장면"><rect class="f1" x="4" y="6" width="84" height="72" rx="12"/><rect class="f1" x="108" y="6" width="84" height="72" rx="12"/><rect class="f1" x="212" y="6" width="84" height="72" rx="12"/><path class="l ar" d="M91 42h12m-4-4l4 4-4 4M195 42h12m-4-4l4 4-4 4"/>
-  <rect class="f0" x="32" y="20" width="24" height="44" rx="5"/><rect class="l" x="32" y="20" width="24" height="44" rx="5"/><rect class="f3" x="37" y="27" width="14" height="20" rx="2"/><circle class="f5" cx="44" cy="56" r="2.4"/><path class="tk" d="M62 30c4 2 6 6 6 10M64 22c8 4 12 11 12 18"/>
-  <rect class="f0" x="130" y="16" width="40" height="52" rx="4"/><rect class="l" x="130" y="16" width="40" height="52" rx="4"/><path class="tk" d="M137 28h18M137 36h26M137 44h22M137 52h14"/><path class="f6" d="M176 12l2.2 6 6 2.2-6 2.200-2.200 6-2.200-6-6-2.200 6-2.200z"/>
-  <rect class="f3" x="226" y="16" width="56" height="40" rx="4"/><rect class="f0" x="232" y="22" width="20" height="14" rx="2"/><rect class="f0" x="256" y="22" width="20" height="26" rx="2"/><rect class="f0" x="232" y="40" width="20" height="10" rx="2"/><circle class="f6" cx="242" cy="22" r="2"/><circle class="f6" cx="266" cy="22" r="2"/><path class="l" d="M240 56l-6 14M268 56l6 14"/></svg>`,
- fest:`<svg class="il" viewBox="0 0 240 120" role="img" aria-label="깃발 줄 아래에서 세 사람이 모여 있는 행사 그림"><path class="f1" d="M0 96c40-14 80-14 120-8s80 4 120-8v40H0z"/><ellipse class="f2" cx="120" cy="108" rx="96" ry="8"/><path class="tk" d="M8 14c60 26 164 26 224 0"/>
-  <path class="f3" d="M30 23l10 3-7 12z"/><path class="f5" d="M62 32l10 2-6 13z"/><path class="f4" d="M96 37l10 1-5 13z"/><path class="f6" d="M132 38l10-1-4 13z"/><path class="f3" d="M166 34l10-2-3 14z"/><path class="f5" d="M198 26l10-3-2 14z"/>
-  <path class="f3" d="M66 108c0-18 3-28 9-28s9 10 9 28z"/><circle class="f7" cx="75" cy="72" r="6.5"/><path class="f6" d="M104 108c0-24 4-36 11-36s11 12 11 36z"/><circle class="f7" cx="115" cy="62.500" r="7"/><path class="f4" d="M146 108c0-20 3-30 9.500-30s9.500 10 9.500 30z"/><circle class="f7" cx="155.500" cy="70" r="6.500"/><path class="arm6" d="M84 91q10 5 20 0M126 89q10 5 20 0"/>
-  <path class="l" d="M196 84V62l14-4v20"/><ellipse class="f6" cx="192" cy="85" rx="4.500" ry="3.500"/><ellipse class="f6" cx="206" cy="80" rx="4.500" ry="3.500"/><path class="l" d="M34 78V60"/><ellipse class="f5" cx="30" cy="79" rx="4.500" ry="3.500"/><path class="f5" d="M34 60c5 0 8 3 8 8-3-3-5-3-8-3z"/></svg>`,
- plane:`<svg class="il" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><path class="f2" d="M3 15L29 4 20 28l-5-9z"/><path class="f4" d="M15 19L29 4 20 28z"/><path class="ls" d="M3 15L29 4 20 28l-5-9zM15 19L29 4"/><path class="dot" d="M4 24c3 2 6 2 8 0"/></svg>`,
- helper:`<svg class="il" viewBox="0 0 120 76" width="120" height="76" aria-hidden="true"><ellipse class="f2" cx="60" cy="70" rx="44" ry="4"/><rect class="f0" x="22" y="18" width="52" height="46" rx="6"/><rect class="l" x="22" y="18" width="52" height="46" rx="6"/><path class="f3" d="M22 24a6 6 0 0 1 6-6h40a6 6 0 0 1 6 6v6H22z"/><path class="tk" d="M31 40h30M31 48h22M31 56h26"/><path class="f6" d="M92 10l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/><path class="f4" d="M104 36l1.800 4.600 4.600 1.800-4.600 1.800-1.800 4.600-1.800-4.600-4.600-1.800 4.600-1.800z"/><path class="f0" d="M80 44h22a5 5 0 0 1 5 5v9a5 5 0 0 1-5 5H92l-6 5v-5h-6z"/><path class="ls" d="M80 44h22a5 5 0 0 1 5 5v9a5 5 0 0 1-5 5H92l-6 5v-5h-6z"/><path class="tk" d="M86 51h14M86 57h9"/></svg>`
-};
-const art=(k,cls='')=>ART[k].replace('<svg class="il','<svg class="'+(cls?cls+' ':'')+'il');
+const art=()=>''; /* 그림은 쓰지 않는다(예전 ART는 비어 있었음) */
 const emptyArt=(k,text,btn='')=>`<div class="empty pic"><span class="tile">${icon(({mailbox:'search',chairs:'care',tea:'check'})[k]||'req')}</span><span>${text}</span>${btn}</div>`;
-Object.keys(ART).forEach(k=>ART[k]='');
-const HERO_ART='';
 const srow=cs=>`<div class="kpis" style="grid-template-columns:repeat(${cs.length},minmax(0,1fr))">${cs.map(([ic,l,v,u,sub])=>`<div class="kpi"><div class="label">${l}</div><div class="value tn">${v}<span class="u">${u}</span></div>${sub?`<div class="meta"><span>${sub}</span></div>`:''}</div>`).join('')}</div>`;
 const pri=e=>e.pri==='높음'?'<span class="tag neg">우선</span>':'';
 const pdot=e=>e.pri==='높음'?'<i class="pdot" title="우선"></i><span class="sr">우선 </span>':'';
@@ -4031,10 +3965,6 @@ function pcard(k){const p=P[k];return `<div class="who">${av(p.n)}<div><div><b s
 function seg(k,opts,d,cnt){const c=F(k,d);return `<div class="seg" role="group">${opts.map(o=>`<button type="button" class="${c===o?'on':''}" aria-pressed="${c===o}" onclick="setF('${k}','${o}')">${o}${cnt?` <span class="tn" style="font-weight:500;opacity:.7">${cnt(o)}</span>`:''}</button>`).join('')}</div>`}
 
 /* 상대에게 알림이 가는 일은 모두 확인 창을 거쳐요 (공고 마감과 같은 기준) */
-function oadvAsk(id,d){const r=REQS.find(x=>x.id===id),e=EL(r.e),v=P[r.v];
-  confirmBox(d<0?{title:`${e.n} 님 대신 거절할까요?`,text:`${v.n} 님께 거절 알림이 가요. 보낸 뒤에는 되돌릴 수 없어요.`,ok:'대신 거절',danger:true,onOk:()=>oadv(id,-1)}
-   :{title:`${e.n} 님 대신 수락할까요?`,text:`${r.cat} · ${r.d} ${r.tm}. ${v.n} 님께 수락 알림이 가요.`,ok:'대신 수락',onOk:()=>oadv(id,1)})}
-function askReq(pk,eid){const v=P[pk],E=EL(eid);confirmBox({title:`${v.n} 님께 대신 요청할까요?`,text:`${E.n} 님 대신 요청을 보내요. ${v.n} 님께 알림이 가요.`,ok:'요청 보내기',onOk:()=>toast(`${v.n} 님께 ${E.n} 님 대신 요청했어요`)})}
 function askDirect(n,eid){const E=EL(eid);confirmBox({title:`${n} 님께 바로 요청할까요?`,text:`공고를 올리지 않고 ${E.n} 님의 단골 ${n} 님께만 요청 알림이 가요.`,ok:'바로 요청',onOk:()=>toast(n+' 님께 바로 요청했어요')})}
 function askWx(n){confirmBox({title:'봉사자에게 특보를 알릴까요?',text:`특보 기간에 돌봄이 잡힌 봉사자 ${n}명에게 한파주의보 안내가 가요.`,ok:'알리기',onOk:()=>toast('예정된 봉사자에게 특보 안내를 보냈어요')})}
 function askGap(id,k){const c=SCHED[id][k],e=EL(id);confirmBox({title:`${c.altP} 님께 요청할까요?`,text:`${e.n} 님 ${slot(k)} ${c.gap}. ${c.altP} 님께 요청 알림이 가요.`,ok:'요청 보내기',onOk:()=>gapfill(id,k)})}
@@ -4050,8 +3980,9 @@ function confirmBox({title,text,ok,danger,extra='',onOk,fc}){
   setTimeout(()=>{const b=danger||fc?$('#dlgcancel'):$('#dlgok');b&&b.focus()},0);
 }
 function dlgOk(){if(DLG&&DLG.onOk()!==false)closeLayer()}
-function closeLayer(){$('#layer').innerHTML='';DLG=null;S.layer=null}
-function openLayer(t,p){S.layer={t,p};S.step=0;drawLayer();const en=$('#layer .drawer,#layer .dialog,#layer .pop');if(en)en.classList.add('enter');const f=$('#layer [data-focus]');f&&f.focus()}
+function closeLayer(){$('#layer').innerHTML='';DLG=null;S.layer=null;stampTitle()}
+function openLayer(t,p){S.layer={t,p};S.step=0;drawLayer();const en=$('#layer .drawer,#layer .dialog,#layer .pop');if(en)en.classList.add('enter');const f=$('#layer [data-focus]');f&&f.focus();stampTitle()}
+function stampTitle(){const {v,p}=route();const s=$('#stamp');if(s)s.title=sid(v,p)}
 function drawLayer(){if(!S.layer)return;const b=$('#layer .drawer-b');const sc=b?b.scrollTop:0;$('#layer').innerHTML=LAYERS[S.layer.t](S.layer.p);if($('#stp'))stepGo(S.step,true);const nb=$('#layer .drawer-b');if(nb)nb.scrollTop=sc}
 const drawer=(title,body,foot,wide)=>`<div class="drawer-scrim" onclick="closeLayer()"></div><aside class="drawer ${wide?'wide':''}" role="dialog" aria-modal="true" aria-labelledby="dwt"><div class="drawer-h"><h3 id="dwt">${title}</h3><button class="btn sm" type="button" data-focus onclick="closeLayer()">닫기</button></div><div class="drawer-b">${body}</div>${foot?`<div class="drawer-f">${foot}</div>`:''}</aside>`;
 const modal=(title,body,foot)=>`<div class="scrim" onclick="if(event.target===this)closeLayer()"><div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="dlgt"><div class="detail-h" style="margin-bottom:10px"><h3 id="dlgt">${title}</h3><button class="btn sm" type="button" data-focus onclick="closeLayer()">닫기</button></div>${body}${foot?`<div class="btns" style="margin-top:16px">${foot}</div>`:''}</div></div>`;
@@ -4080,7 +4011,9 @@ const mask=n=>n[0]+'○'+n.slice(2);
 const ageBand=e=>Math.floor(e.age/10)*10+'대';
 const vn=r=>r.v?P[r.v].n:`지원자 ${(r.apps||[]).length}명`;
 /* 기능 추가 2회차 도우미: qa2-js에 있는 함수를 부른다(아직 없으면 빈 글) · 노쇼 판단 · 받은 담당자 요청 */
-const q2=(n,...a)=>typeof window[n]==='function'?window[n](...a):'';
+/* 뒤 스크립트(qa2-js)의 기능을 이름으로 부른다. qa2-js 끝에서 LATE에 등록, 없으면 콘솔 오류 */
+const LATE={};
+const q2=(n,...a)=>{const f=LATE[n];if(typeof f!=='function'){console.error('q2: 등록되지 않은 이름 '+n);return ''}return f(...a)};
 const mdN=s=>{const m=String(s||'').match(/(\d{1,2})\/(\d{1,2})/);return m?(+m[1])*100+(+m[2]):0};
 const hhN=t=>{const m=String(t||'').match(/(\d{1,2}):(\d{2})/);return m?+m[1]+(+m[2])/60:0};
 const noShow=r=>!!r&&r.st===2&&!r.qr&&(mdN(r.d)<1113||(mdN(r.d)===1113&&hhN(r.tm)+0.5<=NOW));
@@ -4203,13 +4136,13 @@ function vHome(){
     return pre+`<button type="button" class="lrow ${past(x)&&!x.gap?'past':''} ${inr?'q3now':''}" onclick="S.f.sview='월';S.f.sd=${9+day};S.f.gsel='${x.gap?x.e.id+'|'+x.k:''}';go('sched')">${inr}<span class="tn" style="width:46px;font-weight:600;color:${x.gap?'var(--neg)':'var(--ink-2)'}">${hm(x.st)}</span><span class="sp"><span class="t">${x.e.n} 님</span> <span class="muted">${x.gap?x.c.gap:x.c.c||x.c.gap}</span></span>${x.gap?'<span class="tag neg gap12">빈칸, 대안 보기</span>':`<span class="muted small">${x.c.v||x.c.done}${x.c.dg?' (단골)':''}</span>${x.c.live?'<span class="tag live12">활동 중</span>':''}`}</button>`}).join('')+(day===4&&!nd&&E.length?nowline.replace('class="nowline"','class="nowline end12"'):'');
   const hst=F('hst',-1),TT=hst<0?T:T.filter(r=>stI(r.st)===hst);
   const doneT=S.doneT||0,first=T[0],tot=doneT+T.length,hot=r=>(DUE[r.id]||[0,0])[1]>0;
-  const CHK='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.500l3 3 5-6"/></svg>';
+  
   const gap0=done+G.length,pct=tot?doneT/tot:0,gA=Math.PI*34;
   const gauge=`<svg class="mg gauge" viewBox="0 0 84 50" role="img" aria-label="오늘 ${tot}건 중 ${doneT}건 처리"><path class="t" d="M8 42a34 34 0 0 1 68 0"/><path class="f" d="M8 42a34 34 0 0 1 68 0" stroke-dasharray="${(gA*pct).toFixed(1)} ${gA.toFixed(1)}"/><circle class="k" cx="${(42-34*Math.cos(Math.PI*pct)).toFixed(1)}" cy="${(42-34*Math.sin(Math.PI*pct)).toFixed(1)}" r="4.500"/></svg>`;
-  const bars=`<span class="mg mbar" role="img" aria-label="최근 8주 봉사자가 정해진 돌봄 건수: ${W_OK.join(', ')}">${W_OK.map((v,k)=>`<i class="${k===7?'on':''}" style="height:${Math.round(v/21*34)}px"></i>`).join('')}</span>`;
-  const slots=`<span class="mg mtick" role="img" aria-label="이번 주 편성 ${gap0}칸 중 빈칸 ${G.length}개">${Array.from({length:gap0},(_,k)=>`<i class="${k>=done?'gap':''}"></i>`).join('')}</span>`;
+  
+  
   const priN=ELDERS.filter(e=>e.pri==='높음').length,dots=`<span class="mg mdot" role="img" aria-label="관리 대상 ${ELDERS.length}명 중 먼저 살펴볼 분 ${priN}명">${ELDERS.map((e,k)=>`<i class="${k<priN?'on':''}"></i>`).join('')}</span>`;
-  const stat=(href,ic,l,v,u,pill,g)=>`<a class="st7" href="#${href}"><span class="st7-h"><span class="tile">${ic}</span>${l}</span><b class="num">${v}<small>${u}</small></b><span class="st7-p">${pill}</span>${g}</a>`;
+  
   const hero=`<div class="kpis">`+[
    ['req/list','오늘 남은 일',T.length,'건',first?`<span class="up dn">${(DUE[first.id]||['오늘'])[0]}</span><span>먼저 ${EL(first.e).n} 님 ${first.cat}</span>`:'<span>오늘 할 일을 다 처리했어요</span>'],
    ['sched','이번 주 돌봄',done,'건',allScope()?`<span class="up">▲ ${W_OK[7]-W_OK[6]}</span><span>지난주 ${W_OK[6]}건</span>`:`<span>기관 전체 ${doneAll}건</span>`],
@@ -4273,7 +4206,7 @@ function vAlerts(p){
     detail=`<section class="panel"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="margin-bottom:8px"><div><h3><span class="sev warn">${w.k}</span> ${w.area}</h3><div class="note">${mt(`기상청`,`${w.per}`,`${w.at} 발표`)}</div></div><span class="tag">다른 지역</span></div><p style="margin:0;color:var(--ink-2)">${w.txt}</p></div><div class="panel-f muted">우리 기관 지역이 아니라서 확인이 필요한 분을 고르지 않았어요.</div></section>`;
   }else{const a=ALERTS[1];
     detail=`<section class="panel"><div class="panel-b" style="padding-top:20px"><div class="detail-h" style="margin-bottom:8px"><div><h3><span class="sev">${a.k}</span> ${a.area}</h3><div class="note">${mt(`기상청`,`${a.per}`,`${a.at} 발표`)}</div></div><span class="tag">종료</span></div><p style="margin:0;color:var(--ink-2)">${a.sum}</p></div><div class="panel-f muted">종료된 특보예요. 당시 안부 기록은 관리 대상마다 남아 있어요.</div></section>`}
-  return head('alerts',p)+`<div class="cols c-side narrow"><div class="stickl">${list}${sel==='wx1'?`<div class="artcard">${ART.snow}<p>한파 기간에는 동행을 실내 대기로 바꾸고, 확인이 필요한 분께 먼저 전화해 주세요.</p></div>`:''}</div><div class="stackv">${detail}</div></div>`;
+  return head('alerts',p)+`<div class="cols c-side narrow"><div class="stickl">${list}${sel==='wx1'?`<div class="artcard"><p>한파 기간에는 동행을 실내 대기로 바꾸고, 확인이 필요한 분께 먼저 전화해 주세요.</p></div>`:''}</div><div class="stackv">${detail}</div></div>`;
 }
 
 /* ---------- O-CARE-01 · 02 관리 대상 (11판: 기본은 내 담당, 이름 검색은 기관 전체) ---------- */
@@ -4320,7 +4253,6 @@ function careDetail(e){
 }
 function addMemo(id){const el=$('#memoIn');const v=el.value.trim();if(!v){el.focus();return}memosOf(id).unshift(['11/13',v]);render();toast('메모를 남겼어요')}
 /* 담당 넘기기 (기능 추가 2회차): 받을 담당자 + 사유 → '수락 대기' → 받는 담당자가 권한 위임 › 담당자 요청에서 수락하면 바뀌어요. 아래 옛 함수는 q2Handover로 대신해요 */
-function askMgr(id){if(window.q2Handover)return q2Handover(id);const e=EL(id),opts=STAFF.filter(s=>s[0]!==e.mgr);confirmBox({title:`${e.n} 님 담당을 바꿀까요?`,text:`지금 담당은 ${e.mgr} 님이에요. 새 담당자에게 알림이 가요. 안부 기록·메모·요청 기록은 그대로 넘어가요.`,ok:'담당 바꾸기',extra:`<div class="field"><label for="mgrto">새 담당자</label><select class="sel" id="mgrto">${opts.map(s=>`<option value="${s[0]}">${s[0]} (${s[1]})</option>`).join('')}</select></div><div class="field"><label for="mgrm">넘길 때 남길 말 <span class="note">선택</span></label><input id="mgrm" type="text" placeholder="예: 따님과 통화가 편해요"></div><p class="hint" style="margin:0 0 4px">휴가처럼 잠깐 맡길 때는 권한 위임 › 담당자 간 위임에서 해요.</p>`,onOk:()=>{const to=$('#mgrto').value;e.mgr=to;DELEG.unshift({to,from:'11/13',until:'계속',who:e.n,why:'담당 바꾸기 (인수인계)',scope:'담당 전체',st:'이관'});render();toast(`${e.n} 님 담당을 ${to} 님께 넘겼어요`)}})}
 function renderKeep(id){const el=$('#'+id);const pos=el.selectionStart;render();const n=$('#'+id);n.focus();n.setSelectionRange(pos,pos)}
 
 /* ---------- O-SCHED-01 돌봄 편성표 (11판: 전체 달력(월)이 기본. 날짜를 누르면 화면 전환 없이 오른쪽 패널에 그날 일정.
@@ -4420,27 +4352,13 @@ function reqDetailRO(r){const e=EL(r.e);const box=document.createElement('div');
   return box.innerHTML}
 /* 수정 1회차: 수락 전 요청 취소 (위험 동작 → 확인 창, 초점은 '취소'). 수정 3회차: 수락은 채팅 안에서 하고 되돌릴 수 없어서 '수락 뒤 거절'은 없어요 */
 const REASONS=['일정이 맞지 않아요','관리 대상(보호자)이 원하지 않아요','다른 방법으로 해결했어요','기타'];
-function askDecline(id){const r=REQS.find(x=>x.id===id),e=EL(r.e),v=P[r.v];
-  confirmBox({title:`${v.n} 님을 대신 거절할까요?`,text:`${e.n} 님 ${r.cat} · ${r.d} ${r.tm}. ${v.n} 님께 거절 알림이 가고, 요청은 '요청' 단계로 돌아가 다른 봉사자를 다시 찾아요.`,ok:'대신 거절하기',danger:true,extra:`<div class="field"><label for="decr">사유 <span class="note">봉사자에게는 "일정이 맞지 않아요"처럼 짧게 보여요</span></label><select class="sel" id="decr">${REASONS.map(x=>`<option>${x}</option>`).join('')}</select></div>`,
-   onOk:()=>{const why=$('#decr').value;const old=r.v;r.apps=(r.apps||[]).filter(a=>a.p!==old);r.v=null;r.st=0;r.closed=null;r.reopen=`${P[old].n} 님을 거절했어요(${why}).`;r.what=r.apps.length?`지원자 ${r.apps.length}명`:'다시 모집 중';S.doneT=(S.doneT||0)+1;render();toast(`${P[old].n} 님께 거절 알림을 보냈어요. 다른 봉사자를 다시 찾아요`)}})}
 function askCancel(id){const r=REQS.find(x=>x.id===id),e=EL(r.e);
   confirmBox({title:`${e.n} 님 ${r.cat} 요청을 취소할까요?`,text:`${r.d} ${r.tm}. ${r.v?P[r.v].n+' 님께':'지원자에게'} 취소 알림이 가요. 취소한 요청은 되살릴 수 없어요.`,ok:'요청 취소하기',danger:true,extra:`<div class="field"><label for="canr">사유</label><select class="sel" id="canr">${REASONS.map(x=>`<option>${x}</option>`).join('')}</select></div>`,
    onOk:()=>{r.why=$('#canr').value;r.st=5;r.what='요청 취소';S.doneT=(S.doneT||0)+1;render();toast('요청을 취소했어요. 알림을 보냈어요')}})}
 /* 지원자 목록 (2): 승인/거절 대신 채팅 → 한 분 정하기 */
-function appList(r){if(!(r.apps||[]).length)return '';const cur=F('chat_'+r.id,r.apps[0].p);return `<div class="apl12" role="list" aria-label="지원자 ${r.apps.length}명">${r.apps.map(a=>{const p=P[a.p],n=chatOf(r,a.p).length;return `<div class="apl12-r ${cur===a.p?'on':''}" role="listitem">${av(p.n)}<div class="sp"><div class="apl12-n"><b>${p.n}</b> <span class="muted small">${mt(p.ag,p.dong,'평점 '+p.rate,'함께한 활동 '+p.cnt+'회')}</span>${p.dg?' <span class="tag vol">단골</span>':''}</div><div class="muted small ellip" title="${esc(a.msg)}">"${a.msg}" · ${a.at}</div></div><div class="btns nw"><button class="btn sm" type="button" onclick="openChat('${r.id}','${a.p}')">${icon('talk')}채팅하기${n?` <span class="tn muted">${n}</span>`:''}</button><button class="btn sm line" type="button" onclick="pickApp('${r.id}','${a.p}')">이 분으로 정하기</button><button class="btn sm ghost danger-t" type="button" title="${p.n} 님을 이 분 공고에서 받지 않아요" onclick="q2Block('${r.id}','${a.p}')">받지 않기</button></div></div>`}).join('')}</div>`}
 const chatOf=(r,p)=>CHATS[r.id+':'+p]||(CHATS[r.id+':'+p]=r.st>0&&p===r.v?[['them',`안녕하세요, ${r.d.split(' ')[0]}에 뵐게요!`,'어제'],['me','감사합니다. 1층 로비에서 기다리실 거예요.','어제']]:[]);
-function chatPanel(r){const e=EL(r.e),ps=r.v?[r.v]:(r.apps||[]).map(a=>a.p);if(!ps.length)return '';const cur=r.v||F('chat_'+r.id,ps[0]),th=chatOf(r,cur),done=r.st===5;
-  return `<section class="panel chat12" id="chat-${r.id}"><div class="panel-h tight"><h2>채팅</h2><span class="sub">${r.v?`${P[cur].n} 님과`:`지원자 ${ps.length}명과 따로따로`}</span></div>
-  ${ps.length>1?`<div class="chat12-tabs" role="tablist" aria-label="채팅 상대">${ps.map(p=>`<button type="button" role="tab" aria-selected="${p===cur}" class="${p===cur?'on':''}" onclick="openChat('${r.id}','${p}')">${av(P[p].n,'s')}${P[p].n}${chatOf(r,p).length?`<span class="tn">${chatOf(r,p).length}</span>`:''}</button>`).join('')}</div>`:''}
-  <div class="chat12-b" id="chatb-${r.id}">${th.length?th.map(m=>m[0]==='sys'?`<div class="chat12-sys">${m[1]}</div>`:`<div class="chat12-m ${m[0]==='me'?'me':''}">${m[0]==='me'?'':av(P[cur].n,'s')}<div class="chat12-c"><div class="chat12-bub">${esc(m[1])}</div><div class="chat12-meta tn">${m[0]==='me'?`${ME} · ${e.n} 님 대신 · `:''}${m[2]}</div></div></div>`).join(''):`<div class="chat12-sys">${P[cur].n} 님과 아직 나눈 채팅이 없어요. 먼저 인사를 건네 보세요.</div>`}</div>
-  ${done?'<p class="chat12-note">끝난 요청이라 채팅을 보낼 수 없어요.</p>':`<form class="chat12-f" onsubmit="event.preventDefault();sendChat('${r.id}','${cur}')"><input type="text" id="chatin-${r.id}" placeholder="${P[cur].n} 님께 보내기" aria-label="${P[cur].n} 님께 보낼 채팅"><button class="btn primary sm" type="submit">보내기</button></form>
-  <p class="chat12-note">${icon('user')}<span class="hint"><b>${e.n} 님 대신 보내요.</b> 상대에게는 "${mask(e.n)} 님 (담당자 ${ME})"으로 보여요. 정확한 주소는 수락 뒤에 알려 주세요.</span></p>`}</section>`}
 function openChat(rid,p){S.f['chat_'+rid]=p;render();const el=$('#chat-'+rid);if(el){el.scrollIntoView({block:'nearest'});const b=$('#chatb-'+rid);if(b)b.scrollTop=b.scrollHeight;const i=$('#chatin-'+rid);if(i)i.focus({preventScroll:true})}}
 function sendChat(rid,p){const i=$('#chatin-'+rid);const t=i&&i.value.trim();if(!t){i&&i.focus();return}const r=REQS.find(x=>x.id===rid);chatOf(r,p).push(['me',t,'방금']);render();const b=$('#chatb-'+rid);if(b)b.scrollTop=b.scrollHeight;const n=$('#chatin-'+rid);if(n)n.focus({preventScroll:true})}
-function pickApp(rid,pk){const r=REQS.find(x=>x.id===rid),e=EL(r.e),v=P[pk],n=r.apps.length-1;
-  confirmBox({title:`${v.n} 님으로 정할까요?`,text:`${e.n} 님 ${r.cat} · ${r.d} ${r.tm}. ${v.n} 님께 수락 알림이 가요. 나머지 지원자에게는 마감 알림이 가요.`,ok:'이 분으로 정하기',extra:n?`<p class="hint" style="margin:0 0 4px">마감 알림이 가는 분: ${r.apps.filter(a=>a.p!==pk).map(a=>P[a.p].n).join(', ')}</p>`:'',
-   onOk:()=>{r.closed=r.apps.filter(a=>a.p!==pk).map(a=>a.p);r.v=pk;r.st=2;r.what='수락';S.doneT=(S.doneT||0)+1;chatOf(r,pk).push(['sys',`${v.n} 님으로 정했어요 · 나머지 지원자 ${n}명에게 마감 알림이 갔어요`,'방금']);render();toast(`${v.n} 님으로 정했어요. 나머지 지원자 ${n}명에게 마감 알림을 보냈어요`)}})}
-function orate(id){return q2('q3LogOk',id)}
 function durTxt(tm){const m=tm.match(/(\d+):(\d+)~(\d+):(\d+)/);if(!m)return null;const mins=(+m[3]*60+ +m[4])-(+m[1]*60+ +m[2]);return {h:mins/60,t:`${Math.floor(mins/60)}시간${mins%60?' '+mins%60+'분':''}`}}
 function appPage(p){
   const sa=APPS.find(x=>x.id===p),t=sa?Object.keys(AGRP).find(g=>AGRP[g].includes(sa.st)):F('aq','처리할 일'),fk=sa?'전체':F('ak','전체');
@@ -4470,31 +4388,6 @@ function nrPick(E){const pool=allScope()?ORDER.map(EL):SE(),okL=pool.filter(canR
   return `<div class="field"><label for="nre">관리 대상 <span class="note">위임받은 분만 고를 수 있어요</span></label><select class="sel" id="nre" onchange="go('newreq',this.value)">${okL.map(x=>`<option value="${x.id}" ${x.id===E.id?'selected':''}>${x.n} (${x.age}세 · ${x.dong})${x.mgr!==ME?' · 담당 '+x.mgr:''}</option>`).join('')}${noL.map(x=>`<option value="${x.id}" disabled>${x.n} · 위임(보호자 동의·서면 동의) 뒤 가능</option>`).join('')}</select></div>
    ${noL.length?`<div class="nodlg12">${icon('lock')}<span class="sp hint" style="margin:0">${noL.map(x=>`<b>${x.n}</b>`).join(', ')} 님은 아직 위임 전이라 고를 수 없어요. 위임(보호자 동의·서면 동의) 뒤 가능해요.</span><a class="link" href="#dlg/${noL[0].id}">권한 위임</a></div>`:''}`}
 function nrRecip(E){const sx=E.sex==='남'?'남성':'여성';return `<fieldset class="fs12"><legend>받는 분 정보</legend><p class="hint q3lg">관리 대상 정보에서 미리 채웠어요</p><div class="field2">${fld('성별',fch('nrsex_'+E.id,['여성','남성'],sx))}${fld('나이대',fch('nrage_'+E.id,['60대','70대','80대','90대'],ageBand(E)))}</div>${fld('불편한 점 · 필요한 도구',mch('nraid_'+E.id,AIDS,E.aids||[]))}<p class="hint" style="margin:8px 0 0">공고에는 이름 없이 "${ageBand(E)} ${sx} · ${E.dong}"처럼 보여요. 이름·전화·정확한 주소는 수락 뒤 채팅으로 알려요.</p></fieldset>`}
-function vNewReq(p){
-  const pe=EL(p),blocked=pe&&!canReq(pe),E=(pe&&canReq(pe))?pe:(inScope(EL('e1'))&&canReq(EL('e1'))?EL('e1'):(SE().find(canReq)||ORDER.map(EL).find(canReq)));
-  const mode=F('nrm','ai'),stg=F('nrs',0),dgs=dgOf(E).map(k=>P[k].n);
-  const modeSeg=`<div class="seg nrm12" role="group" aria-label="쓰는 방법">${[['ai','AI로 정리','spark'],['direct','직접 쓰기','edit'],['voice','말로 만들기','mic'],['memo','통화 메모 여러 건','doc']].map(([k,l,ic])=>`<button type="button" class="${mode===k?'on':''}" aria-pressed="${mode===k}" onclick="S.f.nrs=0;setF('nrm','${k}')">${icon(ic)}${l}</button>`).join('')}</div>`;
-  const warn=blocked?`<div class="callout" role="note" style="margin-bottom:14px">${icon('lock')}<div><b class="lbl">${pe.n} 님은 위임 전이에요</b>대신 요청은 위임(보호자 동의·서면 동의) 뒤에 할 수 있어요. 위임받은 분 중에서 골라 주세요. <a class="link" href="#dlg/${pe.id}">권한 위임</a></div></div>`:'';
-  const stepbar=`<div class="stepper" style="margin-bottom:16px"><button type="button" class="${stg===1?'done':'on'}" onclick="setF('nrs',0)"><i>1</i>전화 내용</button><button type="button" class="${stg===1?'on':''}" ${stg===1?'':'disabled'}><i>2</i>공고 확인하고 올리기</button></div>`;
-  const s0=`${nrPick(E)}
-    <div class="field"><label for="nrt">전화로 들은 내용</label><textarea id="nrt" style="min-height:140px" oninput="S.f.nrtxt=this.value">${esc(F('nrtxt',NRTXT))}</textarea></div>
-    ${stg==='load'?`<div class="rowx muted"><span class="dots"><i></i><i></i><i></i></span>전화 내용을 정리하고 있어요</div>`:`<div class="btns" style="justify-content:flex-end"><button class="btn" type="button" onclick="go('req')">취소</button><button class="btn primary" type="button" onclick="nrRun()">${icon('spark')}AI로 공고 정리</button></div>`}`;
-  const s1=`${insight('<p><strong>이렇게 정리했어요.</strong> 틀린 곳은 고쳐서 올려 주세요. 올릴지는 담당자님이 정해요.</p>','전화 내용에서 찾은 정보: 화요일, 오후 2시, 정형외과, 약국')}
-    <div style="height:16px"></div><div class="field2">${fld('카테고리',`<input type="text" id="nac" value="동행">`)}${fld('날짜',`<input type="text" id="nad" value="11/17 (화)">`)}</div><div class="field2">${fld('시간',`<input type="text" id="natm" value="13:40~16:00">`)}${fld('동네',inp('',E.dong+' → 서울정형외과, 약국'),'정확한 주소는 채팅으로')}</div>
-    ${fld('내용',`<textarea class="sm" id="nabd">정형외과 진료(14:00 예약)에 같이 가 주실 분을 찾아요. 진료 후 약국에 들러 처방약을 받아 오시면 돼요.</textarea>`)}${nrRecip(E)}${fld('이슈 메모',`<textarea class="sm" id="naim">${esc(E.caution)}</textarea>`,'수락된 봉사자에게만 보여요')}
-    <div class="btns" style="justify-content:flex-end;margin-top:16px"><button class="btn" type="button" onclick="setF('nrs',0)">전화 내용 고치기</button><button class="btn primary" type="button" onclick="postReqAI()">올리기</button></div>`;
-  const d0=`${nrPick(E)}${q2('q2PrefillNote',E)}${q2('q2ChatFill',E)}
-    <div class="field"><label for="nrc">카테고리</label><div class="rowx nw"><select class="sel sp" id="nrc" onchange="S.f['nrc_${E.id}']=this.value"><option value="">카테고리 고르기</option>${CATS.map(c=>`<option ${c.k===F('nrc_'+E.id,E.needs[0])?'selected':''}>${c.k}</option>`).join('')}</select><button class="btn sm" type="button" style="height:42px" onclick="askCat()">카테고리 건의</button></div></div>
-    ${fld('제목',`<input type="text" id="nrti" placeholder="예: 정형외과 진료에 같이 가 주실 분" value="${esc(F('nrti_'+E.id,''))}" oninput="S.f['nrti_${E.id}']=this.value">`)}
-    ${fld('내용',`<textarea class="sm" id="nrbd" placeholder="어떤 도움이 필요한지, 만나는 곳과 끝나는 때를 적어 주세요" oninput="S.f['nrbd_${E.id}']=this.value">${esc(F('nrbd_'+E.id,''))}</textarea>`)}
-    <div class="field2">${fld('날짜',`<input type="text" id="nrd" placeholder="예: 11/17 (화)" value="${esc(F('nrd_'+E.id,''))}" oninput="S.f['nrd_${E.id}']=this.value">`)}${fld('시간',`<input type="text" id="nrtm" placeholder="예: 14:00~16:00" value="${esc(F('nrtm_'+E.id,''))}" oninput="S.f['nrtm_${E.id}']=this.value">`)}</div>
-    ${fld('동네',inp('',E.dong),'정확한 주소는 수락 뒤 채팅으로 알려요')}
-    ${nrRecip(E)}${fld('이슈 메모',`<textarea class="sm" id="nrim" oninput="S.f['nrim_${E.id}']=this.value">${esc(F('nrim_'+E.id,E.caution))}</textarea>`,'수락된 봉사자에게만 보여요')}
-    ${q2('q2CheckList',E)}<div class="btns" style="justify-content:flex-end;margin-top:16px"><button class="btn" type="button" onclick="go('req')">취소</button><button class="btn primary" type="button" onclick="postReq()">공고 올리기</button></div>`;
-  return head('newreq',p)+`<div class="formwide" style="margin:0"><section class="panel"><div class="panel-b" style="padding-top:20px"><div class="rowx nrh12">${modeSeg}<span class="note hint" style="margin:0">${({ai:'전화 내용을 적으면 AI가 공고 초안으로 바꿔요',direct:'칸을 직접 채워요 · 빠진 칸은 "대화로 채우기"가 물어봐요',voice:'말한 내용을 글로 받아 공고 칸에 채워요 (시연)',memo:'통화 메모 한 줄에 한 건씩, 여러 요청 초안으로 나눠요'})[mode]||''}</span></div>${warn}${mode==='ai'?stepbar+(stg===1?s1:s0):mode==='voice'?q2('q2Voice',E):mode==='memo'?q2('q2Memo',E):d0}</div></section>
-    ${stg===1&&mode==='ai'?'':`<section class="panel"><div class="panel-h"><h2>${E.n} 님의 단골</h2></div><div class="panel-b"><p class="muted small" style="margin:0 0 10px">공고 없이 단골에게 바로 요청할 수도 있어요.</p>${dgs.length?dgs.map(n=>`<div class="rowx" style="padding:6px 0;flex-wrap:nowrap">${av(n,'s')}<b class="sp" style="font-weight:600">${n}</b><button class="btn sm" type="button" onclick="askDirect('${n}','${E.id}')">바로 요청</button></div>`).join(''):emptyArt('chairs','아직 단골이 없어요. 받은 도움 기록이나 끝난 요청에서 "단골로 등록"을 누르면 생겨요.')}</div></section>`}${mode==='ai'&&stg!==1?`<div class="artcard wide">${ART.strip}<ol class="how"><li><b>전화 내용</b>들은 대로 적어요</li><li><b>AI 정리</b>공고 초안으로 바꿔 줘요</li><li><b>확인하고 올리기</b>고칠 곳은 고쳐서 담당자가 올려요</li></ol></div>`:''}</div>`;
-}
-function nrRun(){S.f.nrs='load';render();setTimeout(()=>{if(S.f.nrs==='load'){S.f.nrs=1;render()}},900)}
 /* 수정 1회차: 새 요청을 REQS에 넣고 그 상세로 간다 (요청 단계 · 지원자 0명) */
 function addReq(o){const n=REQS.reduce((m,r)=>Math.max(m,+r.id.slice(1)||0),0)+1;const r=Object.assign({id:'r'+n,v:null,st:0,what:'지원자 0명',apps:[]},o);REQS.unshift(r);return r}
 function postReq(){const v=id=>(($('#'+id)||{}).value||'').trim();const d=v('nrd'),nd=normDate(d);
@@ -4503,10 +4396,6 @@ function postReq(){const v=id=>(($('#'+id)||{}).value||'').trim();const d=v('nrd
   if(!S.q2force&&q2('q2Warn',E)===true)return;S.q2force=0;
   const r=addReq({e:E.id,dong:v('nrdong')||E.dong,cat:v('nrc'),d:nd,tm:`${m[1].padStart(2,'0')}:${m[2]}~${m[3].padStart(2,'0')}:${m[4]}`,issue:v('nrim'),title:v('nrti'),body:v('nrbd')});
   ['nrti_','nrbd_','nrd_','nrtm_','nrc_','nrim_','q2pf_','q2cf_','nrdong_'].forEach(k=>delete S.f[k+E.id]);toast('봉사 신청서를 올렸어요 · 요청 단계 · 지원자와 채팅해 수락해 주세요');go('req',r.id)}
-function postReqAI(){const v=id=>(($('#'+id)||{}).value||'').trim();const d=v('nac'),nd=normDate(v('nad'));
-  const ok=vRun([['nac',d?(CATS.some(c=>c.k===d)?'':'카테고리는 '+CATS.map(c=>c.k).join(', ')+' 중에서 적어 주세요'):'카테고리를 적어 주세요'],['nad',!v('nad')?'날짜를 적어 주세요':!nd?'11/17처럼 월/일로 적어 주세요':''],['natm',timeErr(v('natm'))],['nabd',v('nabd')?'':'내용을 적어 주세요']]);
-  if(!ok)return;const E=EL(($('#nre')||{}).value)||EL('e1');const m=v('natm').match(TIME_RE);S.f.nrs=0;
-  const r=addReq({e:E.id,cat:d,d:nd,tm:`${m[1].padStart(2,'0')}:${m[2]}~${m[3].padStart(2,'0')}:${m[4]}`,issue:v('naim'),title:'',body:v('nabd')});toast('봉사 신청서를 올렸어요 · 요청 단계');go('req',r.id)}
 function askCat(){confirmBox({title:'카테고리를 건의할까요?',text:'맞는 카테고리가 없을 때 운영자에게 건의해요. 건의는 운영자에게 가고, 비슷한 건의는 AI가 묶어서 정리해요. 운영자가 보고 새 카테고리로 넣을지 정해요.',ok:'건의 보내기',extra:`<div class="field"><label for="catq">원하는 카테고리</label><input id="catq" type="text" placeholder="예: 병원 약 대신 받아 오기"></div><div class="field"><label for="catw">이유 <span class="note">선택</span></label><input id="catw" type="text" placeholder="예: 약만 받아 오는 일이 한 달에 3번쯤 있어요"></div>`,onOk:()=>{const v=$('#catq').value.trim();if(!vRun([['catq',!v?'카테고리 이름을 적어 주세요':v.length>20?'20자까지 적어 주세요':'']]))return false;if(typeof SUGG!=='undefined')SUGG.unshift({id:'sg'+(SUGG.length+1),t:v,why:($('#catw')||{}).value||'',d:'11/13',st:'검토 중',grp:''});toast(`"${v}" 카테고리 건의를 보냈어요 · 내 정보 › 내 건의에서 볼 수 있어요`)}})}
 
 /* ---------- O-POST-04 도움 찾기 ---------- */
@@ -4582,7 +4471,7 @@ function closePost(id){const p=OPOSTS.find(x=>x.id===id);confirmBox({title:'이 
 /* 관심 표시·문의는 행사마다 save·ask로 둔다 (순번으로 붙이지 않음) */
 function vEvents(){
   return head('events')+`<div class="toolbar"><span class="line-note" style="font-size:calc(15px*var(--fz))">시간이 적립·차감되지 않고, 근처 사용자 홈의 "동네 기관 소식"에 보여요.</span><div class="filters"><button class="btn sm primary" type="button" onclick="openLayer('eventForm')">${icon('plus')}행사 올리기</button></div></div>
-  <section class="panel evwrap"><div class="evs">${EVENTS.map((e,i)=>{const m=e.d.match(/(\d+)\/(\d+) \((.)\)\s*(.*)/)||[0,'','','',e.d];return `<article class="ev" data-ev="${e.id}"><div class="ev-d"><small>${+m[1]}월</small><b class="num">${+m[2]}</b><small>${m[3]}요일</small></div><div class="ev-b"><span class="tag">${e.kind}</span><h3>${esc(e.t)}</h3><p class="muted small tn">${m[4]} · 반경 1km 동네 기관 소식${e.url?` · <a class="link ext12" href="${esc(e.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">사이트로 이동 ↗</a>`:''}</p><div class="rowx nw"><span class="status ok">노출 중</span><span class="sp"></span><span class="small tn muted evst10">조회 ${e.view} · 관심 ${e.save||0} · 문의 ${e.ask||0}</span></div></div></article>`}).join('')}</div><div class="evart">${ART.fest}</div>
+  <section class="panel evwrap"><div class="evs">${EVENTS.map((e,i)=>{const m=e.d.match(/(\d+)\/(\d+) \((.)\)\s*(.*)/)||[0,'','','',e.d];return `<article class="ev" data-ev="${e.id}"><div class="ev-d"><small>${+m[1]}월</small><b class="num">${+m[2]}</b><small>${m[3]}요일</small></div><div class="ev-b"><span class="tag">${e.kind}</span><h3>${esc(e.t)}</h3><p class="muted small tn">${m[4]} · 반경 1km 동네 기관 소식${e.url?` · <a class="link ext12" href="${esc(e.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">사이트로 이동 ↗</a>`:''}</p><div class="rowx nw"><span class="status ok">노출 중</span><span class="sp"></span><span class="small tn muted evst10">조회 ${e.view} · 관심 ${e.save||0} · 문의 ${e.ask||0}</span></div></div></article>`}).join('')}</div><div class="evart"></div>
     <div class="panel-f line-note">봉사자가 필요한 일은 <button class="link" type="button" onclick="S.after='postKind';go('posts')">기관 공고</button>로 올려요.</div></section>`;
 }
 
@@ -4759,12 +4648,20 @@ function drawAib(){const A=S.ai,w=$('#aib');if(location.hash.startsWith('#sched'
 function aiAsk(q){if(!q)return;const A=S.ai,{v}=route();A.msgs.push({me:q,ctx:TITLES[v][0]},{wait:1});if(A.size==='min')A.size='';drawAib();setTimeout(()=>{A.msgs.pop();A.msgs.push(aiAnswer(q));drawAib()},900)}
 
 /* ---------- 라우팅 ---------- */
-const VIEWS={noti:vNoti,home:vHome,alerts:vAlerts,care:vCare,sched:vSched,req:vReq,newreq:vNewReq,find:vFind,pub:vPub,posts:vPosts,events:vEvents,dlg:vDlg,report:vReport};
+const VIEWS={noti:vNoti,home:vHome,alerts:vAlerts,care:vCare,sched:vSched,req:vReq,newreq:()=>''/* qa2-js가 q3NewReq로 바꾼다 */,find:vFind,pub:vPub,posts:vPosts,events:vEvents,dlg:vDlg,report:vReport};
+/* 지금 화면 이름(주소 # 뒤 첫 칸, 없으면 home). route().v와 달리 모르는 이름도 그대로 돌려준다 */
+function curView(){return (location.hash||'#home').slice(1).split('/')[0]||'home'}
+/* 카드 배치 저장: 키는 한 곳. 계정별 키(ts-layout:+계정 ID)는 사용자 결정 뒤에 켠다 */
+const LAYOUT_KEY='ts-layout:staff-1001'; /* 로그인한 담당자(박지현) */
+const layoutStore={load:()=>{try{return JSON.parse(localStorage.getItem(LAYOUT_KEY)||'{}')||{}}catch(e){return {}}},save:o=>{try{localStorage.setItem(LAYOUT_KEY,JSON.stringify(o))}catch(e){}}};
 function route(){let h=location.hash.slice(1);try{h=decodeURIComponent(h)}catch(e){}const i=h.indexOf('/'),v=i<0?h:h.slice(0,i),p=i<0?'':h.slice(i+1);return VIEWS[v]?{v,p}:{v:'home',p:''}}
 function go(v,p){const h='#'+v+(p?'/'+p:'');let c=location.hash;try{c=decodeURIComponent(c)}catch(e){}if(c===h)render();else navTo(h)}
-function render(){const {v,p}=route();renderNav(NAVON[v]||v);const mn=$('#main');const ent=render.last!==v;mn.classList.toggle('enter',ent);if(ent)setTimeout(countUp,0);render.last=v;mn.innerHTML=VIEWS[v](p);S.grow='';const ph=$('#main>.pagehead');if(ph)$('#top').replaceChildren(ph);if(S.layer)drawLayer();drawAib()}
-const _openLayer=openLayer;openLayer=function(t,p){_openLayer(t,p);const {v,p:pp}=route();const s=$('#stamp');if(s)s.title=sid(v,pp)};
-const _closeLayer=closeLayer;closeLayer=function(){_closeLayer();const {v,p}=route();const s=$('#stamp');if(s)s.title=sid(v,p)};
+/* 렌더 훅 등록부: 층마다 render를 감싸던 것을 등록 순서 그대로 여기서 부른다 */
+const beforeRender=[],afterRender=[];
+function onBeforeRender(fn){beforeRender.push(fn)}
+function onRender(fn){afterRender.push(fn)}
+function render(){beforeRender.forEach(f=>f());renderView();afterRender.forEach(f=>f())}
+function renderView(){const {v,p}=route();renderNav(NAVON[v]||v);const mn=$('#main');const ent=render.last!==v;mn.classList.toggle('enter',ent);if(ent)setTimeout(countUp,0);render.last=v;mn.innerHTML=VIEWS[v](p);S.grow='';const ph=$('#main>.pagehead');if(ph)$('#top').replaceChildren(ph);if(S.layer)drawLayer();drawAib()}
 let lastView=route().v;
 /* 링크 이동을 해시 기본 동작에 맡기지 않고 직접 처리한다(미리보기 창·iframe에서 # 링크가 막혀도 동작하게) */
 function navTo(h){try{history.pushState(null,'',h)}catch(e){location.hash=h;return}dispatchEvent(new HashChangeEvent('hashchange'))}
@@ -4774,9 +4671,7 @@ addEventListener('hashchange',()=>{if($('#layer').innerHTML)closeLayer();render(
 /* 9판: 카드 제목 앞 옅은 아이콘 타일 (디자이너 "AI 도움 찾기 · 내 다음 일정" 머리) — 선 아이콘만, 그림 없음 */
 const HT9=[[/AI 분석/,'spark'],[/채팅/,'talk'],[/알림/,'bell'],[/처리할 일/,'check'],[/일지/,'memo'],[/일정/,'clock'],[/특보/,'alerts'],[/운영자/,'mega'],[/추천 조치/,'hand'],[/빈칸/,'sched'],[/앱에서 온/,'phone'],[/대리 담당자|이관/,'dlg'],[/서비스/,'pub'],[/단골/,'user'],[/공고/,'posts'],[/살펴볼|안부/,'care']];
 function tiles9(root){(root||document).querySelectorAll('.panel>.panel-h:first-child h2').forEach(h=>{if(h.querySelector('.ht9'))return;const t=h.textContent;const m=HT9.find(([re])=>re.test(t));if(!m)return;const pn=h.closest('.panel');if(pn&&pn.offsetWidth<440)h.parentElement.classList.add('nar9');h.insertAdjacentHTML('afterbegin',`<span class="ht9" aria-hidden="true">${icon(m[1])}</span>`)})}
-{const _r9=render;render=function(){_r9.apply(this,arguments);try{tiles9($('#main'))}catch(e){console.warn(e)}}}
-
-render();
+onRender(()=>{try{tiles9($('#main'))}catch(e){console.warn(e)}});
 </script>
 <style id="v9-catcolor">
 /* 편성표 분류별 색 (같은 코랄 톤이라 구분이 어렵다는 지적) — 확정은 진한 면, 요청·공고 올림은 흰 면+점선 왼쪽 막대 */
@@ -4798,7 +4693,7 @@ render();
 function cat9(){document.querySelectorAll('.cev:not(.gap)').forEach(e=>{if(/\bk-/.test(e.className))return;const t=e.getAttribute('title')||e.textContent;const m=K.find(([re])=>re.test(t));if(m)e.classList.add('k-'+m[1])});
 document.querySelectorAll('.sw.box').forEach(sw=>{const row=sw.parentElement&&sw.parentElement.parentElement;if(!row||row.querySelector('.catleg9'))return;if(!/확정/.test(row.textContent))return;row.insertAdjacentHTML('beforeend','<span class="catleg9">'+K.map(k=>`<span><i style="background:var(--kb);border-left:3px solid var(--kl)" class="k-${k[1]} cev-sw"></i>${k[2]}</span>`).join('')+'</span>')});
 document.querySelectorAll('.cev-sw').forEach(i=>{const m={go:['#E6EEFC','#3B6FD1'],shop:['#E2F3EA','#1F8A5B'],talk:['#EEEAFB','#6A55C9'],digi:['#DFF2F5','#0F7F8E'],tidy:['#FBF0D9','#A8740C'],home:['#FBE6EE','#B5456F']}[i.className.match(/k-(\w+)/)[1]];i.style.background=m[0];i.style.borderLeftColor=m[1]})}
-const _r=render;render=function(){_r.apply(this,arguments);try{cat9()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(cat9,0));})();
+onRender(()=>{try{cat9()}catch(e){console.warn(e)}});addEventListener('load',()=>setTimeout(cat9,0));})();
 </script>
 <style id="v9-drag">
 /* 카드 제목을 끌어 위치 바꾸기 (담당자별 저장) — 위아래 순서, 좌우 칸 바꾸기 */
@@ -4834,11 +4729,11 @@ const _r=render;render=function(){_r.apply(this,arguments);try{cat9()}catch(e){c
 /* 숫자 카드를 누르면 그 화면 목록 필터가 바뀐다 (색칠된 카드 = 지금 고른 필터, 다시 누르면 전체) */
 const MAPS={care:{k:'ep',v:['전체','우선순위 높음','혼자 사는 분','위임 받은 분'],t:['전체 보기','먼저 살펴볼 분만 보기','혼자 사는 분만 보기','위임 받은 분만 보기']},
  posts:{k:'ost',v:['전체','모집 중','신청 있음','새 신청'],t:['전체 보기','모집·신청 받는 중인 공고만 보기','신청이 있는 공고만 보기','새 신청(확인 전)이 있는 공고만 보기']}};
-function kf(){const view=(location.hash||'').slice(1).split('/')[0];const M=MAPS[view];if(!M)return;const row=document.querySelector('#main .kpis');if(!row||row.dataset.kf)return;row.dataset.kf='1';row.classList.add('kf9');const cur=(S.f&&S.f[M.k])||'전체';
+function kf(){const view=curView();const M=MAPS[view];if(!M)return;const row=document.querySelector('#main .kpis');if(!row||row.dataset.kf)return;row.dataset.kf='1';row.classList.add('kf9');const cur=(S.f&&S.f[M.k])||'전체';
  [...row.children].forEach((k,i)=>{const v=M.v[i];if(!v)return;k.setAttribute('role','button');k.tabIndex=0;k.setAttribute('aria-pressed',String(cur===v));if(cur===v)k.classList.add('on');k.title=M.t[i];
   const go=()=>{S.f[M.k]=(cur===v&&v!=='전체')?'전체':v;if(S.more)delete S.more.op;render()};k.addEventListener('click',go);k.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})});
  if(view==='posts'&&cur!=='전체'){const tb=document.querySelector('#main .toolbar .tabs');if(tb&&!tb.parentElement.querySelector('.kfnote')){tb.insertAdjacentHTML('afterend',`<span class="kfnote small muted" style="margin-left:12px">${M.t[M.v.indexOf(cur)].replace(' 보기','')} 중 · <button class="link" type="button" onclick="S.f.ost='전체';render()">전체 보기</button></span>`)}}}
-const _rK=render;render=function(){_rK.apply(this,arguments);try{kf()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(()=>{try{kf()}catch(e){}},0));})();
+onRender(()=>{try{kf()}catch(e){console.warn(e)}});addEventListener('load',()=>setTimeout(()=>{try{kf()}catch(e){}},0));})();
 </script>
 <style id="v9-panscroll">
 /* 가로로 넘치는 영역(요청 보드 등): 빈 곳을 눌러 끌면 옆으로 스크롤 */
@@ -4848,15 +4743,12 @@ const _rK=render;render=function(){_rK.apply(this,arguments);try{kf()}catch(e){c
 </style>
 <script>
 (function(){
-const SEL='.kbwrap,.tw,.calwrap,.sch-scroll';
 const isEmpty=t=>!t.closest('a,button,input,select,textarea,label,summary,[draggable="true"],[onclick],[role="button"],.kcard,.cev,.tag,p,h2,h3,b,strong');
-function mark(){document.querySelectorAll('#main *').forEach(el=>{const ox=getComputedStyle(el).overflowX;const can=(ox==='auto'||ox==='scroll')&&el.scrollWidth>el.clientWidth+4;el.classList.toggle('pan9',can)})}
 let st=null;
 document.addEventListener('pointerdown',e=>{if(e.button!==0||e.pointerType==='touch')return;const w=e.target.closest('.pan9');if(!w||!isEmpty(e.target))return;st={w,x:e.clientX,y:e.clientY,sl:w.scrollLeft,st:w.scrollTop,moved:false};},true);
 document.addEventListener('pointermove',e=>{if(!st)return;const dx=e.clientX-st.x,dy=e.clientY-st.y;if(!st.moved&&Math.abs(dx)+Math.abs(dy)<4)return;if(!st.moved){st.moved=true;st.w.classList.add('pan9-on')}st.w.scrollLeft=st.sl-dx;e.preventDefault()},true);
 const end=()=>{if(!st)return;const m=st.moved;st.w.classList.remove('pan9-on');st=null;if(m){const kill=ev=>{ev.stopPropagation();ev.preventDefault()};document.addEventListener('click',kill,{capture:true,once:true});setTimeout(()=>document.removeEventListener('click',kill,true),0)}};
 document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true);
-const _rP=render;render=function(){_rP.apply(this,arguments);try{mark()}catch(e){}};addEventListener('resize',()=>{try{mark()}catch(e){}});addEventListener('load',()=>setTimeout(mark,50));
 })();
 </script>
 <style id="v9-evdetail">
@@ -4887,10 +4779,10 @@ LAYERS.eventDetail=id=>{const E=evOf(id);if(!E)return drawer('기관 행사','<p
  <div class="evd9-stats"><div><span class="muted small">조회</span><b class="tn">${e.view}</b></div><div><span class="muted small">관심 표시</span><b class="tn">${e.save}</b></div><div><span class="muted small">문의</span><b class="tn">${e.ask}</b></div></div>
  <p class="note" style="margin-top:18px">시간이 적립·차감되지 않는 소식이에요. 봉사자가 필요하면 기관 공고로 올려요.</p></div>`,
  `<button class="btn" type="button" onclick="evOf('${e.id}').off=${!off};drawLayer();render();toast('${off?'다시 보이게 했어요':'노출을 껐어요'}')">${off?'다시 보이기':'노출 끄기'}</button><span class="sp"></span><button class="btn primary" type="button" onclick="openLayer('eventForm','${e.id}')">수정</button>`)};
-function ev9(){if(((location.hash||'').slice(1).split('/')[0])!=='events')return;document.querySelectorAll('#main .evs .ev').forEach(a=>{if(a.dataset.ev9)return;const E=evOf(a.dataset.ev);if(!E)return;a.dataset.ev9='1';a.tabIndex=0;a.setAttribute('role','button');a.setAttribute('aria-label',E.t+' 상세 보기');
+function ev9(){if(curView()!=='events')return;document.querySelectorAll('#main .evs .ev').forEach(a=>{if(a.dataset.ev9)return;const E=evOf(a.dataset.ev);if(!E)return;a.dataset.ev9='1';a.tabIndex=0;a.setAttribute('role','button');a.setAttribute('aria-label',E.t+' 상세 보기');
   if(E.off){const s=a.querySelector('.status');if(s){s.className='status';s.textContent='노출 끔'}}
   const op=()=>openLayer('eventDetail',E.id);a.addEventListener('click',op);a.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();op()}})})}
-const _rE=render;render=function(){_rE.apply(this,arguments);try{ev9()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(()=>{try{ev9()}catch(e){}},0));
+onRender(()=>{try{ev9()}catch(e){console.warn(e)}});addEventListener('load',()=>setTimeout(()=>{try{ev9()}catch(e){}},0));
 })();
 </script>
 <style id="v10b">
@@ -4987,15 +4879,13 @@ html body .kpis>a.kpi:hover,html body .kpis.kf9 .kpi.kpi.kpi:hover{border-color:
 /* 10판 2차: 숫자 카드로 고른 필터를 코랄 칩으로 보여 주고 ✕로 지운다 (관리 대상 · 기관 공고) */
 (function(){
 const PN={'모집 중':'모집·신청 받는 중인 공고','신청 있음':'신청 있는 공고','새 신청':'새 신청 있는 공고'};
-const CN={'우선순위 높음':'먼저 살펴볼 분','혼자 사는 분':'혼자 사는 분','위임 받은 분':'위임 받은 분','위임 전':'위임 전','행복동':'행복동','희망동':'희망동','은빛동':'은빛동'};
 const chip=(label,n,js)=>`<span class="fchip10" role="status">${label} <b class="tn">${n}</b><button type="button" aria-label="${label} 필터 지우기" title="필터 지우기" onclick="${js}">✕</button></span>`;
-function fc(){const v=(location.hash||'#home').slice(1).split('/')[0];
+function fc(){const v=curView();
  if(v==='posts'){const ost=F('ost','전체');document.querySelectorAll('#main .kfnote').forEach(x=>x.remove());if(ost==='전체'||!PN[ost])return;
   const t=F('opk','전체');const n=OPOSTS.filter(p=>(t==='전체'||p.kind===t)&&((ost==='모집 중'&&p.st!=='마감')||(ost==='신청 있음'&&p.app>0)||(ost==='새 신청'&&APPS.some(a=>a.st===0&&a.post===p.t)))).length;
   const tb=document.querySelector('#main .toolbar .tabs');if(tb&&!document.querySelector('#main .fchip10'))tb.insertAdjacentHTML('afterend',chip(PN[ost],n,"S.f.ost='전체';render()"))}
- if(v==='care'){const ep=F('ep','전체');if(ep==='전체'||!CN[ep])return;const n=document.querySelectorAll('#main .c-side .lrow').length;const L=ORDER.map(EL).filter(e=>e.dong===ep||(ep==='우선순위 높음'&&e.pri==='높음')||(ep==='혼자 사는 분'&&e.home==='혼자')||(ep==='위임 받은 분'&&canReq(e))).length;
-  /* 10판 3차: 관리 대상은 드롭다운이 필터 자체라 칩을 따로 두지 않는다 (v10c에서 드롭다운에 고른 상태 표시) */}}
-const _r10=render;render=function(){_r10.apply(this,arguments);try{fc()}catch(e){console.warn(e)}};addEventListener('load',()=>setTimeout(()=>{try{fc()}catch(e){}},0));
+}
+onRender(()=>{try{fc()}catch(e){console.warn(e)}});addEventListener('load',()=>setTimeout(()=>{try{fc()}catch(e){}},0));
 })();
 
 </script>
@@ -5076,12 +4966,8 @@ html body .kcard .w.g10{color:var(--ink-3)!important;font-weight:400!important}
 <script id="v10c-js">
 /* 10판 3차: 끌기 손잡이 위치·범위, 필터 표시, 지난 행사, 요청 보드 상태 줄 */
 (function(){
-const view=()=>((location.hash||'#home').slice(1).split('/')[0]||'home');
-const KEY='ts-layout:staff-1001';
-const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}};
-const save=o=>{try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}};
+const view=curView;
 const grip='<span class="dg9-grip" aria-hidden="true"><svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></svg></span>';
-const ttl=p=>{const h=p.querySelector(':scope>.panel-h h2,:scope>.fold-h h2,:scope>.panel-h h3');if(!h)return '';let t='';h.childNodes.forEach(n=>{if(n.nodeType===3)t+=n.textContent});return (t.trim()?t:h.textContent).replace(/[0-9]+/g,'').replace(/\s+/g,' ').trim()};
 /* A-1 손잡이를 제목 첫 줄 가운데에 맞춘다 */
 function gripPos(){document.querySelectorAll('#main .dg9-h').forEach(h=>{if(!h.offsetParent)return;const corner=h.classList.contains('dg9-corner');const box=corner?h.parentElement:h;const t=corner?box.querySelector('h3,h2'):h.querySelector('h2,h3');if(!t)return;const br=box.getBoundingClientRect(),tr=t.getBoundingClientRect();const lh=parseFloat(getComputedStyle(t).lineHeight)||tr.height;const y=tr.top-br.top+Math.min(tr.height,lh)/2;h.style.setProperty('--g10t',Math.round(y)+'px')})}
 /* A-2 (한 칸 카드 위아래 옮기기)는 v11-drag가 맡는다 */
@@ -5101,7 +4987,7 @@ function pastEv(){if(view()!=='events')return;const w=document.querySelector('#m
 /* 8 요청 보드: 할 일 줄이 없는 카드에 회색 상태 줄 */
 function kcards(){document.querySelectorAll('#main .kcol').forEach(col=>{const h=col.querySelector('.kc-h b');const st=h?h.textContent.trim():'';col.querySelectorAll('.kcard').forEach(k=>{if(k.querySelector('.w'))return;const v=k.querySelector('.d .mt>span:last-child');const vn=v?v.textContent.trim():'';const line=st==='완료'?'완료 · 일지 확인함':st+(vn?' · 봉사자 '+vn:'');k.insertAdjacentHTML('beforeend',`<span class="w g10">${line}</span>`)})})}
 function run(){try{postsTabs()}catch(e){console.warn(e)}try{careUi()}catch(e){console.warn(e)}try{pastEv()}catch(e){console.warn(e)}try{kcards()}catch(e){console.warn(e)}try{gripPos()}catch(e){console.warn(e)}}
-const _r10c=render;render=function(){_r10c.apply(this,arguments);run()};
+onRender(run);
 addEventListener('load',()=>setTimeout(run,30));addEventListener('resize',()=>{try{gripPos()}catch(e){}});
 document.addEventListener('toggle',()=>setTimeout(gripPos,0),true);
 })();
@@ -5250,15 +5136,11 @@ html body .side-user{column-gap:12px!important}
    - 저장: 'ts-layout:담당자ID' 에 {"home:rows":[["특보 띠"],["#p0"],["오늘 처리할 일","먼저 살펴볼 분"],...],"home:cols-mode":"1"}
      (#p는 숫자 카드 같은 고정 줄). 실제 서비스는 GET/PUT /api/org/me/layout */
 (function(){
-const ME_ID='staff-1001'; /* 로그인한 담당자(박지현) */
-const KEY='ts-layout:'+ME_ID;
-const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){return {}}};
-const save=o=>{try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}};
-const view=()=>((location.hash||'#home').slice(1).split('/')[0]||'home');
+const {load,save}=layoutStore;
+const view=curView;
 const M=()=>document.getElementById('main');
 const NAMES={care:['관리 대상 목록','관리 대상 정보','연락처 · 안부 기록','돌봄 · 받은 도움','단골 · 메모 · 위임'],sched:['편성표 달력'],noti:['알림 목록'],req:['요청 보드'],pub:['공공 연계 목록','대상자 정보'],posts:['공고 목록'],events:['행사 목록'],dlg:['위임 목록','위임 상세'],report:['대상자 정보']};
 const STRIPS=[['.banner','특보 띠'],['.callout','방문 주의사항'],['.artcard','안내 그림']];
-const isP=e=>!!e&&e.nodeType===1&&e.classList.contains('panel');
 const ownT=p=>{const h=p.querySelector(':scope>.panel-h h2,:scope>.fold-h h2,:scope>.panel-h h3');if(!h)return '';let t='';h.childNodes.forEach(n=>{if(n.nodeType===3)t+=n.textContent});return (t.trim()?t:h.textContent).replace(/[0-9]+/g,'').replace(/\s+/g,' ').trim()};
 const title=p=>(p.dataset&&p.dataset.dg9Title)||ownT(p);
 const R=e=>e.getBoundingClientRect();
@@ -5436,7 +5318,7 @@ function corners(){document.querySelectorAll('#main .panel,#layer .panel').forEa
 function refresh(){try{narrow()}catch(e){}
  rowEls().forEach(r=>r.classList.toggle('dg12-hid',![...r.children].some(c=>c.dataset.dg12u&&c.dataset.dg12u.startsWith('#p')?c.getClientRects().length>0:uShown(c))));
  try{seg()}catch(e){}try{corners()}catch(e){}}
-const _rV11=render;render=function(){_rV11.apply(this,arguments);try{setup()}catch(e){console.warn(e)}try{seg()}catch(e){}};
+onRender(()=>{try{setup()}catch(e){console.warn(e)}try{seg()}catch(e){}});
 addEventListener('load',()=>setTimeout(()=>{try{setup()}catch(e){console.warn(e)}},60));
 let rq=0;const ro=()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{try{refresh()}catch(e){}})};
 addEventListener('resize',ro);try{new ResizeObserver(ro).observe(document.getElementById('main'))}catch(e){}
@@ -5523,7 +5405,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.side .nav a'))setTimeout(close,0)});
 addEventListener('hashchange',()=>setTimeout(close,0));
 mq.addEventListener?mq.addEventListener('change',()=>{if(!mq.matches)close()}):0;
-const _rM=render;render=function(){_rM.apply(this,arguments);try{bar();dot()}catch(e){console.warn(e)}};
+onRender(()=>{try{bar();dot()}catch(e){console.warn(e)}});
 addEventListener('load',()=>setTimeout(()=>{try{bar()}catch(e){}},80));
 })();
 </script>
@@ -5881,7 +5763,7 @@ function tabIdx(){document.querySelectorAll('[role=tablist]').forEach(l=>{const 
 function mark(){const m=$q('#main');if(!m)return;m.querySelectorAll('*').forEach(el=>{const ox=getComputedStyle(el).overflowX;const can=(ox==='auto'||ox==='scroll')&&el.scrollWidth>el.clientWidth+4;el.classList.toggle('pan9',can)});
  document.querySelectorAll('#main .tabs,#main .seg,#main .nchips12,#top .seg').forEach(el=>{const o=el.scrollWidth>el.clientWidth+4;el.classList.toggle('qa-ovf',o);el.classList.toggle('qa-end',o&&el.scrollLeft+el.clientWidth>=el.scrollWidth-4);if(o&&!el.dataset.qaS){el.dataset.qaS='1';el.addEventListener('scroll',()=>el.classList.toggle('qa-end',el.scrollLeft+el.clientWidth>=el.scrollWidth-4),{passive:true})}})}
 /* ---- 15 자동 한 칸: 2단을 골랐어도 실제로 나란히 놓인 줄이 없으면 2단 버튼을 흐리게 + 안내 ---- */
-function segFix(){const s=$q('#top .dg12-seg');if(!s||s.hidden)return;const v=((location.hash||'#home').slice(1).split('/')[0]||'home');let mode='2';try{mode=(JSON.parse(localStorage.getItem('ts-layout:staff-1001')||'{}')||{})[v+':cols-mode']==='1'?'1':'2'}catch(e){}
+function segFix(){const s=$q('#top .dg12-seg');if(!s||s.hidden)return;const v=curView();const mode=layoutStore.load()[v+':cols-mode']==='1'?'1':'2';
  const rows=[...document.querySelectorAll('#main .dg12>.dg12-row')].filter(r=>r.children.length===2&&!r.classList.contains('dg12-hid'));
  const side=rows.some(r=>{const a=r.children[0].getBoundingClientRect(),b=r.children[1].getBoundingClientRect();return a.width&&b.width&&Math.abs(a.left-b.left)>20&&a.top<b.bottom-4&&b.top<a.bottom-4});
  const auto=mode==='2'&&rows.length>0&&!side;const b1=s.querySelector('[data-cm="1"]'),b2=s.querySelector('[data-cm="2"]');if(!b1||!b2)return;
@@ -5894,7 +5776,7 @@ const stop=()=>{dragging=false};document.addEventListener('dragend',stop,true);d
 ['dragenter','dragover'].forEach(t=>document.addEventListener(t,e=>{if(dragging)e.preventDefault()}));
 /* ---- 묶어서 실행 ---- */
 let rq=0;const later=()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{try{mark()}catch(e){}try{segFix()}catch(e){}})};
-const _r=render;render=function(){const r=_r.apply(this,arguments);try{tabIdx()}catch(e){}later();setTimeout(later,60);return r};
+onRender(()=>{try{tabIdx()}catch(e){}later();setTimeout(later,60)});
 const _ai=drawAib;drawAib=function(){const r=_ai.apply(this,arguments);later();setTimeout(later,350);return r};
 addEventListener('resize',later);addEventListener('load',()=>{setTimeout(later,120);try{tabIdx()}catch(e){}});
 try{const ro=new ResizeObserver(later);ro.observe($q('#main'));}catch(e){}
@@ -6265,7 +6147,7 @@ function q2EndCare(id){const e=EL(id),n=REQS.filter(r=>r.e===id&&r.st<5).length;
 function q2Resume(id){const e=EL(id);confirmBox({title:`${e.n} 님 지원을 다시 시작할까요?`,text:'다시 일하는 목록에 들어오고, 위임이 살아 있으면 대신 요청을 할 수 있어요.',ok:'지원 재개',onOk:()=>{e.ended=null;render();toast(`${e.n} 님 지원을 다시 시작했어요`)}})}
 /* 현관 QR: 코드로 정해지는 네모 무늬 (QR처럼 보이는 시연용 패턴 · 그림 아님) */
 function q2Qr(code,size){const N=21;let h=0;for(const ch of code)h=(h*31+ch.charCodeAt(0))>>>0;const rnd=()=>{h=(h*1103515245+12345)>>>0;return (h>>>16)&1};
- const fin=(x,y)=>{const a=(x0,y0)=>x>=x0&&x<x0+7&&y>=y0&&y<y0+7;return a(0,0)||a(N-7,0)||a(0,N-7)};
+ 
  const on=(x,y)=>{for(const [x0,y0] of [[0,0],[N-7,0],[0,N-7]]){if(x>=x0&&x<x0+7&&y>=y0&&y<y0+7){const dx=x-x0,dy=y-y0;return dx===0||dy===0||dx===6||dy===6||(dx>=2&&dx<=4&&dy>=2&&dy<=4)}}return null};
  let r='';for(let y=0;y<N;y++)for(let x=0;x<N;x++){const f=on(x,y);const v=f===null?(((x===7||y===7)&&(x<8&&y<8||x>N-9&&y<8||x<8&&y>N-9))?0:rnd()):f;if(v)r+=`<rect x="${x}" y="${y}" width="1" height="1"/>`}
  return `<svg width="${size}" height="${size}" viewBox="-1 -1 ${N+2} ${N+2}" role="img" aria-label="현관 QR 카드 ${code}" shape-rendering="crispEdges"><g fill="#1d2230">${r}</g></svg>`}
@@ -6461,7 +6343,6 @@ function q2SaveQna(){const c=q2v('q2qc'),t=q2v('q2qt'),b=q2v('q2qb');const pii=v
 function q2MeTop(){return S.q2wd?`<div class="q2wdbar" role="status">${icon('warn')}<span class="sp"><b>시연: 탈퇴 처리된 상태예요.</b> 실제 계정과 기록은 그대로예요.</span><button class="btn sm" type="button" onclick="S.q2wd=false;render();toast('탈퇴 시연을 되돌렸어요')">되돌리기</button></div>`:''}
 function q2MeMore(){return `<h4 class="sec-t" style="margin-top:22px">계정 바꾸기 <span class="ai-tag" style="margin:0 0 0 6px">데모</span></h4><div class="seg q2acct" role="group" aria-label="계정 바꾸기 (데모)">${(typeof q3Accts==='function'?q3Accts().map(x=>[x.n,x.tmp]):STAFF.map(x=>[x[0],0])).map(([n,tmp])=>`<button type="button" class="${n===ME?'on':''}" aria-pressed="${n===ME}" onclick="q2Switch('${n}')">${n}${tmp?' (첫 로그인)':''}</button>`).join('')}</div><p class="hint" style="margin:0 0 8px">시연용이에요. 담당자마다 '내 담당'과 받은 담당자 요청이 달라져요.</p>
   <div>${[['1:1 문의',"closeLayer();go('qna')"],['회원 탈퇴',"openLayer('q2wd')"]].map(x=>`<button type="button" class="lrow" style="padding:12px 0" onclick="${x[1]}"><span class="sp">${x[0]}</span>${icon('go','go')}</button>`).join('')}</div>`}
-function q2Switch(n){if(n===ME)return;ME=n;S.f.scope='mine';S.more={};S.f.ep='전체';render();toast(`${n} 님 계정으로 바꿨어요 (데모) · 내 담당 ${ELDERS.filter(e=>e.mgr===n&&!e.ended).length}명`)}
 function q2DoWd(){const v=q2v('q2wdin');if(!vRun([['q2wdin',!v?'"탈퇴합니다"를 적어 주세요':v!=='탈퇴합니다'?'"탈퇴합니다"를 그대로 적어 주세요':'']]))return;S.q2wd=true;closeLayer();render();toast('시연: 탈퇴 처리됨 · 실제로 지우지 않아요')}
 
 /* ---------- 창 · 서랍 ---------- */
@@ -6512,7 +6393,6 @@ Object.assign(LAYERS,{
 /* ===== 수정 3회차 (2026-11-23): 회의·사용자 결정 반영 — 채팅 안에서 수락(5단계), 봉사 신청서, 담당자 등록·첫 로그인 비밀번호, 내 정보,
    일지(필수)·평가(선택 3일), 단체 봉사 받기·참석 확인, 남은 결함. 새 층을 만들지 않고 qa2 블록 안에 둠. 이름은 q3로 시작 ===== */
 const Q3US='행복요양원';
-const q3esc=esc;
 /* ---------- 1. 채팅 안에서 수락 (도움받기 채팅처럼: 지원자 탭 · 말풍선 · 입력 · 수락 버튼) ---------- */
 function appList(r){if(!(r.apps||[]).length)return '';const cur=F('chat_'+r.id,r.apps[0].p);
  return `<div class="apl12" role="list" aria-label="지원자 ${r.apps.length}명">${r.apps.map(a=>{const p=P[a.p],n=chatOf(r,a.p).length;return `<div class="apl12-r ${cur===a.p?'on':''}" role="listitem">${av(p.n)}<div class="sp"><div class="apl12-n"><b>${p.n}</b> <span class="muted small">${mt(p.ag,p.dong,'평점 '+p.rate,'함께한 활동 '+p.cnt+'회')}</span>${p.dg?' <span class="tag vol">단골</span>':''}</div><div class="muted small ellip" title="${esc(a.msg)}">"${esc(a.msg)}" · ${a.at}</div></div><div class="btns nw"><button class="btn sm ${cur===a.p?'line':''}" type="button" onclick="openChat('${r.id}','${a.p}')">${icon('talk')}채팅하기${n?` <span class="tn muted">${n}</span>`:''}</button><button class="btn sm ghost danger-t" type="button" title="${p.n} 님을 이 분 공고에서 받지 않아요" onclick="q2Block('${r.id}','${a.p}')">받지 않기</button></div></div>`}).join('')}</div><p class="hint" style="margin:10px 0 0">${icon('talk')} 수락은 아래 채팅 위쪽의 <b style="font-weight:600">이 분으로 수락</b>에서 해요.</p>`}
@@ -6755,8 +6635,8 @@ function q3SavePost(k){const g=q2v,t=g('opt'),x=g('opx'),d=g('opd'),nd=normDate(
  OPOSTS.unshift({id,kind:k,t,d:k==='해 드려요'?g('opw'):nd,tm:m?q2tm(m):'',cat:g('opc2')||(k==='단체 봉사'?'가벼운 집안일':'생활 정리'),need:k==='봉사자 모집'?+(F('opn','1명').replace(/\D/g,''))||1:+n,app:0,st:k==='해 드려요'?'신청 받는 중':'모집 중',txt:x,place:g('opp')||''});
  closeLayer();S.f.opk='전체';render();toast(`${k} 공고를 올렸어요`)}
 /* ---------- 14. 다시 그린 뒤: 탈퇴 띠 (N08) · 더 보기 메뉴 Esc (N06) ---------- */
-(function(){const _r=render;render=function(){const r=_r.apply(this,arguments);try{if(S.q2wd&&!$('#main .q3wdtop')){const m=$('#main');if(m)m.insertAdjacentHTML('afterbegin',`<div class="q3wdtop q2wdbar" role="status">${icon('warn')}<span class="sp"><b>탈퇴 처리된 계정이에요 (시연).</b> 실제 계정과 기록은 그대로예요.</span><button class="btn sm" type="button" onclick="S.q2wd=false;render();toast('탈퇴 시연을 되돌렸어요')">되돌리기</button></div>`)}
-  document.querySelectorAll('details.menu>summary').forEach(sm=>{sm.setAttribute('aria-haspopup','menu');sm.setAttribute('aria-expanded',String(!!sm.parentElement.open))})}catch(e){}return r}})();
+onRender(()=>{try{if(S.q2wd&&!$('#main .q3wdtop')){const m=$('#main');if(m)m.insertAdjacentHTML('afterbegin',`<div class="q3wdtop q2wdbar" role="status">${icon('warn')}<span class="sp"><b>탈퇴 처리된 계정이에요 (시연).</b> 실제 계정과 기록은 그대로예요.</span><button class="btn sm" type="button" onclick="S.q2wd=false;render();toast('탈퇴 시연을 되돌렸어요')">되돌리기</button></div>`)}
+  document.querySelectorAll('details.menu>summary').forEach(sm=>{sm.setAttribute('aria-haspopup','menu');sm.setAttribute('aria-expanded',String(!!sm.parentElement.open))})}catch(e){}});
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.matches&&d.matches('details.menu')){const sm=d.querySelector(':scope>summary');if(sm)sm.setAttribute('aria-expanded',String(d.open))}},true);
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const d=[...document.querySelectorAll('details.menu[open]')].pop();if(d&&!$('#layer').innerHTML){d.open=false;const sm=d.querySelector('summary');if(sm)sm.focus();e.stopPropagation()}},true);
 NAVON.staff='staff';
@@ -6764,9 +6644,11 @@ NAVON.staff='staff';
 /* 새 화면 */
 Object.assign(VIEWS,{recur:q2vRecur,classes:q2vClasses,qna:q2vQna});
 NAVON.qna='';
+/* q2('이름') 이름 표 */
+Object.assign(LATE,{q2CareBtns,q2CareFlags,q2CarePanels,q2ChatFill,q2CheckList,q2MeMore,q2MeTop,q2Memo,q2MgrBtn,q2NoShowBox,q2NoShowDone,q2PrefillNote,q2PropBox,q2Quick,q2SentReqs,q2Voice,q2Warn,q3Accepted,q3AskOffer,q3BackBtn,q3Brief,q3CauBtn,q3DoneBox,q3FindWarn,q3GroupOffers,q3KbW,q3LogBox,q3MemoAI,q3MemoNote,q3Monthly,q3NotiOffNote,q3Prev,q3PrevUpd,q3RateHint,q3RecTag,q3Urgent});
 /* 다시 그린 뒤: 왼쪽 아래 이름, 말로 만들기 타이머 정리 */
-(function(){const _r=render;render=function(){const {v}=route();if(S.q2v&&S.q2v.tm&&!(v==='newreq'&&F('nrm','ai')==='voice')){clearInterval(S.q2v.tm);S.q2v.tm=0;S.q2v.st='idle'}
- const r=_r.apply(this,arguments);try{const a=$('.side-user .avatar'),n=$('.side-user .su-n');if(a)a.textContent=ME[0];if(n)n.innerHTML=`${esc(ME)}<small>${S.q2wd?'탈퇴 처리됨(시연)':(typeof q3me==='function'?q3me().job:(STAFF.find(s=>s[0]===ME)||['',''])[1])||''}</small>`}catch(e){}return r}})();
+onBeforeRender(()=>{const {v}=route();if(S.q2v&&S.q2v.tm&&!(v==='newreq'&&F('nrm','ai')==='voice')){clearInterval(S.q2v.tm);S.q2v.tm=0;S.q2v.st='idle'}});
+onRender(()=>{try{const a=$('.side-user .avatar'),n=$('.side-user .su-n');if(a)a.textContent=ME[0];if(n)n.innerHTML=`${esc(ME)}<small>${S.q2wd?'탈퇴 처리됨(시연)':(typeof q3me==='function'?q3me().job:(STAFF.find(s=>s[0]===ME)||['',''])[1])||''}</small>`}catch(e){}});
 render();
 </script>
 </body>
