@@ -4469,11 +4469,11 @@ html body table.tight1 .itile.ct.c5 svg.i{width:16px!important;height:16px!impor
 html body #main table.tight1 .who>.av{display:none}
 
 /* --- ③ 날짜 타일 (참고: 큰 날짜 + '11월 수', 옅은 면 정사각형) --- */
-.dt5{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;flex:none;width:52px;height:56px;border-radius:15px;background:var(--acc-soft);color:var(--acc-text);line-height:1;box-sizing:border-box}
+.dt5{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;flex:none;width:58px;height:58px;border-radius:15px;background:var(--acc-soft);color:var(--acc-text);line-height:1;box-sizing:border-box}
 .dt5>b{font-size:calc(20px*var(--fz));font-weight:800;letter-spacing:-.5px;line-height:1;color:inherit}
-.dt5>span{font-size:calc(11px*var(--fz));font-weight:700;margin-top:4px;white-space:nowrap;line-height:1.1;color:inherit}
+.dt5>span{font-size:calc(13px*var(--fz));font-weight:700;margin-top:4px;white-space:nowrap;line-height:1.1;color:inherit}
 .lrow.on .dt5,tr.urgent .dt5,.q2c.off .dt5{background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--acc-line)}
-.dt5.wk5{width:48px;height:52px}
+.dt5.wk5{width:52px;height:54px}
 .dt5.wk5>b{font-size:calc(17px*var(--fz))}
 .dt5.wk5.many>b{font-size:calc(13px*var(--fz));letter-spacing:-.3px}
 .wk5r{display:inline-flex;align-items:center;gap:12px;white-space:nowrap}
@@ -4495,14 +4495,16 @@ html body #main .lrow.dl5>.sp{min-width:0}
 /* 기관 행사·지난 행사: 같은 날짜 타일 모양 */
 html body #main .ev-d{align-self:start;height:76px;padding:0!important;background:var(--acc-soft)!important;border-radius:16px!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px}
 html body #main .ev-d b,html body #main .ev-d .num{font-size:calc(28px*var(--fz))!important;font-weight:800!important;line-height:1!important;color:var(--acc-text)!important;letter-spacing:-.5px}
-html body #main .ev-d small{font-size:calc(12px*var(--fz))!important;font-weight:700;line-height:1.1!important;color:var(--acc-text)!important}
+html body #main .ev-d small{font-size:calc(13px*var(--fz))!important;font-weight:700;line-height:1.1!important;color:var(--acc-text)!important}
 html body #main .prow .pd{align-self:center;height:64px;padding:0!important;border-radius:15px!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--sunken)!important}
 html body #main .prow .pd b{font-size:calc(22px*var(--fz))!important;font-weight:800!important;line-height:1!important;color:var(--ink)!important}
-html body #main .prow .pd span{font-size:calc(11.5px*var(--fz))!important;font-weight:700;line-height:1.1;color:var(--ink-2)!important}
+html body #main .prow .pd span{font-size:calc(13px*var(--fz))!important;font-weight:700;line-height:1.1;color:var(--ink-2)!important}
 /* 기관 클래스 카드 머리: 시작일 타일 + 분류·제목 */
 .q2c-h5{display:flex;align-items:center;gap:12px;min-width:0}
 .q2c-ht5{display:grid;gap:6px;min-width:0}
-.q2c-ht5 h3{margin:0!important;min-width:0}
+.q2c-ht5 h3{margin:0!important;min-width:0;line-height:1.5!important}
+/* 방문 주의사항 띠: 글과 버튼 세로 가운데 맞춤 (한 줄일 때 5.8px 어긋남) */
+html body #main .stackv>.callout[data-dgk="방문 주의사항"]{align-items:center}
 
 /* --- ⑦ 타임라인: 홈 오늘 일정 (점 + 세로줄) --- */
 html body #main .tl5>.lrow:not(.pastfold){position:relative;padding-left:52px!important}
@@ -4520,6 +4522,9 @@ html body #main .tl5>.lrow>.tn{flex:none;white-space:nowrap}
  html body #main .tl5>.lrow:not(.pastfold){flex-wrap:wrap;row-gap:6px;column-gap:10px}
  html body #main .tl5>.lrow>.sp{flex:1 1 150px;min-width:0}
  html body #main .tl5>.lrow>.muted.small,html body #main .tl5>.lrow>.tag{white-space:nowrap}
+ html body #main .tl5>.lrow:not(.pastfold)::after,html body #main .tl5>.lrow.q3now .nowdot3{top:32px!important}
+ html body #main .tl5>.lrow:not(.pastfold):first-child::before,html body #main .tl5>.pastfold+.lrow::before{top:32px}
+ html body #main .tl5>.lrow:not(.pastfold):last-child::before,html body #main .tl5>.lrow:has(+.nowline.end12)::before{bottom:auto;height:32px}
 }
 /* 좁은 카드의 머리에는 동그란 아이콘을 빼서 제목·꼬리표가 한 줄에 */
 html body #main .panel>.panel-h.nar9.nar9 h2 .ht9{display:none!important}
@@ -4577,8 +4582,8 @@ html body #main .cxl5 .apl12-r.on{--c5bd:var(--acc)}
 html body #main .cxl5-t .muted.ellip{display:block;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;min-width:0}
 @container card (max-width:420px){.cxl5-t>.av{width:40px!important;height:40px!important;font-size:calc(16px*var(--fz))!important}.cxl5-t{gap:10px}}
 @media (max-width:600px){.cxl5-t>.av{width:40px!important;height:40px!important;font-size:calc(16px*var(--fz))!important}.cxl5-t{gap:10px}}
-.reg5{font-style:normal;font-size:calc(11.5px*var(--fz));font-weight:800;color:var(--reg5c);background:var(--reg5b);border-radius:999px;padding:2px 8px;white-space:nowrap;line-height:1.4}
-.st5{flex:none;font-size:calc(12px*var(--fz));font-weight:700;border-radius:999px;padding:3px 10px;background:var(--st5b);color:var(--ink-3);white-space:nowrap;line-height:1.4}
+.reg5{font-style:normal;font-size:calc(13px*var(--fz));font-weight:800;color:var(--reg5c);background:var(--reg5b);border-radius:999px;padding:2px 8px;white-space:nowrap;line-height:1.4}
+.st5{flex:none;font-size:calc(13px*var(--fz));font-weight:700;border-radius:999px;padding:3px 10px;background:var(--st5b);color:var(--ink-3);white-space:nowrap;line-height:1.4}
 .st5.go{background:var(--acc-soft);color:var(--acc-text)}
 .st5.ok{background:var(--ok5b);color:var(--ok5c)}
 .cut5{position:relative;height:0;border-top:1.5px dashed var(--c5bd,var(--acc-line));margin:12px -14px 10px}
@@ -4586,16 +4591,16 @@ html body #main .cxl5-t .muted.ellip{display:block;white-space:nowrap!important;
 .cut5::before{left:-12.5px;clip-path:inset(0 0 0 calc(50% - 1.5px))}
 .cut5::after{right:-12.5px;clip-path:inset(0 calc(50% - 1.5px) 0 0)}
 .cxl5-b{display:flex;align-items:center;gap:8px;min-width:0}
-.cxl5-b p{flex:1;min-width:0;margin:0;font-size:calc(14px*var(--fz));color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cxl5-b>span{flex:none;font-size:calc(12px*var(--fz));color:var(--ink-3);white-space:nowrap}
-.un5{flex:none;font-style:normal;min-width:20px;height:20px;border-radius:999px;background:var(--un5);color:#fff;font-size:calc(11px*var(--fz));font-weight:800;display:grid;place-items:center;padding:0 6px;box-sizing:border-box;line-height:1}
+.cxl5-b p{flex:1;min-width:0;margin:0;font-size:calc(14.5px*var(--fz));line-height:1.5;color:var(--ink-2);white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;word-break:break-all}
+.cxl5-b>span{flex:none;font-size:calc(13px*var(--fz));color:var(--ink-3);white-space:nowrap}
+.un5{flex:none;font-style:normal;min-width:22px;height:22px;border-radius:999px;background:var(--un5);color:#fff;font-size:calc(13px*var(--fz));font-weight:800;display:grid;place-items:center;padding:0 6px;box-sizing:border-box;line-height:1}
 html body #main .cxl5 .apl12-r>.btns{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:10px;width:auto}
 
 /* --- ② 채팅 말풍선 (참고: 상대 회색 면, 나 주색 면 흰 글자, 시스템은 회색 알약) --- */
 html body #main .chat12-b{background:var(--surface)!important}
 html body #main .chat12-bub{background:var(--bub5)!important;border:0!important;border-radius:18px 18px 18px 6px!important;padding:10px 14px!important;color:var(--ink)!important}
 html body #main .chat12-m.me .chat12-bub{background:var(--acc)!important;color:var(--on-acc,#fff)!important;border-radius:18px 18px 6px 18px!important}
-html body #main .chat12-meta{font-size:calc(11.5px*var(--fz))!important;color:var(--ink-3)!important}
+html body #main .chat12-meta{font-size:calc(13px*var(--fz))!important;color:var(--ink-3)!important}
 html body #main .chat12-sys{align-self:center;max-width:90%;text-align:center;background:var(--bub5);color:var(--ink-3);border-radius:12px;padding:6px 12px;font-size:calc(12.5px*var(--fz))}
 html body #main .chat12-f input{border-radius:999px!important;border:0!important;box-shadow:inset 0 0 0 1.5px var(--acc-line)!important;padding:0 18px!important}
 html body #main .chat12-f .btn{border-radius:999px!important}
@@ -4603,18 +4608,19 @@ html body #main .q3ch-h>.av{width:44px!important;height:44px!important;font-size
 
 /* --- 계정 바꾸기(시연): 참고처럼 떠 있는 카드 안 세로 목록 --- */
 .acct5{margin:20px 0 14px;padding:12px;border:1px solid var(--rule);border-radius:16px;background:var(--surface);box-shadow:0 8px 28px rgba(30,42,60,.08)}
-.acct5 h4{margin:0 0 8px;font-size:calc(12.5px*var(--fz));font-weight:700;color:var(--ink-3);letter-spacing:-.2px}
+.acct5 h4{margin:0 0 8px;font-size:calc(13px*var(--fz));font-weight:700;color:var(--ink-3);letter-spacing:-.2px}
 .acct5 .q2acct{margin:0;display:grid;gap:6px}
 .acct5 .q2acct button{display:block;width:100%;text-align:left;border:1.5px solid var(--rule);background:var(--surface);border-radius:11px;padding:9px 12px;cursor:pointer;font:inherit;color:var(--ink)}
 .acct5 .q2acct button:hover{background:var(--hover)}
 .acct5 .q2acct button b{display:block;font-size:calc(14px*var(--fz));font-weight:800;line-height:1.4}
-.acct5 .q2acct button em{display:block;font-style:normal;font-size:calc(12px*var(--fz));color:var(--ink-3);margin-top:1px;line-height:1.4}
+.acct5 .q2acct button em{display:block;font-style:normal;font-size:calc(13px*var(--fz));color:var(--ink-3);margin-top:1px;line-height:1.4}
+.acct5 .q2acct button em .mt,.acct5 .q2acct button em .mt>span{font-size:inherit!important}
 .acct5 .q2acct button.on{border-color:var(--acc);background:var(--acc-soft)}
 .acct5 .hint{margin:8px 2px 0}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .acct5{box-shadow:none}}
 :root[data-theme="dark"] .acct5{box-shadow:none}
 /* 내 정보: 담당자 계정 안내 */
-.note5{display:flex;gap:10px;align-items:flex-start;margin:0 0 14px;padding:12px 14px;border-radius:14px;background:var(--sunken);color:var(--ink-2);font-size:calc(14px*var(--fz));line-height:1.55}
+.note5{display:flex;gap:10px;align-items:flex-start;margin:0 0 14px;padding:12px 14px;border-radius:14px;background:var(--sunken);color:var(--ink-2);font-size:calc(15px*var(--fz));line-height:1.55}
 .note5 svg.i{flex:none;width:18px;height:18px;margin-top:2px;color:var(--ink-3)}
 #main>.note5,#main .wrap>.note5{margin:0}
 </style>
@@ -6363,7 +6369,7 @@ function appList(r){if(!(r.apps||[]).length)return '';const cur=F('chat_'+r.id,r
  return `<div class="apl12 cxl5" role="list" aria-label="지원자 ${r.apps.length}명">${r.apps.map(a=>{const p=P[a.p],th=chatOf(r,a.p),ms=th.filter(m=>m[0]!=='sys'),n=th.length,last=ms[ms.length-1];
   let un=0;for(let i=ms.length-1;i>=0&&ms[i][0]!=='me';i--)un++;
   const st=r.v===a.p?['수락함','ok']:un?['답할 차례','go']:ms.length?['대화 중','']:['받은 지원','go'];
-  return `<div class="apl12-r ${cur===a.p?'on':''}" role="listitem"><div class="cxl5-t">${av(p.n)}<div class="sp"><div class="apl12-n"><b>${p.n}</b>${p.dg?'<em class="reg5">★ 단골</em>':''}</div><div class="muted small ellip">${metaText(p.ag,p.dong,'평점 '+p.rate,'함께한 활동 '+p.cnt+'회')}</div></div><span class="st5 ${st[1]}">${st[0]}</span></div><div class="cut5" aria-hidden="true"></div><div class="cxl5-b"><p class="ellip" title="${esc(last?last[1]:a.msg)}">${last?esc(last[1]):'지원하며 남긴 말: "'+esc(a.msg)+'"'}</p><span class="tn">${last?last[2]:a.at}</span>${un?`<i class="un5" aria-label="답 기다리는 말 ${un}개">${un}</i>`:''}</div><div class="btns nw"><button class="btn sm ${cur===a.p?'line':''}" type="button" onclick="openChat('${r.id}','${a.p}')">${icon('talk')}채팅하기${n?` <span class="tn muted">${n}</span>`:''}</button><button class="btn sm ghost danger-t" type="button" title="${p.n} 님을 이 분 공고에서 받지 않아요" onclick="q2Block('${r.id}','${a.p}')">받지 않기</button></div></div>`}).join('')}</div><p class="hint" style="margin:10px 0 0">${icon('talk')} 수락은 아래 채팅 위쪽의 <b style="font-weight:600">이 분으로 수락</b>에서 해요.</p>`}
+  return `<div class="apl12-r ${cur===a.p?'on':''}" role="listitem"><div class="cxl5-t">${av(p.n)}<div class="sp"><div class="apl12-n"><b>${p.n}</b>${p.dg?'<em class="reg5">★ 단골</em>':''}</div><div class="muted small ellip">${metaText(p.ag,p.dong,'평점 '+p.rate,'함께한 활동 '+p.cnt+'회')}</div></div><span class="st5 ${st[1]}">${st[0]}</span></div><div class="cut5" aria-hidden="true"></div><div class="cxl5-b"><p title="${esc(last?last[1]:a.msg)}">${last?esc(last[1]):'지원하며 남긴 말: "'+esc(a.msg)+'"'}</p><span class="tn">${last?last[2]:a.at}</span>${un?`<i class="un5" aria-label="답 기다리는 말 ${un}개">${un}</i>`:''}</div><div class="btns nw"><button class="btn sm ${cur===a.p?'line':''}" type="button" onclick="openChat('${r.id}','${a.p}')">${icon('talk')}채팅하기${n?` <span class="tn muted">${n}</span>`:''}</button><button class="btn sm ghost danger-t" type="button" title="${p.n} 님을 이 분 공고에서 받지 않아요" onclick="q2Block('${r.id}','${a.p}')">받지 않기</button></div></div>`}).join('')}</div><p class="hint" style="margin:10px 0 0">${icon('talk')} 수락은 아래 채팅 위쪽의 <b style="font-weight:600">이 분으로 수락</b>에서 해요.</p>`}
 function chatPanel(r){const e=EL(r.e),ps=r.v?[r.v]:(r.apps||[]).map(a=>a.p);if(!ps.length)return '';const cur=r.v||(ps.includes(F('chat_'+r.id,ps[0]))?F('chat_'+r.id,ps[0]):ps[0]),th=chatOf(r,cur),done=r.st===5,p=P[cur],ap=(r.apps||[]).find(a=>a.p===cur);
  const tabs=ps.length>1?`<div class="chat12-tabs" role="tablist" aria-label="채팅 상대 (지원자)">${ps.map(k=>`<button type="button" role="tab" aria-selected="${k===cur}" class="${k===cur?'on':''}" onclick="openChat('${r.id}','${k}')">${av(P[k].n,'s')}${P[k].n}${chatOf(r,k).length?`<span class="tn">${chatOf(r,k).length}</span>`:''}</button>`).join('')}</div>`:'';
  const act=r.st===0?`<div class="q3acc"><button class="btn primary sm q2ro" type="button" onclick="q3Accept('${r.id}','${cur}')">${icon('check')}이 분으로 수락</button><small>수락하면 취소할 수 없어요</small></div>`
