@@ -4745,6 +4745,85 @@ html body #main .nlist12 .lrow>.udot{margin-top:0}
 /* ④ 요청 보드 카드 마우스 올림 — 들썩이지 않고 테두리만 코랄로 (참고: 공지 카드 .nt-c:hover) */
 html body #main .kcard:hover{transform:none!important;box-shadow:0 0 0 1.5px color-mix(in srgb,var(--acc) 50%,transparent),0 2px 8px rgba(16,24,40,.05)!important}
 :root[data-theme="dark"] #main .kcard:hover{box-shadow:0 0 0 1.5px color-mix(in srgb,var(--acc) 60%,transparent)!important}
+
+/* ===== 11/24 손맛 — 포스트잇·테이프·핀·공책·영수증·점 무늬 판 (사용자 피드백 "특이하게 만든 거 전부 적용") =====
+   원칙: 메모·안부·주의사항·AI 한 줄 = 포스트잇(노랑=보통, 분홍=연락 안 됨·두 번째 장), 일지 = 영수증/공책, 행사·클래스 = 게시판 핀, 빈 상태 = 점선 메모지.
+   표·목록·버튼·입력 칸은 그대로 차분하게. 기울기는 좁은 카드만 ±0.8° 이하(rotate 속성 — transform을 쓰는 끌기·마우스 올림과 겹치지 않음). 글꼴은 Pretendard 그대로, '손글씨 느낌'은 형광펜 밑줄로만. */
+:root{--pt-y:#FFF8D6;--pt-y-e:#F0E2A6;--pt-y-h:#FFF2BF;--pt-p:#FFEDEA;--pt-p-e:#F6CFC8;--pt-p-h:#FFE3DE;--pt-tape:rgba(226,214,186,.72);--pt-dot:rgba(120,110,95,.16);--pt-sh:0 1px 1px rgba(60,40,20,.05),0 8px 14px -10px rgba(60,40,20,.35);--pt-hl:rgba(255,214,102,.55);--pt-rc:#FFFFFF;--pt-line:color-mix(in srgb,var(--req,#5A80D0) 16%,transparent);--pt-margin:color-mix(in srgb,var(--acc) 40%,transparent);--pt-pin:radial-gradient(circle at 35% 32%,#FFD3C4 0 18%,var(--acc) 48%,#8E3A22 100%)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pt-y:#322D1E;--pt-y-e:#4A4229;--pt-y-h:#3A3423;--pt-p:#382526;--pt-p-e:#523436;--pt-p-h:#40292B;--pt-tape:rgba(255,255,255,.14);--pt-dot:rgba(255,255,255,.08);--pt-sh:0 6px 12px -8px rgba(0,0,0,.6);--pt-hl:rgba(255,214,102,.2);--pt-rc:#1F2228}}
+:root[data-theme="dark"]{--pt-y:#322D1E;--pt-y-e:#4A4229;--pt-y-h:#3A3423;--pt-p:#382526;--pt-p-e:#523436;--pt-p-h:#40292B;--pt-tape:rgba(255,255,255,.14);--pt-dot:rgba(255,255,255,.08);--pt-sh:0 6px 12px -8px rgba(0,0,0,.6);--pt-hl:rgba(255,214,102,.2);--pt-rc:#1F2228}
+
+/* 공통: 포스트잇 종이 + 위쪽 테이프 */
+html body #main ul.pin12>li,html body #main table.memo24 tbody>tr,html body #main .o2 .lrow,html body #main .ai12 .panel-b>.insight,html body #main .callout:has(.q3cau),html body #main .bento.rp>.bt.wide.static:has(.insight){position:relative;background:var(--pt-y)!important;border:1px solid var(--pt-y-e)!important;border-radius:4px 4px 12px 4px!important;box-shadow:var(--pt-sh)!important}
+html body #main ul.pin12>li::before,html body #main table.memo24 tbody>tr::before,html body #main .o2 .lrow::before,html body #main .ai12 .panel-b>.insight::before,html body #main .callout:has(.q3cau)::before,html body #main .bento.rp>.bt.wide.static:has(.insight)::before{content:"";position:absolute!important;top:-8px;left:50%;width:56px;height:16px;margin-left:-28px;border:0!important;border-radius:2px;background:var(--pt-tape)!important;rotate:-2deg;pointer-events:none;z-index:1;display:block!important;bottom:auto!important}
+html body #main :is(.ai12 .panel-b>.insight,.callout:has(.q3cau),.bento.rp>.bt.wide.static:has(.insight))::before{left:44px;margin-left:0;rotate:-4deg}
+/* 형광펜 강조 (손글씨 느낌) */
+html body #main :is(.ai12 .panel-b>.insight,.bento.rp>.bt.wide.static) p>strong,html body #main .callout:has(.q3cau) .lbl{background-image:linear-gradient(transparent 58%,var(--pt-hl) 58% 92%,transparent 92%);padding:0 2px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+
+/* ① 관리 대상 상세 · 안부 확인 기록 = 점 무늬 판 위 포스트잇 (연락 안 됨은 분홍) */
+html body #main ul.pin12{display:grid;gap:14px;padding:16px 12px 12px;border-radius:12px;background:radial-gradient(circle,var(--pt-dot) 1px,transparent 1.4px) 0 0/14px 14px}
+html body #main ul.pin12>li{padding:14px 14px 12px!important}
+html body #main ul.pin12>li::after{display:none!important}
+html body #main ul.pin12>li:nth-child(odd){rotate:-.7deg}
+html body #main ul.pin12>li:nth-child(even){rotate:.6deg}
+html body #main ul.pin12>li.miss{background:var(--pt-p)!important;border-color:var(--pt-p-e)!important}
+html body #main ul.pin12 .pin12-h .muted{color:var(--ink-2)}
+
+/* ② 담당자 메모 = 포스트잇 쪽지 (표 모양 대신, 줄 전체가 한 장) */
+html body #main table.memo24,html body #main table.memo24>tbody{display:block;width:100%!important}
+html body #main table.memo24>tbody{display:grid;gap:14px;padding:14px 6px 8px}
+html body #main table.memo24 tbody>tr{display:flex;align-items:baseline;gap:12px;padding:12px 8px}
+html body #main table.memo24 tbody>tr:nth-child(odd){rotate:-.4deg}
+html body #main table.memo24 tbody>tr:nth-child(even){rotate:.4deg;background:var(--pt-p)!important;border-color:var(--pt-p-e)!important}
+html body #main table.memo24 tbody>tr>td{display:block;border:0!important;padding-top:0!important;padding-bottom:0!important;background:transparent!important}
+html body #main table.memo24 tbody>tr>td:first-child{color:var(--ink-2)!important;font-weight:700;width:auto!important;flex:none}
+html body #main table.vars.memo24 tbody tr:hover>td{background:transparent!important}
+
+/* ③ 홈 '먼저 살펴볼 분' = 점 무늬 판에 붙인 포스트잇 (1순위 노랑, 다음 장은 분홍·노랑 번갈아) */
+html body #main .o2>div:has(>.lrow){padding:18px 16px 14px!important;display:grid;gap:16px;background:radial-gradient(circle,var(--pt-dot) 1px,transparent 1.4px) 0 0/14px 14px}
+html body #main .o2 .lrow{border-top:1px solid var(--pt-y-e)!important;padding:14px 14px 12px!important;margin:0!important}
+html body #main .o2 .lrow:nth-of-type(odd){rotate:-.6deg}
+html body #main .o2 .lrow:nth-of-type(even){rotate:.5deg;background:var(--pt-p)!important;border-color:var(--pt-p-e)!important}
+html body #main .o2 .lrow:not(.static):hover{background:var(--pt-y-h)!important}
+html body #main .o2 .lrow:nth-of-type(even):not(.static):hover{background:var(--pt-p-h)!important}
+html body #main .o2 .lrow .muted{color:var(--ink-2)}
+/* 홈이 한 줄로 넓어지는 폭(≤1400px)에서는 포스트잇을 옆으로 나란히 — 넓은 장을 기울이지 않게 */
+@media (max-width:1400px){html body #main .o2>div:has(>.lrow){grid-template-columns:repeat(auto-fill,minmax(250px,1fr));align-items:start}}
+@media (max-width:600px){html body #main .o2 .lrow,html body #main :is(.evs>.ev,.q2cls>.q2c),html body #main ul.pin12>li,html body #main table.memo24 tbody>tr{rotate:none!important}}
+
+/* ④ 특보 'AI 분석 · 확인이 필요한 분' AI 한 줄 = 넓은 포스트잇 (명단 표는 그대로) */
+html body #main .ai12 .panel-b>.insight{padding:20px 22px 16px!important;margin-top:8px}
+
+/* ⑤ 방문 주의사항 = 포스트잇 띠 (끌기 손잡이 자리 그대로, 넓어서 기울이지 않음) */
+html body #main .callout:has(.q3cau){color:var(--ink)}
+html body #main .callout:has(.q3cau)>svg.i{color:var(--warn-ink,#8A5A00)}
+
+/* ⑥ 리포트 '이번 주 요약' = 포스트잇 (격자 칸이라 기울이지 않음) */
+html body #main .bento.rp>.bt.wide.static:has(.insight) .insight{background:transparent!important}
+
+/* ⑦ 일지 = 영수증 (요청 상세 '일지 확인' 단계) */
+html body #main .nextbox>p.logp24{position:relative;max-width:640px;margin:0!important;padding:16px 18px 12px;background:var(--pt-rc);border-radius:6px 6px 0 0;line-height:1.7}
+html body #main .nextbox>p.logp24>b:first-child+br{display:none}
+html body #main .nextbox>p.logp24>b:first-child{display:block;padding-bottom:8px;margin-bottom:8px;border-bottom:1.5px dashed var(--rule);letter-spacing:.02em}
+html body #main .nextbox>.note.logm24{max-width:640px;margin:-12px 0 2px!important;padding:10px 18px 20px;background:var(--pt-rc);border-top:1.5px dashed var(--rule);color:var(--ink-2);-webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 7px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/14px 7px repeat-x;mask:linear-gradient(#000 0 0) top/100% calc(100% - 7px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/14px 7px repeat-x}
+/* ⑦-2 근거 일지 문장 = 공책 (줄 + 왼쪽 여백선) */
+html body #main .insight .answer{position:relative;background:linear-gradient(90deg,transparent 26px,var(--pt-margin) 26px 27.5px,transparent 27.5px),repeating-linear-gradient(transparent 0 25px,var(--pt-line) 25px 26px),var(--pt-rc)!important;background-position:0 0,0 8px,0 0!important;padding:8px 16px 10px 40px!important;line-height:26px!important;border-radius:8px!important;border:1px solid var(--rule-2)!important}
+html body #main .insight .answer>small{line-height:26px;margin:0!important}
+
+/* ⑧ 기관 행사·클래스 카드 = 점 무늬 게시판 + 핀 */
+html body #main :is(.evs,.q2cls){border-radius:14px;background:radial-gradient(circle,var(--pt-dot) 1px,transparent 1.4px) 0 0/14px 14px}
+html body #main .evs{padding:14px 12px 12px;row-gap:22px!important}
+html body #main .q2cls{row-gap:24px!important}
+html body #main :is(.evs>.ev,.q2cls>.q2c){position:relative;overflow:visible!important}
+html body #main :is(.evs>.ev,.q2cls>.q2c)::before{content:"";position:absolute;top:-7px;left:50%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--pt-pin);box-shadow:0 2px 2px rgba(0,0,0,.25);pointer-events:none;z-index:2}
+html body #main .q2cls>.q2c.off::before{background:radial-gradient(circle at 35% 32%,#fff 0 18%,var(--ink-4) 55%,var(--ink-3) 100%)}
+html body #main .evs>.ev:nth-child(odd),html body #main .q2cls>.q2c:nth-child(odd){rotate:-.5deg}
+html body #main .evs>.ev:nth-child(even),html body #main .q2cls>.q2c:nth-child(even){rotate:.5deg}
+
+/* ⑨ 빈 상태 = 점선 메모지 + 작은 테이프 */
+html body #main .empty.line:not(.start){position:relative;margin:14px 20px 16px;border:1.5px dashed var(--rule)!important;border-radius:12px;background:color-mix(in srgb,var(--pt-y) 45%,var(--surface))}
+html body #main .empty.line:not(.start)::after{content:"";position:absolute;top:-7px;left:28px;width:40px;height:13px;border-radius:2px;background:var(--pt-tape);rotate:-3deg;pointer-events:none}
+@media (prefers-reduced-motion:reduce){html body #main :is(.o2 .lrow,ul.pin12>li,.evs>.ev,.q2cls>.q2c){transition:none}}
 </style>
 </head>
 <body>
@@ -5369,7 +5448,7 @@ function careDetail(e){
     <div class="care10-chart"><div><h4 class="sec-t">월별 돌봄 횟수 <span class="sub">최근 6개월</span></h4><div class="carechart">${colChart({labels:MONL,series:[{name:'돌봄',color:'var(--a500)',values:MON[e.id]}],unit:'회',w:360,h:140,prevTint:1,max:6,step:2,lastNote:'(13일까지)',aria:`${e.n} 님 월별 돌봄 횟수, 최근 6개월: ${MON[e.id].map((v,i)=>MONL[i]+' '+v+'회').join(', ')}. 11월은 13일까지 센 값이에요.`})}</div>${cap('기록 숫자 · 완료된 돌봄 횟수 · 11월은 13일까지')}</div><dl class="care10-sum"><div><dt>최근 6개월 합계</dt><dd class="tn">${MON[e.id].reduce((a,b)=>a+b,0)}회</dd></div><div><dt>월 평균 (6~10월)</dt><dd class="tn">${(MON[e.id].slice(0,5).reduce((a,b)=>a+b,0)/5).toFixed(1)}회</dd></div><div><dt>이번 달 (13일까지)</dt><dd class="tn">${MON[e.id][5]}회</dd></div></dl></div></section>
   <section class="panel"><div class="split2">
     <div><h3 class="sec-t">단골 봉사자 <span class="sub">담당자가 직접 등록해요</span></h3>${dgs.length?`<div class="dgl12">${dgs.map(k=>`<div class="rowx nw">${av(P[k].n,'s')}<b class="sp" style="font-weight:600">${P[k].n}</b><span class="tag vol">단골</span><button class="btn sm ghost" type="button" onclick="unDg('${e.id}','${k}')">해지</button></div>`).join('')}</div>`:'<p class="muted small" style="margin:0">아직 없어요. 받은 도움 기록이나 끝난 요청에서 "단골로 등록"을 눌러 주세요.</p>'}
-      <h3 class="sec-t" style="margin-top:20px">담당자 메모 <span class="sub">봉사자에게 안 보여요</span></h3><table class="vars" style="width:100%"><tbody>${memos.map(m=>`<tr><td class="tn" style="width:52px;color:var(--ink-3)">${m[0]}</td><td style="text-align:left">${esc(m[1])}</td></tr>`).join('')}</tbody></table>
+      <h3 class="sec-t" style="margin-top:20px">담당자 메모 <span class="sub">봉사자에게 안 보여요</span></h3><table class="vars memo24" style="width:100%"><tbody>${memos.map(m=>`<tr><td class="tn" style="width:52px;color:var(--ink-3)">${m[0]}</td><td style="text-align:left">${esc(m[1])}</td></tr>`).join('')}</tbody></table>
       <div class="rowx" style="margin-top:10px;flex-wrap:nowrap"><input type="text" class="sm sp" id="memoIn" placeholder="메모 남기기" aria-label="메모 남기기" onkeydown="if(event.key==='Enter')addMemo('${e.id}')"><button class="btn sm" type="button" onclick="q2('q3MemoAI','${e.id}')">${icon('spark')}AI로 정리</button><button class="btn sm" type="button" onclick="addMemo('${e.id}')">추가</button></div>${q2('q3MemoNote',e.id)}</div>
     <div><h3 class="sec-t">권한 위임 <a class="link" href="#dlg/${e.id}">위임 관리</a></h3>${e.until?`<dl class="props dl10"><dt>동의 방법</dt><dd>${e.how}</dd><dt>기간</dt><dd class="tn">~ ${dU(e.until)}</dd><dt>맡긴 일</dt><dd><span class="tags">${e.scope.slice(0,3).map(s=>`<span class="tag">${s}</span>`).join('')}${e.scope.length>3?`<span class="tag more10" title="${e.scope.slice(3).join(', ')}">외 ${e.scope.length-3}</span>`:''}</span></dd></dl>
       <p class="hint">서면·보호자 동의로 위임했어요. 맡긴 일을 바꾸면 보호자에게 문자가 가요.</p>`:`<p class="muted" style="margin:0 0 10px">아직 위임 전이에요. ${e.consent||''}</p><button class="btn sm" type="button" onclick="S.f.dge='${e.id}';openLayer('dlgNew')">위임 등록</button>`}</div></div></section>${q2('q2CarePanels',e)}`;
@@ -6515,7 +6594,7 @@ function q3Accepted(r){const v=P[r.v]||{n:'봉사자'};
  return `<div class="k">수락했어요</div><p>${v.n} 님으로 수락했어요. 수락은 취소할 수 없어요. 시작 QR 전이에요. 봉사자에게 이슈 메모가 공개됐어요. 정확한 주소는 아래 채팅으로 알려 주세요.</p>${r.closed&&r.closed.length?`<p class="muted small" style="margin:0">나머지 지원자 ${r.closed.length}명에게 마감 알림이 갔어요.</p>`:''}${r.counter?`<p class="muted small" style="margin:6px 0 0">다른 시간(${r.counter.d} ${r.counter.tm})을 제안했어요 · 봉사자 답을 기다려요</p>`:''}`}
 /* ---------- 2. 일지 확인(필수) → 완료 · 평가(선택, 완료 뒤 3일 안) ---------- */
 function q3LogBox(r){const v=P[r.v]||{n:'봉사자'};
- return `<div class="k">다음 할 일: 일지 확인하기 <span class="tag warn" style="margin-left:4px">필수</span></div><p><b style="font-weight:600">${v.n} 님이 쓴 일지</b><br>${esc(r.log||'')}</p><div class="note">${metaText('영수증 사진 1장','QR 10:01 ~ 11:03 (1시간 2분)')}</div>
+ return `<div class="k">다음 할 일: 일지 확인하기 <span class="tag warn" style="margin-left:4px">필수</span></div><p class="logp24"><b style="font-weight:600">${v.n} 님이 쓴 일지</b><br>${esc(r.log||'')}</p><div class="note logm24">${metaText('영수증 사진 1장','QR 10:01 ~ 11:03 (1시간 2분)')}</div>
   <div class="btns"><button class="btn primary q2ro" type="button" onclick="q3LogOk('${r.id}')">일지 확인했어요</button></div><p class="hint" style="margin:8px 0 0">일지를 확인하면 완료돼요. 평가는 선택이고, 완료 뒤 3일 안에 남길 수 있어요. 3일이 지나면 '평가 없음'으로 기록돼요.</p>`}
 function q3LogOk(id){const r=REQS.find(x=>x.id===id);r.st=5;r.what='완료';r.doneD=TD;S.doneT=(S.doneT||0)+1;render();toast('일지를 확인했어요 · 완료됐어요. 평가는 3일 안에 남길 수 있어요 (선택)')}
 /* 남은 날: 숫자(1~3) · 'done' 평가함 · 'closed' 평가 없음 · null 해당 없음 */
