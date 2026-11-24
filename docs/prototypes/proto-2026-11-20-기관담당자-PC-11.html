@@ -4723,6 +4723,28 @@ html body #main .kc-top .duep:not(.hot){display:inline-flex!important}
 html body #main table.vars :is(td,th):first-child{padding-left:12px!important}
 html body #main table.vars :is(td,th):last-child{padding-right:12px!important}
 html body #main table.vars tbody tr:hover>td{background:var(--hover)!important}
+
+/* ===== 11/24 새 디자인 참고 (팀 사용자 화면 v108에서 고른 세부 — 코랄 강조·위 11/24 규칙 유지) ===== */
+/* ① 패널 제목 개수 → 작은 연한 코랄 알약 (참고: 활동 '확정됨 7' 개수 알약 .rp-sum>b) */
+html body #main .panel-h h2>.cnt-n{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;margin-left:8px;padding:0 8px;border-radius:999px;background:var(--acc-soft);color:var(--acc-text);font-size:calc(13px*var(--fz));font-weight:700;line-height:1;vertical-align:2px;letter-spacing:0}
+/* ② 날짜 타일 — 더 작고 가볍게: 숫자는 굵은 코랄, 아랫줄(월·요일)은 보통 굵기 (참고: 활동 목록 날짜 타일 .ac-d 48px·12px 모서리) */
+html body #main .dt5:not(.wk5){width:52px;height:52px;border-radius:13px}
+html body #main .dt5:not(.wk5)>b{font-size:calc(18px*var(--fz));letter-spacing:-.3px}
+html body #main .dt5>span{font-weight:500;font-size:calc(12px*var(--fz));margin-top:3px;color:color-mix(in srgb,var(--acc-text) 80%,var(--ink-3))}
+/* ③ 알림 목록 줄 — 둥근 네모 아이콘 타일, 종류 글자 강조와 '·' 구분, 화살표는 둥근 연한 버튼 (참고: 알림 화면 카드) */
+html body #main .nlist12 .lrow{align-items:center}
+html body #main .nlist12 .lrow>.itile{width:40px;height:40px;border-radius:12px}
+html body #main .nlist12 .lrow>.itile svg.i{width:20px;height:20px}
+html body #main .nlist12 .lrow .d .mt>span+span{position:relative}
+html body #main .nlist12 .lrow .d .mt>span+span::before{content:"";position:absolute;left:-6px;top:50%;width:3px;height:3px;margin-top:-1.5px;border-radius:50%;background:var(--ink-4,#A0A6B1)}
+html body #main .nlist12 .lrow .d .mt>span:last-child{color:var(--acc-text);font-weight:600}
+html body #main .nlist12 .lrow>svg.i{width:30px;height:30px;padding:7px;border-radius:50%;background:var(--sunken);color:var(--ink-3);box-sizing:border-box}
+html body #main .nlist12 .lrow.unread>svg.i{background:var(--acc-soft);color:var(--acc-text)}
+html body #main .nlist12 .lrow>.udot{margin-top:0}
+@media (max-width:600px){html body #main .nlist12 .lrow>.itile{width:36px;height:36px;border-radius:11px}html body #main .nlist12 .lrow>svg.i{width:26px;height:26px;padding:5px}html body #main .nlist12 .lrow .nw{word-break:keep-all;min-width:min-content;text-align:right}}
+/* ④ 요청 보드 카드 마우스 올림 — 들썩이지 않고 테두리만 코랄로 (참고: 공지 카드 .nt-c:hover) */
+html body #main .kcard:hover{transform:none!important;box-shadow:0 0 0 1.5px color-mix(in srgb,var(--acc) 50%,transparent),0 2px 8px rgba(16,24,40,.05)!important}
+:root[data-theme="dark"] #main .kcard:hover{box-shadow:0 0 0 1.5px color-mix(in srgb,var(--acc) 60%,transparent)!important}
 </style>
 </head>
 <body>
