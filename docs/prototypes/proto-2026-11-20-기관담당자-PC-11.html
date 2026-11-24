@@ -4719,11 +4719,9 @@ html body #main .kcard .duep:not(.hot) svg.i{display:none!important}
 html body #main .kcard .duep.hot svg.i{display:block!important}
 html body #main .kc-top .duep:not(.hot){display:inline-flex!important}
 
-/* 11/24: 작은 표(table.vars) 마우스 올림 — 회색 바탕이 글자에 붙지 않게 양끝 칸에 안쪽 여백(머리칸도 같이 맞춤) + 둥근 끝 */
+/* 11/24: 작은 표(table.vars) 마우스 올림 — 회색 바탕이 글자에 붙지 않게 양끝 칸에 안쪽 여백(머리칸도 같이 맞춤), 모서리는 각지게 */
 html body #main table.vars :is(td,th):first-child{padding-left:12px!important}
 html body #main table.vars :is(td,th):last-child{padding-right:12px!important}
-html body #main table.vars tbody tr:hover>td:first-child{border-top-left-radius:8px;border-bottom-left-radius:8px}
-html body #main table.vars tbody tr:hover>td:last-child{border-top-right-radius:8px;border-bottom-right-radius:8px}
 html body #main table.vars tbody tr:hover>td{background:var(--hover)!important}
 </style>
 </head>
